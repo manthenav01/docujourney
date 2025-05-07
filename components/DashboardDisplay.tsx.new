@@ -1,0 +1,139 @@
+import React from 'react';
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+import { FileIcon } from 'lucide-react';
+import { DocumentMetaDataModel } from '@/lib/types/document.model';
+import { DocumentTypeSchemaModel } from '@/lib/documentActions';
+
+// Helper function to format values based on their type
+function formatValue(value: any, fieldType?: string): string {
+  // Handle null or undefined
+  if (value === undefined || value === null) return 'N/A';
+  
+  // Handle Firebase Timestamp objects
+  if (value && typeof value === 'object' && 'seconds' in value) {
+    return new Date(value.seconds * 1000).toLocaleDateString('en-US', {
+      month: 'long',
+      day: 'numeric',
+      year: 'numeric'
+    });
+  }
+  
+  // Handle date strings if field type is date
+  if (fieldType === 'date' && typeof value === 'string') {
+    const dateValue = new Date(value);
+    if (!isNaN(dateValue.getTime())) {
+      return dateValue.toLocaleDateString('en-US', {
+        month: 'long',
+        day: 'numeric',
+        year: 'numeric'
+      });
+    }
+  }
+  
+  // Return string representation for everything else
+  return String(value);
+}
+
+interface DocumentGroup {
+  documentType: string;
+  docs: DocumentMetaDataModel[];
+}
+
+interface DashboardDisplayProps {
+  userId: string;
+  initialProfileId: string;
+  documentGroups: DocumentGroup[];
+  documentSchemas: Record<string, DocumentTypeSchemaModel>;
+}
+
+export default function DashboardDisplay({
+  userId,
+  initialProfileId,
+  documentGroups,
+  documentSchemas,
+}: DashboardDisplayProps) {
+  return (
+    <div>
+      {documentGroups.length === 0 ? (
+        <p>No documents found for this profile.</p>
+      ) : (
+        documentGroups.map((group) => (
+          <div key={group.documentType} className="mb-6">
+            <h2 className="text-xl font-semibold mb-4">
+              {documentSchemas[group.documentType]?.displayName || group.documentType}
+            </h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+              {group.docs.length > 0 ? (
+                <Card key={group.docs[0].id} className="overflow-hidden bg-white shadow rounded-lg">
+                  {/* Header with status badge */}
+                  <div className="flex items-center justify-between p-5 border-b border-gray-100">
+                    <div className="flex items-center">
+                      <div className="bg-blue-50 p-3 rounded-lg mr-4">
+                        <FileIcon className="h-6 w-6 text-blue-600" />
+                      </div>
+                      <h3 className="text-xl font-semibold text-gray-800">
+                        {documentSchemas[group.documentType]?.displayName || group.documentType}
+                      </h3>
+                    </div>
+
+                    <span className={`px-3 py-1 text-sm font-medium rounded-full
+                      ${group.docs[0].status === 'active' || group.docs[0].status === 'approved'
+                        ? 'bg-green-50 text-green-700' 
+                        : 'bg-gray-100 text-gray-700'}`}
+                    >
+                      {group.docs[0].status === 'active' ? 'Active' : group.docs[0].status}
+                    </span>
+                  </div>
+
+                  <div className="px-5 pt-3">
+                    <div className="text-sm text-gray-500">{group.docs?.length || 0} documents</div>
+                  </div>
+
+                  {/* Document metadata - key-value pairs */}
+                  <div className="px-5 py-4">
+                    {documentSchemas[group.documentType]?.fields
+                      ?.filter(field => field.displayInOverview)
+                      .map(field => {
+                        if (!field.key) return null;
+                        
+                        const fieldKey = field.key;
+                        const value = group.docs[0]?.extracted?.[fieldKey as keyof typeof group.docs[0].extracted];
+                        
+                        // Skip if the value doesn't exist
+                        if (value === undefined || value === null) return null;
+                        
+                        // Use the helper function to format the value
+                        const displayValue = formatValue(value, field.type);
+                        
+                        return (
+                          <div key={field.key} className="flex justify-between py-2 border-b border-gray-100">
+                            <span className="text-gray-600">{field.label}:</span>
+                            <span className="font-medium">{displayValue}</span>
+                          </div>
+                        );
+                      })
+                    }
+                  </div>
+
+                  {/* View button */}
+                  <div className="px-5 py-4 flex justify-end">
+                    <a 
+                      href={group.docs[0].url} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center justify-center px-6 py-2 border border-blue-100 text-blue-600 rounded-full hover:bg-blue-50 transition font-medium"
+                    >
+                      View
+                    </a>
+                  </div>
+                </Card>
+              ) : (
+                <p>No documents of this type.</p>
+              )}
+            </div>
+          </div>
+        ))
+      )}
+    </div>
+  );
+}
