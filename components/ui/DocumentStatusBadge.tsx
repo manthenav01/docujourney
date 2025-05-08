@@ -3,7 +3,7 @@ import { Timestamp } from 'firebase/firestore';
 import { Badge } from './badge';
 
 interface DocumentStatusBadgeProps {
-  validTo?: Timestamp | null;
+  validTo?:  string | null;
 }
 
 const DocumentStatusBadge: React.FC<DocumentStatusBadgeProps> = ({ validTo }) => {
@@ -14,11 +14,17 @@ const DocumentStatusBadge: React.FC<DocumentStatusBadgeProps> = ({ validTo }) =>
   if (!validTo) {
     statusText = 'Unknown';
   } else {
-    const validDate = validTo.toDate();
+    // Normalize validTo into a Date object
+    let validDate: Date | null = null;
+    if (typeof validTo === 'string') {
+      validDate = new Date(validTo);
+    }
     const now = new Date();
-    const diffDays = Math.ceil((validDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+    const diffDays = validDate
+      ? Math.ceil((validDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24))
+      : NaN;
 
-    if (isNaN(diffDays)) {
+    if (!validDate || isNaN(diffDays)) {
       statusText = 'Unknown';
       variants = 'default';
     } else if (diffDays < 0) {

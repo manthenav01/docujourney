@@ -1,8 +1,7 @@
-import { DocumentExtractedResponseData } from './types/document.model';
+import { DocumentMetaDataAPIModel, DocumentMetaDataTransformedModel, DocumentExtractedResponseAPIData } from './types/document.model';
 
 
 import { adminDb } from './firebaseAdmin';
-import { DocumentMetaDataModel } from './types/document.model';
 
 
 export interface DocumentTypeFieldsSchemaModel {
@@ -55,21 +54,22 @@ export async function fetchDocumentSchemas(): Promise<Record<string, DocumentTyp
 
 // Function to fetch documents and group by type
 export async function fetchAndGroupDocuments(userId: string, profileId: string): Promise<{
-    documentGroups: { documentType: string; docs: DocumentMetaDataModel[] }[];
+    documentGroups: { documentType: string; docs: DocumentMetaDataTransformedModel[] }[];
 }> {
     try {
         // Fetch documents
         const documentsRef = adminDb.collection(`users/${userId}/profiles/${profileId}/documents`);
         const querySnapshot = await documentsRef.get();
-        const documents: DocumentMetaDataModel[] = [];
+        const documents: DocumentMetaDataTransformedModel[] = [];
+        if (querySnapshot.empty) {
+            return { documentGroups: [] };
+        }
 
         querySnapshot.forEach((doc) => {
-            documents.push({
+            documents.push(transformDocumentMetaData({
                 id: doc.id,
-                ...doc.data(),
-                // Convert Firestore timestamps to strings if needed
-                uploadedAt: doc.data().uploadedAt?.toDate?.() ? doc.data().uploadedAt.toDate().toISOString() : doc.data().uploadedAt,
-            } as DocumentMetaDataModel);
+                ...(doc.data() as Omit<DocumentMetaDataAPIModel, 'id'>),
+            }));
         });
 
         // Group documents by type
@@ -77,7 +77,7 @@ export async function fetchAndGroupDocuments(userId: string, profileId: string):
             const documentType = doc.extracted?.document_type || 'Others';
             const list = acc[documentType] || [];
             return { ...acc, [documentType]: [...list, doc] };
-        }, {} as Record<string, DocumentMetaDataModel[]>);
+        }, {} as Record<string, DocumentMetaDataTransformedModel[]>);
 
         const documentGroups = Object.entries(groups).map(([documentType, docs]) => ({
             documentType,
@@ -92,8 +92,56 @@ export async function fetchAndGroupDocuments(userId: string, profileId: string):
 }
 
 
-// Fetch all documents for a user/profile filtered by documentType
-export async function fetchDocumentsByType(userId: string, profileId: string, documentType: string): Promise<DocumentMetaDataModel[]> {
+// Define a transformed model for DocumentMetaDataModel
+
+
+// Utility function to transform DocumentMetaDataModel
+export function transformDocumentMetaData(
+    doc: DocumentMetaDataAPIModel
+): DocumentMetaDataTransformedModel {
+    const isFirestoreTimestamp = (value: any): value is FirebaseFirestore.Timestamp =>
+        value && typeof value.toDate === 'function';
+
+    return {
+        ...doc,
+        uploadedAt: isFirestoreTimestamp(doc.uploadedAt)
+            ? doc.uploadedAt.toDate().toISOString()
+            : doc.uploadedAt,
+        createdAt: isFirestoreTimestamp(doc.createdAt)
+            ? doc.createdAt.toDate().toISOString()
+            : doc.createdAt,
+        extracted: doc.extracted
+            ? {
+                ...doc.extracted,
+                notice_date: isFirestoreTimestamp(doc.extracted.notice_date)
+                    ? doc.extracted.notice_date.toDate().toISOString()
+                    : doc.extracted.notice_date,
+                valid_from: isFirestoreTimestamp(doc.extracted.valid_from)
+                    ? doc.extracted.valid_from.toDate().toISOString()
+                    : doc.extracted.valid_from,
+                valid_to: isFirestoreTimestamp(doc.extracted.valid_to)
+                    ? doc.extracted.valid_to.toDate().toISOString()
+                    : doc.extracted.valid_to,
+                date_of_birth: isFirestoreTimestamp(doc.extracted.date_of_birth)
+                    ? doc.extracted.date_of_birth.toDate().toISOString()
+                    : doc.extracted.date_of_birth,
+                date_of_entry: isFirestoreTimestamp(doc.extracted.date_of_entry)
+                    ? doc.extracted.date_of_entry.toDate().toISOString()
+                    : doc.extracted.date_of_entry,
+                date_of_adjustment: isFirestoreTimestamp(doc.extracted.date_of_adjustment)
+                    ? doc.extracted.date_of_adjustment.toDate().toISOString()
+                    : doc.extracted.date_of_adjustment,
+            }
+            : null,
+    };
+}
+
+// Update fetchDocumentsByType to use the transformed model
+export async function fetchDocumentsByType(
+    userId: string,
+    profileId: string,
+    documentType: string
+): Promise<DocumentMetaDataTransformedModel[]> {
     const snapshot = await adminDb
         .collection('users')
         .doc(userId)
@@ -101,8 +149,15 @@ export async function fetchDocumentsByType(userId: string, profileId: string, do
         .doc(profileId)
         .collection('documents')
         .get();
-    const docs = snapshot.docs.map((doc) => doc.data() as DocumentMetaDataModel);
-    return docs.filter((doc) => doc.extracted?.document_type === documentType);
+
+    const docs = snapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...(doc.data() as Omit<DocumentMetaDataAPIModel, 'id'>),
+    }));
+
+    return docs
+        .filter((doc) => doc.extracted?.document_type === documentType)
+        .map(transformDocumentMetaData);
 }
 
 
@@ -110,34 +165,52 @@ export async function fetchDocumentsByType(userId: string, profileId: string, do
 
 // Utility to sort documents by schema order
 export function sortDocumentsBySchemaOrder(
-  documents: DocumentMetaDataModel[],
-  documentSchema: DocumentTypeSchemaModel
-): DocumentMetaDataModel[] {
-  if (!documentSchema?.sortByKeyOrder || documentSchema.sortByKeyOrder.length === 0) return documents;
+    documents: DocumentMetaDataTransformedModel[],
+    documentSchema: DocumentTypeSchemaModel
+): DocumentMetaDataTransformedModel[] {
+    if (!documentSchema?.sortByKeyOrder || documentSchema.sortByKeyOrder.length === 0) return documents;
 
-  // Only sort by keys that exist in DocumentExtractedResponseData
-  const validSortKey = documentSchema.sortByKeyOrder.find(key =>
-    documents[0]?.extracted && (key as keyof DocumentExtractedResponseData) in documents[0].extracted!
-  );
-  if (!validSortKey) return documents;
+    // Only sort by keys that exist in DocumentExtractedResponseAPIData
+    const validSortKey = documentSchema.sortByKeyOrder.find(key =>
+        documents[0]?.extracted && (key as keyof DocumentExtractedResponseAPIData) in documents[0].extracted!
+    );
+    if (!validSortKey) return documents;
 
-  return documents.slice().sort((a, b) => {
-    const aExtracted = a.extracted as DocumentExtractedResponseData | null;
-    const bExtracted = b.extracted as DocumentExtractedResponseData | null;
-    const aVal = aExtracted ? aExtracted[validSortKey as keyof DocumentExtractedResponseData] : undefined;
-    const bVal = bExtracted ? bExtracted[validSortKey as keyof DocumentExtractedResponseData] : undefined;
-    // Handle Timestamp (from Firestore)
-    if (aVal && typeof aVal === 'object' && 'seconds' in aVal && bVal && typeof bVal === 'object' && 'seconds' in bVal) {
-      return bVal.seconds - aVal.seconds;
+    const isFirestoreTimestamp = (value: any): value is FirebaseFirestore.Timestamp =>
+        value && typeof value.seconds === 'number';
+
+    return documents.slice().sort((a, b) => {
+        const aExtracted = a.extracted as DocumentExtractedResponseAPIData | null;
+        const bExtracted = b.extracted as DocumentExtractedResponseAPIData | null;
+        const aVal = aExtracted ? aExtracted[validSortKey as keyof DocumentExtractedResponseAPIData] : undefined;
+        const bVal = bExtracted ? bExtracted[validSortKey as keyof DocumentExtractedResponseAPIData] : undefined;
+
+        // Handle Timestamp (from Firestore)
+        if (isFirestoreTimestamp(aVal) && isFirestoreTimestamp(bVal)) {
+            return bVal.seconds - aVal.seconds;
+        }
+
+        // Handle string/number
+        if (typeof aVal === 'string' && typeof bVal === 'string') {
+            return bVal.localeCompare(aVal);
+        }
+        if (typeof aVal === 'number' && typeof bVal === 'number') {
+            return bVal - aVal;
+        }
+
+        // Fallback: keep original order
+        return 0;
+    });
+}
+
+// Function to delete a document by ID
+export async function deleteDocument(userId: string, profileId: string, documentId: string): Promise<void> {
+    try {
+        const documentRef = adminDb.collection('users').doc(userId).collection('profiles').doc(profileId).collection('documents').doc(documentId);
+        await documentRef.delete();
+        console.log(`Document with ID ${documentId} deleted successfully.`);
+    } catch (error) {
+        console.error(`Failed to delete document with ID ${documentId}:`, error);
+        throw new Error('Failed to delete document.');
     }
-    // Handle string/number
-    if (typeof aVal === 'string' && typeof bVal === 'string') {
-      return bVal.localeCompare(aVal);
-    }
-    if (typeof aVal === 'number' && typeof bVal === 'number') {
-      return bVal - aVal;
-    }
-    // Fallback: keep original order
-    return 0;
-  });
 }

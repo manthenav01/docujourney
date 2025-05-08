@@ -1,49 +1,19 @@
 import React from 'react';
 import DocumentStatusBadge from './ui/DocumentStatusBadge';
-import { Card, CardHeader, CardTitle, CardContent, CardDescription, CardFooter } from '@/components/ui/card';
+import { Card, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import Link from 'next/link';
-import { DeleteIcon, FileIcon, FolderIcon, TrashIcon } from 'lucide-react';
-import { DocumentMetaDataModel, DocumentExtractedResponseData } from '@/lib/types/document.model';
+import {  FileIcon, FolderIcon, } from 'lucide-react';
 import { DocumentTypeSchemaModel } from '@/lib/documentActions';
 import { Separator } from './ui/separator';
 import { Button } from './ui/Button';
-import { Badge } from './ui/badge';
-
-// Helper function to format values based on their type
-function formatValue(value: any, fieldType?: string): string {
-    // Handle null or undefined
-    if (value === undefined || value === null) return 'N/A';
-
-    // Handle Firebase Timestamp objects
-    if (value && typeof value === 'object' && 'seconds' in value) {
-        return new Date(value.seconds * 1000).toLocaleDateString('en-US', {
-            month: 'long',
-            day: 'numeric',
-            year: 'numeric'
-        });
-    }
-
-    // Handle date strings if field type is date
-    if (fieldType === 'date' && typeof value === 'string') {
-        const dateValue = new Date(value);
-        if (!isNaN(dateValue.getTime())) {
-            return dateValue.toLocaleDateString('en-US', {
-                month: 'long',
-                day: 'numeric',
-                year: 'numeric'
-            });
-        }
-    }
-
-    // Return string representation for everything else
-    return String(value);
-}
+import DocumentCardBody from './DocumentCardBody';
+import { DocumentMetaDataTransformedModel } from '@/lib/types/document.model';
 
 
 interface DashboardDisplayProps {
     userId: string;
     initialProfileId: string;
-    documentGroups: { documentType: string; docs: DocumentMetaDataModel[] }[];
+    documentGroups: { documentType: string; docs: DocumentMetaDataTransformedModel[] }[];
     documentSchemas: Record<string, DocumentTypeSchemaModel>;
 }
 
@@ -55,6 +25,7 @@ export default function DashboardDisplay({
 }: DashboardDisplayProps) {
     return (
         <div className="mb-8 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+            
             {documentGroups.length === 0 ? (
                 <p>No documents found for this profile.</p>
             ) : (
@@ -91,42 +62,12 @@ export default function DashboardDisplay({
                                     href={`/dashboard/${group.documentType}?profileId=${initialProfileId}`}
                                     passHref
                                 >
-                                    <CardContent className="cursor-pointer">
-                                    {/* Document metadata - key-value pairs */}
-                                        {documentSchemas[group.documentType]?.fields
-                                        ?.filter(field => field.displayInOverview)
-                                        .map((field) => {
-                                            // Skip if no key or the document has no extracted data
-                                            if (!field.key || !group.docs[0]?.extracted) return null;
-
-                                            // Safely access the field value from extracted data
-                                            const extractedData = group.docs[0].extracted;
-                                            const value = extractedData[field.key as keyof typeof extractedData];
-
-                                            // Skip if the value doesn't exist
-                                            if (value === undefined || value === null) return null;
-
-                                            // Use the helper function to format the value
-                                            const displayValue = formatValue(value, field.type);
-
-                                            return (
-                                                <div key={field.key} className="flex justify-between pb-2">
-                                                    <span className="text-muted-foreground">{field.label}:</span>
-                                                    <span className="">{displayValue}</span>
-                                                </div>
-                                            );
-                                        })
-                                        }
-                                    </CardContent>
+                                    <DocumentCardBody doc={group.docs[0]} documentSchema={documentSchemas[group.documentType]} />
                                 </Link>
                                 <Separator
                                     orientation="horizontal"
                                 />
                                 <CardFooter className="flex justify-between">
-                                    <Button variant={"outline"} >
-                                        <TrashIcon className="h-4 w-4 mr-2 " />
-                                    </Button>
-
                                     <Button variant={"outline"} >
                                         <FileIcon className="h-4 w-4 mr-2" />
                                         View

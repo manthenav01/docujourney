@@ -1,9 +1,12 @@
 import { cookies } from 'next/headers';
 import DashboardDisplay from '@/components/DashboardDisplay';
-import { fetchDocumentSchemas, fetchAndGroupDocuments, sortDocumentsBySchemaOrder } from '@/lib/documentActions';
+import { fetchDocumentSchemas, fetchAndGroupDocuments } from '@/lib/documentActions';
 import ProfileSwitcher from '@/components/ProfileSwitcher';
 
+import UploadDocumentDialog from '@/components/UploadDocumentDialog';
+
 import { fetchProfiles } from '@/lib/profileApi';
+import { sortDocumentsBySchemaOrder as sortDocumentsBySchemaOrderUtils } from '@/utils/documentUtils';
 
 
 // Add searchParams as props - Next.js automatically provides this for pages
@@ -46,20 +49,26 @@ const DashboardPage = async ({
         const schema = documentSchemas[group.documentType];
         return {
             ...group,
-            docs: schema ? sortDocumentsBySchemaOrder(group.docs, schema) : group.docs
+            docs: schema ? sortDocumentsBySchemaOrderUtils(group.docs, schema) : group.docs
         };
     });
-    console.log("Document Groups:", documentGroups);
     return (
         <>
             <div className="flex items-center justify-between mb-4">
-
-                <h2 className="text-xl font-medium">Welcome, {activeProfile?.firstName} {activeProfile?.lastName}</h2>
-                <ProfileSwitcher
-                    profiles={profiles}
-                    initialProfileId={activeProfileId}
-                    userId={userId}
-                />
+                <h2 className="text-xl font-medium"> 🚀 Welcome back, {activeProfile?.firstName}!</h2>
+                <div className="flex items-center gap-2">
+                    <ProfileSwitcher
+                        profiles={profiles}
+                        initialProfileId={activeProfileId}
+                        userId={userId}
+                    />
+                    {/* Upload button triggers the upload dialog */}
+                    <UploadDocumentDialog
+                        userId={userId}
+                        profileId={activeProfileId}
+                        documentSchemas={documentSchemas}
+                    />
+                </div>
             </div>
             <DashboardDisplay
                 userId={userId}
