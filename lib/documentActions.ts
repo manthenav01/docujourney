@@ -2,6 +2,7 @@ import { DocumentMetaDataAPIModel, DocumentMetaDataTransformedModel, DocumentExt
 
 
 import { adminDb } from './firebaseAdmin';
+import { transformDocumentMetaData } from '../utils/documentUtils';
 
 
 export interface DocumentTypeFieldsSchemaModel {
@@ -91,50 +92,6 @@ export async function fetchAndGroupDocuments(userId: string, profileId: string):
     }
 }
 
-
-// Define a transformed model for DocumentMetaDataModel
-
-
-// Utility function to transform DocumentMetaDataModel
-export function transformDocumentMetaData(
-    doc: DocumentMetaDataAPIModel
-): DocumentMetaDataTransformedModel {
-    const isFirestoreTimestamp = (value: any): value is FirebaseFirestore.Timestamp =>
-        value && typeof value.toDate === 'function';
-
-    return {
-        ...doc,
-        uploadedAt: isFirestoreTimestamp(doc.uploadedAt)
-            ? doc.uploadedAt.toDate().toISOString()
-            : doc.uploadedAt,
-        createdAt: isFirestoreTimestamp(doc.createdAt)
-            ? doc.createdAt.toDate().toISOString()
-            : doc.createdAt,
-        extracted: doc.extracted
-            ? {
-                ...doc.extracted,
-                notice_date: isFirestoreTimestamp(doc.extracted.notice_date)
-                    ? doc.extracted.notice_date.toDate().toISOString()
-                    : doc.extracted.notice_date,
-                valid_from: isFirestoreTimestamp(doc.extracted.valid_from)
-                    ? doc.extracted.valid_from.toDate().toISOString()
-                    : doc.extracted.valid_from,
-                valid_to: isFirestoreTimestamp(doc.extracted.valid_to)
-                    ? doc.extracted.valid_to.toDate().toISOString()
-                    : doc.extracted.valid_to,
-                date_of_birth: isFirestoreTimestamp(doc.extracted.date_of_birth)
-                    ? doc.extracted.date_of_birth.toDate().toISOString()
-                    : doc.extracted.date_of_birth,
-                date_of_entry: isFirestoreTimestamp(doc.extracted.date_of_entry)
-                    ? doc.extracted.date_of_entry.toDate().toISOString()
-                    : doc.extracted.date_of_entry,
-                date_of_adjustment: isFirestoreTimestamp(doc.extracted.date_of_adjustment)
-                    ? doc.extracted.date_of_adjustment.toDate().toISOString()
-                    : doc.extracted.date_of_adjustment,
-            }
-            : null,
-    };
-}
 
 // Update fetchDocumentsByType to use the transformed model
 export async function fetchDocumentsByType(

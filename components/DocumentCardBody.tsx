@@ -12,7 +12,7 @@ interface DocumentCardBodyProps {
 
 const DocumentCardBody: React.FC<DocumentCardBodyProps> = ({ doc, documentSchema }) => {
     return (
-        <CardContent>
+        <>
             {documentSchema?.fields && documentSchema.fields.filter((field: any) => field.displayInOverview).map((field: any) => {
                 if (!field.key || !doc.extracted) return null;
                 console.log("field", field.key,  doc.extracted);
@@ -26,7 +26,7 @@ const DocumentCardBody: React.FC<DocumentCardBodyProps> = ({ doc, documentSchema
                     </div>
                 );
             })}
-        </CardContent>
+            </>
     );
 };
 

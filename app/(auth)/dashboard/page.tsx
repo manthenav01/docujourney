@@ -13,12 +13,13 @@ import { sortDocumentsBySchemaOrder as sortDocumentsBySchemaOrderUtils } from '@
 const DashboardPage = async ({
     searchParams,
 }: {
-    searchParams: { [key: string]: string | string[] | undefined };
+    searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }) => {
     const cookiesList = await cookies();
     const userId = cookiesList.get('userId')?.value;
     // Get profile ID from search params (built into Next.js page props)
-    const profileIdFromUrl = typeof searchParams.profileId === 'string' ? searchParams.profileId : undefined;
+    const resolvedSearchParams = await searchParams;
+    const profileIdFromUrl = typeof resolvedSearchParams.profileId === 'string' ? resolvedSearchParams.profileId : undefined;
     if (!userId) {
         return (
             <div>

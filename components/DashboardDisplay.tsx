@@ -1,8 +1,8 @@
 import React from 'react';
 import DocumentStatusBadge from './ui/DocumentStatusBadge';
-import { Card, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
+import { Card, CardHeader, CardTitle, CardDescription, CardFooter, CardContent } from '@/components/ui/card';
 import Link from 'next/link';
-import {  FileIcon, FolderIcon, } from 'lucide-react';
+import { FileIcon, FolderIcon, } from 'lucide-react';
 import { DocumentTypeSchemaModel } from '@/lib/documentActions';
 import { Separator } from './ui/separator';
 import { Button } from './ui/Button';
@@ -25,7 +25,7 @@ export default function DashboardDisplay({
 }: DashboardDisplayProps) {
     return (
         <div className="mb-8 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-            
+
             {documentGroups.length === 0 ? (
                 <p>No documents found for this profile.</p>
             ) : (
@@ -58,12 +58,14 @@ export default function DashboardDisplay({
                                 <Separator
                                     orientation="horizontal"
                                 />
-                                <Link
-                                    href={`/dashboard/${group.documentType}?profileId=${initialProfileId}`}
-                                    passHref
-                                >
-                                    <DocumentCardBody doc={group.docs[0]} documentSchema={documentSchemas[group.documentType]} />
-                                </Link>
+                                <CardContent>
+                                    <Link
+                                        href={`/dashboard/${group.documentType}?profileId=${initialProfileId}`}
+                                        passHref
+                                    >
+                                        <DocumentCardBody doc={group.docs[0]} documentSchema={documentSchemas[group.documentType]} />
+                                    </Link>
+                                </CardContent>
                                 <Separator
                                     orientation="horizontal"
                                 />

@@ -21,7 +21,8 @@ import { collection, addDoc, updateDoc, doc as firestoreDoc, onSnapshot } from '
 import { DocumentTypeSchemaModel } from '@/lib/documentActions';
 import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/popover';
 import { CalendarIcon } from 'lucide-react';
-import { DocumentMetaDataTransformedModel } from '@/lib/types/document.model';
+import { DocumentMetaDataAPIModel, DocumentMetaDataTransformedModel } from '@/lib/types/document.model';
+import { transformDocumentMetaData } from '@/utils/documentUtils';
 
 interface UploadDocumentDialogProps {
   userId: string;
@@ -36,35 +37,37 @@ export default function UploadDocumentDialog({ userId, profileId, documentSchema
   const [docRefId, setDocRefId] = useState<string>();
   const [docData, setDocData] = useState<DocumentMetaDataTransformedModel | null>(null);
   const [formFields, setFormFields] = useState<Record<string, any> | null>(null);
+  // const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
   const form = useForm<{ [key: string]: any }>({ defaultValues: {} });
   // reset form when extracted fields load
   // reset form values when extracted fields load
   useEffect(() => {
     if (formFields) {
-      form.reset(formFields);
+      form.reset({});
     }
   }, [formFields]);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [popoverOpen, setPopoverOpen] = useState(false);
+  // const [popoverOpen, setPopoverOpen] = useState(false);
 
   // Listen for document status to become 'completed', then load extracted fields
   useEffect(() => {
     if (!docRefId) return;
     const docRef = firestoreDoc(db, `users/${userId}/profiles/${profileId}/documents`, docRefId);
     const unsub = onSnapshot(docRef, (snap) => {
-      const data = snap.data() as any;
+      const data = snap.data() as DocumentMetaDataAPIModel;
       if (data?.status === 'completed' && data.extracted) {
-        setDocData({ id: snap.id, ...data });
-        const fields = documentSchemas[
-          data.extracted.document_type
-        ].fields
+        const transformedData = transformDocumentMetaData(data);
+        
+        setDocData({ ...transformedData, id: snap.id });
+          const documentType = transformedData?.extracted?.document_type;
+          if ( !documentType || !documentSchemas[documentType]) {
+            console.error(`Document type ${documentType} not found in schemas`);
+            return;
+          }
+        const fields = documentSchemas[documentType].fields
           .filter((f) => f.editable);
         const extractedFields = fields.reduce((acc, field) => {
-          let value = data.extracted[field.key];
-          if (value && typeof value === 'object' && 'seconds' in value) {
-            value = new Date(value.seconds * 1000);
-          }
-          acc[field.key] = value;
+          acc[field.key] = (transformedData.extracted as Record<string, any>)?.[field.key];
           return acc;
         }, {} as Record<string, any>);
         setFormFields(extractedFields);
@@ -116,7 +119,7 @@ export default function UploadDocumentDialog({ userId, profileId, documentSchema
           <DialogTitle>Upload Document</DialogTitle>
           <DialogDescription>Select a file to upload and verify extracted data.</DialogDescription>
         </DialogHeader>
-
+      
         {!file && (
           <div>
             <input ref={fileInputRef} type="file" className="hidden" onChange={handleFileSelect} />
@@ -173,11 +176,17 @@ export default function UploadDocumentDialog({ userId, profileId, documentSchema
                                   {value.toLocaleDateString()}
                                 </Button>
                               </PopoverTrigger>
-                              <PopoverContent className="w-auto p-0" align="start">
+                              <PopoverContent className="w-auto p-0 ignore-modal-close z-[90] pointer-events-auto" align="start">
                                 <Calendar
                                   mode="single"
                                   selected={value}
-                                  onSelect={(date) => form.setValue(key, date)}
+                                  onSelect={(date) => {
+                                    console.log("Selected date:", date);
+                                    if (date) {
+                                      form.setValue(key, date);
+                                      form.trigger(key);
+                                    }
+                                  }}
                                   initialFocus
                                 />
                               </PopoverContent>

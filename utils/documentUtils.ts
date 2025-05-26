@@ -1,4 +1,4 @@
-import { DocumentExtractedTransformedData, DocumentMetaDataTransformedModel } from '@/lib/types/document.model';
+import { DocumentExtractedTransformedData, DocumentMetaDataAPIModel, DocumentMetaDataTransformedModel } from '@/lib/types/document.model';
 import { DocumentTypeSchemaModel } from '@/lib/documentActions';
 
 export function sortDocumentsBySchemaOrder(documents: DocumentMetaDataTransformedModel[], documentSchema: DocumentTypeSchemaModel): DocumentMetaDataTransformedModel[] {
@@ -35,17 +35,6 @@ export function sortDocumentsBySchemaOrder(documents: DocumentMetaDataTransforme
     });
 }
 
-// export function formatDate(value: any): string {
-//     const dateValue = new Date(value);
-//     if (!isNaN(dateValue.getTime())) {
-//         return dateValue.toLocaleDateString('en-US', {
-//             month: 'long',
-//             day: 'numeric',
-//             year: 'numeric'
-//         });
-//     }
-//     return 'N/A';
-// }
 
 export function formatValue(value: any, fieldType?: string): string {
     // Handle null or undefined
@@ -65,4 +54,40 @@ export function formatValue(value: any, fieldType?: string): string {
 
     // Return string representation for everything else
     return String(value);
-} 
+}
+
+export function transformDocumentMetaData(
+    doc: DocumentMetaDataAPIModel
+): DocumentMetaDataTransformedModel {
+    const isTimestamp = (value: any): value is { toDate: () => Date } =>
+        value && typeof value.toDate === 'function';
+
+    const convertToISOString = (value: any): string => {
+        if (isTimestamp(value)) {
+            return value.toDate().toISOString();
+        } else if (value instanceof Date) {
+            return value.toISOString();
+        } else if (typeof value === 'string' || typeof value === 'number') {
+            const date = new Date(value);
+            return isNaN(date.getTime()) ? '' : date.toISOString();
+        }
+        return '';
+    };
+
+    return {
+        ...doc,
+        uploadedAt: convertToISOString(doc.uploadedAt),
+        createdAt: convertToISOString(doc.createdAt),
+        extracted: doc.extracted
+            ? {
+                  ...doc.extracted,
+                  notice_date: convertToISOString(doc.extracted.notice_date),
+                  valid_from: convertToISOString(doc.extracted.valid_from),
+                  valid_to: convertToISOString(doc.extracted.valid_to),
+                  date_of_birth: convertToISOString(doc.extracted.date_of_birth),
+                  date_of_entry: convertToISOString(doc.extracted.date_of_entry),
+                  date_of_adjustment: convertToISOString(doc.extracted.date_of_adjustment),
+              }
+            : null,
+    };
+}

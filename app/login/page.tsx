@@ -23,10 +23,10 @@ const LoginPage = () => {
       const provider = new GoogleAuthProvider();
       await signInWithPopup(auth, provider);
       const user = auth.currentUser;
-    //   if (user) {
-    //     console.log("User ID:", user.uid);
-    //     document.cookie = `userId=${user.uid}; path=/;`;
-    //   }
+      if (user) {
+        console.log("User ID:", user.uid);
+        document.cookie = `userId=${user.uid}; path=/;`;
+      }
       router.push("/dashboard");
     } catch (err: any) {
         console.error("Google login error:", err);

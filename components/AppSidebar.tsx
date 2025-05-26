@@ -10,12 +10,12 @@ import {
   SidebarFooter,
   SidebarGroup,
   SidebarGroupContent,
-  SidebarGroupLabel,
   SidebarHeader,
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
+import { UserDropdown } from "@/components/UserDropdown";
 
 // Menu items
 const items = [
@@ -61,9 +61,7 @@ export function AppSidebar() {
         </SidebarGroup>
       </SidebarContent>
       <SidebarFooter>
-        <div className="px-4 py-3 text-sm text-gray-500">
-          DocuJourney AI © 2025
-        </div>
+        <UserDropdown />
       </SidebarFooter>
     </Sidebar>
   );
