@@ -1,9 +1,6 @@
 import { cookies } from 'next/headers';
-import DashboardDisplay from '@/components/DashboardDisplay';
+import DashboardWithUpload from '@/components/DashboardWithUpload';
 import { fetchDocumentSchemas, fetchAndGroupDocuments } from '@/lib/documentActions';
-import ProfileSwitcher from '@/components/ProfileSwitcher';
-
-import UploadDocumentDialog from '@/components/UploadDocumentDialog';
 
 import { fetchProfiles } from '@/lib/profileApi';
 import { sortDocumentsBySchemaOrder as sortDocumentsBySchemaOrderUtils } from '@/utils/documentUtils';
@@ -44,7 +41,16 @@ const DashboardPage = async ({
 
     const activeProfileId = profileIdFromUrl || profiles[0].id;
     const activeProfile = profiles.find(profile => profile.id === activeProfileId);
-    let { documentGroups } = await fetchAndGroupDocuments(userId, activeProfileId);
+    
+    if (!activeProfile) {
+        return (
+            <div>
+                <p>Profile not found.</p>
+            </div>
+        );
+    }
+    
+    let { documentGroups } = await fetchAndGroupDocuments(userId, activeProfileId, documentSchemas);
     // Sort each group using the schema order
     documentGroups = documentGroups.map(group => {
         const schema = documentSchemas[group.documentType];
@@ -54,30 +60,14 @@ const DashboardPage = async ({
         };
     });
     return (
-        <>
-            <div className="flex items-center justify-between mb-4">
-                <h2 className="text-xl font-medium"> 🚀 Welcome back, {activeProfile?.firstName}!</h2>
-                <div className="flex items-center gap-2">
-                    <ProfileSwitcher
-                        profiles={profiles}
-                        initialProfileId={activeProfileId}
-                        userId={userId}
-                    />
-                    {/* Upload button triggers the upload dialog */}
-                    <UploadDocumentDialog
-                        userId={userId}
-                        profileId={activeProfileId}
-                        documentSchemas={documentSchemas}
-                    />
-                </div>
-            </div>
-            <DashboardDisplay
-                userId={userId}
-                initialProfileId={activeProfileId}
-                documentGroups={documentGroups}
-                documentSchemas={documentSchemas}
-            />
-        </>
+        <DashboardWithUpload
+            userId={userId}
+            activeProfileId={activeProfileId}
+            activeProfile={activeProfile}
+            profiles={profiles}
+            documentGroups={documentGroups}
+            documentSchemas={documentSchemas}
+        />
     );
 };
 

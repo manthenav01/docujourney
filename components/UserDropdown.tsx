@@ -2,7 +2,8 @@
 
 import React, { useEffect, useState } from 'react';
 import { User, Settings, LogOut, ChevronUp } from 'lucide-react';
-import { getAuth, onAuthStateChanged, signOut } from 'firebase/auth';
+import { onAuthStateChanged, signOut } from 'firebase/auth';
+import { auth } from '@/lib/firebase';
 import { useRouter } from 'next/navigation';
 import {
   Popover,
@@ -22,7 +23,6 @@ export function UserDropdown() {
   const [user, setUser] = useState<UserInfo | null>(null);
   const [isOpen, setIsOpen] = useState(false);
   const router = useRouter();
-  const auth = getAuth();
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
@@ -38,7 +38,7 @@ export function UserDropdown() {
     });
 
     return () => unsubscribe();
-  }, [auth]);
+  }, []);
 
   const handleSignOut = async () => {
     try {

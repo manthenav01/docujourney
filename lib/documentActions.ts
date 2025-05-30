@@ -54,7 +54,11 @@ export async function fetchDocumentSchemas(): Promise<Record<string, DocumentTyp
 }
 
 // Function to fetch documents and group by type
-export async function fetchAndGroupDocuments(userId: string, profileId: string): Promise<{
+export async function fetchAndGroupDocuments(
+    userId: string, 
+    profileId: string, 
+    documentSchemas?: Record<string, DocumentTypeSchemaModel>
+): Promise<{
     documentGroups: { documentType: string; docs: DocumentMetaDataTransformedModel[] }[];
 }> {
     try {
@@ -73,8 +77,16 @@ export async function fetchAndGroupDocuments(userId: string, profileId: string):
             }));
         });
 
+        // Filter documents to only include those with document types that exist in the schema
+        const filteredDocuments = documentSchemas 
+            ? documents.filter(doc => {
+                const documentType = doc.extracted?.document_type;
+                return documentType && documentSchemas[documentType];
+            })
+            : documents;
+
         // Group documents by type
-        const groups = documents.reduce((acc, doc) => {
+        const groups = filteredDocuments.reduce((acc, doc) => {
             const documentType = doc.extracted?.document_type || 'Others';
             const list = acc[documentType] || [];
             return { ...acc, [documentType]: [...list, doc] };

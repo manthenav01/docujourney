@@ -2,7 +2,6 @@
 import Image from 'next/image';
 import React from 'react';
 import { useRouter } from 'next/navigation';
-import { GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
 import { Button } from '../components/ui/Button';
 import { FileText, Search, ShieldCheck, UploadCloud, Eye, ChartLine, Bolt, Lock, Globe } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/components/ui/card';
