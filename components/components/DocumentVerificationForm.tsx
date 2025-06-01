@@ -17,6 +17,7 @@ import {
   FormControl,
   FormMessage,
 } from '@/components/ui/form';
+import { toast } from 'sonner';
 
 interface DocumentVerificationFormProps {
   formFields: Record<string, any>;
@@ -92,7 +93,7 @@ export const DocumentVerificationForm: React.FC<DocumentVerificationFormProps> =
       }
     } catch (error) {
       console.error('Error deleting document:', error);
-      alert('Failed to delete document. Please try again.');
+      toast.error('Failed to delete document. Please try again.');
     } finally {
       setIsDeleting(false);
     }

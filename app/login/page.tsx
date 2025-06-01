@@ -11,11 +11,11 @@ import {
 import { Button } from "../../components/ui/Button";
 import { Apple } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 
 const LoginPage = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState<string | null>(null);
   const router = useRouter();
 
   const handleGoogleLogin = async () => {
@@ -30,7 +30,7 @@ const LoginPage = () => {
       router.push("/dashboard");
     } catch (err: any) {
         console.error("Google login error:", err);
-      setError(err.message);
+      toast.error("Failed to sign in with Google. Please try again.");
     }
   };
 
@@ -52,7 +52,7 @@ const LoginPage = () => {
       }
       router.push("/dashboard");
     } catch (err: any) {
-      setError(err.message);
+      toast.error("Failed to sign in. Please check your credentials and try again.");
     }
   };
 
@@ -67,7 +67,6 @@ const LoginPage = () => {
        
         <h2 className="text-xl font-semibold mb-3">Sign In</h2>
          <div className="border-b border-gray-300 mb-6"></div>
-        {error && <p className="text-red-500 text-sm">{error}</p>}
         <div className="space-y-4">
           <Button
             variant="outline"

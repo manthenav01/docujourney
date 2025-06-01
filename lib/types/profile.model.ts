@@ -7,5 +7,6 @@ export interface Profile {
   createdAt: string | null;
   updatedAt: string | null;
   admin: boolean;
+  relationship?: string; // Relationship to the main profile
 }
   

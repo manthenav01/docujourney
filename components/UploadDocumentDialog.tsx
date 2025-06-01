@@ -1,20 +1,33 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/Button';
 import { DocumentTypeSchemaModel } from '@/lib/documentActions';
+import { Profile } from '@/lib/types/profile.model';
 import { useDocumentUpload } from './hooks';
-import { FileSelector, UploadProgress, DocumentVerificationForm, DocumentTypeSelection } from './components';
+import { FileSelector, UploadProgress, DocumentVerificationForm, DocumentTypeSelection, NewProfileDialog } from './components';
+import { toast } from 'sonner';
 
 interface UploadDocumentDialogProps {
   userId: string;
   profileId: string;
+  currentProfile: Profile;
+  allProfiles: Profile[];
   documentSchemas: Record<string, DocumentTypeSchemaModel>;
   onSuccess?: () => void;
+  onProfileCreated?: (newProfileId: string) => void;
 }
 
-export default function UploadDocumentDialog({ userId, profileId, documentSchemas, onSuccess: onSuccessCallback }: UploadDocumentDialogProps) {
+export default function UploadDocumentDialog({ 
+  userId, 
+  profileId, 
+  currentProfile, 
+  allProfiles, 
+  documentSchemas, 
+  onSuccess: onSuccessCallback,
+  onProfileCreated 
+}: UploadDocumentDialogProps) {
   const [open, setOpen] = useState(false);
   const [cameFromManualSelection, setCameFromManualSelection] = useState(false);
   
@@ -25,17 +38,24 @@ export default function UploadDocumentDialog({ userId, profileId, documentSchema
     documentType,
     documentId,
     showDocumentTypeSelection,
+    showNewProfileDialog,
+    extractedPersonInfo,
+    selectedProfileId,
     error,
     isLoading,
     handleFileSelect,
     startUpload,
     handleVerificationSubmit,
     handleDocumentTypeSelection,
+    handleNewProfileConfirm,
+    handleNewProfileCancel,
     goBackToDocumentTypeSelection,
     resetUpload
   } = useDocumentUpload({ 
     userId, 
-    profileId, 
+    profileId,
+    currentProfile,
+    allProfiles,
     documentSchemas,
     onSuccess: () => {
       setOpen(false);
@@ -43,8 +63,16 @@ export default function UploadDocumentDialog({ userId, profileId, documentSchema
       if (onSuccessCallback) {
         onSuccessCallback();
       }
-    }
+    },
+    onProfileCreated
   });
+
+  // Show toast notification when error occurs
+  useEffect(() => {
+    if (error) {
+      toast.error(error);
+    }
+  }, [error]);
 
   const handleDialogClose = () => {
     setOpen(false);
@@ -81,6 +109,17 @@ export default function UploadDocumentDialog({ userId, profileId, documentSchema
   };
 
   const getDialogContent = () => {
+    if (showNewProfileDialog && extractedPersonInfo) {
+      return (
+        <NewProfileDialog
+          extractedPersonInfo={extractedPersonInfo}
+          onConfirm={handleNewProfileConfirm}
+          onCancel={handleNewProfileCancel}
+          isLoading={isLoading}
+        />
+      );
+    }
+
     if (!file) {
       return (
         <FileSelector 
@@ -116,7 +155,7 @@ export default function UploadDocumentDialog({ userId, profileId, documentSchema
           documentSchemas={documentSchemas}
           documentId={documentId}
           userId={userId}
-          profileId={profileId}
+          profileId={selectedProfileId}
           onSubmit={handleVerificationSubmit}
           onCancel={handleDialogClose}
           onDelete={handleDialogClose}
@@ -138,19 +177,14 @@ export default function UploadDocumentDialog({ userId, profileId, documentSchema
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-hidden flex flex-col">
         <DialogHeader className="flex-shrink-0">
           <DialogTitle>
-            {showDocumentTypeSelection ? "Select Document Type" :
+            {showNewProfileDialog ? "Create New Profile" :
+             showDocumentTypeSelection ? "Select Document Type" :
              formFields && documentType ? "Verify Extracted Data" : "Upload Document"}
           </DialogTitle>
-          {!formFields && !showDocumentTypeSelection && (
+          {!formFields && !showDocumentTypeSelection && !showNewProfileDialog && (
             <DialogDescription>Select a file to upload and verify extracted data.</DialogDescription>
           )}
         </DialogHeader>
-        
-        {error && (
-          <div className="p-3 rounded-md bg-red-50 border border-red-200 flex-shrink-0">
-            <p className="text-sm text-red-600">{error}</p>
-          </div>
-        )}
         
         <div className="flex-1 overflow-hidden">
           {getDialogContent()}

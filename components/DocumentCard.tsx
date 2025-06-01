@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/Button';
 import { TrashIcon, FileIcon, FolderIcon } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import DocumentStatusBadge from '@/components/ui/DocumentStatusBadge';
+import { toast } from 'sonner';
 
 interface DocumentCardProps {
     doc: any;
@@ -25,10 +26,10 @@ const DocumentCard: React.FC<DocumentCardProps> = ({ doc, userId, profileId, doc
                 body: JSON.stringify({ userId, profileId, documentId: doc.id }),
             });
             if (!res.ok) throw new Error();
-            alert('Document deleted successfully.');
+            toast.success('Document deleted successfully.');
             router.refresh();
         } catch (error) {
-            alert('Failed to delete document.');
+            toast.error('Failed to delete document.');
         }
     };
     return (

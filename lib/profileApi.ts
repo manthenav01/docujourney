@@ -19,6 +19,29 @@ export const fetchProfiles = async (userId: string) => {
             createdAt: data.createdAt?.toDate().toISOString() || null,
             updatedAt: data.updatedAt?.toDate().toISOString() || null,
             admin: data.admin || false,
+            relationship: data.relationship || null,
         } as Profile;
     });
+};
+
+export const createProfile = async (userId: string, profileData: {
+    firstName: string;
+    lastName: string;
+    email: string;
+    relationship?: string;
+}): Promise<string> => {
+    const profileRef = adminDb
+        .collection('users')
+        .doc(userId)
+        .collection('profiles');
+    
+    const newProfile = {
+        ...profileData,
+        admin: false,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+    };
+    
+    const docRef = await profileRef.add(newProfile);
+    return docRef.id;
 };

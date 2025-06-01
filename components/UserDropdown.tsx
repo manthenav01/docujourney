@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/popover";
 import { Button } from "@/components/ui/Button";
 import { Separator } from "@/components/ui/separator";
+import { toast } from 'sonner';
 
 interface UserInfo {
   displayName: string | null;
@@ -45,9 +46,11 @@ export function UserDropdown() {
       await signOut(auth);
       // Clear the userId cookie
       document.cookie = 'userId=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT;';
+      toast.success('Signed out successfully');
       router.push('/login');
     } catch (error) {
       console.error('Error signing out:', error);
+      toast.error('Failed to sign out. Please try again.');
     }
   };
 

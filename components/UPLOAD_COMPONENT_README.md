@@ -66,7 +66,11 @@ The `UploadDocumentDialog` component has been refactored into a clean, modular a
 <UploadDocumentDialog
   userId={userId}
   profileId={profileId}
+  currentProfile={activeProfile}
+  allProfiles={profiles}
   documentSchemas={documentSchemas}
+  onSuccess={handleUploadSuccess}
+  onProfileCreated={handleProfileCreated}
 />
 ```
 

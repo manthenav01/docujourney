@@ -1,142 +1,117 @@
 import { useState, useEffect } from 'react';
-import { getStorage, ref as storageRef, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
 import { db } from '@/lib/firebase';
-import { collection, addDoc, updateDoc, doc as firestoreDoc, onSnapshot, getDoc, Timestamp } from 'firebase/firestore';
+import { doc as firestoreDoc, onSnapshot, updateDoc, setDoc, getDoc } from 'firebase/firestore';
 import { DocumentTypeSchemaModel } from '@/lib/documentActions';
 import { DocumentMetaDataAPIModel } from '@/lib/types/document.model';
-import { transformDocumentMetaData } from '@/utils/documentUtils';
+import { Profile } from '@/lib/types/profile.model';
+import { toast } from 'sonner';
+
+// Import utility functions
+import {
+  transformDatesToFirestore,
+  doNamesMatch,
+  findMatchingProfile,
+  validateFile,
+  createNewProfile,
+  uploadFileToStorage,
+  handleDocumentCompletion,
+  setupFormFields
+} from './utils';
 
 interface UseDocumentUploadProps {
   userId: string;
   profileId: string;
+  currentProfile: Profile;
+  allProfiles: Profile[];
   documentSchemas: Record<string, DocumentTypeSchemaModel>;
   onSuccess?: () => void;
+  onProfileCreated?: (newProfileId: string) => void;
 }
 
-// Helper function to transform date values to Firebase Timestamps
-const transformDatesToFirestore = (values: Record<string, any>, documentSchema: DocumentTypeSchemaModel): Record<string, any> => {
-  const transformed = { ...values };
-  
-  // Find date fields in the schema
-  const dateFields = documentSchema.fields.filter(field => 
-    field.type === 'date' || field.key.toLowerCase().includes('date') || field.key.toLowerCase().includes('time')
-  );
-  
-  dateFields.forEach(field => {
-    const value = transformed[field.key];
-    if (value) {
-      // Handle different date formats
-      if (typeof value === 'string') {
-        // Try to parse the string as a date
-        const parsedDate = new Date(value);
-        if (!isNaN(parsedDate.getTime())) {
-          transformed[field.key] = Timestamp.fromDate(parsedDate);
-        }
-      } else if (value instanceof Date) {
-        // Convert Date object to Timestamp
-        transformed[field.key] = Timestamp.fromDate(value);
-      } else if (value && typeof value === 'object' && value.seconds !== undefined) {
-        // Already a Timestamp, keep as is
-        // Do nothing
-      }
-    }
-  });
-  
-  return transformed;
-};
-
-// Helper function to transform Firebase Timestamps back to date strings for form fields
-const transformTimestampsToFormValues = (values: Record<string, any>, documentSchema: DocumentTypeSchemaModel): Record<string, any> => {
-  const transformed = { ...values };
-  
-  // Find date fields in the schema
-  const dateFields = documentSchema.fields.filter(field => 
-    field.type === 'date' || field.key.toLowerCase().includes('date') || field.key.toLowerCase().includes('time')
-  );
-  
-  dateFields.forEach(field => {
-    const value = transformed[field.key];
-    if (value && typeof value === 'object' && value.seconds !== undefined) {
-      // Convert Firebase Timestamp to date string for form input
-      const date = value.toDate();
-      // Format as YYYY-MM-DD for date inputs
-      transformed[field.key] = date.toISOString().split('T')[0];
-    } else if (value instanceof Date) {
-      // Convert Date to string
-      transformed[field.key] = value.toISOString().split('T')[0];
-    }
-  });
-  
-  return transformed;
-};
-
-export const useDocumentUpload = ({ userId, profileId, documentSchemas, onSuccess }: UseDocumentUploadProps) => {
+export const useDocumentUpload = ({ 
+  userId, 
+  profileId, 
+  currentProfile, 
+  allProfiles, 
+  documentSchemas, 
+  onSuccess, 
+  onProfileCreated 
+}: UseDocumentUploadProps) => {
+  // State management
   const [file, setFile] = useState<File | null>(null);
   const [uploadProgress, setUploadProgress] = useState<number>(0);
   const [docRefId, setDocRefId] = useState<string>();
   const [formFields, setFormFields] = useState<Record<string, any> | null>(null);
   const [documentType, setDocumentType] = useState<string | null>(null);
   const [showDocumentTypeSelection, setShowDocumentTypeSelection] = useState(false);
+  const [showNewProfileDialog, setShowNewProfileDialog] = useState(false);
+  const [extractedPersonInfo, setExtractedPersonInfo] = useState<{firstName: string, lastName: string} | null>(null);
+  const [selectedProfileId, setSelectedProfileId] = useState<string>(profileId);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
-  // Listen for document status to become 'completed', then load extracted fields
+  // Document processing effect
   useEffect(() => {
     if (!docRefId) return;
     
-    const docRef = firestoreDoc(db, `users/${userId}/profiles/${profileId}/documents`, docRefId);
-    const unsub = onSnapshot(docRef, (snap) => {
+    const docRef = firestoreDoc(db, `users/${userId}/profiles/${selectedProfileId}/documents`, docRefId);
+    const unsub = onSnapshot(docRef, async (snap) => {
       const data = snap.data() as DocumentMetaDataAPIModel;
       
       if (data?.status === 'completed' && data.extracted) {
-        const transformedData = transformDocumentMetaData(data);
-        const detectedDocumentType = transformedData?.extracted?.document_type;
-        
-        if (!detectedDocumentType || !documentSchemas[detectedDocumentType]) {
-          console.warn(`Document type ${detectedDocumentType} not found in schemas, showing manual selection`);
-          setShowDocumentTypeSelection(true);
-          return;
+        try {
+          await handleDocumentCompletion(
+            data,
+            userId,
+            selectedProfileId,
+            docRefId,
+            documentSchemas,
+            // onProfileMismatch
+            (firstName: string, lastName: string) => {
+              setExtractedPersonInfo({ firstName, lastName });
+              setShowNewProfileDialog(true);
+            },
+            // onDocumentTypeNotFound
+            () => setShowDocumentTypeSelection(true),
+            // onSuccess
+            (detectedDocumentType: string, formReadyFields: Record<string, any>) => {
+              setDocumentType(detectedDocumentType);
+              setShowDocumentTypeSelection(false);
+              setFormFields(formReadyFields);
+            },
+            // onProfileSwitch
+            (newProfileId: string) => {
+              setSelectedProfileId(newProfileId);
+              if (onProfileCreated) {
+                onProfileCreated(newProfileId);
+              }
+            },
+            currentProfile,
+            allProfiles,
+            doNamesMatch,
+            findMatchingProfile
+          );
+        } catch (error) {
+          console.error('Error processing document:', error);
+          const errorMessage = error instanceof Error ? error.message : 'Failed to process document';
+          setError(errorMessage);
+          toast.error(errorMessage);
         }
-        
-        setDocumentType(detectedDocumentType);
-        setShowDocumentTypeSelection(false);
-        
-        const fields = documentSchemas[detectedDocumentType].fields.filter((f) => f.editable);
-        const extractedFields = fields.reduce((acc, field) => {
-          acc[field.key] = (transformedData.extracted as Record<string, any>)?.[field.key];
-          return acc;
-        }, {} as Record<string, any>);
-        
-        // Transform Firebase Timestamps to form-friendly values
-        const formReadyFields = transformTimestampsToFormValues(extractedFields, documentSchemas[detectedDocumentType]);
-        setFormFields(formReadyFields);
       }
     });
     
     return () => unsub();
-  }, [docRefId, userId, profileId, documentSchemas]);
+  }, [docRefId, userId, selectedProfileId, documentSchemas, currentProfile, allProfiles, onProfileCreated]);
 
+  // File selection handler
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const selectedFile = e.target.files[0];
+      const validationError = validateFile(selectedFile);
       
-      // Validate file size (10MB limit)
-      if (selectedFile.size > 10 * 1024 * 1024) {
-        setError('File size must be less than 10MB');
-        return;
-      }
-      
-      // Validate file type
-      const allowedTypes = [
-        'application/pdf',
-        'image/jpeg',
-        'image/jpg',
-        'image/png',
-        'text/plain'
-      ];
-      
-      if (!allowedTypes.includes(selectedFile.type)) {
-        setError('Please select a valid file type (PDF, DOC, DOCX, JPG, PNG, TXT)');
+      if (validationError) {
+        setError(validationError);
+        toast.error(validationError);
         return;
       }
       
@@ -146,6 +121,7 @@ export const useDocumentUpload = ({ userId, profileId, documentSchemas, onSucces
     }
   };
 
+  // Upload handler
   const startUpload = async () => {
     if (!file) return;
     
@@ -153,56 +129,25 @@ export const useDocumentUpload = ({ userId, profileId, documentSchemas, onSucces
     setError(null);
     
     try {
-      // 1) Create Firestore stub record
-      const docCollection = collection(db, `users/${userId}/profiles/${profileId}/documents`);
-      const stub = await addDoc(docCollection, {
-        status: 'uploaded',
-        name: file.name,
-        extracted: null,
-        url: '',
-        filePath: '',
-        uploadedAt: new Date().toISOString()
-      });
-      
-      setDocRefId(stub.id);
-      
-      // 2) Upload to Storage under a folder matching Firestore doc path
-      const storage = getStorage();
-      const path = `uploads/${userId}/${profileId}/${stub.id}/${file.name}`;
-      const sRef = storageRef(storage, path);
-      const uploadTask = uploadBytesResumable(sRef, file);
-      
-      uploadTask.on(
-        'state_changed',
-        (snap) => {
-          const progress = (snap.bytesTransferred / snap.totalBytes) * 100;
-          setUploadProgress(Math.round(progress));
-          updateDoc(stub, { filePath: path });
-        },
-        (err) => {
-          console.error('Upload error:', err);
-          setError('Failed to upload file. Please try again.');
-          setIsLoading(false);
-        },
-        async () => {
-          try {
-            const url = await getDownloadURL(sRef);
-            await updateDoc(stub, { url, status: 'processing' });
-            setIsLoading(false);
-          } catch (err) {
-            console.error('Error getting download URL:', err);
-            setError('Failed to complete upload. Please try again.');
-            setIsLoading(false);
-          }
-        }
+      const documentId = await uploadFileToStorage(
+        file,
+        userId,
+        selectedProfileId,
+        setUploadProgress
       );
+      
+      setDocRefId(documentId);
+      setIsLoading(false);
     } catch (error) {
-      console.error('Error starting upload:', error);
-      setError('Failed to start upload. Please try again.');
+      console.error('Upload error:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Upload failed';
+      setError(errorMessage);
+      toast.error(errorMessage);
       setIsLoading(false);
     }
   };
 
+  // Verification submission handler
   const handleVerificationSubmit = async (values: Record<string, any>) => {
     if (!docRefId || !documentType) return;
     
@@ -210,13 +155,10 @@ export const useDocumentUpload = ({ userId, profileId, documentSchemas, onSucces
     setError(null);
     
     try {
-      const ref = firestoreDoc(db, `users/${userId}/profiles/${profileId}/documents`, docRefId);
-      
-      // Transform dates to Firebase Timestamps before saving
+      const ref = firestoreDoc(db, `users/${userId}/profiles/${selectedProfileId}/documents`, docRefId);
       const documentSchema = documentSchemas[documentType];
       const transformedValues = transformDatesToFirestore(values, documentSchema);
       
-      // Include the document type in the extracted data
       const extractedData = {
         ...transformedValues,
         document_type: documentType
@@ -224,76 +166,102 @@ export const useDocumentUpload = ({ userId, profileId, documentSchemas, onSucces
       
       await updateDoc(ref, { extracted: extractedData, status: 'verified' });
       resetUpload();
+      toast.success('Document saved successfully!');
       
-      // Call the success callback to close the dialog
       if (onSuccess) {
         onSuccess();
       }
     } catch (error) {
       console.error('Error saving verification:', error);
-      setError('Failed to save document. Please try again.');
+      const errorMessage = 'Failed to save document. Please try again.';
+      setError(errorMessage);
+      toast.error(errorMessage);
       setIsLoading(false);
     }
   };
 
+  // Document type selection handler
   const handleDocumentTypeSelection = async (selectedDocumentType: string) => {
     if (!documentSchemas[selectedDocumentType] || !docRefId) return;
     
     setDocumentType(selectedDocumentType);
     setShowDocumentTypeSelection(false);
     
-    // Get the schema fields
-    const fields = documentSchemas[selectedDocumentType].fields.filter((f) => f.editable);
-    
     try {
-      // Check if we have extracted data from the document
-      const docRef = firestoreDoc(db, `users/${userId}/profiles/${profileId}/documents`, docRefId);
-      const snap = await getDoc(docRef);
-      const data = snap.data() as DocumentMetaDataAPIModel;
-      
-      // Update the document with the selected document type
-      await updateDoc(docRef, { 
-        'extracted.document_type': selectedDocumentType 
-      });
-      
-      if (data?.extracted) {
-        // If we have extracted data, use it to populate form fields
-        const transformedData = transformDocumentMetaData(data);
-        const extractedFields = fields.reduce((acc, field) => {
-          acc[field.key] = (transformedData.extracted as Record<string, any>)?.[field.key] || '';
-          return acc;
-        }, {} as Record<string, any>);
-        
-        // Transform Firebase Timestamps to form-friendly values
-        const formReadyFields = transformTimestampsToFormValues(extractedFields, documentSchemas[selectedDocumentType]);
-        setFormFields(formReadyFields);
-      } else {
-        // If no extracted data, create empty form fields
-        const emptyFields = fields.reduce((acc, field) => {
-          acc[field.key] = '';
-          return acc;
-        }, {} as Record<string, any>);
-        
-        setFormFields(emptyFields);
-      }
+      const formReadyFields = await setupFormFields(
+        selectedDocumentType,
+        documentSchemas,
+        userId,
+        selectedProfileId,
+        docRefId
+      );
+      setFormFields(formReadyFields);
     } catch (error) {
-      console.error('Error fetching document data:', error);
-      // Fallback to empty fields if there's an error
-      const emptyFields = fields.reduce((acc, field) => {
-        acc[field.key] = '';
-        return acc;
-      }, {} as Record<string, any>);
-      
-      setFormFields(emptyFields);
+      console.error('Error setting up form fields:', error);
+      const errorMessage = 'Failed to setup form. Please try again.';
+      setError(errorMessage);
+      toast.error(errorMessage);
     }
   };
 
+  // Navigation handlers
   const goBackToDocumentTypeSelection = () => {
     setDocumentType(null);
     setFormFields(null);
     setShowDocumentTypeSelection(true);
   };
 
+  // Profile creation handlers
+  const handleNewProfileConfirm = async (relationship: string, email?: string) => {
+    if (!extractedPersonInfo) return;
+    
+    setIsLoading(true);
+    try {
+      const newProfileId = await createNewProfile(
+        userId,
+        extractedPersonInfo.firstName,
+        extractedPersonInfo.lastName,
+        relationship,
+        email
+      );
+      
+      // Move the document to the new profile
+      if (docRefId) {
+        const oldDocRef = firestoreDoc(db, `users/${userId}/profiles/${selectedProfileId}/documents`, docRefId);
+        const docData = await getDoc(oldDocRef);
+        
+        if (docData.exists()) {
+          const newDocRef = firestoreDoc(db, `users/${userId}/profiles/${newProfileId}/documents`, docRefId);
+          await setDoc(newDocRef, docData.data());
+          await updateDoc(oldDocRef, { status: 'deleted' });
+        }
+      }
+      
+      setSelectedProfileId(newProfileId);
+      setShowNewProfileDialog(false);
+      setExtractedPersonInfo(null);
+      toast.success('New profile created successfully!');
+      
+      if (onProfileCreated) {
+        onProfileCreated(newProfileId);
+      }
+    } catch (error) {
+      console.error('Error creating new profile:', error);
+      const errorMessage = 'Failed to create new profile. Please try again.';
+      setError(errorMessage);
+      toast.error(errorMessage);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleNewProfileCancel = () => {
+    setShowNewProfileDialog(false);
+    setExtractedPersonInfo(null);
+    resetUpload();
+  };
+
+  // Reset functionality
   const resetUpload = () => {
     setFile(null);
     setUploadProgress(0);
@@ -301,23 +269,34 @@ export const useDocumentUpload = ({ userId, profileId, documentSchemas, onSucces
     setFormFields(null);
     setDocumentType(null);
     setShowDocumentTypeSelection(false);
+    setShowNewProfileDialog(false);
+    setExtractedPersonInfo(null);
+    setSelectedProfileId(profileId);
     setError(null);
     setIsLoading(false);
   };
 
   return {
+    // State
     file,
     uploadProgress,
     formFields,
     documentType,
     documentId: docRefId,
     showDocumentTypeSelection,
+    showNewProfileDialog,
+    extractedPersonInfo,
+    selectedProfileId,
     error,
     isLoading,
+    
+    // Handlers
     handleFileSelect,
     startUpload,
     handleVerificationSubmit,
     handleDocumentTypeSelection,
+    handleNewProfileConfirm,
+    handleNewProfileCancel,
     goBackToDocumentTypeSelection,
     resetUpload
   };

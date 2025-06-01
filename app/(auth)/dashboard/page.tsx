@@ -39,7 +39,12 @@ const DashboardPage = async ({
         );
     }
 
-    const activeProfileId = profileIdFromUrl || profiles[0].id;
+    // Prioritize admin profile when no specific profile is requested
+    const defaultProfile = profileIdFromUrl 
+        ? profiles.find(profile => profile.id === profileIdFromUrl)
+        : profiles.find(profile => profile.admin) || profiles[0];
+    
+    const activeProfileId = defaultProfile?.id || profiles[0].id;
     const activeProfile = profiles.find(profile => profile.id === activeProfileId);
     
     if (!activeProfile) {

@@ -33,6 +33,11 @@ export default function DashboardWithUpload({
     router.refresh();
   };
 
+  const handleProfileCreated = (newProfileId: string) => {
+    // Navigate to the new profile or refresh data
+    router.refresh();
+  };
+
   return (
     <>
       <div className="flex items-center justify-between mb-4">
@@ -47,8 +52,11 @@ export default function DashboardWithUpload({
           <UploadDocumentDialog
             userId={userId}
             profileId={activeProfileId}
+            currentProfile={activeProfile}
+            allProfiles={profiles}
             documentSchemas={documentSchemas}
             onSuccess={handleUploadSuccess}
+            onProfileCreated={handleProfileCreated}
           />
         </div>
       </div>
