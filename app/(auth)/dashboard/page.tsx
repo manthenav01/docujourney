@@ -2,7 +2,7 @@ import { cookies } from 'next/headers';
 import DashboardWithUpload from '@/components/DashboardWithUpload';
 import { fetchDocumentSchemas, fetchAndGroupDocuments } from '@/lib/documentActions';
 
-import { fetchProfiles } from '@/lib/profileApi';
+import { fetchProfiles, createAdminProfileForNewUser } from '@/lib/profileApi';
 import { sortDocumentsBySchemaOrder as sortDocumentsBySchemaOrderUtils } from '@/utils/documentUtils';
 
 
@@ -31,7 +31,25 @@ const DashboardPage = async ({
         fetchDocumentSchemas()
     ]);
 
+    // If no profiles exist, create an admin profile for the user
+    let finalProfiles = profiles;
     if (!profiles.length) {
+        try {
+            const adminProfileId = await createAdminProfileForNewUser(userId);
+            // Fetch the newly created profile
+            finalProfiles = await fetchProfiles(userId);
+            console.log(`Created admin profile for new user ${userId}: ${adminProfileId}`);
+        } catch (error) {
+            console.error('Failed to create admin profile for new user:', error);
+            return (
+                <div>
+                    <p>Failed to create your profile. Please try refreshing the page or contact support.</p>
+                </div>
+            );
+        }
+    }
+
+    if (!finalProfiles.length) {
         return (
             <div>
                 <p>No profiles found. Please create a profile to continue.</p>
@@ -41,11 +59,11 @@ const DashboardPage = async ({
 
     // Prioritize admin profile when no specific profile is requested
     const defaultProfile = profileIdFromUrl 
-        ? profiles.find(profile => profile.id === profileIdFromUrl)
-        : profiles.find(profile => profile.admin) || profiles[0];
+        ? finalProfiles.find(profile => profile.id === profileIdFromUrl)
+        : finalProfiles.find(profile => profile.admin) || finalProfiles[0];
     
-    const activeProfileId = defaultProfile?.id || profiles[0].id;
-    const activeProfile = profiles.find(profile => profile.id === activeProfileId);
+    const activeProfileId = defaultProfile?.id || finalProfiles[0].id;
+    const activeProfile = finalProfiles.find(profile => profile.id === activeProfileId);
     
     if (!activeProfile) {
         return (
@@ -69,7 +87,7 @@ const DashboardPage = async ({
             userId={userId}
             activeProfileId={activeProfileId}
             activeProfile={activeProfile}
-            profiles={profiles}
+            profiles={finalProfiles}
             documentGroups={documentGroups}
             documentSchemas={documentSchemas}
         />

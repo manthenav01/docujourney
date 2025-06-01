@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createProfile, fetchProfiles } from '@/lib/profileApi';
+import { createProfile, fetchProfiles, updateProfile } from '@/lib/profileApi';
 
 export async function POST(request: NextRequest) {
   try {
-    const { userId, firstName, lastName, email, relationship } = await request.json();
+    const { userId, firstName, lastName, email, phone, dateOfBirth, relationship, isAdmin } = await request.json();
     
     if (!userId || !firstName || !lastName) {
       return NextResponse.json(
@@ -36,7 +36,10 @@ export async function POST(request: NextRequest) {
       firstName,
       lastName,
       email: email || '',
+      phone: phone || '',
+      dateOfBirth: dateOfBirth ? new Date(dateOfBirth) : null,
       relationship: relationship || undefined,
+      isAdmin: isAdmin || false,
     });
 
     return NextResponse.json({ profileId }, { status: 201 });
@@ -44,6 +47,58 @@ export async function POST(request: NextRequest) {
     console.error('Error creating profile:', error);
     return NextResponse.json(
       { error: 'Failed to create profile' },
+      { status: 500 }
+    );
+  }
+}
+
+export async function PUT(request: NextRequest) {
+  try {
+    const { id, userId, firstName, lastName, email, phone, dateOfBirth, relationship, isAdmin } = await request.json();
+    
+    if (!id || !userId || !firstName || !lastName) {
+      return NextResponse.json(
+        { error: 'Missing required fields: id, userId, firstName, lastName' },
+        { status: 400 }
+      );
+    }
+
+    // Check if another profile with the same name already exists (excluding current profile)
+    const existingProfiles = await fetchProfiles(userId);
+    const normalizedFirstName = firstName.trim().toLowerCase();
+    const normalizedLastName = lastName.trim().toLowerCase();
+    
+    const duplicateProfile = existingProfiles.find(profile => 
+      profile.id !== id &&
+      profile.firstName.trim().toLowerCase() === normalizedFirstName &&
+      profile.lastName.trim().toLowerCase() === normalizedLastName
+    );
+
+    if (duplicateProfile) {
+      return NextResponse.json(
+        { 
+          error: 'A profile with this name already exists',
+          existingProfileId: duplicateProfile.id 
+        },
+        { status: 409 } // Conflict status code
+      );
+    }
+
+    await updateProfile(userId, id, {
+      firstName,
+      lastName,
+      email: email || '',
+      phone: phone || '',
+      dateOfBirth: dateOfBirth ? new Date(dateOfBirth) : null,
+      relationship: relationship || undefined,
+      isAdmin: isAdmin || false,
+    });
+
+    return NextResponse.json({ success: true }, { status: 200 });
+  } catch (error) {
+    console.error('Error updating profile:', error);
+    return NextResponse.json(
+      { error: 'Failed to update profile' },
       { status: 500 }
     );
   }

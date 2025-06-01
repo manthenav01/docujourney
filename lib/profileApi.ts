@@ -15,10 +15,13 @@ export const fetchProfiles = async (userId: string) => {
             firstName: data.firstName,
             lastName: data.lastName,
             email: data.email,
+            phone: data.phone || '',
+            dateOfBirth: data.dateOfBirth?.toDate().toISOString() || null,
             // Convert Firestore Timestamps to ISO strings
             createdAt: data.createdAt?.toDate().toISOString() || null,
             updatedAt: data.updatedAt?.toDate().toISOString() || null,
             admin: data.admin || false,
+            isAdmin: data.admin || false, // Alias for easier component use
             relationship: data.relationship || null,
         } as Profile;
     });
@@ -28,7 +31,10 @@ export const createProfile = async (userId: string, profileData: {
     firstName: string;
     lastName: string;
     email: string;
+    phone?: string;
+    dateOfBirth?: Date | null;
     relationship?: string;
+    isAdmin?: boolean;
 }): Promise<string> => {
     const profileRef = adminDb
         .collection('users')
@@ -36,12 +42,84 @@ export const createProfile = async (userId: string, profileData: {
         .collection('profiles');
     
     const newProfile = {
-        ...profileData,
-        admin: false,
+        firstName: profileData.firstName,
+        lastName: profileData.lastName,
+        email: profileData.email,
+        phone: profileData.phone || '',
+        dateOfBirth: profileData.dateOfBirth || null,
+        relationship: profileData.relationship || null,
+        admin: profileData.isAdmin || false,
         createdAt: new Date(),
         updatedAt: new Date(),
     };
     
     const docRef = await profileRef.add(newProfile);
     return docRef.id;
+};
+
+export const updateProfile = async (userId: string, profileId: string, profileData: {
+    firstName?: string;
+    lastName?: string;
+    email?: string;
+    phone?: string;
+    dateOfBirth?: Date | null;
+    relationship?: string;
+    isAdmin?: boolean;
+}): Promise<void> => {
+    const profileRef = adminDb
+        .collection('users')
+        .doc(userId)
+        .collection('profiles')
+        .doc(profileId);
+    
+    const updateData = {
+        ...profileData,
+        // Map isAdmin to admin for consistency with existing data structure
+        admin: profileData.isAdmin,
+        updatedAt: new Date(),
+    };
+    
+    // Remove isAdmin from updateData since we mapped it to admin
+    delete updateData.isAdmin;
+    
+    await profileRef.update(updateData);
+};
+
+export const createAdminProfileForNewUser = async (userId: string): Promise<string> => {
+    try {
+        // Get user information from Firebase Auth using Admin SDK
+        const admin = await import('firebase-admin');
+        const userRecord = await admin.auth().getUser(userId);
+        
+        // Extract name from displayName or email
+        let firstName = 'User';
+        let lastName = '';
+        
+        if (userRecord.displayName) {
+            const nameParts = userRecord.displayName.trim().split(' ');
+            firstName = nameParts[0] || 'User';
+            lastName = nameParts.slice(1).join(' ') || '';
+        } else if (userRecord.email) {
+            // If no display name, use email username as first name
+            const emailUsername = userRecord.email.split('@')[0];
+            firstName = emailUsername.charAt(0).toUpperCase() + emailUsername.slice(1);
+        }
+        
+        // Create admin profile
+        const profileId = await createProfile(userId, {
+            firstName,
+            lastName,
+            email: userRecord.email || '',
+            phone: '',
+            dateOfBirth: null,
+            relationship: 'self',
+            isAdmin: true,
+        });
+        
+        console.log(`Created admin profile for user ${userId}:`, { firstName, lastName, email: userRecord.email });
+        return profileId;
+    } catch (error) {
+        console.error('Error creating admin profile for new user:', error);
+        throw error;
+    }
 };
