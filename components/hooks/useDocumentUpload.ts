@@ -13,6 +13,7 @@ import {
   findMatchingProfile,
   validateFile,
   createNewProfile,
+  fetchProfileById,
   uploadFileToStorage,
   handleDocumentCompletion,
   setupFormFields
@@ -25,7 +26,7 @@ interface UseDocumentUploadProps {
   allProfiles: Profile[];
   documentSchemas: Record<string, DocumentTypeSchemaModel>;
   onSuccess?: () => void;
-  onProfileCreated?: (newProfileId: string) => void;
+  onProfileCreated?: (newProfileId: string, newProfile?: Profile) => void;
 }
 
 export const useDocumentUpload = ({ 
@@ -49,6 +50,12 @@ export const useDocumentUpload = ({
   const [selectedProfileId, setSelectedProfileId] = useState<string>(profileId);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [localAllProfiles, setLocalAllProfiles] = useState<Profile[]>(allProfiles);
+
+  // Sync local profiles with prop changes
+  useEffect(() => {
+    setLocalAllProfiles(allProfiles);
+  }, [allProfiles]);
 
   // Document processing effect
   useEffect(() => {
@@ -87,7 +94,7 @@ export const useDocumentUpload = ({
               }
             },
             currentProfile,
-            allProfiles,
+            localAllProfiles,
             doNamesMatch,
             findMatchingProfile
           );
@@ -224,6 +231,14 @@ export const useDocumentUpload = ({
         relationship,
         email
       );
+
+      // Fetch the newly created profile to get complete data
+      const newProfile = await fetchProfileById(userId, newProfileId);
+      
+      // Add the new profile to our local profiles array
+      if (newProfile) {
+        setLocalAllProfiles(prev => [...prev, newProfile]);
+      }
       
       // Move the document to the new profile
       if (docRefId) {
@@ -234,6 +249,51 @@ export const useDocumentUpload = ({
           const newDocRef = firestoreDoc(db, `users/${userId}/profiles/${newProfileId}/documents`, docRefId);
           await setDoc(newDocRef, docData.data());
           await updateDoc(oldDocRef, { status: 'deleted' });
+          
+          // After moving the document, check if it's ready for verification
+          const documentData = docData.data() as DocumentMetaDataAPIModel;
+          if (documentData.status === 'completed' && documentData.extracted) {
+            // Continue with the document processing flow
+            try {
+              await handleDocumentCompletion(
+                documentData,
+                userId,
+                newProfileId,
+                docRefId,
+                documentSchemas,
+                // onProfileMismatch - shouldn't happen since we just created the profile
+                () => {},
+                // onDocumentTypeNotFound
+                () => setShowDocumentTypeSelection(true),
+                // onSuccess
+                (detectedDocumentType: string, formReadyFields: Record<string, any>) => {
+                  setDocumentType(detectedDocumentType);
+                  setShowDocumentTypeSelection(false);
+                  setFormFields(formReadyFields);
+                },
+                // onProfileSwitch - shouldn't happen
+                () => {},
+                // Use the fetched profile or create a temporary one as fallback
+                newProfile || {
+                  id: newProfileId,
+                  firstName: extractedPersonInfo.firstName,
+                  lastName: extractedPersonInfo.lastName,
+                  relationship,
+                  email: email || '',
+                  admin: false,
+                  isAdmin: false,
+                  createdAt: new Date().toISOString(),
+                  updatedAt: new Date().toISOString()
+                } as Profile,
+                localAllProfiles,
+                doNamesMatch,
+                findMatchingProfile
+              );
+            } catch (error) {
+              console.error('Error processing document after profile creation:', error);
+              setError('Document processing failed. Please try uploading again.');
+            }
+          }
         }
       }
       
@@ -243,7 +303,7 @@ export const useDocumentUpload = ({
       toast.success('New profile created successfully!');
       
       if (onProfileCreated) {
-        onProfileCreated(newProfileId);
+        onProfileCreated(newProfileId, newProfile || undefined);
       }
     } catch (error) {
       console.error('Error creating new profile:', error);

@@ -1,3 +1,7 @@
+import { Profile } from '@/lib/types/profile.model';
+import { db } from '@/lib/firebase';
+import { doc as firestoreDoc, getDoc } from 'firebase/firestore';
+
 /**
  * Create a new profile via API
  */
@@ -45,5 +49,38 @@ export const createNewProfile = async (
   } catch (error) {
     console.error('Error creating profile:', error);
     throw error;
+  }
+};
+
+/**
+ * Fetch a profile by ID from Firestore
+ */
+export const fetchProfileById = async (userId: string, profileId: string): Promise<Profile | null> => {
+  try {
+    const profileRef = firestoreDoc(db, `users/${userId}/profiles`, profileId);
+    const profileDoc = await getDoc(profileRef);
+    
+    if (!profileDoc.exists()) {
+      console.warn('Profile not found:', profileId);
+      return null;
+    }
+    
+    const data = profileDoc.data();
+    return {
+      id: profileDoc.id,
+      firstName: data.firstName,
+      lastName: data.lastName,
+      email: data.email || '',
+      phone: data.phone || '',
+      dateOfBirth: data.dateOfBirth?.toDate?.()?.toISOString() || null,
+      createdAt: data.createdAt?.toDate?.()?.toISOString() || new Date().toISOString(),
+      updatedAt: data.updatedAt?.toDate?.()?.toISOString() || new Date().toISOString(),
+      admin: data.admin || false,
+      isAdmin: data.admin || false,
+      relationship: data.relationship || '',
+    } as Profile;
+  } catch (error) {
+    console.error('Error fetching profile:', error);
+    return null;
   }
 };

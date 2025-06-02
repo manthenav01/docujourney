@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { useRouter } from 'next/navigation';
-import UploadDocumentDialog from './UploadDocumentDialog';
+import { Button } from '@/components/ui/Button';
 import DashboardDisplay from './DashboardDisplay';
 import ProfileSwitcher from './ProfileSwitcher';
 import { DocumentTypeSchemaModel } from '@/lib/documentActions';
@@ -28,14 +28,8 @@ export default function DashboardWithUpload({
 }: DashboardWithUploadProps) {
   const router = useRouter();
 
-  const handleUploadSuccess = () => {
-    // Refresh the page to get updated data
-    router.refresh();
-  };
-
-  const handleProfileCreated = (newProfileId: string) => {
-    // Navigate to the new profile or refresh data
-    router.refresh();
+  const handleUploadClick = () => {
+    router.push('/upload');
   };
 
   return (
@@ -48,16 +42,8 @@ export default function DashboardWithUpload({
             initialProfileId={activeProfileId}
             userId={userId}
           />
-          {/* Upload button triggers the upload dialog */}
-          <UploadDocumentDialog
-            userId={userId}
-            profileId={activeProfileId}
-            currentProfile={activeProfile}
-            allProfiles={profiles}
-            documentSchemas={documentSchemas}
-            onSuccess={handleUploadSuccess}
-            onProfileCreated={handleProfileCreated}
-          />
+          {/* Upload button navigates to upload page */}
+          <Button onClick={handleUploadClick}>Upload Document</Button>
         </div>
       </div>
       <DashboardDisplay

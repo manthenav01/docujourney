@@ -22,12 +22,18 @@ export default function UploadPageClient({
   documentSchemas
 }: UploadPageClientProps) {
   const router = useRouter();
+  const [localProfiles, setLocalProfiles] = useState<Profile[]>(profiles);
   const [selectedProfileId, setSelectedProfileId] = useState<string>(
     profiles.find(p => p.admin)?.id || profiles[0].id
   );
   const [selectedDocumentType, setSelectedDocumentType] = useState<string>('auto-detect');
   
-  const currentProfile = profiles.find(p => p.id === selectedProfileId) || profiles[0];
+  const currentProfile = localProfiles.find(p => p.id === selectedProfileId) || localProfiles[0];
+
+  // Sync local profiles with prop changes
+  useEffect(() => {
+    setLocalProfiles(profiles);
+  }, [profiles]);
 
   const {
     file,
@@ -53,7 +59,7 @@ export default function UploadPageClient({
     userId, 
     profileId: selectedProfileId,
     currentProfile,
-    allProfiles: profiles,
+    allProfiles: localProfiles,
     documentSchemas,
     onSuccess: () => {
       resetUpload();
@@ -61,9 +67,21 @@ export default function UploadPageClient({
       // Redirect to dashboard after successful upload
       router.push('/dashboard');
     },
-    onProfileCreated: (newProfileId: string) => {
+    onProfileCreated: (newProfileId: string, newProfile?: Profile) => {
       // Update the selected profile to the newly created one
       setSelectedProfileId(newProfileId);
+      
+      // Add the new profile to our local profiles list if we have the complete profile data
+      if (newProfile) {
+        setLocalProfiles(prev => {
+          // Check if profile already exists to avoid duplicates
+          const profileExists = prev.some(p => p.id === newProfileId);
+          if (profileExists) {
+            return prev;
+          }
+          return [...prev, newProfile];
+        });
+      }
     }
   });
 
@@ -199,7 +217,7 @@ export default function UploadPageClient({
                 <SelectValue placeholder="Choose a profile" />
               </SelectTrigger>
               <SelectContent>
-                {profiles.map((profile) => (
+                {localProfiles.map((profile) => (
                   <SelectItem key={profile.id} value={profile.id}>
                     <div className="flex items-center gap-2">
                       <span>{profile.firstName} {profile.lastName}</span>
