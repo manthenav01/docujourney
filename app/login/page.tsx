@@ -27,7 +27,7 @@ const LoginPage = () => {
         console.log("User ID:", user.uid);
         document.cookie = `userId=${user.uid}; path=/;`;
       }
-      router.push("/documents");
+      router.push("/dashboard");
     } catch (err: any) {
         console.error("Google login error:", err);
       toast.error("Failed to sign in with Google. Please try again.");
@@ -50,7 +50,7 @@ const LoginPage = () => {
       if (user) {
         document.cookie = `userId=${user.uid}; path=/;`;
       }
-      router.push("/documents");
+      router.push("/dashboard");
     } catch (err: any) {
       toast.error("Failed to sign in. Please check your credentials and try again.");
     }
