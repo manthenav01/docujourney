@@ -24,7 +24,7 @@ const UploadPage = async () => {
     if (!profiles.length) {
         return (
             <div className="flex items-center justify-center h-screen">
-                <p>No profiles found. Please go to the dashboard to create a profile first.</p>
+                <p>No profiles found. Please go to the documents page to create a profile first.</p>
             </div>
         );
     }

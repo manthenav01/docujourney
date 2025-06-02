@@ -3,7 +3,7 @@
 import React from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/Button';
-import DashboardDisplay from './DashboardDisplay';
+import DocumentsDisplay from './DocumentsDisplay';
 import ProfileSwitcher from './ProfileSwitcher';
 import { DocumentTypeSchemaModel } from '@/lib/documentActions';
 import { DocumentMetaDataTransformedModel } from '@/lib/types/document.model';
@@ -16,6 +16,7 @@ interface DashboardWithUploadProps {
   profiles: Profile[];
   documentGroups: { documentType: string; docs: DocumentMetaDataTransformedModel[] }[];
   documentSchemas: Record<string, DocumentTypeSchemaModel>;
+  currentRoute?: string; // Optional current route for profile switching
 }
 
 export default function DashboardWithUpload({
@@ -25,6 +26,7 @@ export default function DashboardWithUpload({
   profiles,
   documentGroups,
   documentSchemas,
+  currentRoute = '/dashboard', // Default to dashboard for backward compatibility
 }: DashboardWithUploadProps) {
   const router = useRouter();
 
@@ -41,12 +43,13 @@ export default function DashboardWithUpload({
             profiles={profiles}
             initialProfileId={activeProfileId}
             userId={userId}
+            currentRoute={currentRoute}
           />
           {/* Upload button navigates to upload page */}
           <Button onClick={handleUploadClick}>Upload Document</Button>
         </div>
       </div>
-      <DashboardDisplay
+      <DocumentsDisplay
         userId={userId}
         initialProfileId={activeProfileId}
         documentGroups={documentGroups}

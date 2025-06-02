@@ -14,12 +14,14 @@ interface ProfileSwitcherProps {
   userId: string;
   initialProfileId: string;
   profiles: any[];
+  currentRoute?: string; // Optional current route, defaults to '/dashboard'
 }
 
 export default function ProfileSwitcher({
   userId,
   initialProfileId,
   profiles,
+  currentRoute = '/dashboard', // Default to dashboard for backward compatibility
 }: ProfileSwitcherProps) {
   const [selectedProfileId, setSelectedProfileId] = useState(initialProfileId);
   const router = useRouter();
@@ -29,7 +31,7 @@ export default function ProfileSwitcher({
     setSelectedProfileId(profileId);
     // Use this to navigate to the same page but with a different profile
     // This will cause a full server render with the new profile's data
-    router.push(`/dashboard?profileId=${profileId}`);
+    router.push(`${currentRoute}?profileId=${profileId}`);
   };
 
   return (

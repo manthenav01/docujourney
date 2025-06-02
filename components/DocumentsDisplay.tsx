@@ -10,19 +10,21 @@ import DocumentCardBody from './DocumentCardBody';
 import { DocumentMetaDataTransformedModel } from '@/lib/types/document.model';
 
 
-interface DashboardDisplayProps {
+interface DocumentsDisplayProps {
     userId: string;
     initialProfileId: string;
     documentGroups: { documentType: string; docs: DocumentMetaDataTransformedModel[] }[];
     documentSchemas: Record<string, DocumentTypeSchemaModel>;
+    baseRoute?: string; // Optional base route for navigation, defaults to '/documents'
 }
 
-export default function DashboardDisplay({
+export default function DocumentsDisplay({
     userId,
     initialProfileId,
     documentGroups,
     documentSchemas,
-}: DashboardDisplayProps) {
+    baseRoute = '/documents', // Default to documents route
+}: DocumentsDisplayProps) {
     return (
         <div className="mb-8 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
 
@@ -60,7 +62,7 @@ export default function DashboardDisplay({
                                 />
                                 <CardContent>
                                     <Link
-                                        href={`/dashboard/${group.documentType}?profileId=${initialProfileId}`}
+                                        href={`${baseRoute}/${group.documentType}?profileId=${initialProfileId}`}
                                         passHref
                                     >
                                         <DocumentCardBody doc={group.docs[0]} documentSchema={documentSchemas[group.documentType]} />

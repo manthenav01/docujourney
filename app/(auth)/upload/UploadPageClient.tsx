@@ -54,18 +54,19 @@ export default function UploadPageClient({
     handleNewProfileConfirm,
     handleNewProfileCancel,
     goBackToDocumentTypeSelection,
-    resetUpload
+    resetUpload,
+    deleteCurrentDocument
   } = useDocumentUpload({ 
     userId, 
     profileId: selectedProfileId,
     currentProfile,
     allProfiles: localProfiles,
     documentSchemas,
-    onSuccess: () => {
-      resetUpload();
+    onSuccess: async (finalProfileId: string) => {
+      await resetUpload();
       toast.success('Document uploaded successfully!');
-      // Redirect to dashboard after successful upload
-      router.push('/dashboard');
+      // Redirect to documents page with the final profile (which might be different from initially selected profile)
+      router.push(`/documents?profileId=${finalProfileId}`);
     },
     onProfileCreated: (newProfileId: string, newProfile?: Profile) => {
       // Update the selected profile to the newly created one
@@ -115,16 +116,28 @@ export default function UploadPageClient({
     }
   };
 
-  const handleProfileChange = (newProfileId: string) => {
+  const handleProfileChange = async (newProfileId: string) => {
     if (file || formFields) {
       // If there's an upload in progress, ask for confirmation
-      if (confirm('Changing profile will reset the current upload. Do you want to continue?')) {
-        resetUpload();
+      if (confirm('Changing profile will reset the current upload and delete any uploaded document. Do you want to continue?')) {
+        await resetUpload(true); // Pass true to delete the document
         setSelectedProfileId(newProfileId);
       }
     } else {
       setSelectedProfileId(newProfileId);
     }
+  };
+
+  const handleClearFile = () => {
+    resetUpload(true).catch(console.error);
+  };
+
+  const handleVerificationCancel = () => {
+    resetUpload().catch(console.error);
+  };
+
+  const handleVerificationDelete = () => {
+    resetUpload(true).catch(console.error);
   };
 
   const getMainContent = () => {
@@ -163,8 +176,8 @@ export default function UploadPageClient({
           userId={userId}
           profileId={hookSelectedProfileId}
           onSubmit={handleVerificationSubmit}
-          onCancel={() => resetUpload()}
-          onDelete={() => resetUpload()}
+          onCancel={handleVerificationCancel}
+          onDelete={handleVerificationDelete}
           isLoading={isLoading}
         />
       );
@@ -188,7 +201,7 @@ export default function UploadPageClient({
         accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.txt"
         maxSizeInMB={10}
         selectedFile={file}
-        onClearFile={resetUpload}
+        onClearFile={handleClearFile}
       />
     );
   };
@@ -237,7 +250,7 @@ export default function UploadPageClient({
         {/* Document Type Selection (Optional - for manual selection) */}
         <Card>
           <CardHeader>
-            <CardTitle className="text-lg">Document Type (Optional)</CardTitle>
+            <CardTitle className="text-lg">Document Type</CardTitle>
           </CardHeader>
           <CardContent>
             <Select 

@@ -1,4 +1,4 @@
-import { doc as firestoreDoc, updateDoc, setDoc, getDoc } from 'firebase/firestore';
+import { doc as firestoreDoc, updateDoc, setDoc, getDoc, deleteDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { DocumentMetaDataAPIModel } from '@/lib/types/document.model';
 import { transformDocumentMetaData } from '@/utils/documentUtils';
@@ -52,14 +52,21 @@ export const handleDocumentCompletion = async (
       if (matchingProfile) {
         // Found existing profile, move document to that profile
         try {
-          const docRef = firestoreDoc(db, `users/${userId}/profiles/${profileId}/documents`, docRefId);
-          await updateDoc(docRef, { status: 'deleted' });
+          const oldDocRef = firestoreDoc(db, `users/${userId}/profiles/${profileId}/documents`, docRefId);
+          const docData = await getDoc(oldDocRef);
           
-          const newDocRef = firestoreDoc(db, `users/${userId}/profiles/${matchingProfile.id}/documents`, docRefId);
-          await setDoc(newDocRef, { 
-            ...data,
-            status: 'completed'
-          });
+          if (docData.exists()) {
+            // Create the document in the new profile location
+            const newDocRef = firestoreDoc(db, `users/${userId}/profiles/${matchingProfile.id}/documents`, docRefId);
+            await setDoc(newDocRef, { 
+              ...data,
+              status: 'completed'
+            });
+            
+            // Delete the document from the original location
+            await deleteDoc(oldDocRef);
+            console.log('Successfully moved document from profile', profileId, 'to profile', matchingProfile.id);
+          }
           
           onProfileSwitch(matchingProfile.id);
         } catch (error) {

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { db } from '@/lib/firebase';
-import { doc as firestoreDoc, onSnapshot, updateDoc, setDoc, getDoc } from 'firebase/firestore';
+import { doc as firestoreDoc, onSnapshot, updateDoc, setDoc, getDoc, deleteDoc } from 'firebase/firestore';
 import { DocumentTypeSchemaModel } from '@/lib/documentActions';
 import { DocumentMetaDataAPIModel } from '@/lib/types/document.model';
 import { Profile } from '@/lib/types/profile.model';
@@ -25,7 +25,7 @@ interface UseDocumentUploadProps {
   currentProfile: Profile;
   allProfiles: Profile[];
   documentSchemas: Record<string, DocumentTypeSchemaModel>;
-  onSuccess?: () => void;
+  onSuccess?: (finalProfileId: string) => void;
   onProfileCreated?: (newProfileId: string, newProfile?: Profile) => void;
 }
 
@@ -63,6 +63,12 @@ export const useDocumentUpload = ({
     
     const docRef = firestoreDoc(db, `users/${userId}/profiles/${selectedProfileId}/documents`, docRefId);
     const unsub = onSnapshot(docRef, async (snap) => {
+      // Check if document exists (it might have been moved/deleted)
+      if (!snap.exists()) {
+        console.log('Document no longer exists at this location:', snap.ref.path);
+        return;
+      }
+      
       const data = snap.data() as DocumentMetaDataAPIModel;
       
       if (data?.status === 'completed' && data.extracted) {
@@ -172,11 +178,11 @@ export const useDocumentUpload = ({
       };
       
       await updateDoc(ref, { extracted: extractedData, status: 'verified' });
-      resetUpload();
+      await resetUpload();
       toast.success('Document saved successfully!');
       
       if (onSuccess) {
-        onSuccess();
+        onSuccess(selectedProfileId);
       }
     } catch (error) {
       console.error('Error saving verification:', error);
@@ -248,7 +254,24 @@ export const useDocumentUpload = ({
         if (docData.exists()) {
           const newDocRef = firestoreDoc(db, `users/${userId}/profiles/${newProfileId}/documents`, docRefId);
           await setDoc(newDocRef, docData.data());
-          await updateDoc(oldDocRef, { status: 'deleted' });
+          
+          // Delete the old document completely
+          try {
+            console.log('Attempting to delete document from:', oldDocRef.path);
+            await deleteDoc(oldDocRef);
+            console.log('Successfully deleted old document from profile:', selectedProfileId);
+            
+            // Verify deletion
+            const checkDoc = await getDoc(oldDocRef);
+            if (checkDoc.exists()) {
+              console.error('Document still exists after deletion attempt');
+            } else {
+              console.log('Confirmed: Document has been deleted');
+            }
+          } catch (deleteError) {
+            console.error('Error deleting old document:', deleteError);
+            throw new Error('Failed to delete old document');
+          }
           
           // After moving the document, check if it's ready for verification
           const documentData = docData.data() as DocumentMetaDataAPIModel;
@@ -315,14 +338,38 @@ export const useDocumentUpload = ({
     }
   };
 
-  const handleNewProfileCancel = () => {
+  const handleNewProfileCancel = async () => {
     setShowNewProfileDialog(false);
     setExtractedPersonInfo(null);
-    resetUpload();
+    await resetUpload();
+  };
+
+  // Document deletion helper
+  const deleteCurrentDocument = async () => {
+    if (!docRefId) return;
+    
+    try {
+      const docRef = firestoreDoc(db, `users/${userId}/profiles/${selectedProfileId}/documents`, docRefId);
+      await deleteDoc(docRef);
+      console.log('Successfully deleted document:', docRefId);
+    } catch (error) {
+      console.error('Error deleting document:', error);
+      throw new Error('Failed to delete document');
+    }
   };
 
   // Reset functionality
-  const resetUpload = () => {
+  const resetUpload = async (deleteDocument = false) => {
+    // Delete the document if requested and if there's one to delete
+    if (deleteDocument && docRefId) {
+      try {
+        await deleteCurrentDocument();
+      } catch (error) {
+        console.error('Error deleting document during reset:', error);
+        // Continue with reset even if deletion fails
+      }
+    }
+    
     setFile(null);
     setUploadProgress(0);
     setDocRefId(undefined);
@@ -358,6 +405,7 @@ export const useDocumentUpload = ({
     handleNewProfileConfirm,
     handleNewProfileCancel,
     goBackToDocumentTypeSelection,
-    resetUpload
+    resetUpload,
+    deleteCurrentDocument
   };
 };

@@ -20,11 +20,6 @@ import { UserDropdown } from "@/components/UserDropdown";
 // Menu items
 const items = [
   {
-    title: "Dashboard",
-    url: "/dashboard",
-    icon: LayoutDashboard,
-  },
-  {
     title: "Upload Document",
     url: "/upload",
     icon: Upload,
