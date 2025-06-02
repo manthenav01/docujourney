@@ -1,3 +1,5 @@
+"use client";
+
 import { useEffect, useState } from 'react';
 
 interface Document {
@@ -14,18 +16,29 @@ const fetchDocument = async (slug: string): Promise<Document> => {
   return response.json();
 };
 
-const DocumentPage = ({ params }: { params: { slug: string } }) => {
-  const { slug } = params;
+const DocumentPage = ({ params }: { params: Promise<{ slug: string }> }) => {
   const [document, setDocument] = useState<Document | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [slug, setSlug] = useState<string>('');
 
   useEffect(() => {
+    const initializeSlug = async () => {
+      const resolvedParams = await params;
+      setSlug(resolvedParams.slug);
+    };
+    
+    initializeSlug();
+  }, [params]);
+
+  useEffect(() => {
+    if (!slug) return;
+    
     const loadDocument = async () => {
       try {
         const doc = await fetchDocument(slug);
         setDocument(doc);
       } catch (err) {
-        setError(err.message);
+        setError(err instanceof Error ? err.message : 'An error occurred');
       }
     };
 

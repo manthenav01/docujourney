@@ -11,16 +11,24 @@ async function fetchDocumentSchema(documentType: string) {
     return { schema: schemas[documentType] || null, allSchemas: schemas };
 }
 
-const DocumentTypePage = async ({ params, searchParams }: { params: { documentType: string }, searchParams: { profileId?: string } }) => {
+const DocumentTypePage = async ({ 
+    params, 
+    searchParams 
+}: { 
+    params: Promise<{ documentType: string }>, 
+    searchParams: Promise<{ profileId?: string }> 
+}) => {
+    const { documentType } = await params;
+    const { profileId } = await searchParams;
     const cookiesList = await cookies();
     const userId = cookiesList.get('userId')?.value;
-    const profileIdFromUrl = typeof searchParams.profileId === 'string' ? searchParams.profileId : undefined;
+    
     if (!userId) {
         return <div><p>Missing user or profile information.</p></div>;
     }
-    const documentType = params.documentType;
+    
     const profiles = await fetchProfiles(userId);
-    const activeProfile = profiles.find(profile => profileIdFromUrl ? profile.id === profileIdFromUrl : profile.admin) || profiles[0];
+    const activeProfile = profiles.find(profile => profileId ? profile.id === profileId : profile.admin) || profiles[0];
     const { schema: documentSchema, allSchemas: documentSchemas } = await fetchDocumentSchema(documentType);
     let documents = await fetchDocumentsByType(userId, activeProfile.id, documentType);
     documents = sortDocumentsBySchemaOrderUtil(documents, documentSchema);

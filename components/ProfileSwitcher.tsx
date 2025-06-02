@@ -3,11 +3,11 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import ProfileSelector from './ProfileSelector';
-import { DocumentMetaDataModel } from '@/lib/types/document.model';
+import { DocumentMetaDataAPIModel } from '@/lib/types/document.model';
 
 interface DocumentGroup {
   documentType: string;
-  docs: DocumentMetaDataModel[];
+  docs: DocumentMetaDataAPIModel[];
 }
 
 interface ProfileSwitcherProps {

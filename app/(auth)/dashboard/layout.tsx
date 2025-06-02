@@ -4,12 +4,8 @@ import { Separator } from '@/components/ui/separator';
 
 export default function DashboardLayout({
   children,
-  params,
-  searchParams,
 }: {
   children: React.ReactNode;
-  params: any;
-  searchParams: { [key: string]: string | string[] | undefined };
 }) {
   // These props are only available in the page, so we use a prop-drilling pattern for ProfileSwitcher
   // You will need to pass profiles, initialProfileId, and userId from the page to the layout via props or context if needed.

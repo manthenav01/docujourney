@@ -1,0 +1,261 @@
+"use client";
+
+import React, { useState, useEffect } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { DocumentTypeSchemaModel } from '@/lib/documentActions';
+import { Profile } from '@/lib/types/profile.model';
+import { useDocumentUpload } from '@/components/hooks';
+import { FileSelector, UploadProgress, DocumentVerificationForm, DocumentTypeSelection, NewProfileDialog } from '@/components/components';
+import { toast } from 'sonner';
+import { useRouter } from 'next/navigation';
+
+interface UploadPageClientProps {
+  userId: string;
+  profiles: Profile[];
+  documentSchemas: Record<string, DocumentTypeSchemaModel>;
+}
+
+export default function UploadPageClient({ 
+  userId, 
+  profiles, 
+  documentSchemas
+}: UploadPageClientProps) {
+  const router = useRouter();
+  const [selectedProfileId, setSelectedProfileId] = useState<string>(
+    profiles.find(p => p.admin)?.id || profiles[0].id
+  );
+  const [selectedDocumentType, setSelectedDocumentType] = useState<string>('auto-detect');
+  
+  const currentProfile = profiles.find(p => p.id === selectedProfileId) || profiles[0];
+
+  const {
+    file,
+    uploadProgress,
+    formFields,
+    documentType,
+    documentId,
+    showDocumentTypeSelection,
+    showNewProfileDialog,
+    extractedPersonInfo,
+    selectedProfileId: hookSelectedProfileId,
+    error,
+    isLoading,
+    handleFileSelect,
+    startUpload,
+    handleVerificationSubmit,
+    handleDocumentTypeSelection,
+    handleNewProfileConfirm,
+    handleNewProfileCancel,
+    goBackToDocumentTypeSelection,
+    resetUpload
+  } = useDocumentUpload({ 
+    userId, 
+    profileId: selectedProfileId,
+    currentProfile,
+    allProfiles: profiles,
+    documentSchemas,
+    onSuccess: () => {
+      resetUpload();
+      toast.success('Document uploaded successfully!');
+      // Redirect to dashboard after successful upload
+      router.push('/dashboard');
+    },
+    onProfileCreated: (newProfileId: string) => {
+      // Update the selected profile to the newly created one
+      setSelectedProfileId(newProfileId);
+    }
+  });
+
+  // Show toast notification when error occurs
+  useEffect(() => {
+    if (error) {
+      toast.error(error);
+    }
+  }, [error]);
+
+  const handleFileSelectWrapper = (selectedFile: File) => {
+    // Create a mock ChangeEvent to match the hook's expected interface
+    const mockEvent = {
+      target: {
+        files: [selectedFile]
+      }
+    } as unknown as React.ChangeEvent<HTMLInputElement>;
+    handleFileSelect(mockEvent);
+  };
+
+  const handleManualDocumentTypeSelection = (documentType: string) => {
+    handleDocumentTypeSelection(documentType);
+  };
+
+  const handleDocumentTypeChange = (newDocumentType: string) => {
+    setSelectedDocumentType(newDocumentType);
+    // If user selects a specific document type and has already uploaded a file,
+    // trigger the manual document type selection
+    if (newDocumentType !== 'auto-detect' && file && !formFields) {
+      handleDocumentTypeSelection(newDocumentType);
+    }
+  };
+
+  const handleProfileChange = (newProfileId: string) => {
+    if (file || formFields) {
+      // If there's an upload in progress, ask for confirmation
+      if (confirm('Changing profile will reset the current upload. Do you want to continue?')) {
+        resetUpload();
+        setSelectedProfileId(newProfileId);
+      }
+    } else {
+      setSelectedProfileId(newProfileId);
+    }
+  };
+
+  const getMainContent = () => {
+    // New Profile Dialog
+    if (showNewProfileDialog && extractedPersonInfo) {
+      return (
+        <NewProfileDialog
+          extractedPersonInfo={extractedPersonInfo}
+          onConfirm={handleNewProfileConfirm}
+          onCancel={handleNewProfileCancel}
+          isLoading={isLoading}
+        />
+      );
+    }
+
+    // Document Type Selection
+    if (showDocumentTypeSelection) {
+      return (
+        <DocumentTypeSelection
+          documentSchemas={documentSchemas}
+          onSelect={handleManualDocumentTypeSelection}
+          onCancel={() => goBackToDocumentTypeSelection()}
+          isLoading={isLoading}
+        />
+      );
+    }
+
+    // Verification Form
+    if (formFields && documentType && documentId) {
+      return (
+        <DocumentVerificationForm
+          formFields={formFields}
+          documentType={documentType}
+          documentSchemas={documentSchemas}
+          documentId={documentId}
+          userId={userId}
+          profileId={hookSelectedProfileId}
+          onSubmit={handleVerificationSubmit}
+          onCancel={() => resetUpload()}
+          onDelete={() => resetUpload()}
+          isLoading={isLoading}
+        />
+      );
+    }
+
+    // Upload Progress
+    if (file && !formFields && !showDocumentTypeSelection) {
+      return (
+        <UploadProgress 
+          file={file} 
+          uploadProgress={uploadProgress} 
+          onStartUpload={startUpload} 
+        />
+      );
+    }
+
+    // File Selection (default state)
+    return (
+      <FileSelector 
+        onFileSelect={handleFileSelectWrapper}
+        accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.txt"
+        maxSizeInMB={10}
+        selectedFile={file}
+        onClearFile={resetUpload}
+      />
+    );
+  };
+
+  return (
+    <div className="container mx-auto p-6 max-w-4xl">
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold mb-2">Upload Document</h1>
+        <p className="text-gray-600">Upload and verify your documents with ease</p>
+      </div>
+
+      {/* Profile and Document Type Selection */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+        {/* Profile Selection */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg">Select Profile</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <Select 
+              value={selectedProfileId} 
+              onValueChange={handleProfileChange}
+              disabled={isLoading || !!file}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Choose a profile" />
+              </SelectTrigger>
+              <SelectContent>
+                {profiles.map((profile) => (
+                  <SelectItem key={profile.id} value={profile.id}>
+                    <div className="flex items-center gap-2">
+                      <span>{profile.firstName} {profile.lastName}</span>
+                      {profile.admin && (
+                        <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">
+                          Admin
+                        </span>
+                      )}
+                    </div>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </CardContent>
+        </Card>
+
+        {/* Document Type Selection (Optional - for manual selection) */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg">Document Type (Optional)</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <Select 
+              value={selectedDocumentType} 
+              onValueChange={handleDocumentTypeChange}
+              disabled={isLoading || !!file}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Auto-detect or choose manually" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="auto-detect">Auto-detect document type</SelectItem>
+                {Object.entries(documentSchemas).map(([key, schema]) => (
+                  <SelectItem key={key} value={key}>
+                    {schema.displayName}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Main Upload Area */}
+      <Card>
+        <CardHeader>
+          <CardTitle>
+            {showNewProfileDialog ? "Create New Profile" :
+             showDocumentTypeSelection ? "Select Document Type" :
+             formFields && documentType ? "Verify Extracted Data" : "Upload Document"}
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="min-h-[400px]">
+          {getMainContent()}
+        </CardContent>
+      </Card>
+    </div>
+  );
+}

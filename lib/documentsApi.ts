@@ -1,17 +1,17 @@
 import { db } from "./firebase";
 import { collection, getDocs } from "firebase/firestore";
-import { DocumentMetaDataModel } from "./types/document.model";
+import { DocumentMetaDataAPIModel } from "./types/document.model";
 
 // Define Schema interface
 
 
-export async function fetchUserDocuments(userId: string, profileId: string): Promise<DocumentMetaDataModel[]> {
+export async function fetchUserDocuments(userId: string, profileId: string): Promise<DocumentMetaDataAPIModel[]> {
   const documentsRef = collection(db, `users/${userId}/profiles/${profileId}/documents`);
   const querySnapshot = await getDocs(documentsRef);
-  const documents: DocumentMetaDataModel[] = [];
+  const documents: DocumentMetaDataAPIModel[] = [];
 
   querySnapshot.forEach((doc) => {
-    documents.push({ id: doc.id, ...doc.data() } as DocumentMetaDataModel);
+    documents.push({ id: doc.id, ...doc.data() } as DocumentMetaDataAPIModel);
   });
 
   return documents;

@@ -1,14 +1,12 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { useForm } from 'react-hook-form';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/input';
-import { Separator } from '@/components/ui/separator';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/popover';
 import { CalendarIcon } from 'lucide-react';
 import { DialogFooter } from '@/components/ui/dialog';
 import { DocumentTypeSchemaModel } from '@/lib/documentActions';
-import { Stepper } from '@/components/ui/stepper';
 import {
   Form,
   FormField,
@@ -29,8 +27,6 @@ interface DocumentVerificationFormProps {
   onSubmit: (values: Record<string, any>) => Promise<void>;
   onCancel: () => void;
   onDelete?: () => void;
-  onBack?: () => void;
-  showBackButton?: boolean;
   isLoading?: boolean;
 }
 
@@ -44,22 +40,68 @@ export const DocumentVerificationForm: React.FC<DocumentVerificationFormProps> =
   onSubmit,
   onCancel,
   onDelete,
-  onBack,
-  showBackButton = false,
   isLoading = false
 }) => {
-  const form = useForm<{ [key: string]: any }>({ defaultValues: {} });
+  // Initialize form with proper default values to prevent controlled/uncontrolled switching
+  const getDefaultValues = () => {
+    const defaults: Record<string, any> = {};
+    if (formFields) {
+      // Use formFields if available
+      return { ...formFields };
+    }
+    // Otherwise, get from schema and initialize with empty strings/null values
+    const schema = documentSchemas[documentType];
+    const editableFields = schema?.fields.filter(field => field.editable) || [];
+    
+    editableFields.forEach(field => {
+      if (field.type === 'date' || field.type === 'timestamp') {
+        defaults[field.key] = null;
+      } else {
+        defaults[field.key] = '';
+      }
+    });
+    
+    return defaults;
+  };
+
+  const form = useForm<{ [key: string]: any }>({ 
+    defaultValues: getDefaultValues()
+  });
   const [isDeleting, setIsDeleting] = useState(false);
   
   // Get the schema for the current document type
   const schema = documentSchemas[documentType];
-  const editableFields = schema?.fields.filter(field => field.editable) || [];
+  const editableFields = useMemo(() => 
+    schema?.fields.filter(field => field.editable) || [], 
+    [schema]
+  );
 
   useEffect(() => {
-    if (formFields) {
-      form.reset(formFields);
+    if (formFields && Object.keys(formFields).length > 0) {
+      // Ensure all form fields have defined values
+      const sanitizedFields: Record<string, any> = {};
+      Object.keys(formFields).forEach(key => {
+        const value = formFields[key];
+        const field = editableFields.find(f => f.key === key);
+        
+        if (field?.type === 'date' || field?.type === 'timestamp') {
+          sanitizedFields[key] = value || null;
+        } else {
+          sanitizedFields[key] = value || '';
+        }
+      });
+      
+      // Only reset if the values are actually different
+      const currentValues = form.getValues();
+      const hasChanges = Object.keys(sanitizedFields).some(key => 
+        currentValues[key] !== sanitizedFields[key]
+      );
+      
+      if (hasChanges) {
+        form.reset(sanitizedFields);
+      }
     }
-  }, [formFields, form]);
+  }, [formFields, editableFields, form]);
 
   const handleSubmit = async (values: Record<string, any>) => {
     try {
@@ -192,48 +234,8 @@ export const DocumentVerificationForm: React.FC<DocumentVerificationFormProps> =
   };
 
   return (
-    <div className="flex flex-col h-full max-h-[calc(90vh-120px)]">
-      <div className="flex-shrink-0 pb-3 border-b border-gray-100 mb-4">
-        {/* Stepper Header */}
-        {showBackButton && (
-          <Stepper 
-            steps={[
-              { title: "Document Type", description: "Select type" },
-              { title: "Verify Data", description: "Review fields" }
-            ]}
-            currentStep={1}
-            className="mb-4"
-          />
-        )}
-        
-        <div className="flex items-center justify-between">
-          <div>
-            <h3 className="text-lg font-semibold text-gray-900">
-              {showBackButton ? 'Verify Extracted Data' : 'Review Document Information'}
-            </h3>
-            <p className="text-sm text-muted-foreground">
-              Review and edit the extracted information below. Required fields are marked with *
-            </p>
-          </div>
-          
-          {showBackButton && onBack && (
-            <Button 
-              type="button" 
-              variant="outline" 
-              onClick={onBack}
-              disabled={isLoading || isDeleting}
-              className="flex items-center gap-2 text-sm px-3 py-2 h-9"
-            >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-              </svg>
-              Back
-            </Button>
-          )}
-        </div>
-      </div>
-      
-      <div className="flex-1 overflow-y-auto min-h-0 pr-2 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
+    <div className="flex flex-col">
+      <div>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4 pb-4">
             <div className="grid gap-4">
@@ -257,35 +259,47 @@ export const DocumentVerificationForm: React.FC<DocumentVerificationFormProps> =
                       }
                     })
                   }}
-                  render={({ field: controllerField }) => (
-                    <div>
-                      <FormItem className="space-y-2 p-3 rounded-lg border border-gray-100 bg-white">
-                        <FormLabel className="text-sm font-medium text-gray-700 flex items-center gap-2">
-                          <span className="flex items-center justify-center w-6 h-6 bg-blue-100 text-blue-700 rounded-full text-xs font-bold">
-                            {index + 1}
-                          </span>
-                          <span>{field.label}</span>
-                          {field.required && (
-                            <span className="text-red-500">*</span>
+                  render={({ field: controllerField }) => {
+                    // Ensure the field value is always defined to prevent controlled/uncontrolled switching
+                    const fieldValue = controllerField.value ?? (
+                      (field.type === 'date' || field.type === 'timestamp') ? null : ''
+                    );
+                    
+                    const enhancedControllerField = {
+                      ...controllerField,
+                      value: fieldValue
+                    };
+                    
+                    return (
+                      <div>
+                        <FormItem className="space-y-2 p-3 rounded-lg border border-gray-100 bg-white">
+                          <FormLabel className="text-sm font-medium text-gray-700 flex items-center gap-2">
+                            <span className="flex items-center justify-center w-6 h-6 bg-blue-100 text-blue-700 rounded-full text-xs font-bold">
+                              {index + 1}
+                            </span>
+                            <span>{field.label}</span>
+                            {field.required && (
+                              <span className="text-red-500">*</span>
+                            )}
+                          </FormLabel>
+                          <FormControl>
+                            <div className="relative">
+                              {renderField(field, enhancedControllerField)}
+                            </div>
+                          </FormControl>
+                          {field.description && (
+                            <div className="bg-gray-50 p-2 rounded border-l-2 border-gray-200">
+                              <p className="text-xs text-gray-500 flex items-start gap-1">
+                                <span className="text-gray-400">💡</span>
+                                <span>{field.description}</span>
+                              </p>
+                            </div>
                           )}
-                        </FormLabel>
-                        <FormControl>
-                          <div className="relative">
-                            {renderField(field, controllerField)}
-                          </div>
-                        </FormControl>
-                        {field.description && (
-                          <div className="bg-gray-50 p-2 rounded border-l-2 border-gray-200">
-                            <p className="text-xs text-gray-500 flex items-start gap-1">
-                              <span className="text-gray-400">💡</span>
-                              <span>{field.description}</span>
-                            </p>
-                          </div>
-                        )}
-                        <FormMessage className="text-xs" />
-                      </FormItem>
-                    </div>
-                  )}
+                          <FormMessage className="text-xs" />
+                        </FormItem>
+                      </div>
+                    );
+                  }}
                 />
               ))}
             </div>
@@ -293,7 +307,7 @@ export const DocumentVerificationForm: React.FC<DocumentVerificationFormProps> =
         </Form>
       </div>
       
-      <div className="flex-shrink-0 bg-white pt-4 mt-4 border-t border-gray-100">
+      <div className="bg-white pt-4 mt-4 border-t border-gray-100">
         <DialogFooter className="gap-3 sm:gap-2">
           <div className="flex gap-2 w-full sm:w-auto">
             <Button 

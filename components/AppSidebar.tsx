@@ -1,6 +1,6 @@
 "use client";
 
-import { Home, FileText, LayoutDashboard, Users } from "lucide-react";
+import { Home, FileText, LayoutDashboard, Users, Upload } from "lucide-react";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
 
@@ -23,6 +23,11 @@ const items = [
     title: "Dashboard",
     url: "/dashboard",
     icon: LayoutDashboard,
+  },
+  {
+    title: "Upload Document",
+    url: "/upload",
+    icon: Upload,
   },
   {
     title: "Documents",
