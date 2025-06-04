@@ -10,6 +10,17 @@ export const fetchProfiles = async (userId: string) => {
         .get();
     return snapshot.docs.map((doc) => {
         const data = doc.data() as any;
+        
+        // Handle lastVisaStatusAnalysis conversion
+        let lastVisaStatusAnalysis = null;
+        if (data.lastVisaStatusAnalysis) {
+            lastVisaStatusAnalysis = {
+                ...data.lastVisaStatusAnalysis,
+                analyzedAt: data.lastVisaStatusAnalysis.analyzedAt?.toDate?.()?.toISOString() || 
+                           (typeof data.lastVisaStatusAnalysis.analyzedAt === 'string' ? data.lastVisaStatusAnalysis.analyzedAt : null)
+            };
+        }
+        
         return {
             id: doc.id,
             firstName: data.firstName,
@@ -23,6 +34,7 @@ export const fetchProfiles = async (userId: string) => {
             admin: data.admin || false,
             isAdmin: data.admin || false, // Alias for easier component use
             relationship: data.relationship || null,
+            lastVisaStatusAnalysis
         } as Profile;
     });
 };

@@ -1,3 +1,5 @@
+import { VisaStatusResponse } from '../genkit';
+
 export interface Profile {
   id: string;
   firstName: string;
@@ -11,5 +13,9 @@ export interface Profile {
   admin: boolean;
   isAdmin: boolean; // Alias for admin for easier use in components
   relationship?: string; // Relationship to the main profile
+  lastVisaStatusAnalysis?: VisaStatusResponse & {
+    analyzedAt: string; // ISO string
+    documentCount: number;
+  };
 }
   

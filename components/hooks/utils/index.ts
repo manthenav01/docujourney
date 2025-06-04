@@ -4,4 +4,4 @@ export { doNamesMatch, findMatchingProfile } from './profileMatching';
 export { validateFile } from './fileValidation';
 export { createNewProfile, fetchProfileById } from './profileApi';
 export { uploadFileToStorage } from './uploadHelpers';
-export { handleDocumentCompletion, setupFormFields } from './documentProcessing';
+export { handleDocumentCompletion, setupFormFields, triggerVisaStatusAnalysis } from './documentProcessing';

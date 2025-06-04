@@ -66,6 +66,17 @@ export const fetchProfileById = async (userId: string, profileId: string): Promi
     }
     
     const data = profileDoc.data();
+    
+    // Handle lastVisaStatusAnalysis conversion
+    let lastVisaStatusAnalysis = null;
+    if (data.lastVisaStatusAnalysis) {
+      lastVisaStatusAnalysis = {
+        ...data.lastVisaStatusAnalysis,
+        analyzedAt: data.lastVisaStatusAnalysis.analyzedAt?.toDate?.()?.toISOString() || 
+                   (typeof data.lastVisaStatusAnalysis.analyzedAt === 'string' ? data.lastVisaStatusAnalysis.analyzedAt : null)
+      };
+    }
+    
     return {
       id: profileDoc.id,
       firstName: data.firstName,
@@ -78,6 +89,7 @@ export const fetchProfileById = async (userId: string, profileId: string): Promi
       admin: data.admin || false,
       isAdmin: data.admin || false,
       relationship: data.relationship || '',
+      lastVisaStatusAnalysis
     } as Profile;
   } catch (error) {
     console.error('Error fetching profile:', error);

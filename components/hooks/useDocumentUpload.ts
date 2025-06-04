@@ -16,7 +16,8 @@ import {
   fetchProfileById,
   uploadFileToStorage,
   handleDocumentCompletion,
-  setupFormFields
+  setupFormFields,
+  triggerVisaStatusAnalysis
 } from './utils';
 
 interface UseDocumentUploadProps {
@@ -51,6 +52,7 @@ export const useDocumentUpload = ({
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [localAllProfiles, setLocalAllProfiles] = useState<Profile[]>(allProfiles);
+  const [currentExtractedData, setCurrentExtractedData] = useState<Record<string, any> | null>(null);
 
   // Sync local profiles with prop changes
   useEffect(() => {
@@ -72,6 +74,9 @@ export const useDocumentUpload = ({
       const data = snap.data() as DocumentMetaDataAPIModel;
       
       if (data?.status === 'completed' && data.extracted) {
+        // Store the current extracted data for later use
+        setCurrentExtractedData(data.extracted);
+        
         try {
           await handleDocumentCompletion(
             data,
@@ -172,12 +177,23 @@ export const useDocumentUpload = ({
       const documentSchema = documentSchemas[documentType];
       const transformedValues = transformDatesToFirestore(values, documentSchema);
       
+      // Use the stored extracted data instead of fetching again
+      const existingExtracted = currentExtractedData || {};
+      
+      // Merge existing extracted data with new transformed values
       const extractedData = {
-        ...transformedValues,
-        document_type: documentType
+        ...existingExtracted, // Keep any existing fields
+        ...transformedValues, // Add/update with new values
+        document_type: documentType // Ensure document_type is set
       };
       
       await updateDoc(ref, { extracted: extractedData, status: 'verified' });
+      
+      // Trigger visa status analysis after successful document verification
+      triggerVisaStatusAnalysis(userId, selectedProfileId).catch(error => {
+        console.warn('Visa status analysis failed, but document was saved:', error);
+      });
+      
       await resetUpload();
       toast.success('Document saved successfully!');
       
@@ -381,6 +397,7 @@ export const useDocumentUpload = ({
     setSelectedProfileId(profileId);
     setError(null);
     setIsLoading(false);
+    setCurrentExtractedData(null);
   };
 
   return {

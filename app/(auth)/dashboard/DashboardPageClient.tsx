@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/badge';
-import ProfileSwitcher from '@/components/ProfileSwitcher';
+import VisaStatusCard from '@/components/VisaStatusCard';
 import { DocumentTypeSchemaModel } from '@/lib/documentActions';
 import { Profile } from '@/lib/types/profile.model';
 import { DocumentMetaDataTransformedModel } from '@/lib/types/document.model';
@@ -15,8 +15,6 @@ import {
     Users, 
     Upload, 
     Calendar, 
-    CheckCircle, 
-    AlertCircle, 
     Clock,
     TrendingUp,
     Star,
@@ -24,6 +22,7 @@ import {
     Award,
     Eye
 } from 'lucide-react';
+import { getVisaStatusColorClasses, getVisaStatusIcon } from '@/lib/visaStatusUtils';
 
 interface DashboardDocument extends DocumentMetaDataTransformedModel {
     profileId: string;
@@ -55,74 +54,63 @@ const DashboardPageClient: React.FC<DashboardPageClientProps> = ({
     const totalProfiles = profiles.length;
     const recentDocuments = allDocuments.slice(0, 6); // Last 6 documents
     
-    // Calculate visa status for each profile
+    // Use saved visa status from profiles instead of calculating manually
     const profilesWithVisaStatus = profiles.map(profile => {
         const profileDocuments = allDocuments.filter(doc => doc.profileId === profile.id);
-        const visaDocuments = profileDocuments.filter(doc => 
-            doc.extracted?.document_type && 
-            ['i94', 'visa', 'passport', 'green_card', 'ead'].includes(doc.extracted.document_type.toLowerCase())
-        );
+        
+        // Get saved visa status analysis from profile (now properly typed)
+        const lastVisaStatusAnalysis = profile.lastVisaStatusAnalysis;
         
         let visaStatus = 'unknown';
-        let validUntil: string | null = null;
+        let statusDetails = null;
+        let currentStatus = null;
+        let visaType = null;
         let daysUntilExpiry: number | null = null;
         
-        if (visaDocuments.length > 0) {
-            // Find the most recent visa document with valid dates
-            const mostRecentVisa = visaDocuments
-                .filter(doc => doc.extracted?.valid_to)
-                .sort((a, b) => {
-                    const dateA = new Date(a.extracted?.valid_to || 0).getTime();
-                    const dateB = new Date(b.extracted?.valid_to || 0).getTime();
-                    return dateB - dateA;
-                })[0];
+        if (lastVisaStatusAnalysis) {
+            // Use the AI analysis results
+            currentStatus = lastVisaStatusAnalysis.currentStatus;
+            visaType = lastVisaStatusAnalysis.visaType;
+            statusDetails = lastVisaStatusAnalysis.statusDetails;
             
-            if (mostRecentVisa?.extracted?.valid_to) {
-                validUntil = mostRecentVisa.extracted.valid_to;
-                if (validUntil) {
-                    const expiryDate = new Date(validUntil);
-                    const today = new Date();
-                    const timeDiff = expiryDate.getTime() - today.getTime();
-                    daysUntilExpiry = Math.ceil(timeDiff / (1000 * 3600 * 24));
-                    
-                    if (daysUntilExpiry > 90) {
-                        visaStatus = 'active';
-                    } else if (daysUntilExpiry > 0) {
-                        visaStatus = 'expiring';
-                    } else {
-                        visaStatus = 'expired';
-                    }
+            // Convert AI status to simple status for UI compatibility
+            if (currentStatus?.toLowerCase().includes('in status')) {
+                // Check for expiration warnings to determine if expiring soon
+                if (lastVisaStatusAnalysis.expirationWarnings?.length > 0) {
+                    visaStatus = 'expiring';
+                } else {
+                    visaStatus = 'active';
                 }
-            } else {
-                visaStatus = 'active'; // Has documents but no expiry date
+            } else if (currentStatus?.toLowerCase().includes('out of status')) {
+                visaStatus = 'expired';
+            }
+            
+            // Try to calculate days until expiry from warnings
+            const expirationWarning = lastVisaStatusAnalysis.expirationWarnings?.[0];
+            if (expirationWarning && expirationWarning.includes('days')) {
+                const daysMatch = expirationWarning.match(/(\d+)\s+days?/);
+                if (daysMatch) {
+                    daysUntilExpiry = parseInt(daysMatch[1]);
+                }
             }
         }
         
         return {
             ...profile,
             visaStatus,
-            validUntil,
+            currentStatus,
+            visaType,
+            statusDetails,
             daysUntilExpiry,
-            documentCount: profileDocuments.length
+            documentCount: profileDocuments.length,
+            lastAnalyzed: lastVisaStatusAnalysis?.analyzedAt
         };
     });
 
-    const getVisaStatusColor = (status: string) => {
-        switch (status) {
-            case 'active': return 'bg-green-100 text-green-800';
-            case 'expiring': return 'bg-yellow-100 text-yellow-800';
-            case 'expired': return 'bg-red-100 text-red-800';
-            default: return 'bg-gray-100 text-gray-800';
-        }
-    };
-
-    const getVisaStatusIcon = (status: string) => {
-        switch (status) {
-            case 'active': return <CheckCircle className="w-4 h-4" />;
-            case 'expiring': return <Clock className="w-4 h-4" />;
-            case 'expired': return <AlertCircle className="w-4 h-4" />;
-            default: return <AlertCircle className="w-4 h-4" />;
-        }
+    // Helper function to render status icon
+    const renderStatusIcon = (status: string) => {
+        const IconComponent = getVisaStatusIcon(status);
+        return <IconComponent className="w-4 h-4" />;
     };
 
     const formatDate = (dateString: string) => {
@@ -270,18 +258,25 @@ const DashboardPageClient: React.FC<DashboardPageClientProps> = ({
                                             </p>
                                             <p className="text-sm text-gray-500 capitalize">
                                                 {profile.relationship || 'self'} • {profile.documentCount} documents
+                                                {profile.visaType && ` • ${profile.visaType}`}
                                             </p>
                                         </div>
                                     </div>
                                     <div className="flex items-center gap-2">
-                                        {profile.daysUntilExpiry !== null && profile.visaStatus === 'expiring' && (
+                                        {profile.daysUntilExpiry !== null && (
+                                            (profile.currentStatus || profile.visaStatus) === 'expiring' ||
+                                            (profile.currentStatus || '').toLowerCase().includes('expiring') ||
+                                            (profile.currentStatus || '').toLowerCase().includes('expires')
+                                        ) && (
                                             <span className="text-xs text-orange-600 font-medium">
                                                 {profile.daysUntilExpiry} days left
                                             </span>
                                         )}
-                                        <Badge className={`${getVisaStatusColor(profile.visaStatus)} border-0 flex items-center gap-1`}>
-                                            {getVisaStatusIcon(profile.visaStatus)}
-                                            <span className="capitalize">{profile.visaStatus}</span>
+                                        <Badge className={`${getVisaStatusColorClasses(profile.currentStatus || profile.visaStatus)} border-0 flex items-center gap-1`}>
+                                            {renderStatusIcon(profile.currentStatus || profile.visaStatus)}
+                                            <span className="capitalize">
+                                                {profile.currentStatus || profile.visaStatus}
+                                            </span>
                                         </Badge>
                                         <Eye className="w-4 h-4 text-gray-400" />
                                     </div>
@@ -349,6 +344,16 @@ const DashboardPageClient: React.FC<DashboardPageClientProps> = ({
                         </div>
                     </CardContent>
                 </Card>
+            </div>
+
+            {/* Visa Status Analysis */}
+            <div className="mt-8">
+                <VisaStatusCard 
+                    userId={userId}
+                    profileId={activeProfileId}
+                    profileName={`${activeProfile.firstName} ${activeProfile.lastName}`}
+                    autoAnalyze={true}
+                />
             </div>
 
             {/* Quick Actions */}

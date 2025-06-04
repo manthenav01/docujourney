@@ -12,5 +12,21 @@ module.exports = {
     ];
   },
   reactStrictMode: true,
-  swcMinify: true,
+  webpack: (config) => {
+    // Add support for WebAssembly
+    config.experiments = {
+      ...config.experiments,
+      asyncWebAssembly: true,
+    };
+    
+    // Handle Genkit modules properly
+    config.resolve.fallback = {
+      ...config.resolve.fallback,
+      fs: false,
+      net: false,
+      tls: false,
+    };
+    
+    return config;
+  },
 };
