@@ -12,6 +12,7 @@ import { Button } from "../../components/ui/Button";
 import { Apple } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
+import { ensureUserDocumentExistsClient } from "../../lib/userClientApi";
 
 const LoginPage = () => {
   const [email, setEmail] = useState("");
@@ -26,6 +27,15 @@ const LoginPage = () => {
       if (user) {
         console.log("User ID:", user.uid);
         document.cookie = `userId=${user.uid}; path=/;`;
+        
+        // Create or update user document in Firestore using the user service
+        await ensureUserDocumentExistsClient(
+          user.uid,
+          user.email,
+          user.displayName,
+          user.photoURL,
+          'google'
+        );
       }
       router.push("/dashboard");
     } catch (err: any) {
@@ -49,6 +59,15 @@ const LoginPage = () => {
       const user = auth.currentUser;
       if (user) {
         document.cookie = `userId=${user.uid}; path=/;`;
+        
+        // Create or update user document in Firestore using the user service
+        await ensureUserDocumentExistsClient(
+          user.uid,
+          user.email,
+          user.displayName,
+          user.photoURL,
+          'email'
+        );
       }
       router.push("/dashboard");
     } catch (err: any) {

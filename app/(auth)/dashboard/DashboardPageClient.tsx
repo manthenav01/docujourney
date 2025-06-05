@@ -1,6 +1,6 @@
 "use client";
 
-import React from 'react';
+import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/Button';
@@ -9,6 +9,7 @@ import VisaStatusCard from '@/components/VisaStatusCard';
 import { DocumentTypeSchemaModel } from '@/lib/documentActions';
 import { Profile } from '@/lib/types/profile.model';
 import { DocumentMetaDataTransformedModel } from '@/lib/types/document.model';
+import { auth } from '@/lib/firebase';
 import { 
     LayoutDashboard, 
     FileText, 
@@ -20,7 +21,9 @@ import {
     Star,
     Zap,
     Award,
-    Eye
+    Eye,
+    Mail,
+    Loader2
 } from 'lucide-react';
 import { getVisaStatusColorClasses, getVisaStatusIcon } from '@/lib/visaStatusUtils';
 
@@ -48,6 +51,47 @@ const DashboardPageClient: React.FC<DashboardPageClientProps> = ({
     allDocuments
 }) => {
     const router = useRouter();
+    const [isTestEmailLoading, setIsTestEmailLoading] = useState(false);
+    const [testEmailMessage, setTestEmailMessage] = useState('');
+
+    // Function to send test email
+    const sendTestEmail = async () => {
+        setIsTestEmailLoading(true);
+        setTestEmailMessage('');
+        
+        try {
+            const user = auth.currentUser;
+            if (!user) {
+                throw new Error('User not authenticated');
+            }
+
+            const token = await user.getIdToken();
+            
+            const response = await fetch('/api/sendTestEmail', {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    userId: user.uid
+                }),
+            });
+
+            const result = await response.json();
+            
+            if (response.ok) {
+                setTestEmailMessage('Test email sent successfully! Check your inbox.');
+            } else {
+                setTestEmailMessage(`Error: ${result.error || 'Failed to send test email'}`);
+            }
+        } catch (error) {
+            console.error('Error sending test email:', error);
+            setTestEmailMessage(`Error: ${error instanceof Error ? error.message : 'Unknown error occurred'}`);
+        } finally {
+            setIsTestEmailLoading(false);
+        }
+    };
 
     // Calculate dashboard statistics
     const totalDocuments = allDocuments.length;
@@ -149,7 +193,34 @@ const DashboardPageClient: React.FC<DashboardPageClientProps> = ({
                         </h1>
                         <p className="text-gray-600 mt-2">Welcome back, {activeProfile.firstName}! Here's your document journey overview.</p>
                     </div>
+                    <div className="flex gap-3">
+                        <Button
+                            onClick={sendTestEmail}
+                            disabled={isTestEmailLoading}
+                            variant="outline"
+                            size="sm"
+                            className="flex items-center gap-2"
+                        >
+                            {isTestEmailLoading ? (
+                                <Loader2 className="w-4 h-4 animate-spin" />
+                            ) : (
+                                <Mail className="w-4 h-4" />
+                            )}
+                            {isTestEmailLoading ? 'Sending...' : 'Send Test Email'}
+                        </Button>
+                    </div>
                 </div>
+                
+                {/* Test Email Message */}
+                {testEmailMessage && (
+                    <div className={`mb-4 p-3 rounded-md text-sm ${
+                        testEmailMessage.includes('Error') 
+                            ? 'bg-red-50 text-red-700 border border-red-200' 
+                            : 'bg-green-50 text-green-700 border border-green-200'
+                    }`}>
+                        {testEmailMessage}
+                    </div>
+                )}
 
                 {/* Gamification Score */}
                 <Card className="bg-gradient-to-r from-slate-50 to-blue-50 border border-slate-200 shadow-sm">

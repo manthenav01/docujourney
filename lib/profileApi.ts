@@ -1,5 +1,6 @@
 import { adminDb } from "./firebaseAdmin";
 import { Profile } from "./types/profile.model";
+import { ensureUserDocumentExists } from "./userApi";
 
 export const fetchProfiles = async (userId: string) => {
     // Use Firebase Admin SDK to bypass security rules for SSR
@@ -99,6 +100,9 @@ export const updateProfile = async (userId: string, profileId: string, profileDa
 
 export const createAdminProfileForNewUser = async (userId: string): Promise<string> => {
     try {
+        // Ensure user document exists first (delegated to userApi)
+        await ensureUserDocumentExists(userId);
+        
         // Get user information from Firebase Auth using Admin SDK
         const admin = await import('firebase-admin');
         const userRecord = await admin.auth().getUser(userId);
@@ -117,7 +121,7 @@ export const createAdminProfileForNewUser = async (userId: string): Promise<stri
             firstName = emailUsername.charAt(0).toUpperCase() + emailUsername.slice(1);
         }
         
-        // Create admin profile
+        // Create admin profile (user document already exists)
         const profileId = await createProfile(userId, {
             firstName,
             lastName,
