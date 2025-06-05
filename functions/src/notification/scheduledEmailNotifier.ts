@@ -162,75 +162,243 @@ export async function sendDocumentExpiryNotifications(userId?: string): Promise<
                 continue;
             }
             
-            // Generate email content based on per-profile AI analysis
-            let html = `<p>Dear ${userName},</p>`;
-            html += `<p>Here's your immigration status summary across all your profiles:</p>`;
-            
-            // Add profile-specific visa status summaries
-            for (const profileAnalysis of profileAnalyses) {
-                const { profileName, analysis } = profileAnalysis;
-                
-                html += `<div style="border: 2px solid #e0e0e0; margin: 20px 0; padding: 20px; border-radius: 8px;">`;
-                html += `<h3 style="margin: 0 0 15px 0; color: #333;">👤 ${profileName}</h3>`;
-                
-                // Add visa status summary for this profile
-                html += `<div style="background-color: ${analysis.currentStatus === 'In Status' ? '#d4edda' : '#f8d7da'}; padding: 15px; border-radius: 5px; margin: 15px 0;">`;
-                html += `<h4 style="margin: 0; color: ${analysis.currentStatus === 'In Status' ? '#155724' : '#721c24'};">`;
-                html += `📋 Immigration Status: ${analysis.currentStatus}</h4>`;
-                html += `<p style="margin: 5px 0; font-weight: bold;">Visa Type: ${analysis.visaType}</p>`;
-                html += `<p style="margin: 5px 0;">${analysis.statusDetails}</p>`;
-                html += `</div>`;
-                
-                // Add AI-generated recommendations if available
-                if (analysis.nextActions && analysis.nextActions.length > 0) {
-                    html += `<div style="background-color: #fff3cd; padding: 15px; border-radius: 5px; margin: 15px 0;">`;
-                    html += `<h5 style="margin: 0 0 10px 0; color: #856404;">🤖 AI Recommendations:</h5>`;
-                    html += `<ul style="margin: 0; padding-left: 20px;">`;
-                    analysis.nextActions.forEach(action => {
-                        html += `<li style="margin: 5px 0;">${action}</li>`;
-                    });
-                    html += `</ul></div>`;
-                }
-                
-                // Add expiration warnings if available
-                if (analysis.expirationWarnings && analysis.expirationWarnings.length > 0) {
-                    html += `<div style="background-color: #f8d7da; padding: 15px; border-radius: 5px; margin: 15px 0;">`;
-                    html += `<h5 style="margin: 0 0 10px 0; color: #721c24;">⚠️ Important Warnings:</h5>`;
-                    html += `<ul style="margin: 0; padding-left: 20px;">`;
-                    analysis.expirationWarnings.forEach(warning => {
-                        html += `<li style="margin: 5px 0;">${warning}</li>`;
-                    });
-                    html += `</ul></div>`;
-                }
-                
-                // Add confidence indicator if low
-                if (analysis.confidence < 0.7) {
-                    html += `<div style="background-color: #e7f3ff; padding: 10px; border-radius: 5px; margin: 15px 0;">`;
-                    html += `<p style="margin: 0; color: #0056b3; font-size: 14px;">`;
-                    html += `<strong>Note:</strong> This analysis has moderate confidence (${Math.round(analysis.confidence * 100)}%). `;
-                    html += `Please review your documents carefully.`;
-                    html += `</p></div>`;
-                }
-                
-                html += `</div>`; // Close profile container
-            }
-            
-            // Add footer
-            html += `<p style="margin-top: 20px;">`;
-            html += `This analysis is based on your uploaded documents and current immigration law. `;
-            html += `For important immigration decisions, please consult with a qualified immigration attorney.`;
-            html += `</p>`;
-            html += `<p><em>Best regards,<br>DocuJourney AI Team</em></p>`;
+            // Generate modern, minimalist email template
+            const html = `
+            <!DOCTYPE html>
+            <html lang="en">
+              <head>
+                <meta charset="UTF-8">
+                <title>DocuJourney Weekly Immigration Update</title>
+                <style>
+                  body {
+                    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+                    background-color: #f9fafb;
+                    padding: 40px 20px;
+                    margin: 0;
+                    line-height: 1.6;
+                    color: #374151;
+                  }
+                  .container {
+                    background-color: #ffffff;
+                    max-width: 600px;
+                    margin: auto;
+                    border-radius: 12px;
+                    padding: 40px;
+                    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+                    border: 1px solid #e5e7eb;
+                  }
+                  h1 {
+                    font-size: 28px;
+                    color: #111827;
+                    margin-bottom: 30px;
+                    text-align: center;
+                    font-weight: 600;
+                  }
+                  .profile-section {
+                    margin-bottom: 32px;
+                    border: 1px solid #e5e7eb;
+                    border-radius: 12px;
+                    overflow: hidden;
+                    background: #ffffff;
+                  }
+                  .profile-header {
+                    background: #111827;
+                    color: white;
+                    padding: 20px 24px;
+                    font-weight: 600;
+                    font-size: 18px;
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                  }
+                  .status-card {
+                    padding: 24px;
+                    margin: 0;
+                    border-bottom: 1px solid #f3f4f6;
+                  }
+                  .status-title {
+                    font-size: 18px;
+                    font-weight: 600;
+                    margin: 0 0 8px 0;
+                    color: #111827;
+                  }
+                  .visa-type {
+                    font-size: 15px;
+                    color: #6b7280;
+                    margin: 8px 0;
+                  }
+                  .status-details {
+                    font-size: 15px;
+                    color: #4b5563;
+                    margin-top: 12px;
+                    line-height: 1.5;
+                  }
+                  .warnings-section {
+                    padding: 20px 24px;
+                    margin: 0;
+                    border-bottom: 1px solid #f3f4f6;
+                    background-color: #fef3f2;
+                  }
+                  .section-title {
+                    font-size: 16px;
+                    font-weight: 600;
+                    margin: 0 0 12px 0;
+                    color: #111827;
+                  }
+                  .warning-item {
+                    font-size: 14px;
+                    margin: 8px 0;
+                    padding-left: 20px;
+                    position: relative;
+                    color: #374151;
+                  }
+                  .warning-item:before {
+                    content: "•";
+                    position: absolute;
+                    left: 0;
+                    color: #ef4444;
+                    font-weight: bold;
+                  }
+                  .confidence-note {
+                    background-color: #f9fafb;
+                    padding: 16px 24px;
+                    margin: 0;
+                    font-size: 13px;
+                    color: #6b7280;
+                    border-top: 1px solid #f3f4f6;
+                  }
+                  .button {
+                    display: inline-block;
+                    background: #111827;
+                    color: white;
+                    padding: 16px 32px;
+                    border-radius: 8px;
+                    text-decoration: none;
+                    font-weight: 600;
+                    margin: 32px auto;
+                    display: block;
+                    text-align: center;
+                    max-width: 280px;
+                    font-size: 16px;
+                  }
+                  .footer {
+                    font-size: 14px;
+                    color: #6b7280;
+                    margin-top: 40px;
+                    line-height: 1.6;
+                    text-align: center;
+                    padding-top: 24px;
+                    border-top: 1px solid #e5e7eb;
+                  }
+                  .signature {
+                    margin-top: 16px;
+                    font-weight: 600;
+                    color: #374151;
+                  }
+                  .summary-badge {
+                    display: inline-block;
+                    padding: 6px 12px;
+                    border-radius: 20px;
+                    font-size: 13px;
+                    font-weight: 600;
+                    background: #f3f4f6;
+                    color: #374151;
+                  }
+                  .badge-good { background: #dcfce7; color: #166534; }
+                  .badge-warning { background: #fef3c7; color: #92400e; }
+                  .badge-urgent { background: #fecaca; color: #991b1b; }
+                </style>
+              </head>
+              <body>
+                <div class="container">
+                  <h1>📋 Weekly Immigration Update</h1>
+                  
+                  <p style="font-size: 16px; color: #374151; margin: 0 0 24px 0;">Hi ${userName},</p>
+                  
+                  ${profileAnalyses.map(profileAnalysis => {
+                    const { profileName, analysis } = profileAnalysis;
+                    const isInStatus = analysis.currentStatus === 'In Status';
+                    const hasWarnings = analysis.expirationWarnings && analysis.expirationWarnings.length > 0;
+                    
+                    let statusBadge;
+                    if (!isInStatus) {
+                      statusBadge = '<span class="summary-badge badge-urgent">Urgent</span>';
+                    } else if (hasWarnings) {
+                      statusBadge = '<span class="summary-badge badge-warning">Action Needed</span>';
+                    } else {
+                      statusBadge = '<span class="summary-badge badge-good">All Good</span>';
+                    }
+                    
+                    return `
+                    <div class="profile-section">
+                      <div class="profile-header">
+                        <span>${profileName}</span>
+                        ${statusBadge}
+                      </div>
+                      
+                      <div class="status-card">
+                        <div class="status-title">Immigration Status</div>
+                        <div class="visa-type">${analysis.visaType}</div>
+                        <div class="status-details">
+                          <strong>Current Status:</strong> ${analysis.currentStatus}<br>
+                          ${analysis.statusDetails}
+                        </div>
+                      </div>
+                      
+                      ${hasWarnings ? `
+                      <div class="warnings-section">
+                        <div class="section-title">⚠️ Important Alerts</div>
+                        ${analysis.expirationWarnings.map(warning => 
+                          `<div class="warning-item">${warning}</div>`
+                        ).join('')}
+                      </div>
+                      ` : ''}
+                      
+                      ${analysis.confidence < 0.7 ? `
+                      <div class="confidence-note">
+                        <strong>Note:</strong> This analysis has moderate confidence (${Math.round(analysis.confidence * 100)}%). 
+                        Please review your documents and consider consulting an immigration attorney.
+                      </div>
+                      ` : ''}
+                    </div>
+                    `;
+                  }).join('')}
+                  
+                  <a href="${process.env.FRONTEND_URL || 'https://docujourney.app'}/dashboard" class="button">
+                    View Dashboard
+                  </a>
+                  
+                  <div class="footer">
+                    <p>We're here to help make immigration less overwhelming.</p>
+                    <div class="signature">Team DocuJourney</div>
+                    <p style="font-size: 12px; color: #94a3b8; margin-top: 16px; line-height: 1.4;">
+                      This analysis is based on your uploaded documents. For important immigration decisions, 
+                      please consult with a qualified immigration attorney.
+                    </p>
+                  </div>
+                </div>
+              </body>
+            </html>
+            `;
 
-            // Determine if this is an urgent notification based on any profile having issues
+            // Determine email urgency and create user-friendly subject
             const hasUrgentIssues = profileAnalyses.some(pa => 
-                pa.analysis.currentStatus === 'Out of Status' || 
-                (pa.analysis.expirationWarnings && pa.analysis.expirationWarnings.length > 0)
+                pa.analysis.currentStatus === 'Out of Status'
             );
             
-            // Create subject line that includes all profile statuses
-            const statusSummary = profileAnalyses.map(pa => pa.analysis.currentStatus).join(', ');
-            const subject = `Immigration Status Update - ${statusSummary}${hasUrgentIssues ? ' ⚠️ URGENT' : ''}`;
+            const hasWarnings = profileAnalyses.some(pa => 
+                pa.analysis.expirationWarnings && pa.analysis.expirationWarnings.length > 0
+            );
+            
+            // Create a friendly subject line
+            let subject;
+            if (hasUrgentIssues) {
+                subject = `🚨 Urgent Immigration Status Alert - Action Required`;
+            } else if (hasWarnings) {
+                subject = `⚠️ DocuJourney Weekly Update - Documents Expiring Soon`;
+            } else {
+                subject = `✅ DocuJourney Weekly Update - All Status Good`;
+            }
 
             await resend.emails.send({
                 from: "DocuJourney AI <onboarding@resend.dev>",
