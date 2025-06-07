@@ -95,6 +95,14 @@ const ProfilesDisplay: React.FC<ProfilesDisplayProps> = ({ profiles, userId, onA
                                         {profile.dateOfBirth ? formatValue(profile.dateOfBirth, 'date') : 'Not set'}
                                     </span>
                                 </div>
+                                {profile.firstEntryDate && (
+                                    <div className="flex justify-between items-center">
+                                        <span className="text-xs text-gray-500">First Entry Date:</span>
+                                        <span className="text-xs font-medium text-gray-900">
+                                            {formatValue(profile.firstEntryDate, 'date')}
+                                        </span>
+                                    </div>
+                                )}
                                 {profile.countryOfCitizen && (
                                     <div className="flex justify-between items-center">
                                         <span className="text-xs text-gray-500">Citizenship:</span>

@@ -83,7 +83,10 @@ export const fetchProfileById = async (userId: string, profileId: string): Promi
       lastName: data.lastName,
       email: data.email || '',
       phone: data.phone || '',
-      dateOfBirth: data.dateOfBirth?.toDate?.()?.toISOString() || null,
+      dateOfBirth: data.dateOfBirth?.toDate?.()?.toISOString() || 
+                  (typeof data.dateOfBirth === 'string' ? data.dateOfBirth : null),
+      firstEntryDate: data.firstEntryDate?.toDate?.()?.toISOString() || 
+                     (typeof data.firstEntryDate === 'string' ? data.firstEntryDate : null),
       createdAt: data.createdAt?.toDate?.()?.toISOString() || new Date().toISOString(),
       updatedAt: data.updatedAt?.toDate?.()?.toISOString() || new Date().toISOString(),
       admin: data.admin || false,

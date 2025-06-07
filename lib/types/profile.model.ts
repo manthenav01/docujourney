@@ -8,6 +8,7 @@ export interface Profile {
   phone?: string;
   dateOfBirth?: string | null; // ISO string for transfer to client components
   countryOfCitizen?: string | null; // Country of citizenship
+  firstEntryDate?: string | null; // First entry to US date - ISO string
   // Dates converted to ISO strings for transfer to client components
   createdAt: string | null;
   updatedAt: string | null;

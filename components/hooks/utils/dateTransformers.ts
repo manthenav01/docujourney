@@ -52,7 +52,7 @@ export const transformTimestampsToFormValues = (
   
   dateFields.forEach(field => {
     const value = transformed[field.key];
-    if (value && typeof value === 'object' && value.seconds !== undefined) {
+    if (value && typeof value === 'object' && value.seconds !== undefined && typeof value.toDate === 'function') {
       const date = value.toDate();
       transformed[field.key] = date.toISOString().split('T')[0];
     } else if (value instanceof Date) {

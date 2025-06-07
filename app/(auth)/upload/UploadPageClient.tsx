@@ -6,7 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { DocumentTypeSchemaModel } from '@/lib/documentActions';
 import { Profile } from '@/lib/types/profile.model';
 import { useDocumentUpload } from '@/components/hooks';
-import { FileSelector, UploadProgress, DocumentVerificationForm, DocumentTypeSelection, NewProfileDialog } from '@/components/components';
+import { FileSelector, UploadProgress, DocumentVerificationForm, DocumentTypeSelection, FirstEntryDateSelection, NewProfileDialog } from '@/components/components';
 import { Skeleton } from '@/components/ui/skeleton';
 import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
@@ -52,6 +52,8 @@ export default function UploadPageClient({
     documentId,
     showDocumentTypeSelection,
     showNewProfileDialog,
+    showFirstEntryDateSelection,
+    firstEntryDateCollected,
     extractedPersonInfo,
     selectedProfileId: hookSelectedProfileId,
     error,
@@ -62,6 +64,8 @@ export default function UploadPageClient({
     handleDocumentTypeSelection,
     handleNewProfileConfirm,
     handleNewProfileCancel,
+    handleFirstEntryDateSubmit,
+    handleFirstEntryDateCancel,
     goBackToDocumentTypeSelection,
     resetUpload,
     deleteCurrentDocument
@@ -174,6 +178,18 @@ export default function UploadPageClient({
       );
     }
 
+    // First Entry Date Selection
+    if (showFirstEntryDateSelection) {
+      return (
+        <FirstEntryDateSelection
+          profileName={`${currentProfile.firstName} ${currentProfile.lastName}`}
+          onSubmit={handleFirstEntryDateSubmit}
+          onCancel={handleFirstEntryDateCancel}
+          isLoading={isLoading}
+        />
+      );
+    }
+
     // Document Type Selection
     if (showDocumentTypeSelection) {
       return (
@@ -182,6 +198,7 @@ export default function UploadPageClient({
           onSelect={handleManualDocumentTypeSelection}
           onCancel={() => goBackToDocumentTypeSelection()}
           isLoading={isLoading}
+          showFirstEntryStep={firstEntryDateCollected}
         />
       );
     }
@@ -308,6 +325,7 @@ export default function UploadPageClient({
         <CardHeader>
           <CardTitle>
             {showNewProfileDialog ? "Create New Profile" :
+             showFirstEntryDateSelection ? "First Entry Date Required" :
              showDocumentTypeSelection ? "Select Document Type" :
              formFields && documentType ? "Verify Extracted Data" : "Upload Document"}
           </CardTitle>

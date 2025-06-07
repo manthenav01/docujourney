@@ -28,11 +28,14 @@ export const fetchProfiles = async (userId: string) => {
             lastName: data.lastName,
             email: data.email,
             phone: data.phone || '',
-            dateOfBirth: data.dateOfBirth?.toDate().toISOString() || null,
+            dateOfBirth: data.dateOfBirth?.toDate?.()?.toISOString() || 
+                        (typeof data.dateOfBirth === 'string' ? data.dateOfBirth : null),
+            firstEntryDate: data.firstEntryDate?.toDate?.()?.toISOString() || 
+                           (typeof data.firstEntryDate === 'string' ? data.firstEntryDate : null),
             countryOfCitizen: data.countryOfCitizen || null,
             // Convert Firestore Timestamps to ISO strings
-            createdAt: data.createdAt?.toDate().toISOString() || null,
-            updatedAt: data.updatedAt?.toDate().toISOString() || null,
+            createdAt: data.createdAt?.toDate?.()?.toISOString() || null,
+            updatedAt: data.updatedAt?.toDate?.()?.toISOString() || null,
             admin: data.admin || false,
             isAdmin: data.admin || false, // Alias for easier component use
             relationship: data.relationship || null,
@@ -48,6 +51,7 @@ export const createProfile = async (userId: string, profileData: {
     email: string;
     phone?: string;
     dateOfBirth?: Date | null;
+    firstEntryDate?: Date | null;
     countryOfCitizen?: string | null;
     relationship?: string;
     isAdmin?: boolean;
@@ -64,6 +68,7 @@ export const createProfile = async (userId: string, profileData: {
         email: profileData.email,
         phone: profileData.phone || '',
         dateOfBirth: profileData.dateOfBirth || null,
+        firstEntryDate: profileData.firstEntryDate || null,
         countryOfCitizen: profileData.countryOfCitizen || null,
         relationship: profileData.relationship || null,
         admin: profileData.isAdmin || false,
@@ -82,6 +87,7 @@ export const updateProfile = async (userId: string, profileId: string, profileDa
     email?: string;
     phone?: string;
     dateOfBirth?: Date | null | string;
+    firstEntryDate?: Date | null | string;
     countryOfCitizen?: string | null;
     relationship?: string;
     isAdmin?: boolean;

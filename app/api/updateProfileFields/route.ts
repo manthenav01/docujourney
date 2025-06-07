@@ -16,13 +16,13 @@ export async function PATCH(request: NextRequest) {
     }
 
     // Only allow specific fields to be updated through this endpoint
-    const allowedFields = ['dateOfBirth', 'countryOfCitizen'];
+    const allowedFields = ['dateOfBirth', 'countryOfCitizen', 'firstEntryDate'];
     const filteredUpdates: Record<string, any> = {};
     
     for (const [key, value] of Object.entries(updates)) {
       if (allowedFields.includes(key) && value !== undefined && value !== null) {
-        // Handle date conversion for dateOfBirth
-        if (key === 'dateOfBirth') {
+        // Handle date conversion for dateOfBirth and firstEntryDate
+        if (key === 'dateOfBirth' || key === 'firstEntryDate') {
           try {
             let dateValue = null;
             

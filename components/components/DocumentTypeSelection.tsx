@@ -10,13 +10,15 @@ interface DocumentTypeSelectionProps {
   onSelect: (documentType: string) => void;
   onCancel: () => void;
   isLoading?: boolean;
+  showFirstEntryStep?: boolean; // New prop to indicate if first entry step was shown
 }
 
 export const DocumentTypeSelection: React.FC<DocumentTypeSelectionProps> = ({
   documentSchemas,
   onSelect,
   onCancel,
-  isLoading = false
+  isLoading = false,
+  showFirstEntryStep = false
 }) => {
   const [selectedType, setSelectedType] = React.useState<string>('');
 
@@ -39,11 +41,15 @@ export const DocumentTypeSelection: React.FC<DocumentTypeSelectionProps> = ({
       {/* Header */}
       <div className="flex-shrink-0">
         <Stepper 
-          steps={[
+          steps={showFirstEntryStep ? [
+            { title: "First Entry Date", description: "Date entered" },
+            { title: "Document Type", description: "Select type" },
+            { title: "Verify Data", description: "Review fields" }
+          ] : [
             { title: "Document Type", description: "Select type" },
             { title: "Verify Data", description: "Review fields" }
           ]}
-          currentStep={0}
+          currentStep={showFirstEntryStep ? 1 : 0}
           className="mb-6"
         />
         <div>

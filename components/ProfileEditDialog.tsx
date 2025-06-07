@@ -51,6 +51,7 @@ const ProfileEditDialog: React.FC<ProfileEditDialogProps> = ({
         email: '',
         phone: '',
         dateOfBirth: '',
+        firstEntryDate: '',
         countryOfCitizen: '',
         relationship: '',
         isAdmin: false,
@@ -69,6 +70,9 @@ const ProfileEditDialog: React.FC<ProfileEditDialogProps> = ({
                 phone: profile.phone || '',
                 dateOfBirth: profile.dateOfBirth 
                     ? new Date(profile.dateOfBirth).toISOString().split('T')[0]
+                    : '',
+                firstEntryDate: profile.firstEntryDate
+                    ? new Date(profile.firstEntryDate).toISOString().split('T')[0]
                     : '',
                 countryOfCitizen: profile.countryOfCitizen || '',
                 relationship: profile.isAdmin ? 'self' : (profile.relationship || 'other'),
@@ -129,6 +133,7 @@ const ProfileEditDialog: React.FC<ProfileEditDialogProps> = ({
             // Ensure admin profiles always have relationship set to "self"
             relationship: formData.isAdmin ? 'self' : formData.relationship,
             dateOfBirth: formData.dateOfBirth ? new Date(formData.dateOfBirth) : null,
+            firstEntryDate: formData.firstEntryDate ? new Date(formData.firstEntryDate) : null,
             userId,
         };
 
@@ -226,6 +231,15 @@ const ProfileEditDialog: React.FC<ProfileEditDialogProps> = ({
                                 type="date"
                                 value={formData.dateOfBirth}
                                 onChange={(e) => handleInputChange('dateOfBirth', e.target.value)}
+                            />
+                        </div>
+                        <div className="space-y-2">
+                            <Label htmlFor="firstEntryDate">First Entry Date to US</Label>
+                            <Input
+                                id="firstEntryDate"
+                                type="date"
+                                value={formData.firstEntryDate}
+                                onChange={(e) => handleInputChange('firstEntryDate', e.target.value)}
                             />
                         </div>
                         <div className="space-y-2">

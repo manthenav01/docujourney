@@ -26,6 +26,7 @@ import {
     Loader2
 } from 'lucide-react';
 import { getVisaStatusColorClasses, getVisaStatusIcon } from '@/lib/visaStatusUtils';
+import VisaTimeline, { createVisaTimelineEvents } from '@/components/VisaTimeline';
 
 interface DashboardDocument extends DocumentMetaDataTransformedModel {
     profileId: string;
@@ -300,6 +301,16 @@ const DashboardPageClient: React.FC<DashboardPageClientProps> = ({
                         </div>
                     </CardContent>
                 </Card>
+            </div>
+
+            {/* Visa Timeline */}
+            <div className="mb-8">
+                <VisaTimeline 
+                    events={createVisaTimelineEvents(
+                        allDocuments.filter(doc => doc.profileId === activeProfileId),
+                        activeProfile.lastVisaStatusAnalysis
+                    )}
+                />
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">

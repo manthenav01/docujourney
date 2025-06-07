@@ -48,6 +48,9 @@ export const useDocumentUpload = ({
   const [documentType, setDocumentType] = useState<string | null>(null);
   const [showDocumentTypeSelection, setShowDocumentTypeSelection] = useState(false);
   const [showNewProfileDialog, setShowNewProfileDialog] = useState(false);
+  const [showFirstEntryDateSelection, setShowFirstEntryDateSelection] = useState(false);
+  const [firstEntryDateCollected, setFirstEntryDateCollected] = useState(false);
+  const [pendingVerificationData, setPendingVerificationData] = useState<Record<string, any> | null>(null);
   const [extractedPersonInfo, setExtractedPersonInfo] = useState<{firstName: string, lastName: string} | null>(null);
   const [selectedProfileId, setSelectedProfileId] = useState<string>(profileId);
   const [error, setError] = useState<string | null>(null);
@@ -170,6 +173,21 @@ export const useDocumentUpload = ({
   const handleVerificationSubmit = async (values: Record<string, any>) => {
     if (!docRefId || !documentType) return;
     
+    // Check if profile has firstEntryDate, if not, show selection screen
+    if (!currentProfile.firstEntryDate) {
+      setPendingVerificationData(values);
+      setShowFirstEntryDateSelection(true);
+      return;
+    }
+    
+    // Process the verification
+    await processVerification(values);
+  };
+
+  // Process verification (separated for reuse)
+  const processVerification = async (values: Record<string, any>) => {
+    if (!docRefId || !documentType) return;
+    
     setIsLoading(true);
     setError(null);
     
@@ -215,6 +233,50 @@ export const useDocumentUpload = ({
       toast.error(errorMessage);
       setIsLoading(false);
     }
+  };
+
+  // Handle first entry date submission
+  const handleFirstEntryDateSubmit = async (date: Date) => {
+    setIsLoading(true);
+    setError(null);
+    
+    try {
+      // Update profile with first entry date
+      const profileRef = firestoreDoc(db, `users/${userId}/profiles`, selectedProfileId);
+      await updateDoc(profileRef, {
+        firstEntryDate: date.toISOString(),
+        updatedAt: new Date().toISOString()
+      });
+      
+      // Update local profile data
+      const updatedProfile = {
+        ...currentProfile,
+        firstEntryDate: date.toISOString()
+      };
+      
+      // Continue with verification process
+      setShowFirstEntryDateSelection(false);
+      setFirstEntryDateCollected(true);
+      setPendingVerificationData(null);
+      
+      // Process the pending verification with updated profile
+      if (pendingVerificationData) {
+        await processVerification(pendingVerificationData);
+      }
+    } catch (error) {
+      console.error('Error saving first entry date:', error);
+      const errorMessage = 'Failed to save entry date. Please try again.';
+      setError(errorMessage);
+      toast.error(errorMessage);
+      setIsLoading(false);
+    }
+  };
+
+  // Handle first entry date selection cancel
+  const handleFirstEntryDateCancel = () => {
+    setShowFirstEntryDateSelection(false);
+    setPendingVerificationData(null);
+    setIsLoading(false);
   };
 
   // Document type selection handler
@@ -401,6 +463,9 @@ export const useDocumentUpload = ({
     setDocumentType(null);
     setShowDocumentTypeSelection(false);
     setShowNewProfileDialog(false);
+    setShowFirstEntryDateSelection(false);
+    setFirstEntryDateCollected(false);
+    setPendingVerificationData(null);
     setExtractedPersonInfo(null);
     setSelectedProfileId(profileId);
     setError(null);
@@ -417,6 +482,8 @@ export const useDocumentUpload = ({
     documentId: docRefId,
     showDocumentTypeSelection,
     showNewProfileDialog,
+    showFirstEntryDateSelection,
+    firstEntryDateCollected,
     extractedPersonInfo,
     selectedProfileId,
     error,
@@ -429,6 +496,8 @@ export const useDocumentUpload = ({
     handleDocumentTypeSelection,
     handleNewProfileConfirm,
     handleNewProfileCancel,
+    handleFirstEntryDateSubmit,
+    handleFirstEntryDateCancel,
     goBackToDocumentTypeSelection,
     resetUpload,
     deleteCurrentDocument
