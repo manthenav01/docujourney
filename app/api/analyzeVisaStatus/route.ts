@@ -18,6 +18,23 @@ export async function POST(request: NextRequest) {
     // Fetch all documents for the profile
     const { documentGroups } = await fetchAndGroupDocuments(userId, profileId);
     
+    // Fetch profile information for additional context
+    let profileData = null;
+    try {
+      const profileDoc = await adminDb
+        .collection('users')
+        .doc(userId)
+        .collection('profiles')
+        .doc(profileId)
+        .get();
+      
+      if (profileDoc.exists) {
+        profileData = profileDoc.data();
+      }
+    } catch (error) {
+      console.warn('Failed to fetch profile data for analysis:', error);
+    }
+    
     // Flatten all documents from all groups
     const allDocuments = documentGroups.flatMap(group => group.docs);
     
@@ -43,7 +60,11 @@ export async function POST(request: NextRequest) {
     // Analyze visa status using Genkit
     const visaStatusAnalysis = await analyzeVisaStatus({
       documents: documentsForAnalysis,
-      currentDate: new Date().toISOString()
+      currentDate: new Date().toISOString(),
+      profileContext: profileData ? {
+        firstEntryDate: profileData.firstEntryDate,
+        firstEntryVisaType: profileData.firstEntryVisaType
+      } : undefined
     });
 
     // Store the analysis result in Firestore for caching (optional)

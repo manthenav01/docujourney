@@ -39,6 +39,13 @@ const relationshipOptions = [
     { value: 'grandparent', label: 'Grandparent' },
 ];
 
+const visaTypeOptions = [
+    { value: 'H1B', label: 'H-1B (Specialty Worker)' },
+    { value: 'H4', label: 'H-4 (H-1B Dependent)' },
+    { value: 'F1', label: 'F-1 (Student)' },
+    { value: 'F2', label: 'F-2 (F-1 Dependent)' }
+];
+
 const ProfileEditDialog: React.FC<ProfileEditDialogProps> = ({
     profile,
     userId,
@@ -52,6 +59,7 @@ const ProfileEditDialog: React.FC<ProfileEditDialogProps> = ({
         phone: '',
         dateOfBirth: '',
         firstEntryDate: '',
+        firstEntryVisaType: '',
         countryOfCitizen: '',
         relationship: '',
         isAdmin: false,
@@ -74,6 +82,7 @@ const ProfileEditDialog: React.FC<ProfileEditDialogProps> = ({
                 firstEntryDate: profile.firstEntryDate
                     ? new Date(profile.firstEntryDate).toISOString().split('T')[0]
                     : '',
+                firstEntryVisaType: profile.firstEntryVisaType || '',
                 countryOfCitizen: profile.countryOfCitizen || '',
                 relationship: profile.isAdmin ? 'self' : (profile.relationship || 'other'),
                 isAdmin: profile.isAdmin || false,
@@ -233,6 +242,8 @@ const ProfileEditDialog: React.FC<ProfileEditDialogProps> = ({
                                 onChange={(e) => handleInputChange('dateOfBirth', e.target.value)}
                             />
                         </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
                         <div className="space-y-2">
                             <Label htmlFor="firstEntryDate">First Entry Date to US</Label>
                             <Input
@@ -243,15 +254,33 @@ const ProfileEditDialog: React.FC<ProfileEditDialogProps> = ({
                             />
                         </div>
                         <div className="space-y-2">
-                            <Label htmlFor="countryOfCitizen">Country of Citizenship</Label>
-                            <Input
-                                id="countryOfCitizen"
-                                type="text"
-                                placeholder="Enter country of citizenship"
-                                value={formData.countryOfCitizen}
-                                onChange={(e) => handleInputChange('countryOfCitizen', e.target.value)}
-                            />
+                            <Label htmlFor="firstEntryVisaType">First Entry Visa Type</Label>
+                            <Select
+                                value={formData.firstEntryVisaType}
+                                onValueChange={(value) => handleInputChange('firstEntryVisaType', value)}
+                            >
+                                <SelectTrigger>
+                                    <SelectValue placeholder="Select visa type" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {visaTypeOptions.map((option) => (
+                                        <SelectItem key={option.value} value={option.value}>
+                                            {option.label}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
                         </div>
+                    </div>
+                    <div className="space-y-2">
+                        <Label htmlFor="countryOfCitizen">Country of Citizenship</Label>
+                        <Input
+                            id="countryOfCitizen"
+                            type="text"
+                            placeholder="Enter country of citizenship"
+                            value={formData.countryOfCitizen}
+                            onChange={(e) => handleInputChange('countryOfCitizen', e.target.value)}
+                        />
                     </div>
                     <div className="space-y-2">
                         <Label htmlFor="email">Email</Label>

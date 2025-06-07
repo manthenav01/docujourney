@@ -368,13 +368,16 @@ export const createVisaTimelineEvents = (
 
   // Add first entry date if available from profile
   if (profile?.firstEntryDate) {
+    const visaTypeDescription = profile?.firstEntryVisaType ? 
+      ` on ${profile.firstEntryVisaType} visa` : '';
+    
     events.push({
       id: 'first-entry',
       label: 'First U.S. Entry',
       date: profile.firstEntryDate,
       icon: <Plane className="w-full h-full" />,
       status: getDateStatus(profile.firstEntryDate),
-      description: 'First entry to the United States'
+      description: `First entry to the United States${visaTypeDescription}`
     });
   }
 

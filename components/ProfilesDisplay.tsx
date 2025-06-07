@@ -103,6 +103,14 @@ const ProfilesDisplay: React.FC<ProfilesDisplayProps> = ({ profiles, userId, onA
                                         </span>
                                     </div>
                                 )}
+                                {profile.firstEntryVisaType && (
+                                    <div className="flex justify-between items-center">
+                                        <span className="text-xs text-gray-500">First Entry Visa:</span>
+                                        <span className="text-xs font-medium text-gray-900">
+                                            {profile.firstEntryVisaType}
+                                        </span>
+                                    </div>
+                                )}
                                 {profile.countryOfCitizen && (
                                     <div className="flex justify-between items-center">
                                         <span className="text-xs text-gray-500">Citizenship:</span>

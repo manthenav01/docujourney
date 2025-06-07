@@ -16,7 +16,7 @@ export async function PATCH(request: NextRequest) {
     }
 
     // Only allow specific fields to be updated through this endpoint
-    const allowedFields = ['dateOfBirth', 'countryOfCitizen', 'firstEntryDate'];
+    const allowedFields = ['dateOfBirth', 'countryOfCitizen', 'firstEntryDate', 'firstEntryVisaType'];
     const filteredUpdates: Record<string, any> = {};
     
     for (const [key, value] of Object.entries(updates)) {

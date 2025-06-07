@@ -13,6 +13,10 @@ export interface DocumentSummary {
 export interface VisaStatusRequest {
   documents: DocumentSummary[];
   currentDate: string;
+  profileContext?: {
+    firstEntryDate?: string;
+    firstEntryVisaType?: string;
+  };
 }
 
 export interface VisaStatusResponse {
@@ -28,17 +32,25 @@ export interface VisaStatusResponse {
  * Analyze visa status based on document types and dates
  */
 export async function analyzeVisaStatus(input: VisaStatusRequest): Promise<VisaStatusResponse> {
-  const { documents, currentDate } = input;
+  const { documents, currentDate, profileContext } = input;
 
   console.log('=== VISA STATUS ANALYSIS DEBUG ===');
   console.log('Current Date:', currentDate);
   console.log('Documents to analyze:', JSON.stringify(documents, null, 2));
+  console.log('Profile Context:', profileContext);
+
+  const profileContextSection = profileContext && (profileContext.firstEntryDate || profileContext.firstEntryVisaType) ? `
+
+Profile Context:
+- First Entry Date: ${profileContext.firstEntryDate || 'Not specified'}
+- First Entry Visa Type: ${profileContext.firstEntryVisaType || 'Not specified'}
+` : '';
 
   const prompt = `
 You are a U.S. immigration expert. Based on the provided document types and their validity dates, determine the current visa/immigration status.
 
 Current Date: ${currentDate}
-
+${profileContextSection}
 Documents:
 ${documents.map((doc, index) => `
 - Document Type: ${doc.documentType}
@@ -72,6 +84,7 @@ Important guidelines:
 - Consider document hierarchy (Green Card > EAD > I-94 > Visa stamps, etc.)
 - Use the Class of Admission field to determine the specific visa category (e.g., F-1, H-1B, B-2, etc.)
 - Consider Country of Citizenship for visa-free travel programs (VWP) or specific country agreements
+- If Profile Context is provided, use the first entry information to better understand the immigration history and journey
 - A person is "In Status" if they have valid, unexpired immigration documents
 - A person is "Out of Status" if their documents are expired or there are gaps in authorization
 - Check for gaps between document validity periods

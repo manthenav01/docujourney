@@ -3,7 +3,7 @@ import { createProfile, fetchProfiles, updateProfile } from '@/lib/profileApi';
 
 export async function POST(request: NextRequest) {
   try {
-    const { userId, firstName, lastName, email, phone, dateOfBirth, firstEntryDate, countryOfCitizen, relationship, isAdmin, currentlyEmployed } = await request.json();
+    const { userId, firstName, lastName, email, phone, dateOfBirth, firstEntryDate, firstEntryVisaType, countryOfCitizen, relationship, isAdmin, currentlyEmployed } = await request.json();
     
     if (!userId || !firstName || !lastName) {
       return NextResponse.json(
@@ -39,6 +39,7 @@ export async function POST(request: NextRequest) {
       phone: phone || '',
       dateOfBirth: dateOfBirth ? new Date(dateOfBirth) : null,
       firstEntryDate: firstEntryDate ? new Date(firstEntryDate) : null,
+      firstEntryVisaType: firstEntryVisaType || null,
       countryOfCitizen: countryOfCitizen || null,
       relationship: relationship || undefined,
       isAdmin: isAdmin || false,
@@ -57,7 +58,7 @@ export async function POST(request: NextRequest) {
 
 export async function PUT(request: NextRequest) {
   try {
-    const { id, userId, firstName, lastName, email, phone, dateOfBirth, firstEntryDate, countryOfCitizen, relationship, isAdmin, currentlyEmployed } = await request.json();
+    const { id, userId, firstName, lastName, email, phone, dateOfBirth, firstEntryDate, firstEntryVisaType, countryOfCitizen, relationship, isAdmin, currentlyEmployed } = await request.json();
     
     if (!id || !userId || !firstName || !lastName) {
       return NextResponse.json(
@@ -94,6 +95,7 @@ export async function PUT(request: NextRequest) {
       phone: phone || '',
       dateOfBirth: dateOfBirth ? new Date(dateOfBirth) : null,
       firstEntryDate: firstEntryDate ? new Date(firstEntryDate) : null,
+      firstEntryVisaType: firstEntryVisaType || null,
       countryOfCitizen: countryOfCitizen || null,
       relationship: relationship || undefined,
       isAdmin: isAdmin || false,

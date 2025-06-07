@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { db } from '@/lib/firebase';
 import { doc as firestoreDoc, onSnapshot, updateDoc, setDoc, getDoc, deleteDoc } from 'firebase/firestore';
 import { DocumentTypeSchemaModel } from '@/lib/documentActions';
@@ -31,6 +31,29 @@ interface UseDocumentUploadProps {
   onProfileCreated?: (newProfileId: string, newProfile?: Profile) => void;
 }
 
+// Upload flow phases for better state management
+type UploadPhase = 
+  | 'idle'           // No file selected
+  | 'file-selected'  // File selected, ready to upload
+  | 'uploading'      // File uploading to storage
+  | 'processing'     // Document being processed by AI
+  | 'type-selection' // User needs to select document type
+  | 'verification'   // User verifying extracted data
+  | 'saving'         // Saving verified document
+  | 'profile-dialog' // Creating new profile for name mismatch
+  | 'profile-info'   // Collecting missing profile info (first entry date/visa)
+  | 'completed'      // Flow completed successfully
+  | 'error';         // Error state
+
+// Loading states for specific operations
+interface LoadingStates {
+  upload: boolean;
+  verification: boolean;
+  profileCreation: boolean;
+  profileUpdate: boolean;
+  documentMove: boolean;
+}
+
 export const useDocumentUpload = ({ 
   userId, 
   profileId, 
@@ -40,23 +63,74 @@ export const useDocumentUpload = ({
   onSuccess, 
   onProfileCreated 
 }: UseDocumentUploadProps) => {
-  // State management
+  // Core state
   const [file, setFile] = useState<File | null>(null);
   const [uploadProgress, setUploadProgress] = useState<number>(0);
   const [docRefId, setDocRefId] = useState<string>();
-  const [formFields, setFormFields] = useState<Record<string, any> | null>(null);
+  const [phase, setPhase] = useState<UploadPhase>('idle');
+  const [error, setError] = useState<string | null>(null);
+  
+  // Loading states for different operations
+  const [loadingStates, setLoadingStates] = useState<LoadingStates>({
+    upload: false,
+    verification: false,
+    profileCreation: false,
+    profileUpdate: false,
+    documentMove: false
+  });
+  
+  // Document processing state
   const [documentType, setDocumentType] = useState<string | null>(null);
+  const [formFields, setFormFields] = useState<Record<string, any> | null>(null);
+  const [extractedData, setExtractedData] = useState<Record<string, any> | null>(null);
+  
+  // Profile management state
+  const [selectedProfileId, setSelectedProfileId] = useState<string>(profileId);
+  const [localAllProfiles, setLocalAllProfiles] = useState<Profile[]>(allProfiles);
+  const [extractedPersonInfo, setExtractedPersonInfo] = useState<{firstName: string, lastName: string} | null>(null);
+  
+  // Dialog states
   const [showDocumentTypeSelection, setShowDocumentTypeSelection] = useState(false);
   const [showNewProfileDialog, setShowNewProfileDialog] = useState(false);
   const [showFirstEntryDateSelection, setShowFirstEntryDateSelection] = useState(false);
-  const [firstEntryDateCollected, setFirstEntryDateCollected] = useState(false);
-  const [pendingVerificationData, setPendingVerificationData] = useState<Record<string, any> | null>(null);
-  const [extractedPersonInfo, setExtractedPersonInfo] = useState<{firstName: string, lastName: string} | null>(null);
-  const [selectedProfileId, setSelectedProfileId] = useState<string>(profileId);
-  const [error, setError] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
-  const [localAllProfiles, setLocalAllProfiles] = useState<Profile[]>(allProfiles);
-  const [currentExtractedData, setCurrentExtractedData] = useState<Record<string, any> | null>(null);
+
+  // Computed loading flags for UI
+  const isAnyLoading = useMemo(() => 
+    Object.values(loadingStates).some(loading => loading), 
+    [loadingStates]
+  );
+  
+  const isFormDisabled = useMemo(() => 
+    isAnyLoading || phase === 'saving' || phase === 'profile-dialog' || phase === 'completed',
+    [isAnyLoading, phase]
+  );
+
+  // Helper function to update loading states
+  const setLoading = useCallback((operation: keyof LoadingStates, loading: boolean) => {
+    setLoadingStates(prev => ({ ...prev, [operation]: loading }));
+  }, []);
+
+  // Helper function to clear all errors and loading states
+  const clearErrorAndLoading = useCallback(() => {
+    setError(null);
+    setLoadingStates({
+      upload: false,
+      verification: false,
+      profileCreation: false,
+      profileUpdate: false,
+      documentMove: false
+    });
+  }, []);
+
+  // Helper function to handle errors consistently
+  const handleError = useCallback((error: unknown, operation: keyof LoadingStates, defaultMessage: string) => {
+    console.error(`Error in ${operation}:`, error);
+    const errorMessage = error instanceof Error ? error.message : defaultMessage;
+    setError(errorMessage);
+    toast.error(errorMessage);
+    setLoading(operation, false);
+    return errorMessage;
+  }, [setLoading]);
 
   // Sync local profiles with prop changes
   useEffect(() => {
@@ -65,68 +139,145 @@ export const useDocumentUpload = ({
 
   // Document processing effect
   useEffect(() => {
-    if (!docRefId) return;
+    // Don't set up listener if no document or during profile creation
+    if (!docRefId || phase === 'profile-dialog' || loadingStates.documentMove) {
+      return;
+    }
+    
+    console.log('Setting up document listener for:', {
+      docRefId,
+      selectedProfileId,
+      phase,
+      path: `users/${userId}/profiles/${selectedProfileId}/documents/${docRefId}`
+    });
     
     const docRef = firestoreDoc(db, `users/${userId}/profiles/${selectedProfileId}/documents`, docRefId);
     const unsub = onSnapshot(docRef, async (snap) => {
-      // Check if document exists (it might have been moved/deleted)
+      console.log('Document snapshot update:', {
+        exists: snap.exists(),
+        path: snap.ref.path,
+        phase,
+        data: snap.exists() ? snap.data() : null
+      });
+      
+      // Handle document not found (could be moved or deleted)
       if (!snap.exists()) {
         console.log('Document no longer exists at this location:', snap.ref.path);
+        
+        // If we're moving a document, don't search for it yet
+        if (loadingStates.documentMove) {
+          console.log('Document move in progress, skipping search');
+          return;
+        }
+        
+        // Try to find the document in other profiles
+        const foundProfileId = await findDocumentInProfiles();
+        if (foundProfileId) {
+          setSelectedProfileId(foundProfileId);
+          return; // Effect will re-run with correct profile ID
+        }
+        
+        console.log('Document not found in any profile - may have been deleted');
+        setPhase('error');
+        setError('Document was deleted or moved. Please try uploading again.');
         return;
       }
       
       const data = snap.data() as DocumentMetaDataAPIModel;
       
+      // Handle completed document processing
       if (data?.status === 'completed' && data.extracted) {
-        // Store the current extracted data for later use
-        setCurrentExtractedData(data.extracted);
+        setExtractedData(data.extracted);
         
-        try {
-          await handleDocumentCompletion(
-            data,
-            userId,
-            selectedProfileId,
-            docRefId,
-            documentSchemas,
-            // onProfileMismatch
-            (firstName: string, lastName: string) => {
-              setExtractedPersonInfo({ firstName, lastName });
-              setShowNewProfileDialog(true);
-            },
-            // onDocumentTypeNotFound
-            () => setShowDocumentTypeSelection(true),
-            // onSuccess
-            (detectedDocumentType: string, formReadyFields: Record<string, any>) => {
-              setDocumentType(detectedDocumentType);
-              setShowDocumentTypeSelection(false);
-              setFormFields(formReadyFields);
-            },
-            // onProfileSwitch
-            (newProfileId: string) => {
-              setSelectedProfileId(newProfileId);
-              if (onProfileCreated) {
-                onProfileCreated(newProfileId);
-              }
-            },
-            currentProfile,
-            localAllProfiles,
-            doNamesMatch,
-            findMatchingProfile
-          );
-        } catch (error) {
-          console.error('Error processing document:', error);
-          const errorMessage = error instanceof Error ? error.message : 'Failed to process document';
-          setError(errorMessage);
-          toast.error(errorMessage);
+        // Only process if we're not already in verification or other advanced phases
+        if (phase === 'processing' || phase === 'uploading') {
+          setPhase('processing');
+          
+          try {
+            await processCompletedDocument(data);
+          } catch (error) {
+            handleError(error, 'verification', 'Failed to process document');
+            setPhase('error');
+          }
+        } else {
+          console.log('Document updated but already in phase:', phase, '- skipping processing');
         }
       }
     });
     
     return () => unsub();
-  }, [docRefId, userId, selectedProfileId, documentSchemas, currentProfile, allProfiles, onProfileCreated]);
+  }, [docRefId, userId, selectedProfileId, phase, loadingStates.documentMove]);
+
+  // Helper function to find document in all profiles
+  const findDocumentInProfiles = useCallback(async (): Promise<string | null> => {
+    if (!docRefId) return null;
+    
+    console.log('Searching for document in all profiles...');
+    for (const profile of localAllProfiles) {
+      if (profile.id === selectedProfileId) continue; // Skip current profile
+      
+      const altRef = firestoreDoc(db, `users/${userId}/profiles/${profile.id}/documents`, docRefId);
+      try {
+        const altSnap = await getDoc(altRef);
+        if (altSnap.exists()) {
+          console.log(`Found document in profile: ${profile.id} (${profile.firstName} ${profile.lastName})`);
+          return profile.id;
+        }
+      } catch (error) {
+        console.error(`Error checking profile ${profile.id}:`, error);
+      }
+    }
+    return null;
+  }, [docRefId, localAllProfiles, selectedProfileId, userId]);
+
+  // Helper function to process completed document
+  const processCompletedDocument = useCallback(async (data: DocumentMetaDataAPIModel) => {
+    if (!docRefId) return;
+    
+    try {
+      await handleDocumentCompletion(
+        data,
+        userId,
+        selectedProfileId,
+        docRefId,
+        documentSchemas,
+        // onProfileMismatch
+        (firstName: string, lastName: string) => {
+          setExtractedPersonInfo({ firstName, lastName });
+          setPhase('profile-dialog');
+          setShowNewProfileDialog(true);
+        },
+        // onDocumentTypeNotFound
+        () => {
+          setPhase('type-selection');
+          setShowDocumentTypeSelection(true);
+        },
+        // onSuccess
+        (detectedDocumentType: string, formReadyFields: Record<string, any>) => {
+          setDocumentType(detectedDocumentType);
+          setFormFields(formReadyFields);
+          setShowDocumentTypeSelection(false);
+          setPhase('verification');
+        },
+        // onProfileSwitch
+        (newProfileId: string) => {
+          setSelectedProfileId(newProfileId);
+          if (onProfileCreated) {
+            onProfileCreated(newProfileId);
+          }
+        },
+        currentProfile,
+        localAllProfiles,
+        doNamesMatch,
+        findMatchingProfile
+      );
+    } catch (error) {
+      throw error; // Re-throw to be handled by caller
+    }
+  }, [docRefId, userId, selectedProfileId, documentSchemas, currentProfile, localAllProfiles, onProfileCreated]);
 
   // File selection handler
-  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileSelect = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const selectedFile = e.target.files[0];
       const validationError = validateFile(selectedFile);
@@ -139,16 +290,18 @@ export const useDocumentUpload = ({
       
       setFile(selectedFile);
       setUploadProgress(0);
-      setError(null);
+      clearErrorAndLoading();
+      setPhase('file-selected');
     }
-  };
+  }, [clearErrorAndLoading]);
 
   // Upload handler
-  const startUpload = async () => {
-    if (!file) return;
+  const startUpload = useCallback(async () => {
+    if (!file || phase !== 'file-selected') return;
     
-    setIsLoading(true);
-    setError(null);
+    setPhase('uploading');
+    setLoading('upload', true);
+    clearErrorAndLoading();
     
     try {
       const documentId = await uploadFileToStorage(
@@ -159,129 +312,152 @@ export const useDocumentUpload = ({
       );
       
       setDocRefId(documentId);
-      setIsLoading(false);
+      setPhase('processing');
+      setLoading('upload', false);
     } catch (error) {
-      console.error('Upload error:', error);
-      const errorMessage = error instanceof Error ? error.message : 'Upload failed';
-      setError(errorMessage);
-      toast.error(errorMessage);
-      setIsLoading(false);
+      handleError(error, 'upload', 'Upload failed');
+      setPhase('error');
     }
-  };
+  }, [file, phase, userId, selectedProfileId, setLoading, clearErrorAndLoading, handleError]);
 
   // Verification submission handler
-  const handleVerificationSubmit = async (values: Record<string, any>) => {
-    if (!docRefId || !documentType) return;
+  const handleVerificationSubmit = useCallback(async (values: Record<string, any>) => {
+    if (!docRefId || !documentType || phase !== 'verification') return;
     
-    // Check if profile has firstEntryDate, if not, show selection screen
-    if (!currentProfile.firstEntryDate) {
-      setPendingVerificationData(values);
-      setShowFirstEntryDateSelection(true);
-      return;
-    }
-    
-    // Process the verification
-    await processVerification(values);
-  };
-
-  // Process verification (separated for reuse)
-  const processVerification = async (values: Record<string, any>) => {
-    if (!docRefId || !documentType) return;
-    
-    setIsLoading(true);
-    setError(null);
+    setPhase('saving');
+    setLoading('verification', true);
     
     try {
-      const ref = firestoreDoc(db, `users/${userId}/profiles/${selectedProfileId}/documents`, docRefId);
-      const documentSchema = documentSchemas[documentType];
-      const transformedValues = transformDatesToFirestore(values, documentSchema);
+      const finalProfileId = await saveVerifiedDocument(values);
       
-      // Use the stored extracted data instead of fetching again
-      const existingExtracted = currentExtractedData || {};
-      
-      // Merge existing extracted data with new transformed values
-      const extractedData = {
-        ...existingExtracted, // Keep any existing fields
-        ...transformedValues, // Add/update with new values
-        document_type: documentType // Ensure document_type is set
-      };
-      
-      await updateDoc(ref, { extracted: extractedData, status: 'verified' });
-      
-      // Update profile with document data if profile is missing that information
-      try {
-        await updateProfileFromDocumentData(userId, selectedProfileId, extractedData, currentProfile);
-      } catch (error) {
-        console.warn('Failed to update profile from document data, but document was saved:', error);
+      if (!finalProfileId) {
+        throw new Error('Failed to get profile ID after document verification');
       }
       
-      // Trigger visa status analysis after successful document verification
-      triggerVisaStatusAnalysis(userId, selectedProfileId).catch(error => {
-        console.warn('Visa status analysis failed, but document was saved:', error);
-      });
+      // Check if we need to collect missing profile information
+      const profile = localAllProfiles.find(p => p.id === finalProfileId) || currentProfile;
+      const needsFirstEntryInfo = !profile.firstEntryDate || !profile.firstEntryVisaType;
       
-      await resetUpload();
-      toast.success('Document saved successfully!');
-      
-      if (onSuccess) {
-        onSuccess(selectedProfileId);
+      if (needsFirstEntryInfo) {
+        setPhase('profile-info');
+        setShowFirstEntryDateSelection(true);
+        setSelectedProfileId(finalProfileId);
+        setLoading('verification', false);
+      } else {
+        // Complete the flow immediately
+        await completeUploadFlow(finalProfileId);
       }
     } catch (error) {
-      console.error('Error saving verification:', error);
-      const errorMessage = 'Failed to save document. Please try again.';
-      setError(errorMessage);
-      toast.error(errorMessage);
-      setIsLoading(false);
+      handleError(error, 'verification', 'Failed to save document');
+      setPhase('error');
     }
-  };
+  }, [docRefId, documentType, phase, localAllProfiles, currentProfile, setLoading, handleError]);
+
+  // Save verified document data
+  const saveVerifiedDocument = useCallback(async (values: Record<string, any>): Promise<string | undefined> => {
+    if (!docRefId || !documentType) return;
+    
+    // Find the actual document location
+    let documentRef = firestoreDoc(db, `users/${userId}/profiles/${selectedProfileId}/documents`, docRefId);
+    let docSnapshot = await getDoc(documentRef);
+    
+    console.log(`Verifying document at: users/${userId}/profiles/${selectedProfileId}/documents/${docRefId} - exists: ${docSnapshot.exists()}`);
+    
+    // If document doesn't exist at expected location, search for it
+    if (!docSnapshot.exists()) {
+      const foundProfileId = await findDocumentInProfiles();
+      if (!foundProfileId) {
+        throw new Error('Document not found. It may have been deleted or moved. Please try uploading again.');
+      }
+      
+      documentRef = firestoreDoc(db, `users/${userId}/profiles/${foundProfileId}/documents`, docRefId);
+      docSnapshot = await getDoc(documentRef);
+      setSelectedProfileId(foundProfileId);
+    }
+    
+    const documentSchema = documentSchemas[documentType];
+    const transformedValues = transformDatesToFirestore(values, documentSchema);
+    
+    // Merge with existing extracted data
+    const mergedData = {
+      ...extractedData,
+      ...transformedValues,
+      document_type: documentType
+    };
+    
+    console.log('Updating document with verified data:', mergedData);
+    await updateDoc(documentRef, { 
+      extracted: mergedData, 
+      status: 'verified' 
+    });
+    
+    // Update profile with document data if needed
+    try {
+      const profile = localAllProfiles.find(p => p.id === selectedProfileId) || currentProfile;
+      await updateProfileFromDocumentData(userId, selectedProfileId, mergedData, profile);
+    } catch (error) {
+      console.warn('Failed to update profile from document data, but document was saved:', error);
+    }
+    
+    // Trigger visa status analysis
+    triggerVisaStatusAnalysis(userId, selectedProfileId).catch(error => {
+      console.warn('Visa status analysis failed, but document was saved:', error);
+    });
+    
+    toast.success('Document saved successfully!');
+    return selectedProfileId;
+  }, [docRefId, documentType, userId, selectedProfileId, documentSchemas, extractedData, findDocumentInProfiles, localAllProfiles, currentProfile]);
 
   // Handle first entry date submission
-  const handleFirstEntryDateSubmit = async (date: Date) => {
-    setIsLoading(true);
-    setError(null);
+  const handleFirstEntryDateSubmit = useCallback(async (data: { date?: Date; visaType?: string }) => {
+    if (phase !== 'profile-info') return;
+    
+    setLoading('profileUpdate', true);
     
     try {
-      // Update profile with first entry date
-      const profileRef = firestoreDoc(db, `users/${userId}/profiles`, selectedProfileId);
-      await updateDoc(profileRef, {
-        firstEntryDate: date.toISOString(),
+      const updateData: { [key: string]: any } = {
         updatedAt: new Date().toISOString()
-      });
-      
-      // Update local profile data
-      const updatedProfile = {
-        ...currentProfile,
-        firstEntryDate: date.toISOString()
       };
       
-      // Continue with verification process
-      setShowFirstEntryDateSelection(false);
-      setFirstEntryDateCollected(true);
-      setPendingVerificationData(null);
-      
-      // Process the pending verification with updated profile
-      if (pendingVerificationData) {
-        await processVerification(pendingVerificationData);
+      if (data.date) {
+        updateData.firstEntryDate = data.date.toISOString();
       }
+      
+      if (data.visaType) {
+        updateData.firstEntryVisaType = data.visaType;
+      }
+      
+      const profileRef = firestoreDoc(db, `users/${userId}/profiles`, selectedProfileId);
+      await updateDoc(profileRef, updateData);
+      
+      setShowFirstEntryDateSelection(false);
+      toast.success('Profile information updated successfully!');
+      
+      await completeUploadFlow(selectedProfileId);
     } catch (error) {
-      console.error('Error saving first entry date:', error);
-      const errorMessage = 'Failed to save entry date. Please try again.';
-      setError(errorMessage);
-      toast.error(errorMessage);
-      setIsLoading(false);
+      handleError(error, 'profileUpdate', 'Failed to save entry date. Please try again.');
     }
-  };
+  }, [phase, userId, selectedProfileId, setLoading, handleError]);
 
   // Handle first entry date selection cancel
-  const handleFirstEntryDateCancel = () => {
+  const handleFirstEntryDateCancel = useCallback(async () => {
     setShowFirstEntryDateSelection(false);
-    setPendingVerificationData(null);
-    setIsLoading(false);
-  };
+    // Document is already saved, just complete the flow
+    await completeUploadFlow(selectedProfileId);
+  }, [selectedProfileId]);
+
+  // Complete the upload flow
+  const completeUploadFlow = useCallback(async (finalProfileId: string) => {
+    setPhase('completed');
+    await resetUpload();
+    if (onSuccess) {
+      onSuccess(finalProfileId);
+    }
+  }, [onSuccess]);
 
   // Document type selection handler
-  const handleDocumentTypeSelection = async (selectedDocumentType: string) => {
-    if (!documentSchemas[selectedDocumentType] || !docRefId) return;
+  const handleDocumentTypeSelection = useCallback(async (selectedDocumentType: string) => {
+    if (!documentSchemas[selectedDocumentType] || !docRefId || phase !== 'type-selection') return;
     
     setDocumentType(selectedDocumentType);
     setShowDocumentTypeSelection(false);
@@ -295,26 +471,28 @@ export const useDocumentUpload = ({
         docRefId
       );
       setFormFields(formReadyFields);
+      setPhase('verification');
     } catch (error) {
-      console.error('Error setting up form fields:', error);
-      const errorMessage = 'Failed to setup form. Please try again.';
-      setError(errorMessage);
-      toast.error(errorMessage);
+      handleError(error, 'verification', 'Failed to setup form. Please try again.');
+      setPhase('error');
     }
-  };
+  }, [documentSchemas, docRefId, phase, userId, selectedProfileId, handleError]);
 
   // Navigation handlers
-  const goBackToDocumentTypeSelection = () => {
+  const goBackToDocumentTypeSelection = useCallback(() => {
     setDocumentType(null);
     setFormFields(null);
+    setPhase('type-selection');
     setShowDocumentTypeSelection(true);
-  };
+  }, []);
 
   // Profile creation handlers
-  const handleNewProfileConfirm = async (relationship: string, email?: string) => {
-    if (!extractedPersonInfo) return;
+  const handleNewProfileConfirm = useCallback(async (relationship: string, email?: string) => {
+    if (!extractedPersonInfo || phase !== 'profile-dialog') return;
     
-    setIsLoading(true);
+    setLoading('profileCreation', true);
+    setLoading('documentMove', true);
+    
     try {
       const newProfileId = await createNewProfile(
         userId,
@@ -324,135 +502,191 @@ export const useDocumentUpload = ({
         email
       );
 
-      // Fetch the newly created profile to get complete data
-      const newProfile = await fetchProfileById(userId, newProfileId);
-      
-      // Add the new profile to our local profiles array
-      if (newProfile) {
-        setLocalAllProfiles(prev => [...prev, newProfile]);
+      // Verify profile creation
+      let newProfile = null;
+      for (let attempts = 0; attempts < 10; attempts++) {
+        await new Promise(resolve => setTimeout(resolve, 500));
+        newProfile = await fetchProfileById(userId, newProfileId);
+        if (newProfile) break;
       }
       
-      // Move the document to the new profile
+      if (!newProfile) {
+        throw new Error('Profile was created but could not be verified. Please try again.');
+      }
+      
+      // Add to local profiles
+      setLocalAllProfiles(prev => [...prev, newProfile]);
+      
+      // Move document to new profile
       if (docRefId) {
-        const oldDocRef = firestoreDoc(db, `users/${userId}/profiles/${selectedProfileId}/documents`, docRefId);
-        const docData = await getDoc(oldDocRef);
+        await moveDocumentToProfile(newProfileId);
+        setSelectedProfileId(newProfileId);
         
-        if (docData.exists()) {
-          const newDocRef = firestoreDoc(db, `users/${userId}/profiles/${newProfileId}/documents`, docRefId);
-          await setDoc(newDocRef, docData.data());
+        // Get the document data from the new location
+        const documentRef = firestoreDoc(db, `users/${userId}/profiles/${newProfileId}/documents`, docRefId);
+        const docSnap = await getDoc(documentRef);
+        
+        if (docSnap.exists()) {
+          const documentData = docSnap.data() as DocumentMetaDataAPIModel;
+          console.log('Document data after profile creation:', {
+            status: documentData.status,
+            hasExtracted: !!documentData.extracted,
+            extractedDocType: documentData.extracted?.document_type
+          });
           
-          // Delete the old document completely
-          try {
-            console.log('Attempting to delete document from:', oldDocRef.path);
-            await deleteDoc(oldDocRef);
-            console.log('Successfully deleted old document from profile:', selectedProfileId);
-            
-            // Verify deletion
-            const checkDoc = await getDoc(oldDocRef);
-            if (checkDoc.exists()) {
-              console.error('Document still exists after deletion attempt');
-            } else {
-              console.log('Confirmed: Document has been deleted');
-            }
-          } catch (deleteError) {
-            console.error('Error deleting old document:', deleteError);
-            throw new Error('Failed to delete old document');
-          }
-          
-          // After moving the document, check if it's ready for verification
-          const documentData = docData.data() as DocumentMetaDataAPIModel;
           if (documentData.status === 'completed' && documentData.extracted) {
-            // Continue with the document processing flow
-            try {
-              await handleDocumentCompletion(
-                documentData,
-                userId,
-                newProfileId,
-                docRefId,
-                documentSchemas,
-                // onProfileMismatch - shouldn't happen since we just created the profile
-                () => {},
-                // onDocumentTypeNotFound
-                () => setShowDocumentTypeSelection(true),
-                // onSuccess
-                (detectedDocumentType: string, formReadyFields: Record<string, any>) => {
-                  setDocumentType(detectedDocumentType);
-                  setShowDocumentTypeSelection(false);
-                  setFormFields(formReadyFields);
-                },
-                // onProfileSwitch - shouldn't happen
-                () => {},
-                // Use the fetched profile or create a temporary one as fallback
-                newProfile || {
-                  id: newProfileId,
-                  firstName: extractedPersonInfo.firstName,
-                  lastName: extractedPersonInfo.lastName,
-                  relationship,
-                  email: email || '',
-                  admin: false,
-                  isAdmin: false,
-                  createdAt: new Date().toISOString(),
-                  updatedAt: new Date().toISOString()
-                } as Profile,
-                localAllProfiles,
-                doNamesMatch,
-                findMatchingProfile
-              );
-            } catch (error) {
-              console.error('Error processing document after profile creation:', error);
-              setError('Document processing failed. Please try uploading again.');
+            setExtractedData(documentData.extracted);
+            
+            // Try to detect document type automatically
+            const detectedType = documentData.extracted?.document_type;
+            
+            if (detectedType && documentSchemas[detectedType]) {
+              // Document type detected, set up form directly
+              console.log('Document type detected after profile creation:', detectedType);
+              setDocumentType(detectedType);
+              
+              try {
+                const formReadyFields = await setupFormFields(
+                  detectedType,
+                  documentSchemas,
+                  userId,
+                  newProfileId,
+                  docRefId
+                );
+                setFormFields(formReadyFields);
+                setPhase('verification');
+                setShowDocumentTypeSelection(false);
+                console.log('Successfully set up verification form after profile creation');
+              } catch (error) {
+                console.error('Error setting up form fields after profile creation:', error);
+                // Fallback to manual document type selection
+                setPhase('type-selection');
+                setShowDocumentTypeSelection(true);
+              }
+            } else {
+              // No document type detected, show selection dialog
+              console.log('No document type detected after profile creation, showing selection');
+              setPhase('type-selection');
+              setShowDocumentTypeSelection(true);
             }
+          } else {
+            // Document not ready yet, wait for processing
+            console.log('Document not ready after profile creation, waiting for processing');
+            setPhase('processing');
           }
+        } else {
+          throw new Error('Document not found after move operation');
         }
       }
       
-      setSelectedProfileId(newProfileId);
       setShowNewProfileDialog(false);
       setExtractedPersonInfo(null);
       toast.success('New profile created successfully!');
       
       if (onProfileCreated) {
-        onProfileCreated(newProfileId, newProfile || undefined);
+        onProfileCreated(newProfileId, newProfile);
       }
+      
     } catch (error) {
-      console.error('Error creating new profile:', error);
-      const errorMessage = 'Failed to create new profile. Please try again.';
-      setError(errorMessage);
-      toast.error(errorMessage);
+      handleError(error, 'profileCreation', 'Failed to create new profile. Please try again.');
+      setPhase('error');
     } finally {
-      setIsLoading(false);
+      setLoading('profileCreation', false);
+      setLoading('documentMove', false);
     }
-  };
+  }, [extractedPersonInfo, phase, userId, docRefId, documentSchemas, setLoading, handleError, onProfileCreated]);
 
-  const handleNewProfileCancel = async () => {
+  // Move document to a different profile
+  const moveDocumentToProfile = useCallback(async (targetProfileId: string) => {
+    if (!docRefId) return;
+    
+    console.log(`Moving document ${docRefId} from profile ${selectedProfileId} to profile ${targetProfileId}`);
+    
+    const oldDocRef = firestoreDoc(db, `users/${userId}/profiles/${selectedProfileId}/documents`, docRefId);
+    const newDocRef = firestoreDoc(db, `users/${userId}/profiles/${targetProfileId}/documents`, docRefId);
+    
+    const docData = await getDoc(oldDocRef);
+    if (!docData.exists()) {
+      throw new Error('Source document not found');
+    }
+    
+    await setDoc(newDocRef, docData.data());
+    
+    // Verify the move
+    const verifyNewDoc = await getDoc(newDocRef);
+    if (!verifyNewDoc.exists()) {
+      throw new Error('Failed to create document in new profile location');
+    }
+    
+    await deleteDoc(oldDocRef);
+    console.log('Document moved successfully');
+  }, [docRefId, selectedProfileId, userId]);
+
+  const handleNewProfileCancel = useCallback(async () => {
     setShowNewProfileDialog(false);
     setExtractedPersonInfo(null);
     await resetUpload();
-  };
+  }, []);
+
+  // Debug helper function to check document locations
+  const debugDocumentLocation = useCallback(async () => {
+    if (!docRefId) {
+      console.log('No document ID to debug');
+      return;
+    }
+    
+    console.log('=== DOCUMENT LOCATION DEBUG ===');
+    console.log('Document ID:', docRefId);
+    console.log('Selected Profile ID:', selectedProfileId);
+    console.log('Current Phase:', phase);
+    console.log('All Profiles:', localAllProfiles.map(p => ({ id: p.id, name: `${p.firstName} ${p.lastName}` })));
+    
+    for (const profile of localAllProfiles) {
+      const docRef = firestoreDoc(db, `users/${userId}/profiles/${profile.id}/documents`, docRefId);
+      try {
+        const docSnap = await getDoc(docRef);
+        console.log(`Profile ${profile.id} (${profile.firstName} ${profile.lastName}):`, {
+          exists: docSnap.exists(),
+          path: docRef.path,
+          data: docSnap.exists() ? docSnap.data() : null
+        });
+      } catch (error) {
+        console.error(`Error checking profile ${profile.id}:`, error);
+      }
+    }
+    console.log('=== END DEBUG ===');
+  }, [docRefId, selectedProfileId, phase, localAllProfiles, userId]);
 
   // Document deletion helper
-  const deleteCurrentDocument = async () => {
+  const deleteCurrentDocument = useCallback(async () => {
     if (!docRefId) return;
     
     try {
       const docRef = firestoreDoc(db, `users/${userId}/profiles/${selectedProfileId}/documents`, docRefId);
+      console.log(`Deleting document ${docRefId} from profile ${selectedProfileId}`);
+      
+      const docSnapshot = await getDoc(docRef);
+      if (!docSnapshot.exists()) {
+        console.warn(`Document ${docRefId} not found at ${docRef.path}, may already be deleted`);
+        return;
+      }
+      
       await deleteDoc(docRef);
       console.log('Successfully deleted document:', docRefId);
     } catch (error) {
       console.error('Error deleting document:', error);
       throw new Error('Failed to delete document');
     }
-  };
+  }, [docRefId, userId, selectedProfileId]);
 
   // Reset functionality
-  const resetUpload = async (deleteDocument = false) => {
+  const resetUpload = useCallback(async (deleteDocument = false) => {
     // Delete the document if requested and if there's one to delete
     if (deleteDocument && docRefId) {
       try {
         await deleteCurrentDocument();
       } catch (error) {
         console.error('Error deleting document during reset:', error);
-        // Continue with reset even if deletion fails
       }
     }
     
@@ -461,17 +695,20 @@ export const useDocumentUpload = ({
     setDocRefId(undefined);
     setFormFields(null);
     setDocumentType(null);
+    setExtractedData(null);
     setShowDocumentTypeSelection(false);
     setShowNewProfileDialog(false);
     setShowFirstEntryDateSelection(false);
-    setFirstEntryDateCollected(false);
-    setPendingVerificationData(null);
     setExtractedPersonInfo(null);
-    setSelectedProfileId(profileId);
-    setError(null);
-    setIsLoading(false);
-    setCurrentExtractedData(null);
-  };
+    
+    // Only reset selectedProfileId to original if we haven't moved to a new profile
+    if (selectedProfileId === profileId || deleteDocument) {
+      setSelectedProfileId(profileId);
+    }
+    
+    clearErrorAndLoading();
+    setPhase('idle');
+  }, [docRefId, deleteCurrentDocument, selectedProfileId, profileId, clearErrorAndLoading]);
 
   return {
     // State
@@ -480,14 +717,20 @@ export const useDocumentUpload = ({
     formFields,
     documentType,
     documentId: docRefId,
+    selectedProfileId,
+    error,
+    phase,
+    
+    // Loading states
+    isLoading: isAnyLoading,
+    isFormDisabled,
+    loadingStates,
+    
+    // Dialog states
     showDocumentTypeSelection,
     showNewProfileDialog,
     showFirstEntryDateSelection,
-    firstEntryDateCollected,
     extractedPersonInfo,
-    selectedProfileId,
-    error,
-    isLoading,
     
     // Handlers
     handleFileSelect,
@@ -500,6 +743,7 @@ export const useDocumentUpload = ({
     handleFirstEntryDateCancel,
     goBackToDocumentTypeSelection,
     resetUpload,
-    deleteCurrentDocument
+    deleteCurrentDocument,
+    debugDocumentLocation
   };
 };

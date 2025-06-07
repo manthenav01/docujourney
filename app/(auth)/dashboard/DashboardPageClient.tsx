@@ -13,7 +13,8 @@ import { auth } from '@/lib/firebase';
 import { 
     LayoutDashboard, 
     FileText, 
-    Users, 
+    Users,
+    User,
     Upload, 
     Calendar, 
     Clock,
@@ -21,7 +22,6 @@ import {
     Star,
     Zap,
     Award,
-    Eye,
     Mail,
     Loader2
 } from 'lucide-react';
@@ -98,59 +98,6 @@ const DashboardPageClient: React.FC<DashboardPageClientProps> = ({
     const totalDocuments = allDocuments.length;
     const totalProfiles = profiles.length;
     const recentDocuments = allDocuments.slice(0, 6); // Last 6 documents
-    
-    // Use saved visa status from profiles instead of calculating manually
-    const profilesWithVisaStatus = profiles.map(profile => {
-        const profileDocuments = allDocuments.filter(doc => doc.profileId === profile.id);
-        
-        // Get saved visa status analysis from profile (now properly typed)
-        const lastVisaStatusAnalysis = profile.lastVisaStatusAnalysis;
-        
-        let visaStatus = 'unknown';
-        let statusDetails = null;
-        let currentStatus = null;
-        let visaType = null;
-        let daysUntilExpiry: number | null = null;
-        
-        if (lastVisaStatusAnalysis) {
-            // Use the AI analysis results
-            currentStatus = lastVisaStatusAnalysis.currentStatus;
-            visaType = lastVisaStatusAnalysis.visaType;
-            statusDetails = lastVisaStatusAnalysis.statusDetails;
-            
-            // Convert AI status to simple status for UI compatibility
-            if (currentStatus?.toLowerCase().includes('in status')) {
-                // Check for expiration warnings to determine if expiring soon
-                if (lastVisaStatusAnalysis.expirationWarnings?.length > 0) {
-                    visaStatus = 'expiring';
-                } else {
-                    visaStatus = 'active';
-                }
-            } else if (currentStatus?.toLowerCase().includes('out of status')) {
-                visaStatus = 'expired';
-            }
-            
-            // Try to calculate days until expiry from warnings
-            const expirationWarning = lastVisaStatusAnalysis.expirationWarnings?.[0];
-            if (expirationWarning && expirationWarning.includes('days')) {
-                const daysMatch = expirationWarning.match(/(\d+)\s+days?/);
-                if (daysMatch) {
-                    daysUntilExpiry = parseInt(daysMatch[1]);
-                }
-            }
-        }
-        
-        return {
-            ...profile,
-            visaStatus,
-            currentStatus,
-            visaType,
-            statusDetails,
-            daysUntilExpiry,
-            documentCount: profileDocuments.length,
-            lastAnalyzed: lastVisaStatusAnalysis?.analyzedAt
-        };
-    });
 
     // Helper function to render status icon
     const renderStatusIcon = (status: string) => {
@@ -303,6 +250,73 @@ const DashboardPageClient: React.FC<DashboardPageClientProps> = ({
                 </Card>
             </div>
 
+            {/* Active Profile Summary */}
+            {(activeProfile.firstEntryDate || activeProfile.firstEntryVisaType) && (
+                <Card className="mb-8 border-0 shadow-lg bg-gradient-to-r from-indigo-50 to-purple-50">
+                    <CardHeader>
+                        <CardTitle className="flex items-center gap-2">
+                            <User className="w-5 h-5 text-indigo-600" />
+                            {activeProfile.firstName}'s Profile Summary
+                        </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                            {activeProfile.firstEntryDate && (
+                                <div className="bg-white p-4 rounded-lg border border-indigo-100">
+                                    <p className="text-sm font-medium text-gray-600 mb-1">First Entry to US</p>
+                                    <p className="text-lg font-semibold text-gray-900">
+                                        {new Date(activeProfile.firstEntryDate).toLocaleDateString('en-US', {
+                                            month: 'short',
+                                            day: 'numeric',
+                                            year: 'numeric'
+                                        })}
+                                    </p>
+                                    {activeProfile.firstEntryVisaType && (
+                                        <p className="text-sm text-indigo-600 mt-1">
+                                            on {activeProfile.firstEntryVisaType} visa
+                                        </p>
+                                    )}
+                                </div>
+                            )}
+                            {activeProfile.countryOfCitizen && (
+                                <div className="bg-white p-4 rounded-lg border border-indigo-100">
+                                    <p className="text-sm font-medium text-gray-600 mb-1">Country of Citizenship</p>
+                                    <p className="text-lg font-semibold text-gray-900">
+                                        {activeProfile.countryOfCitizen}
+                                    </p>
+                                </div>
+                            )}
+                            <div className="bg-white p-4 rounded-lg border border-indigo-100">
+                                <p className="text-sm font-medium text-gray-600 mb-1">Employment Status</p>
+                                <div className="flex items-center gap-2">
+                                    <Badge 
+                                        variant="outline" 
+                                        className={`${
+                                            activeProfile.currentlyEmployed 
+                                                ? 'bg-green-50 text-green-700 border-green-200' 
+                                                : 'bg-gray-50 text-gray-600 border-gray-200'
+                                        }`}
+                                    >
+                                        {activeProfile.currentlyEmployed ? 'Employed' : 'Unemployed'}
+                                    </Badge>
+                                </div>
+                            </div>
+                            {activeProfile.lastVisaStatusAnalysis && (
+                                <div className="bg-white p-4 rounded-lg border border-indigo-100">
+                                    <p className="text-sm font-medium text-gray-600 mb-1">Current Visa Status</p>
+                                    <div className="flex items-center gap-2">
+                                        {renderStatusIcon(activeProfile.lastVisaStatusAnalysis.currentStatus)}
+                                        <Badge className={`${getVisaStatusColorClasses(activeProfile.lastVisaStatusAnalysis.currentStatus)} border-0`}>
+                                            {activeProfile.lastVisaStatusAnalysis.currentStatus}
+                                        </Badge>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    </CardContent>
+                </Card>
+            )}
+
             {/* Visa Timeline */}
             <div className="mb-8">
                 <VisaTimeline 
@@ -313,61 +327,7 @@ const DashboardPageClient: React.FC<DashboardPageClientProps> = ({
                 />
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                {/* Profile Status Overview */}
-                <Card className="border-0 shadow-lg">
-                    <CardHeader>
-                        <CardTitle className="flex items-center gap-2">
-                            <Users className="w-5 h-5 text-purple-600" />
-                            Profile Visa Status
-                        </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        <div className="space-y-4">
-                            {profilesWithVisaStatus.map((profile) => (
-                                <div 
-                                    key={profile.id} 
-                                    className="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer"
-                                    onClick={() => router.push(`/documents?profileId=${profile.id}`)}
-                                >
-                                    <div className="flex items-center gap-3">
-                                        <div className="w-10 h-10 bg-gradient-to-br from-blue-50 to-indigo-100 border-2 border-blue-200 rounded-full flex items-center justify-center text-blue-700 font-semibold shadow-sm">
-                                            {profile.firstName[0]}{profile.lastName[0]}
-                                        </div>
-                                        <div>
-                                            <p className="font-medium text-gray-900">
-                                                {profile.firstName} {profile.lastName}
-                                            </p>
-                                            <p className="text-sm text-gray-500 capitalize">
-                                                {profile.relationship || 'self'} • {profile.documentCount} documents
-                                                {profile.visaType && ` • ${profile.visaType}`}
-                                            </p>
-                                        </div>
-                                    </div>
-                                    <div className="flex items-center gap-2">
-                                        {profile.daysUntilExpiry !== null && (
-                                            (profile.currentStatus || profile.visaStatus) === 'expiring' ||
-                                            (profile.currentStatus || '').toLowerCase().includes('expiring') ||
-                                            (profile.currentStatus || '').toLowerCase().includes('expires')
-                                        ) && (
-                                            <span className="text-xs text-orange-600 font-medium">
-                                                {profile.daysUntilExpiry} days left
-                                            </span>
-                                        )}
-                                        <Badge className={`${getVisaStatusColorClasses(profile.currentStatus || profile.visaStatus)} border-0 flex items-center gap-1`}>
-                                            {renderStatusIcon(profile.currentStatus || profile.visaStatus)}
-                                            <span className="capitalize">
-                                                {profile.currentStatus || profile.visaStatus}
-                                            </span>
-                                        </Badge>
-                                        <Eye className="w-4 h-4 text-gray-400" />
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-                    </CardContent>
-                </Card>
-
+            <div className="grid grid-cols-1 gap-8">
                 {/* Recent Documents */}
                 <Card className="border-0 shadow-lg">
                     <CardHeader>

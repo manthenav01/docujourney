@@ -32,6 +32,7 @@ export const fetchProfiles = async (userId: string) => {
                         (typeof data.dateOfBirth === 'string' ? data.dateOfBirth : null),
             firstEntryDate: data.firstEntryDate?.toDate?.()?.toISOString() || 
                            (typeof data.firstEntryDate === 'string' ? data.firstEntryDate : null),
+            firstEntryVisaType: data.firstEntryVisaType || null,
             countryOfCitizen: data.countryOfCitizen || null,
             // Convert Firestore Timestamps to ISO strings
             createdAt: data.createdAt?.toDate?.()?.toISOString() || null,
@@ -52,11 +53,15 @@ export const createProfile = async (userId: string, profileData: {
     phone?: string;
     dateOfBirth?: Date | null;
     firstEntryDate?: Date | null;
+    firstEntryVisaType?: string | null;
     countryOfCitizen?: string | null;
     relationship?: string;
     isAdmin?: boolean;
     currentlyEmployed?: boolean;
 }): Promise<string> => {
+    // Ensure user document exists first
+    await ensureUserDocumentExists(userId);
+    
     const profileRef = adminDb
         .collection('users')
         .doc(userId)
@@ -69,6 +74,7 @@ export const createProfile = async (userId: string, profileData: {
         phone: profileData.phone || '',
         dateOfBirth: profileData.dateOfBirth || null,
         firstEntryDate: profileData.firstEntryDate || null,
+        firstEntryVisaType: profileData.firstEntryVisaType || null,
         countryOfCitizen: profileData.countryOfCitizen || null,
         relationship: profileData.relationship || null,
         admin: profileData.isAdmin || false,
@@ -78,6 +84,10 @@ export const createProfile = async (userId: string, profileData: {
     };
     
     const docRef = await profileRef.add(newProfile);
+    console.log(`Created profile ${docRef.id} for user ${userId}:`, { 
+        firstName: profileData.firstName, 
+        lastName: profileData.lastName 
+    });
     return docRef.id;
 };
 
@@ -88,6 +98,7 @@ export const updateProfile = async (userId: string, profileId: string, profileDa
     phone?: string;
     dateOfBirth?: Date | null | string;
     firstEntryDate?: Date | null | string;
+    firstEntryVisaType?: string | null;
     countryOfCitizen?: string | null;
     relationship?: string;
     isAdmin?: boolean;

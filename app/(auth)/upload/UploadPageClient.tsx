@@ -53,11 +53,12 @@ export default function UploadPageClient({
     showDocumentTypeSelection,
     showNewProfileDialog,
     showFirstEntryDateSelection,
-    firstEntryDateCollected,
     extractedPersonInfo,
     selectedProfileId: hookSelectedProfileId,
     error,
     isLoading,
+    phase,
+    isFormDisabled,
     handleFileSelect,
     startUpload,
     handleVerificationSubmit,
@@ -186,6 +187,8 @@ export default function UploadPageClient({
           onSubmit={handleFirstEntryDateSubmit}
           onCancel={handleFirstEntryDateCancel}
           isLoading={isLoading}
+          existingDate={currentProfile.firstEntryDate}
+          existingVisaType={currentProfile.firstEntryVisaType}
         />
       );
     }
@@ -198,7 +201,7 @@ export default function UploadPageClient({
           onSelect={handleManualDocumentTypeSelection}
           onCancel={() => goBackToDocumentTypeSelection()}
           isLoading={isLoading}
-          showFirstEntryStep={firstEntryDateCollected}
+          showFirstEntryStep={phase === 'completed' || phase === 'profile-info'}
         />
       );
     }
