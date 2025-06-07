@@ -51,8 +51,10 @@ const ProfileEditDialog: React.FC<ProfileEditDialogProps> = ({
         email: '',
         phone: '',
         dateOfBirth: '',
+        countryOfCitizen: '',
         relationship: '',
         isAdmin: false,
+        currentlyEmployed: false,
     });
     
     const [isLoading, setIsLoading] = useState(false);
@@ -68,16 +70,30 @@ const ProfileEditDialog: React.FC<ProfileEditDialogProps> = ({
                 dateOfBirth: profile.dateOfBirth 
                     ? new Date(profile.dateOfBirth).toISOString().split('T')[0]
                     : '',
-                relationship: profile.relationship || 'other',
+                countryOfCitizen: profile.countryOfCitizen || '',
+                relationship: profile.isAdmin ? 'self' : (profile.relationship || 'other'),
                 isAdmin: profile.isAdmin || false,
+                currentlyEmployed: profile.currentlyEmployed || false,
             });
         }
     }, [profile]);
+
+    // Ensure admin profiles always have relationship set to "self"
+    useEffect(() => {
+        if (formData.isAdmin && formData.relationship !== 'self') {
+            setFormData(prev => ({
+                ...prev,
+                relationship: 'self'
+            }));
+        }
+    }, [formData.isAdmin]);
 
     const handleInputChange = (field: string, value: string | boolean) => {
         setFormData(prev => ({
             ...prev,
             [field]: value,
+            // For admin profiles, always keep relationship as "self"
+            ...(prev.isAdmin && field === 'relationship' ? { relationship: 'self' } : {}),
         }));
     };
 
@@ -90,7 +106,8 @@ const ProfileEditDialog: React.FC<ProfileEditDialogProps> = ({
             toast.error('Last name is required');
             return false;
         }
-        if (!formData.relationship.trim()) {
+        // Relationship is only required for non-admin profiles
+        if (!formData.isAdmin && !formData.relationship.trim()) {
             toast.error('Relationship is required');
             return false;
         }
@@ -107,12 +124,13 @@ const ProfileEditDialog: React.FC<ProfileEditDialogProps> = ({
 
         setIsLoading(true);
         
-        try {
-            const profileData = {
-                ...formData,
-                dateOfBirth: formData.dateOfBirth ? new Date(formData.dateOfBirth) : null,
-                userId,
-            };
+        try {        const profileData = {
+            ...formData,
+            // Ensure admin profiles always have relationship set to "self"
+            relationship: formData.isAdmin ? 'self' : formData.relationship,
+            dateOfBirth: formData.dateOfBirth ? new Date(formData.dateOfBirth) : null,
+            userId,
+        };
 
             const response = await fetch('/api/createProfile', {
                 method: isEditing ? 'PUT' : 'POST',
@@ -178,12 +196,18 @@ const ProfileEditDialog: React.FC<ProfileEditDialogProps> = ({
                     </div>
                     <div className="grid grid-cols-2 gap-4">
                         <div className="space-y-2">
-                            <Label htmlFor="relationship">Relationship *</Label>
+                            <Label htmlFor="relationship">
+                                Relationship * 
+                                {formData.isAdmin && (
+                                    <span className="text-gray-500 text-sm ml-1">(Admin profile)</span>
+                                )}
+                            </Label>
                             <Select
                                 value={formData.relationship}
                                 onValueChange={(value) => handleInputChange('relationship', value)}
+                                disabled={formData.isAdmin}
                             >
-                                <SelectTrigger>
+                                <SelectTrigger className={formData.isAdmin ? "opacity-60 cursor-not-allowed" : ""}>
                                     <SelectValue placeholder="Select relationship" />
                                 </SelectTrigger>
                                 <SelectContent>
@@ -202,6 +226,16 @@ const ProfileEditDialog: React.FC<ProfileEditDialogProps> = ({
                                 type="date"
                                 value={formData.dateOfBirth}
                                 onChange={(e) => handleInputChange('dateOfBirth', e.target.value)}
+                            />
+                        </div>
+                        <div className="space-y-2">
+                            <Label htmlFor="countryOfCitizen">Country of Citizenship</Label>
+                            <Input
+                                id="countryOfCitizen"
+                                type="text"
+                                placeholder="Enter country of citizenship"
+                                value={formData.countryOfCitizen}
+                                onChange={(e) => handleInputChange('countryOfCitizen', e.target.value)}
                             />
                         </div>
                     </div>
@@ -227,7 +261,20 @@ const ProfileEditDialog: React.FC<ProfileEditDialogProps> = ({
                         />
                     </div>
 
-                    
+                    <div className="space-y-2">
+                        <div className="flex items-center space-x-3">
+                            <input
+                                id="currentlyEmployed"
+                                type="checkbox"
+                                checked={formData.currentlyEmployed}
+                                onChange={(e) => handleInputChange('currentlyEmployed', e.target.checked)}
+                                className="h-4 w-4 text-teal-600 border-gray-300 rounded focus:ring-teal-500"
+                            />
+                            <Label htmlFor="currentlyEmployed" className="cursor-pointer">
+                                Currently Employed
+                            </Label>
+                        </div>
+                    </div>
 
 
 

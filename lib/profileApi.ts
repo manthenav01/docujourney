@@ -29,12 +29,14 @@ export const fetchProfiles = async (userId: string) => {
             email: data.email,
             phone: data.phone || '',
             dateOfBirth: data.dateOfBirth?.toDate().toISOString() || null,
+            countryOfCitizen: data.countryOfCitizen || null,
             // Convert Firestore Timestamps to ISO strings
             createdAt: data.createdAt?.toDate().toISOString() || null,
             updatedAt: data.updatedAt?.toDate().toISOString() || null,
             admin: data.admin || false,
             isAdmin: data.admin || false, // Alias for easier component use
             relationship: data.relationship || null,
+            currentlyEmployed: data.currentlyEmployed || false,
             lastVisaStatusAnalysis
         } as Profile;
     });
@@ -46,8 +48,10 @@ export const createProfile = async (userId: string, profileData: {
     email: string;
     phone?: string;
     dateOfBirth?: Date | null;
+    countryOfCitizen?: string | null;
     relationship?: string;
     isAdmin?: boolean;
+    currentlyEmployed?: boolean;
 }): Promise<string> => {
     const profileRef = adminDb
         .collection('users')
@@ -60,8 +64,10 @@ export const createProfile = async (userId: string, profileData: {
         email: profileData.email,
         phone: profileData.phone || '',
         dateOfBirth: profileData.dateOfBirth || null,
+        countryOfCitizen: profileData.countryOfCitizen || null,
         relationship: profileData.relationship || null,
         admin: profileData.isAdmin || false,
+        currentlyEmployed: profileData.currentlyEmployed || false,
         createdAt: new Date(),
         updatedAt: new Date(),
     };
@@ -75,9 +81,11 @@ export const updateProfile = async (userId: string, profileId: string, profileDa
     lastName?: string;
     email?: string;
     phone?: string;
-    dateOfBirth?: Date | null;
+    dateOfBirth?: Date | null | string;
+    countryOfCitizen?: string | null;
     relationship?: string;
     isAdmin?: boolean;
+    currentlyEmployed?: boolean;
 }): Promise<void> => {
     const profileRef = adminDb
         .collection('users')
@@ -85,14 +93,17 @@ export const updateProfile = async (userId: string, profileId: string, profileDa
         .collection('profiles')
         .doc(profileId);
     
-    const updateData = {
+    const updateData: Record<string, any> = {
         ...profileData,
-        // Map isAdmin to admin for consistency with existing data structure
-        admin: profileData.isAdmin,
         updatedAt: new Date(),
     };
     
-    // Remove isAdmin from updateData since we mapped it to admin
+    // Map isAdmin to admin for consistency with existing data structure, but only if isAdmin is defined
+    if (profileData.isAdmin !== undefined) {
+        updateData.admin = profileData.isAdmin;
+    }
+    
+    // Remove isAdmin from updateData since we mapped it to admin (or it's undefined)
     delete updateData.isAdmin;
     
     await profileRef.update(updateData);
@@ -130,6 +141,7 @@ export const createAdminProfileForNewUser = async (userId: string): Promise<stri
             dateOfBirth: null,
             relationship: 'self',
             isAdmin: true,
+            currentlyEmployed: false, // Default to false for new users
         });
         
         console.log(`Created admin profile for user ${userId}:`, { firstName, lastName, email: userRecord.email });

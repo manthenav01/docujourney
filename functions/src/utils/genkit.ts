@@ -7,6 +7,7 @@ export interface DocumentSummary {
   issueDate?: string;
   expirationDate?: string;
   classOfAdmission?: string;
+  countryOfCitizen?: string;
 }
 
 export interface VisaStatusRequest {
@@ -46,6 +47,7 @@ ${documents.map((doc, index) => `
 - Issue Date: ${doc.issueDate || 'Not specified'}
 - Expiration Date: ${doc.expirationDate || 'Not specified'}
 - Class of Admission: ${doc.classOfAdmission || 'Not specified'}
+- Country of Citizenship: ${doc.countryOfCitizen || 'Not specified'}
 `).join('\n')}
 
 Note: All dates are provided in ISO 8601 format (YYYY-MM-DDTHH:mm:ss.sssZ). Compare them against the current date to determine status and expiration warnings.
@@ -69,6 +71,7 @@ Important guidelines:
 - Determine if person is "In Status" or "Out of Status" based on document validity dates
 - Consider document hierarchy (Green Card > EAD > I-94 > Visa stamps, etc.)
 - Use the Class of Admission field to determine the specific visa category (e.g., F-1, H-1B, B-2, etc.)
+- Consider Country of Citizenship for visa-free travel programs (VWP) or specific country agreements
 - A person is "In Status" if they have valid, unexpired immigration documents
 - A person is "Out of Status" if their documents are expired or there are gaps in authorization
 - Check for gaps between document validity periods
@@ -236,6 +239,7 @@ export function prepareDocumentsForAnalysis(documents: any[]): DocumentSummary[]
       validTo: convertFirebaseTimestamp(doc.extracted.valid_to),
       issueDate: convertFirebaseTimestamp(doc.extracted.notice_date),
       expirationDate: convertFirebaseTimestamp(doc.extracted.valid_to), // Using valid_to as expiration date
-      classOfAdmission: doc.extracted.class_of_admission || undefined
+      classOfAdmission: doc.extracted.class_of_admission || undefined,
+      countryOfCitizen: doc.extracted.country_of_citizen || undefined
     }));
 }

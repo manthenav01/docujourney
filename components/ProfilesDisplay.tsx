@@ -13,12 +13,15 @@ import {
     getVisaStatusIcon, 
     getVisaStatusDisplayText 
 } from '@/lib/visaStatusUtils';
+import { formatValue } from '@/utils/documentUtils';
 
 interface ProfilesDisplayProps {
     profiles: Profile[];
     userId: string;
     onAddProfile?: () => void;
 }
+
+
 
 const ProfilesDisplay: React.FC<ProfilesDisplayProps> = ({ profiles, userId, onAddProfile }) => {
     const [editingProfile, setEditingProfile] = useState<Profile | null>(null);
@@ -89,8 +92,27 @@ const ProfilesDisplay: React.FC<ProfilesDisplayProps> = ({ profiles, userId, onA
                                 <div className="flex justify-between items-center">
                                     <span className="text-xs text-gray-500">DOB:</span>
                                     <span className="text-xs font-medium text-gray-900">
-                                        {profile.dateOfBirth ? new Date(profile.dateOfBirth).toLocaleDateString() : 'Not set'}
+                                        {profile.dateOfBirth ? formatValue(profile.dateOfBirth, 'date') : 'Not set'}
                                     </span>
+                                </div>
+                                {profile.countryOfCitizen && (
+                                    <div className="flex justify-between items-center">
+                                        <span className="text-xs text-gray-500">Citizenship:</span>
+                                        <span className="text-xs font-medium text-gray-900">{profile.countryOfCitizen}</span>
+                                    </div>
+                                )}
+                                <div className="flex justify-between items-center">
+                                    <span className="text-xs text-gray-500">Employment:</span>
+                                    <Badge 
+                                        variant="outline" 
+                                        className={`text-xs ${
+                                            profile.currentlyEmployed 
+                                                ? 'bg-green-50 text-green-700 border-green-200' 
+                                                : 'bg-gray-50 text-gray-600 border-gray-200'
+                                        }`}
+                                    >
+                                        {profile.currentlyEmployed ? 'Employed' : 'Unemployed'}
+                                    </Badge>
                                 </div>
                             </div>
 

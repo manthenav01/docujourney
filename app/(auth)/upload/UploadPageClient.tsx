@@ -7,6 +7,7 @@ import { DocumentTypeSchemaModel } from '@/lib/documentActions';
 import { Profile } from '@/lib/types/profile.model';
 import { useDocumentUpload } from '@/components/hooks';
 import { FileSelector, UploadProgress, DocumentVerificationForm, DocumentTypeSelection, NewProfileDialog } from '@/components/components';
+import { Skeleton } from '@/components/ui/skeleton';
 import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
 
@@ -23,12 +24,20 @@ export default function UploadPageClient({
 }: UploadPageClientProps) {
   const router = useRouter();
   const [localProfiles, setLocalProfiles] = useState<Profile[]>(profiles);
+  const [isInitialLoading, setIsInitialLoading] = useState(true);
   const [selectedProfileId, setSelectedProfileId] = useState<string>(
     profiles.find(p => p.admin)?.id || profiles[0].id
   );
   const [selectedDocumentType, setSelectedDocumentType] = useState<string>('auto-detect');
   
   const currentProfile = localProfiles.find(p => p.id === selectedProfileId) || localProfiles[0];
+
+  // Handle initial loading state
+  useEffect(() => {
+    if (profiles.length > 0 && Object.keys(documentSchemas).length > 0) {
+      setIsInitialLoading(false);
+    }
+  }, [profiles, documentSchemas]);
 
   // Sync local profiles with prop changes
   useEffect(() => {
@@ -141,6 +150,18 @@ export default function UploadPageClient({
   };
 
   const getMainContent = () => {
+    // Show skeleton if data is still being processed or initially loading
+    if (isInitialLoading || (isLoading && !file && !formFields && !showDocumentTypeSelection && !showNewProfileDialog)) {
+      return (
+        <div className="flex flex-col items-center justify-center space-y-4 py-16">
+          <Skeleton className="h-20 w-20 rounded-full" />
+          <Skeleton className="h-6 w-64" />
+          <Skeleton className="h-4 w-48" />
+          <Skeleton className="h-10 w-32" />
+        </div>
+      );
+    }
+
     // New Profile Dialog
     if (showNewProfileDialog && extractedPersonInfo) {
       return (
@@ -221,29 +242,33 @@ export default function UploadPageClient({
             <CardTitle className="text-lg">Select Profile</CardTitle>
           </CardHeader>
           <CardContent>
-            <Select 
-              value={selectedProfileId} 
-              onValueChange={handleProfileChange}
-              disabled={isLoading || !!file}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Choose a profile" />
-              </SelectTrigger>
-              <SelectContent>
-                {localProfiles.map((profile) => (
-                  <SelectItem key={profile.id} value={profile.id}>
-                    <div className="flex items-center gap-2">
-                      <span>{profile.firstName} {profile.lastName}</span>
-                      {profile.admin && (
-                        <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">
-                          Admin
-                        </span>
-                      )}
-                    </div>
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            {isInitialLoading || localProfiles.length === 0 ? (
+              <Skeleton className="h-10 w-full" />
+            ) : (
+              <Select 
+                value={selectedProfileId} 
+                onValueChange={handleProfileChange}
+                disabled={isLoading || !!file}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Choose a profile" />
+                </SelectTrigger>
+                <SelectContent>
+                  {localProfiles.map((profile) => (
+                    <SelectItem key={profile.id} value={profile.id}>
+                      <div className="flex items-center gap-2">
+                        <span>{profile.firstName} {profile.lastName}</span>
+                        {profile.admin && (
+                          <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">
+                            Admin
+                          </span>
+                        )}
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
           </CardContent>
         </Card>
 
@@ -253,23 +278,27 @@ export default function UploadPageClient({
             <CardTitle className="text-lg">Document Type</CardTitle>
           </CardHeader>
           <CardContent>
-            <Select 
-              value={selectedDocumentType} 
-              onValueChange={handleDocumentTypeChange}
-              disabled={isLoading || !!file}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Auto-detect or choose manually" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="auto-detect">Auto-detect document type</SelectItem>
-                {Object.entries(documentSchemas).map(([key, schema]) => (
-                  <SelectItem key={key} value={key}>
-                    {schema.displayName}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            {isInitialLoading || Object.keys(documentSchemas).length === 0 ? (
+              <Skeleton className="h-10 w-full" />
+            ) : (
+              <Select 
+                value={selectedDocumentType} 
+                onValueChange={handleDocumentTypeChange}
+                disabled={isLoading || !!file}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Auto-detect or choose manually" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="auto-detect">Auto-detect document type</SelectItem>
+                  {Object.entries(documentSchemas).map(([key, schema]) => (
+                    <SelectItem key={key} value={key}>
+                      {schema.displayName}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
           </CardContent>
         </Card>
       </div>

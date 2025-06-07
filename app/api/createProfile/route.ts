@@ -3,7 +3,7 @@ import { createProfile, fetchProfiles, updateProfile } from '@/lib/profileApi';
 
 export async function POST(request: NextRequest) {
   try {
-    const { userId, firstName, lastName, email, phone, dateOfBirth, relationship, isAdmin } = await request.json();
+    const { userId, firstName, lastName, email, phone, dateOfBirth, countryOfCitizen, relationship, isAdmin, currentlyEmployed } = await request.json();
     
     if (!userId || !firstName || !lastName) {
       return NextResponse.json(
@@ -38,8 +38,10 @@ export async function POST(request: NextRequest) {
       email: email || '',
       phone: phone || '',
       dateOfBirth: dateOfBirth ? new Date(dateOfBirth) : null,
+      countryOfCitizen: countryOfCitizen || null,
       relationship: relationship || undefined,
       isAdmin: isAdmin || false,
+      currentlyEmployed: currentlyEmployed || false,
     });
 
     return NextResponse.json({ profileId }, { status: 201 });
@@ -54,7 +56,7 @@ export async function POST(request: NextRequest) {
 
 export async function PUT(request: NextRequest) {
   try {
-    const { id, userId, firstName, lastName, email, phone, dateOfBirth, relationship, isAdmin } = await request.json();
+    const { id, userId, firstName, lastName, email, phone, dateOfBirth, countryOfCitizen, relationship, isAdmin, currentlyEmployed } = await request.json();
     
     if (!id || !userId || !firstName || !lastName) {
       return NextResponse.json(
@@ -90,8 +92,10 @@ export async function PUT(request: NextRequest) {
       email: email || '',
       phone: phone || '',
       dateOfBirth: dateOfBirth ? new Date(dateOfBirth) : null,
+      countryOfCitizen: countryOfCitizen || null,
       relationship: relationship || undefined,
       isAdmin: isAdmin || false,
+      currentlyEmployed: currentlyEmployed || false,
     });
 
     return NextResponse.json({ success: true }, { status: 200 });

@@ -15,7 +15,6 @@ const DocumentCardBody: React.FC<DocumentCardBodyProps> = ({ doc, documentSchema
         <>
             {documentSchema?.fields && documentSchema.fields.filter((field: any) => field.displayInOverview).map((field: any) => {
                 if (!field.key || !doc.extracted) return null;
-                console.log("field", field.key,  doc.extracted);
                 const value = doc.extracted[field.key as keyof typeof doc.extracted];
                 if (value === undefined || value === null) return null;
                 const displayValue = formatValue(value, field.type);

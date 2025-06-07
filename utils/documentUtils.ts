@@ -44,10 +44,14 @@ export function formatValue(value: any, fieldType?: string): string {
     if (fieldType === 'date' && typeof value === 'string') {
         const dateValue = new Date(value);
         if (!isNaN(dateValue.getTime())) {
+            // For date fields, use UTC methods to avoid timezone conversion issues
+            // This ensures that June 7, 1991 always displays as June 7, 1991
+            // regardless of the time component or user's timezone
             return dateValue.toLocaleDateString('en-US', {
                 month: 'long',
                 day: 'numeric',
-                year: 'numeric'
+                year: 'numeric',
+                timeZone: 'UTC'
             });
         }
     }

@@ -5,3 +5,4 @@ export { validateFile } from './fileValidation';
 export { createNewProfile, fetchProfileById } from './profileApi';
 export { uploadFileToStorage } from './uploadHelpers';
 export { handleDocumentCompletion, setupFormFields, triggerVisaStatusAnalysis } from './documentProcessing';
+export { updateProfileFromDocumentData } from './profileUpdater';

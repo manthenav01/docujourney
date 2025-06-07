@@ -3,10 +3,11 @@ import React from 'react';
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { Button } from '@/components/ui/Button';
-import { TrashIcon, FileIcon, FolderIcon } from 'lucide-react';
+import { TrashIcon, FileIcon } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import DocumentStatusBadge from '@/components/ui/DocumentStatusBadge';
 import { toast } from 'sonner';
+import { getFileTypeIcon, getFileTypeColor } from '@/utils/fileTypeIcons';
 
 interface DocumentCardProps {
     doc: any;
@@ -18,6 +19,9 @@ interface DocumentCardProps {
 
 const DocumentCard: React.FC<DocumentCardProps> = ({ doc, userId, profileId, documentSchema, children }) => {
     const router = useRouter();
+    const FileTypeIcon = getFileTypeIcon(doc.name);
+    const fileTypeColor = getFileTypeColor(doc.name);
+    
     const handleDelete = async () => {
         try {
             const res = await fetch('/api/deleteDocument', {
@@ -35,8 +39,8 @@ const DocumentCard: React.FC<DocumentCardProps> = ({ doc, userId, profileId, doc
     return (
         <Card key={doc.id}>
             <CardHeader className="flex items-center gap-4">
-                <div className="bg-blue-50 p-3 rounded-lg">
-                    <FolderIcon className="h-8 w-8 text-blue-600" />
+                <div className={`${fileTypeColor.bg} p-3 rounded-lg`}>
+                    <FileTypeIcon className={`h-8 w-8 ${fileTypeColor.text}`} />
                 </div>
                 <div className="flex justify-between flex-1 items-start">
                     <div>

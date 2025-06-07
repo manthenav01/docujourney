@@ -158,7 +158,8 @@ export const DocumentVerificationForm: React.FC<DocumentVerificationFormProps> =
                   ? new Date(controllerField.value).toLocaleDateString('en-US', {
                       year: 'numeric',
                       month: 'long',
-                      day: 'numeric'
+                      day: 'numeric',
+                      timeZone: 'UTC'
                     })
                   : 'Select date'
                 }

@@ -17,7 +17,8 @@ import {
   uploadFileToStorage,
   handleDocumentCompletion,
   setupFormFields,
-  triggerVisaStatusAnalysis
+  triggerVisaStatusAnalysis,
+  updateProfileFromDocumentData
 } from './utils';
 
 interface UseDocumentUploadProps {
@@ -188,6 +189,13 @@ export const useDocumentUpload = ({
       };
       
       await updateDoc(ref, { extracted: extractedData, status: 'verified' });
+      
+      // Update profile with document data if profile is missing that information
+      try {
+        await updateProfileFromDocumentData(userId, selectedProfileId, extractedData, currentProfile);
+      } catch (error) {
+        console.warn('Failed to update profile from document data, but document was saved:', error);
+      }
       
       // Trigger visa status analysis after successful document verification
       triggerVisaStatusAnalysis(userId, selectedProfileId).catch(error => {
