@@ -4,6 +4,7 @@ import { fetchDocumentSchemas, fetchAndGroupDocuments } from '@/lib/documentActi
 
 import { fetchProfiles, createAdminProfileForNewUser } from '@/lib/profileApi';
 import { sortDocumentsBySchemaOrder as sortDocumentsBySchemaOrderUtils } from '@/utils/documentUtils';
+import { sortProfilesByRelationship } from '@/utils/profileUtils';
 
 
 // Add searchParams as props - Next.js automatically provides this for pages
@@ -57,12 +58,15 @@ const DocumentsPage = async ({
         );
     }
 
+    // Sort profiles by relationship priority for proper fallback selection
+    const sortedProfiles = sortProfilesByRelationship(finalProfiles);
+
     // Prioritize admin profile when no specific profile is requested
     const defaultProfile = profileIdFromUrl 
         ? finalProfiles.find(profile => profile.id === profileIdFromUrl)
-        : finalProfiles.find(profile => profile.admin) || finalProfiles[0];
+        : finalProfiles.find(profile => profile.admin) || sortedProfiles[0];
     
-    const activeProfileId = defaultProfile?.id || finalProfiles[0].id;
+    const activeProfileId = defaultProfile?.id || sortedProfiles[0].id;
     const activeProfile = finalProfiles.find(profile => profile.id === activeProfileId);
     
     if (!activeProfile) {
@@ -87,7 +91,7 @@ const DocumentsPage = async ({
             userId={userId}
             activeProfileId={activeProfileId}
             activeProfile={activeProfile}
-            profiles={finalProfiles}
+            profiles={sortedProfiles}
             documentGroups={documentGroups}
             documentSchemas={documentSchemas}
             currentRoute="/documents"

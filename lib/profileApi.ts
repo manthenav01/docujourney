@@ -57,7 +57,7 @@ export const createProfile = async (userId: string, profileData: {
     countryOfCitizen?: string | null;
     relationship?: string;
     isAdmin?: boolean;
-    currentlyEmployed?: boolean;
+    currentlyEmployed?: boolean |  null;
 }): Promise<string> => {
     // Ensure user document exists first
     await ensureUserDocumentExists(userId);
@@ -78,7 +78,7 @@ export const createProfile = async (userId: string, profileData: {
         countryOfCitizen: profileData.countryOfCitizen || null,
         relationship: profileData.relationship || null,
         admin: profileData.isAdmin || false,
-        currentlyEmployed: profileData.currentlyEmployed || false,
+        currentlyEmployed: profileData.currentlyEmployed || null,
         createdAt: new Date(),
         updatedAt: new Date(),
     };
@@ -158,7 +158,7 @@ export const createAdminProfileForNewUser = async (userId: string): Promise<stri
             dateOfBirth: null,
             relationship: 'self',
             isAdmin: true,
-            currentlyEmployed: false, // Default to false for new users
+            currentlyEmployed: null, // Default to false for new users
         });
         
         console.log(`Created admin profile for user ${userId}:`, { firstName, lastName, email: userRecord.email });

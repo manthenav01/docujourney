@@ -16,6 +16,7 @@ export interface VisaStatusRequest {
   profileContext?: {
     firstEntryDate?: string;
     firstEntryVisaType?: string;
+    currentlyEmployed?: boolean;
   };
 }
 
@@ -39,11 +40,12 @@ export async function analyzeVisaStatus(input: VisaStatusRequest): Promise<VisaS
   console.log('Documents to analyze:', JSON.stringify(documents, null, 2));
   console.log('Profile Context:', profileContext);
 
-  const profileContextSection = profileContext && (profileContext.firstEntryDate || profileContext.firstEntryVisaType) ? `
+  const profileContextSection = profileContext && (profileContext.firstEntryDate || profileContext.firstEntryVisaType || profileContext.currentlyEmployed !== undefined) ? `
 
 Profile Context:
 - First Entry Date: ${profileContext.firstEntryDate || 'Not specified'}
 - First Entry Visa Type: ${profileContext.firstEntryVisaType || 'Not specified'}
+- Currently Employed: ${profileContext.currentlyEmployed !== undefined ? (profileContext.currentlyEmployed ? 'Yes' : 'No') : 'Not specified'}
 ` : '';
 
   const prompt = `

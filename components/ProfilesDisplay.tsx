@@ -14,6 +14,7 @@ import {
     getVisaStatusDisplayText 
 } from '@/lib/visaStatusUtils';
 import { formatValue } from '@/utils/documentUtils';
+import { sortProfilesByRelationship } from '@/utils/profileUtils';
 
 interface ProfilesDisplayProps {
     profiles: Profile[];
@@ -172,12 +173,15 @@ const ProfilesDisplay: React.FC<ProfilesDisplayProps> = ({ profiles, userId, onA
         );
     };
 
+    // Sort profiles by relationship priority
+    const sortedProfiles = sortProfilesByRelationship(profiles);
+
     return (
         <div className="space-y-6">
             {profiles.length > 0 ? (
                 <div className="space-y-4">
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                        {profiles.map((profile) => renderProfileCard(profile))}
+                        {sortedProfiles.map((profile) => renderProfileCard(profile))}
                     </div>
                 </div>
             ) : (

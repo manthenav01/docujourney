@@ -23,10 +23,83 @@ import {
     Zap,
     Award,
     Mail,
-    Loader2
+    Loader2,
+    Edit,
+    Globe
 } from 'lucide-react';
 import { getVisaStatusColorClasses, getVisaStatusIcon } from '@/lib/visaStatusUtils';
 import VisaTimeline, { createVisaTimelineEvents } from '@/components/VisaTimeline';
+import * as flags from 'country-flag-icons/react/3x2';
+
+// Helper function to get flag component dynamically
+const getFlagComponent = (countryCode: string) => {
+    try {
+        // Type assertion to access the flag components
+        const flagsMap = flags as any;
+        return flagsMap[countryCode] || null;
+    } catch (error) {
+        return null;
+    }
+};
+
+// Helper function to map country names to ISO codes
+const getCountryCode = (countryName: string): string => {
+    const countryMap: { [key: string]: string } = {
+        'india': 'IN',
+        'united states': 'US',
+        'united states of america': 'US',
+        'usa': 'US',
+        'china': 'CN',
+        'people\'s republic of china': 'CN',
+        'united kingdom': 'GB',
+        'uk': 'GB',
+        'great britain': 'GB',
+        'england': 'GB',
+        'canada': 'CA',
+        'australia': 'AU',
+        'germany': 'DE',
+        'france': 'FR',
+        'japan': 'JP',
+        'south korea': 'KR',
+        'korea': 'KR',
+        'brazil': 'BR',
+        'mexico': 'MX',
+        'nigeria': 'NG',
+        'south africa': 'ZA',
+        'italy': 'IT',
+        'spain': 'ES',
+        'netherlands': 'NL',
+        'poland': 'PL',
+        'russia': 'RU',
+        'russian federation': 'RU',
+        'turkey': 'TR',
+        'argentina': 'AR',
+        'chile': 'CL',
+        'colombia': 'CO',
+        'peru': 'PE',
+        'venezuela': 'VE',
+        'pakistan': 'PK',
+        'bangladesh': 'BD',
+        'sri lanka': 'LK',
+        'nepal': 'NP',
+        'philippines': 'PH',
+        'thailand': 'TH',
+        'vietnam': 'VN',
+        'indonesia': 'ID',
+        'malaysia': 'MY',
+        'singapore': 'SG',
+        'egypt': 'EG',
+        'morocco': 'MA',
+        'kenya': 'KE',
+        'ghana': 'GH',
+        'ethiopia': 'ET'
+        // Add more mappings as needed
+    };
+    
+    // Convert input to lowercase and trim whitespace for case-insensitive matching
+    const normalizedCountry = countryName.toLowerCase().trim();
+    return countryMap[normalizedCountry] || '';
+};
 
 interface DashboardDocument extends DocumentMetaDataTransformedModel {
     profileId: string;
@@ -36,8 +109,6 @@ interface DashboardDocument extends DocumentMetaDataTransformedModel {
 
 interface DashboardPageClientProps {
     userId: string;
-    activeProfileId: string;
-    activeProfile: Profile;
     profiles: Profile[];
     documentSchemas: Record<string, DocumentTypeSchemaModel>;
     allDocuments: DashboardDocument[];
@@ -45,8 +116,6 @@ interface DashboardPageClientProps {
 
 const DashboardPageClient: React.FC<DashboardPageClientProps> = ({
     userId,
-    activeProfileId,
-    activeProfile,
     profiles,
     documentSchemas,
     allDocuments
@@ -54,6 +123,9 @@ const DashboardPageClient: React.FC<DashboardPageClientProps> = ({
     const router = useRouter();
     const [isTestEmailLoading, setIsTestEmailLoading] = useState(false);
     const [testEmailMessage, setTestEmailMessage] = useState('');
+
+    // Get the admin profile for welcome message
+    const adminProfile = profiles.find(profile => profile.admin) || profiles[0];
 
     // Function to send test email
     const sendTestEmail = async () => {
@@ -98,6 +170,12 @@ const DashboardPageClient: React.FC<DashboardPageClientProps> = ({
     const totalDocuments = allDocuments.length;
     const totalProfiles = profiles.length;
     const recentDocuments = allDocuments.slice(0, 6); // Last 6 documents
+    
+    // Calculate documents per profile for better insights
+    const documentsByProfile = profiles.map(profile => ({
+        profile,
+        documentCount: allDocuments.filter(doc => doc.profileId === profile.id).length
+    }));
 
     // Helper function to render status icon
     const renderStatusIcon = (status: string) => {
@@ -130,18 +208,137 @@ const DashboardPageClient: React.FC<DashboardPageClientProps> = ({
 
     const completionScore = calculateCompletionScore();
 
+    // Helper function to render a profile summary card
+    const renderProfileSummaryCard = (profile: Profile) => {
+        const profileDocuments = allDocuments.filter(doc => doc.profileId === profile.id);
+        const documentCount = profileDocuments.length;
+        
+        return (
+            <Card key={profile.id} className="border border-slate-200 bg-white hover:border-slate-300 transition-colors">
+                <CardHeader>
+                    <CardTitle className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                            <User className="w-5 h-5 text-slate-600" />
+                            {profile.firstName} {profile.lastName}
+                            <Badge variant="outline" className="text-xs bg-slate-50 text-slate-600 border-slate-200">
+                                {profile.relationship || 'Self'}
+                            </Badge>
+                        </div>
+                        <div className="flex items-center gap-2">
+                            <Badge variant="outline" className="text-xs bg-blue-50 text-blue-700 border-blue-200">
+                                {documentCount} document{documentCount !== 1 ? 's' : ''}
+                            </Badge>
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => router.push(`/profiles?edit=${profile.id}`)}
+                                className="h-8 w-8 p-0 border-slate-200 hover:bg-slate-50"
+                            >
+                                <Edit className="w-4 h-4" />
+                            </Button>
+                        </div>
+                    </CardTitle>
+                </CardHeader>
+                <CardContent>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        {profile.lastVisaStatusAnalysis && (
+                            <div className="bg-slate-50 p-4 rounded-lg border border-slate-200">
+                                <p className="text-sm font-medium text-slate-600 mb-1">Current Status</p>
+                                <div className="flex items-center gap-2">
+                                    {renderStatusIcon(profile.lastVisaStatusAnalysis.currentStatus)}
+                                    <Badge className={`${getVisaStatusColorClasses(profile.lastVisaStatusAnalysis.currentStatus)} border-0`}>
+                                        {profile.lastVisaStatusAnalysis.currentStatus}
+                                    </Badge>
+                                </div>
+                            </div>
+                        )}
+                        
+                        {profile.lastVisaStatusAnalysis?.visaType && (
+                            <div className="bg-slate-50 p-4 rounded-lg border border-slate-200">
+                                <p className="text-sm font-medium text-slate-600 mb-1">Visa Type</p>
+                                <div className="flex items-center gap-2">
+                                    <Globe className="h-4 w-4 text-blue-600" />
+                                    <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
+                                        {profile.lastVisaStatusAnalysis.visaType}
+                                    </Badge>
+                                </div>
+                            </div>
+                        )}
+                        
+                        {profile.firstEntryDate && (
+                            <div className="bg-slate-50 p-4 rounded-lg border border-slate-200">
+                                <p className="text-sm font-medium text-slate-600 mb-1">First Entry to US</p>
+                                <p className="text-lg font-semibold text-slate-900">
+                                    {new Date(profile.firstEntryDate).toLocaleDateString('en-US', {
+                                        month: 'short',
+                                        day: 'numeric',
+                                        year: 'numeric'
+                                    })}
+                                    {profile.firstEntryVisaType && (
+                                        <span className="text-sm text-blue-600 font-normal ml-2">
+                                            on {profile.firstEntryVisaType} visa
+                                        </span>
+                                    )}
+                                </p>
+                            </div>
+                        )}
+                        
+                        {profile.countryOfCitizen && (
+                            <div className="bg-slate-50 p-4 rounded-lg border border-slate-200">
+                                <p className="text-sm font-medium text-slate-600 mb-1">Country of Citizenship</p>
+                                <div className="flex items-center gap-2">
+                                    {(() => {
+                                        const countryCode = getCountryCode(profile.countryOfCitizen);
+                                        if (countryCode) {
+                                            const FlagComponent = getFlagComponent(countryCode);
+                                            return FlagComponent ? (
+                                                <FlagComponent className="h-4 w-6 rounded-sm shadow-sm" />
+                                            ) : (
+                                                <Globe className="h-4 w-4 text-slate-600" />
+                                            );
+                                        }
+                                        return <Globe className="h-4 w-4 text-slate-600" />;
+                                    })()}
+                                    <p className="text-lg font-semibold text-slate-900">
+                                        {profile.countryOfCitizen}
+                                    </p>
+                                </div>
+                            </div>
+                        )}
+                        
+                        <div className="bg-slate-50 p-4 rounded-lg border border-slate-200">
+                            <p className="text-sm font-medium text-slate-600 mb-1">Employment Status</p>
+                            <div className="flex items-center gap-2">
+                                <Badge 
+                                    variant="outline" 
+                                    className={`${
+                                        profile.currentlyEmployed 
+                                            ? 'bg-green-50 text-green-700 border-green-200' 
+                                            : 'bg-slate-50 text-slate-600 border-slate-200'
+                                    }`}
+                                >
+                                    {profile.currentlyEmployed ? 'Employed' : 'Unemployed'}
+                                </Badge>
+                            </div>
+                        </div>
+                    </div>
+                </CardContent>
+            </Card>
+        );
+    };
+
     return (
-        <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-gray-50 p-4">
+        <div className="min-h-screen bg-slate-50/50 p-4">
             {/* Header */}
             <div className="mb-8">
                 <div className="flex items-center justify-between mb-6">
                     <div>
-                        <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
+                        <h1 className="text-3xl font-bold text-slate-900 flex items-center gap-3">
                             Dashboard
                         </h1>
-                        <p className="text-gray-600 mt-2">Welcome back, {activeProfile.firstName}! Here's your document journey overview.</p>
+                        <p className="text-slate-600 mt-2">Welcome back, {adminProfile.firstName}! Here's your family's document journey overview.</p>
                     </div>
-                    <div className="flex gap-3">
+                    <div className="flex gap-3 items-center">
                         <Button
                             onClick={sendTestEmail}
                             disabled={isTestEmailLoading}
@@ -171,21 +368,21 @@ const DashboardPageClient: React.FC<DashboardPageClientProps> = ({
                 )}
 
                 {/* Gamification Score */}
-                <Card className="bg-gradient-to-r from-slate-50 to-blue-50 border border-slate-200 shadow-sm">
+                <Card className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200">
                     <CardContent className="p-6">
                         <div className="flex items-center justify-between">
                             <div>
                                 <div className="flex items-center gap-2 mb-2">
-                                    <Award className="w-6 h-6 text-slate-600" />
-                                    <h3 className="text-xl font-bold text-slate-800">Journey Progress</h3>
+                                    <Award className="w-6 h-6 text-blue-600" />
+                                    <h3 className="text-xl font-bold text-blue-900">Journey Progress</h3>
                                 </div>
-                                <p className="text-slate-600">Keep going! You're doing great organizing your documents.</p>
+                                <p className="text-blue-700">Keep going! You're doing great organizing your documents.</p>
                             </div>
                             <div className="text-right">
-                                <div className="text-4xl font-bold mb-1 text-slate-700">{completionScore}%</div>
+                                <div className="text-4xl font-bold mb-1 text-blue-900">{completionScore}%</div>
                                 <div className="flex items-center gap-1">
                                     <Star className="w-4 h-4 fill-current text-amber-400" />
-                                    <span className="text-sm text-slate-600">Completion Score</span>
+                                    <span className="text-sm text-blue-600">Completion Score</span>
                                 </div>
                             </div>
                         </div>
@@ -195,54 +392,54 @@ const DashboardPageClient: React.FC<DashboardPageClientProps> = ({
 
             {/* Quick Stats */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-                <Card className="border-0 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
+                <Card className="border border-slate-200 bg-white hover:border-blue-300 transition-colors group">
                     <CardContent className="p-6">
                         <div className="flex items-center justify-between">
                             <div>
-                                <p className="text-sm font-medium text-gray-600">Total Documents</p>
-                                <p className="text-3xl font-bold text-gray-900">{totalDocuments}</p>
+                                <p className="text-sm font-medium text-slate-600">Total Documents</p>
+                                <p className="text-3xl font-bold text-slate-900">{totalDocuments}</p>
                                 <p className="text-sm text-green-600 flex items-center gap-1 mt-1">
                                     <TrendingUp className="w-3 h-3" />
                                     All organized
                                 </p>
                             </div>
-                            <div className="p-3 bg-blue-100 rounded-full">
+                            <div className="p-3 bg-blue-50 rounded-lg group-hover:bg-blue-100 transition-colors">
                                 <FileText className="w-6 h-6 text-blue-600" />
                             </div>
                         </div>
                     </CardContent>
                 </Card>
 
-                <Card className="border-0 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
+                <Card className="border border-slate-200 bg-white hover:border-purple-300 transition-colors group">
                     <CardContent className="p-6">
                         <div className="flex items-center justify-between">
                             <div>
-                                <p className="text-sm font-medium text-gray-600">Family Profiles</p>
-                                <p className="text-3xl font-bold text-gray-900">{totalProfiles}</p>
+                                <p className="text-sm font-medium text-slate-600">Family Profiles</p>
+                                <p className="text-3xl font-bold text-slate-900">{totalProfiles}</p>
                                 <p className="text-sm text-blue-600 flex items-center gap-1 mt-1">
                                     <Zap className="w-3 h-3" />
                                     Ready to go
                                 </p>
                             </div>
-                            <div className="p-3 bg-purple-100 rounded-full">
+                            <div className="p-3 bg-purple-50 rounded-lg group-hover:bg-purple-100 transition-colors">
                                 <Users className="w-6 h-6 text-purple-600" />
                             </div>
                         </div>
                     </CardContent>
                 </Card>
 
-                <Card className="border-0 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
+                <Card className="border border-slate-200 bg-white hover:border-orange-300 transition-colors group">
                     <CardContent className="p-6">
                         <div className="flex items-center justify-between">
                             <div>
-                                <p className="text-sm font-medium text-gray-600">Recent Activity</p>
-                                <p className="text-3xl font-bold text-gray-900">{recentDocuments.length}</p>
+                                <p className="text-sm font-medium text-slate-600">Recent Activity</p>
+                                <p className="text-3xl font-bold text-slate-900">{recentDocuments.length}</p>
                                 <p className="text-sm text-orange-600 flex items-center gap-1 mt-1">
                                     <Clock className="w-3 h-3" />
                                     This week
                                 </p>
                             </div>
-                            <div className="p-3 bg-orange-100 rounded-full">
+                            <div className="p-3 bg-orange-50 rounded-lg group-hover:bg-orange-100 transition-colors">
                                 <Calendar className="w-6 h-6 text-orange-600" />
                             </div>
                         </div>
@@ -250,86 +447,43 @@ const DashboardPageClient: React.FC<DashboardPageClientProps> = ({
                 </Card>
             </div>
 
-            {/* Active Profile Summary */}
-            {(activeProfile.firstEntryDate || activeProfile.firstEntryVisaType) && (
-                <Card className="mb-8 border-0 shadow-lg bg-gradient-to-r from-indigo-50 to-purple-50">
-                    <CardHeader>
-                        <CardTitle className="flex items-center gap-2">
-                            <User className="w-5 h-5 text-indigo-600" />
-                            {activeProfile.firstName}'s Profile Summary
-                        </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                            {activeProfile.firstEntryDate && (
-                                <div className="bg-white p-4 rounded-lg border border-indigo-100">
-                                    <p className="text-sm font-medium text-gray-600 mb-1">First Entry to US</p>
-                                    <p className="text-lg font-semibold text-gray-900">
-                                        {new Date(activeProfile.firstEntryDate).toLocaleDateString('en-US', {
-                                            month: 'short',
-                                            day: 'numeric',
-                                            year: 'numeric'
-                                        })}
-                                    </p>
-                                    {activeProfile.firstEntryVisaType && (
-                                        <p className="text-sm text-indigo-600 mt-1">
-                                            on {activeProfile.firstEntryVisaType} visa
-                                        </p>
-                                    )}
-                                </div>
-                            )}
-                            {activeProfile.countryOfCitizen && (
-                                <div className="bg-white p-4 rounded-lg border border-indigo-100">
-                                    <p className="text-sm font-medium text-gray-600 mb-1">Country of Citizenship</p>
-                                    <p className="text-lg font-semibold text-gray-900">
-                                        {activeProfile.countryOfCitizen}
-                                    </p>
-                                </div>
-                            )}
-                            <div className="bg-white p-4 rounded-lg border border-indigo-100">
-                                <p className="text-sm font-medium text-gray-600 mb-1">Employment Status</p>
-                                <div className="flex items-center gap-2">
-                                    <Badge 
-                                        variant="outline" 
-                                        className={`${
-                                            activeProfile.currentlyEmployed 
-                                                ? 'bg-green-50 text-green-700 border-green-200' 
-                                                : 'bg-gray-50 text-gray-600 border-gray-200'
-                                        }`}
-                                    >
-                                        {activeProfile.currentlyEmployed ? 'Employed' : 'Unemployed'}
-                                    </Badge>
-                                </div>
-                            </div>
-                            {activeProfile.lastVisaStatusAnalysis && (
-                                <div className="bg-white p-4 rounded-lg border border-indigo-100">
-                                    <p className="text-sm font-medium text-gray-600 mb-1">Current Visa Status</p>
-                                    <div className="flex items-center gap-2">
-                                        {renderStatusIcon(activeProfile.lastVisaStatusAnalysis.currentStatus)}
-                                        <Badge className={`${getVisaStatusColorClasses(activeProfile.lastVisaStatusAnalysis.currentStatus)} border-0`}>
-                                            {activeProfile.lastVisaStatusAnalysis.currentStatus}
-                                        </Badge>
-                                    </div>
-                                </div>
-                            )}
-                        </div>
-                    </CardContent>
-                </Card>
-            )}
+            {/* Profile Cards */}
+            <div className="mb-8 space-y-6">
+                {profiles.map(profile => renderProfileSummaryCard(profile))}
+            </div>
 
-            {/* Visa Timeline */}
+            {/* Admin Profile Visa Timeline */}
             <div className="mb-8">
+                <h2 className="text-2xl font-bold text-slate-900 flex items-center gap-2 mb-4">
+                    <Calendar className="w-6 h-6 text-blue-600" />
+                    {adminProfile.firstName}'s Visa Timeline
+                </h2>
                 <VisaTimeline 
                     events={createVisaTimelineEvents(
-                        allDocuments.filter(doc => doc.profileId === activeProfileId),
-                        activeProfile.lastVisaStatusAnalysis
+                        allDocuments.filter(doc => doc.profileId === adminProfile.id),
+                        adminProfile.lastVisaStatusAnalysis || null,
+                        adminProfile
                     )}
+                />
+            </div>
+
+            {/* Family Visa Status Analysis */}
+            <div className="mb-8">
+                <h2 className="text-2xl font-bold text-slate-900 flex items-center gap-2 mb-4">
+                    <Award className="w-6 h-6 text-blue-600" />
+                    Family Visa Status Analysis
+                </h2>
+                <VisaStatusCard 
+                    userId={userId}
+                    profileId={adminProfile.id}
+                    profileName={`${adminProfile.firstName} ${adminProfile.lastName}`}
+                    autoAnalyze={true}
                 />
             </div>
 
             <div className="grid grid-cols-1 gap-8">
                 {/* Recent Documents */}
-                <Card className="border-0 shadow-lg">
+                <Card className="border border-slate-200 bg-white">
                     <CardHeader>
                         <div className="flex items-center justify-between">
                             <CardTitle className="flex items-center gap-2">
@@ -349,8 +503,8 @@ const DashboardPageClient: React.FC<DashboardPageClientProps> = ({
                     <CardContent>
                         <div className="space-y-3">
                             {recentDocuments.length === 0 ? (
-                                <div className="text-center py-8 text-gray-500">
-                                    <FileText className="w-12 h-12 mx-auto mb-3 text-gray-300" />
+                                <div className="text-center py-8 text-slate-500">
+                                    <FileText className="w-12 h-12 mx-auto mb-3 text-slate-300" />
                                     <p>No documents uploaded yet</p>
                                     <p className="text-sm">Upload your first document to get started!</p>
                                 </div>
@@ -358,26 +512,26 @@ const DashboardPageClient: React.FC<DashboardPageClientProps> = ({
                                 recentDocuments.map((doc) => (
                                     <div 
                                         key={doc.id} 
-                                        className="flex items-center justify-between p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors cursor-pointer"
+                                        className="flex items-center justify-between p-3 border border-slate-200 rounded-lg hover:bg-slate-50 hover:border-slate-300 transition-colors cursor-pointer"
                                         onClick={() => router.push(`/documents?profileId=${doc.profileId}`)}
                                     >
                                         <div className="flex items-center gap-3">
-                                            <div className="p-2 bg-blue-100 rounded-lg">
+                                            <div className="p-2 bg-blue-50 rounded-lg">
                                                 <FileText className="w-4 h-4 text-blue-600" />
                                             </div>
                                             <div>
-                                                <p className="font-medium text-gray-900 text-sm">
+                                                <p className="font-medium text-slate-900 text-sm">
                                                     {doc.extracted?.document_type 
                                                         ? getDocumentTypeDisplayName(doc.extracted.document_type)
                                                         : doc.name
                                                     }
                                                 </p>
-                                                <p className="text-xs text-gray-500">
+                                                <p className="text-xs text-slate-500">
                                                     {doc.profileName} • {formatDate(doc.createdAt || doc.uploadedAt || '')}
                                                 </p>
                                             </div>
                                         </div>
-                                        <Badge variant="outline" className="text-xs">
+                                        <Badge variant="outline" className="text-xs bg-slate-50 text-slate-600 border-slate-200">
                                             {doc.status}
                                         </Badge>
                                     </div>
@@ -388,21 +542,11 @@ const DashboardPageClient: React.FC<DashboardPageClientProps> = ({
                 </Card>
             </div>
 
-            {/* Visa Status Analysis */}
-            <div className="mt-8">
-                <VisaStatusCard 
-                    userId={userId}
-                    profileId={activeProfileId}
-                    profileName={`${activeProfile.firstName} ${activeProfile.lastName}`}
-                    autoAnalyze={true}
-                />
-            </div>
-
             {/* Quick Actions */}
             <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-4">
                 <Button
                     variant="outline"
-                    className="h-20 text-left border-2 border-dashed border-blue-300 hover:border-blue-500 hover:bg-blue-50 transition-all duration-300"
+                    className="h-20 text-left border-2 border-dashed border-blue-200 hover:border-blue-400 hover:bg-blue-50 transition-all duration-200"
                     onClick={() => router.push('/upload')}
                 >
                     <div className="flex items-center gap-3">
@@ -416,7 +560,7 @@ const DashboardPageClient: React.FC<DashboardPageClientProps> = ({
 
                 <Button
                     variant="outline"
-                    className="h-20 text-left border-2 border-dashed border-purple-300 hover:border-purple-500 hover:bg-purple-50 transition-all duration-300"
+                    className="h-20 text-left border-2 border-dashed border-purple-200 hover:border-purple-400 hover:bg-purple-50 transition-all duration-200"
                     onClick={() => router.push('/profiles')}
                 >
                     <div className="flex items-center gap-3">
@@ -430,7 +574,7 @@ const DashboardPageClient: React.FC<DashboardPageClientProps> = ({
 
                 <Button
                     variant="outline"
-                    className="h-20 text-left border-2 border-dashed border-green-300 hover:border-green-500 hover:bg-green-50 transition-all duration-300"
+                    className="h-20 text-left border-2 border-dashed border-green-200 hover:border-green-400 hover:bg-green-50 transition-all duration-200"
                     onClick={() => router.push('/documents')}
                 >
                     <div className="flex items-center gap-3">

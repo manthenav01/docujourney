@@ -10,6 +10,7 @@ import { FileSelector, UploadProgress, DocumentVerificationForm, DocumentTypeSel
 import { Skeleton } from '@/components/ui/skeleton';
 import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
+import { sortProfilesByRelationship } from '@/utils/profileUtils';
 
 interface UploadPageClientProps {
   userId: string;
@@ -189,6 +190,7 @@ export default function UploadPageClient({
           isLoading={isLoading}
           existingDate={currentProfile.firstEntryDate}
           existingVisaType={currentProfile.firstEntryVisaType}
+          existingEmploymentStatus={currentProfile.currentlyEmployed}
         />
       );
     }
@@ -274,7 +276,7 @@ export default function UploadPageClient({
                   <SelectValue placeholder="Choose a profile" />
                 </SelectTrigger>
                 <SelectContent>
-                  {localProfiles.map((profile) => (
+                  {sortProfilesByRelationship(localProfiles).map((profile) => (
                     <SelectItem key={profile.id} value={profile.id}>
                       <div className="flex items-center gap-2">
                         <span>{profile.firstName} {profile.lastName}</span>

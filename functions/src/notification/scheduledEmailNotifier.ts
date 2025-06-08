@@ -113,7 +113,12 @@ export async function sendDocumentExpiryNotifications(userId?: string): Promise<
                     logger.info(`Running fresh analysis for profile ${profileId} with documents:`, documentsForAnalysis);
                     const visaAnalysis: VisaStatusResponse = await analyzeVisaStatus({
                         documents: documentsForAnalysis,
-                        currentDate: new Date().toISOString()
+                        currentDate: new Date().toISOString(),
+                        profileContext: {
+                            firstEntryDate: profileData?.firstEntryDate,
+                            firstEntryVisaType: profileData?.firstEntryVisaType,
+                            currentlyEmployed: profileData?.currentlyEmployed
+                        }
                     });
                     
                     logger.info(`Fresh visa analysis result for profile ${profileId}:`, {

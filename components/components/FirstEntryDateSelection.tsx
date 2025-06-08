@@ -19,11 +19,12 @@ import { format, parse, isValid } from 'date-fns';
 
 interface FirstEntryDateSelectionProps {
   profileName: string;
-  onSubmit: (data: { date?: Date; visaType?: string }) => void;
+  onSubmit: (data: { date?: Date; visaType?: string; currentlyEmployed?: boolean }) => void;
   onCancel: () => void;
   isLoading?: boolean;
   existingDate?: string | null; // Existing first entry date if available
   existingVisaType?: string | null; // Existing first entry visa type if available
+  existingEmploymentStatus?: boolean | null; // Existing employment status if available
 }
 
 const visaTypeOptions = [
@@ -39,11 +40,13 @@ export const FirstEntryDateSelection: React.FC<FirstEntryDateSelectionProps> = (
   onCancel,
   isLoading = false,
   existingDate = null,
-  existingVisaType = null
+  existingVisaType = null,
+  existingEmploymentStatus = null
 }) => {
   // Determine what information is missing
   const needsDate = !existingDate;
   const needsVisaType = !existingVisaType;
+  const needsEmploymentStatus = existingEmploymentStatus === null || existingEmploymentStatus === undefined;
   
   // Initialize state with existing values if available
   const [dateValue, setDateValue] = useState<string>(
@@ -53,6 +56,7 @@ export const FirstEntryDateSelection: React.FC<FirstEntryDateSelectionProps> = (
     existingDate ? new Date(existingDate) : undefined
   );
   const [visaType, setVisaType] = useState<string>(existingVisaType || '');
+  const [currentlyEmployed, setCurrentlyEmployed] = useState<boolean | null>(existingEmploymentStatus);
   const [error, setError] = useState<string>('');
   const [showCalendar, setShowCalendar] = useState(false);
 
@@ -109,7 +113,7 @@ export const FirstEntryDateSelection: React.FC<FirstEntryDateSelectionProps> = (
     return null;
   };
 
-  const validateForm = (): { date?: Date; visaType?: string } | null => {
+  const validateForm = (): { date?: Date; visaType?: string; currentlyEmployed?: boolean } | null => {
     let parsedDate: Date | undefined;
     
     // Validate date only if it's needed
@@ -137,12 +141,19 @@ export const FirstEntryDateSelection: React.FC<FirstEntryDateSelectionProps> = (
       return null;
     }
 
+    // Validate employment status only if it's needed
+    if (needsEmploymentStatus && currentlyEmployed === null) {
+      setError('Please specify your current employment status');
+      return null;
+    }
+
     setError('');
     
     // Return only the fields that are needed and provided
-    const result: { date?: Date; visaType?: string } = {};
+    const result: { date?: Date; visaType?: string; currentlyEmployed?: boolean } = {};
     if (needsDate && parsedDate) result.date = parsedDate;
     if (needsVisaType && visaType.trim()) result.visaType = visaType;
+    if (needsEmploymentStatus && currentlyEmployed !== null) result.currentlyEmployed = currentlyEmployed;
     
     return result;
   };
@@ -172,7 +183,7 @@ export const FirstEntryDateSelection: React.FC<FirstEntryDateSelectionProps> = (
     if (validatedData) {
       onSubmit(validatedData);
     }
-  }, [dateValue, visaType, onSubmit]);
+  }, [dateValue, visaType, currentlyEmployed, onSubmit]);
 
   const handleKeyPress = useCallback((e: React.KeyboardEvent) => {
     if (e.key === 'Enter') {
@@ -199,16 +210,22 @@ export const FirstEntryDateSelection: React.FC<FirstEntryDateSelectionProps> = (
           </div>
           <div>
             <h3 className="text-lg font-semibold text-gray-900">
-              {needsDate && needsVisaType ? 'First Entry Information Required' :
+              {(needsDate || needsVisaType || needsEmploymentStatus) ? 'Profile Information Required' :
+               needsDate && needsVisaType ? 'First Entry Information Required' :
                needsDate ? 'First Entry Date Required' :
-               'First Entry Visa Type Required'}
+               needsVisaType ? 'First Entry Visa Type Required' :
+               'Employment Status Required'}
             </h3>
             <p className="text-sm text-gray-600 mt-1">
-              {needsDate && needsVisaType ? 
+              {(needsDate || needsVisaType || needsEmploymentStatus) ? 
+                `We need some additional information for ${profileName} to help track their visa timeline and status.` :
+               needsDate && needsVisaType ? 
                 `We need to know when ${profileName} first entered the United States and what visa type was used to help track visa timeline and status.` :
                needsDate ? 
                 `We need to know when ${profileName} first entered the United States to help track visa timeline and status.` :
-                `We need to know what visa type ${profileName} used for their first entry to the United States.`
+               needsVisaType ?
+                `We need to know what visa type ${profileName} used for their first entry to the United States.` :
+                `We need to know ${profileName}'s current employment status for their visa analysis.`
               }
             </p>
           </div>
@@ -286,6 +303,28 @@ export const FirstEntryDateSelection: React.FC<FirstEntryDateSelectionProps> = (
           </div>
         )}
 
+        {/* Employment Status Selection - Only show if employment status is missing */}
+        {needsEmploymentStatus && (
+          <div className="space-y-2">
+            <Label className="text-sm font-medium text-gray-700">
+              Current Employment Status <span className="text-red-500">*</span>
+            </Label>
+            <Select 
+              value={currentlyEmployed === null ? '' : currentlyEmployed ? 'true' : 'false'} 
+              onValueChange={(value) => setCurrentlyEmployed(value === 'true')} 
+              disabled={isLoading}
+            >
+              <SelectTrigger className={`h-12 ${error && currentlyEmployed === null ? 'border-red-300 focus:border-red-400 focus:ring-red-100' : 'border-gray-200 focus:border-blue-400 focus:ring-blue-100'}`}>
+                <SelectValue placeholder="Are you currently employed?" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="true">Yes, I am currently employed</SelectItem>
+                <SelectItem value="false">No, I am not currently employed</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        )}
+
         {error && (
           <p className="text-sm text-red-600 flex items-center gap-1">
             <AlertCircle className="h-4 w-4" />
@@ -296,18 +335,30 @@ export const FirstEntryDateSelection: React.FC<FirstEntryDateSelectionProps> = (
         {/* Preview - Show only if we have the required info */}
         {((needsDate && previewDate) || (!needsDate && existingDate)) && 
          ((needsVisaType && visaType) || (!needsVisaType && existingVisaType)) && 
+         ((needsEmploymentStatus && currentlyEmployed !== null) || (!needsEmploymentStatus && existingEmploymentStatus !== null)) &&
          !error && (
           <div className="bg-green-50 border border-green-200 rounded-lg p-3">
             <p className="text-sm text-green-800">
-              <span className="font-medium">Entry details will be saved as:</span>
+              <span className="font-medium">Profile information will be saved as:</span>
             </p>
-            <p className="text-sm text-green-700 mt-1">
-              • Date: {previewDate ? format(previewDate, 'MMMM d, yyyy') : 
-                      existingDate ? format(new Date(existingDate), 'MMMM d, yyyy') : ''}
-            </p>
-            <p className="text-sm text-green-700">
-              • Visa Type: {visaTypeOptions.find(opt => opt.value === (visaType || existingVisaType))?.label}
-            </p>
+            {(needsDate || existingDate) && (
+              <p className="text-sm text-green-700 mt-1">
+                • Entry Date: {previewDate ? format(previewDate, 'MMMM d, yyyy') : 
+                              existingDate ? format(new Date(existingDate), 'MMMM d, yyyy') : ''}
+              </p>
+            )}
+            {(needsVisaType || existingVisaType) && (
+              <p className="text-sm text-green-700">
+                • Visa Type: {visaTypeOptions.find(opt => opt.value === (visaType || existingVisaType))?.label}
+              </p>
+            )}
+            {(needsEmploymentStatus || existingEmploymentStatus !== null) && (
+              <p className="text-sm text-green-700">
+                • Employment Status: {currentlyEmployed !== null ? 
+                  (currentlyEmployed ? 'Currently employed' : 'Not currently employed') :
+                  (existingEmploymentStatus ? 'Currently employed' : 'Not currently employed')}
+              </p>
+            )}
           </div>
         )}
       </div>
@@ -328,7 +379,8 @@ export const FirstEntryDateSelection: React.FC<FirstEntryDateSelectionProps> = (
           onClick={handleSubmit}
           disabled={isLoading || !!error || 
             (needsDate && !dateValue.trim() && !selectedDate) ||
-            (needsVisaType && !visaType.trim())
+            (needsVisaType && !visaType.trim()) ||
+            (needsEmploymentStatus && currentlyEmployed === null)
           }
           className="flex-1 h-11 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300"
         >

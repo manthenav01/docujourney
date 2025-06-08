@@ -63,7 +63,8 @@ export async function POST(request: NextRequest) {
       currentDate: new Date().toISOString(),
       profileContext: profileData ? {
         firstEntryDate: profileData.firstEntryDate,
-        firstEntryVisaType: profileData.firstEntryVisaType
+        firstEntryVisaType: profileData.firstEntryVisaType,
+        currentlyEmployed: profileData.currentlyEmployed
       } : undefined
     });
 

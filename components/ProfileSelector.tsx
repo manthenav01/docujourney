@@ -10,6 +10,7 @@ import {
   SelectValue,
 } from './ui/select';
 import { Profile } from '@/lib/types/profile.model';
+import { sortProfilesByRelationship } from '@/utils/profileUtils';
 
 interface ProfileSelectorProps {
   profiles: Profile[];
@@ -22,6 +23,9 @@ export default function ProfileSelector({
   selectedProfileId, 
   onProfileChange 
 }: ProfileSelectorProps) {
+  // Sort profiles by relationship priority
+  const sortedProfiles = sortProfilesByRelationship(profiles);
+
   return (
     <div >
       <Select value={selectedProfileId} onValueChange={onProfileChange}>
@@ -30,7 +34,7 @@ export default function ProfileSelector({
         </SelectTrigger>
         <SelectContent>
           <SelectGroup>
-            {profiles.map((profile) => (
+            {sortedProfiles.map((profile) => (
               <SelectItem key={profile.id} value={profile.id}>
                 {profile.firstName} {profile.lastName}
               </SelectItem>

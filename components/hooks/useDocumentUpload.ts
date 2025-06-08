@@ -337,8 +337,9 @@ export const useDocumentUpload = ({
       // Check if we need to collect missing profile information
       const profile = localAllProfiles.find(p => p.id === finalProfileId) || currentProfile;
       const needsFirstEntryInfo = !profile.firstEntryDate || !profile.firstEntryVisaType;
+      const needsEmploymentStatus = profile.currentlyEmployed === null || profile.currentlyEmployed === undefined;
       
-      if (needsFirstEntryInfo) {
+      if (needsFirstEntryInfo || needsEmploymentStatus) {
         setPhase('profile-info');
         setShowFirstEntryDateSelection(true);
         setSelectedProfileId(finalProfileId);
@@ -409,7 +410,7 @@ export const useDocumentUpload = ({
   }, [docRefId, documentType, userId, selectedProfileId, documentSchemas, extractedData, findDocumentInProfiles, localAllProfiles, currentProfile]);
 
   // Handle first entry date submission
-  const handleFirstEntryDateSubmit = useCallback(async (data: { date?: Date; visaType?: string }) => {
+  const handleFirstEntryDateSubmit = useCallback(async (data: { date?: Date; visaType?: string; currentlyEmployed?: boolean }) => {
     if (phase !== 'profile-info') return;
     
     setLoading('profileUpdate', true);
@@ -427,6 +428,10 @@ export const useDocumentUpload = ({
         updateData.firstEntryVisaType = data.visaType;
       }
       
+      if (data.currentlyEmployed !== undefined) {
+        updateData.currentlyEmployed = data.currentlyEmployed;
+      }
+      
       const profileRef = firestoreDoc(db, `users/${userId}/profiles`, selectedProfileId);
       await updateDoc(profileRef, updateData);
       
@@ -435,7 +440,7 @@ export const useDocumentUpload = ({
       
       await completeUploadFlow(selectedProfileId);
     } catch (error) {
-      handleError(error, 'profileUpdate', 'Failed to save entry date. Please try again.');
+      handleError(error, 'profileUpdate', 'Failed to save profile information. Please try again.');
     }
   }, [phase, userId, selectedProfileId, setLoading, handleError]);
 

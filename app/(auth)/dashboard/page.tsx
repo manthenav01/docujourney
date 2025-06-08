@@ -3,6 +3,7 @@ import { fetchDocumentSchemas } from '@/lib/documentActions';
 import { fetchProfiles, createAdminProfileForNewUser } from '@/lib/profileApi';
 import { DocumentMetaDataAPIModel, DocumentMetaDataTransformedModel } from '@/lib/types/document.model';
 import DashboardPageClient from './DashboardPageClient';
+import { sortProfilesByRelationship } from '@/utils/profileUtils';
 
 interface DashboardDocument extends DocumentMetaDataTransformedModel {
     profileId: string;
@@ -99,21 +100,8 @@ const DashboardPage = async ({
         );
     }
 
-    // Prioritize admin profile when no specific profile is requested
-    const defaultProfile = profileIdFromUrl 
-        ? finalProfiles.find(profile => profile.id === profileIdFromUrl)
-        : finalProfiles.find(profile => profile.admin) || finalProfiles[0];
-    
-    const activeProfileId = defaultProfile?.id || finalProfiles[0].id;
-    const activeProfile = finalProfiles.find(profile => profile.id === activeProfileId);
-    
-    if (!activeProfile) {
-        return (
-            <div className="flex items-center justify-center min-h-screen">
-                <p>Profile not found.</p>
-            </div>
-        );
-    }
+    // Sort profiles by relationship priority
+    const sortedProfiles = sortProfilesByRelationship(finalProfiles);
 
     // Fetch all documents across all profiles
     const allDocuments = await fetchAllDocuments(userId, finalProfiles);
@@ -121,9 +109,7 @@ const DashboardPage = async ({
     return (
         <DashboardPageClient
             userId={userId}
-            activeProfileId={activeProfileId}
-            activeProfile={activeProfile}
-            profiles={finalProfiles}
+            profiles={sortedProfiles}
             documentSchemas={documentSchemas}
             allDocuments={allDocuments}
         />

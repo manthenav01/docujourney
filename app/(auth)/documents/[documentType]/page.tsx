@@ -4,6 +4,7 @@ import React from 'react';
 import { fetchProfiles } from '@/lib/profileApi';
 import DocumentTypePageWithUpload from '@/components/DocumentTypePageWithUpload';
 import { sortDocumentsBySchemaOrder as sortDocumentsBySchemaOrderUtil } from '@/utils/documentUtils';
+import { sortProfilesByRelationship } from '@/utils/profileUtils';
 
 async function fetchDocumentSchema(documentType: string) {
     const { fetchDocumentSchemas } = await import('@/lib/documentActions');
@@ -28,7 +29,8 @@ const DocumentTypePage = async ({
     }
     
     const profiles = await fetchProfiles(userId);
-    const activeProfile = profiles.find(profile => profileId ? profile.id === profileId : profile.admin) || profiles[0];
+    const sortedProfiles = sortProfilesByRelationship(profiles);
+    const activeProfile = profiles.find(profile => profileId ? profile.id === profileId : profile.admin) || sortedProfiles[0];
     const { schema: documentSchema, allSchemas: documentSchemas } = await fetchDocumentSchema(documentType);
     let documents = await fetchDocumentsByType(userId, activeProfile.id, documentType);
     documents = sortDocumentsBySchemaOrderUtil(documents, documentSchema);
