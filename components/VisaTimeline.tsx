@@ -6,10 +6,13 @@ import {
   FileCheck, 
   Stamp, 
   Plane, 
-  Clock, 
   CalendarX,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  Building2,
+  CreditCard,
+  FileText,
+  Briefcase
 } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/Button';
@@ -22,6 +25,16 @@ interface TimelineEvent {
   icon: React.ReactNode;
   status: 'completed' | 'current' | 'upcoming' | 'unknown';
   description?: string;
+  eventType?: 'major' | 'minor';
+  visaType?: string;
+  employer?: string;
+  documentType?: string;
+  additionalInfo?: {
+    receiptNumber?: string;
+    visaNumber?: string;
+    validFrom?: string;
+    validTo?: string;
+  };
 }
 
 interface VisaTimelineProps {
@@ -59,13 +72,10 @@ const VisaTimeline: React.FC<VisaTimelineProps> = ({ events, className = '' }) =
     }
   };
 
-  const getLineColor = (index: number, events: TimelineEvent[]) => {
-    const currentEvent = events[index];
-    const nextEvent = events[index + 1];
-    
-    if (currentEvent.status === 'completed' && nextEvent?.status === 'completed') {
+  const getLineColor = (currentStatus: string, nextStatus?: string) => {
+    if (currentStatus === 'completed' && nextStatus === 'completed') {
       return 'bg-green-500';
-    } else if (currentEvent.status === 'completed' || currentEvent.status === 'current') {
+    } else if (currentStatus === 'completed' || currentStatus === 'current') {
       return 'bg-gradient-to-r from-green-500 to-gray-300';
     } else {
       return 'bg-gray-300';
@@ -102,35 +112,35 @@ const VisaTimeline: React.FC<VisaTimelineProps> = ({ events, className = '' }) =
     }
   };
 
+  // Filter events with dates for display
+  const validEvents = events.filter(event => event.date !== null);
+  
+  // Calculate progress
+  const completedEvents = validEvents.filter(e => e.status === 'completed').length;
+  const totalEvents = validEvents.length;
+  const progressPercentage = totalEvents > 0 ? Math.round((completedEvents / totalEvents) * 100) : 0;
+
   return (
-    <Card className={`relative ${className}`}>
+    <Card className={`w-full ${className}`}>
       <CardContent className="p-6">
+        {/* Header */}
         <div className="flex items-center justify-between mb-6">
-          <div>
-            <h3 className="text-lg font-semibold text-gray-900">Visa Timeline</h3>
-            <p className="text-sm text-gray-600 mt-1">
-              {(() => {
-                const completedEvents = events.filter(e => e.status === 'completed').length;
-                const totalEvents = events.filter(e => e.date !== null).length;
-                const progressPercentage = totalEvents > 0 ? Math.round((completedEvents / totalEvents) * 100) : 0;
-                return `${completedEvents} of ${totalEvents} milestones completed (${progressPercentage}%)`;
-              })()}
+          <div className="flex-1">
+            <h3 className="text-lg font-semibold text-gray-900 mb-1">Visa Timeline</h3>
+            <p className="text-sm text-gray-600 mb-3">
+              {completedEvents} of {totalEvents} milestones completed ({progressPercentage}%)
             </p>
             {/* Progress Bar */}
-            <div className="w-48 bg-gray-200 rounded-full h-2 mt-2">
+            <div className="w-64 bg-gray-200 rounded-full h-2">
               <div 
                 className="bg-gradient-to-r from-green-500 to-blue-500 h-2 rounded-full transition-all duration-500"
-                style={{ 
-                  width: `${(() => {
-                    const completedEvents = events.filter(e => e.status === 'completed').length;
-                    const totalEvents = events.filter(e => e.date !== null).length;
-                    return totalEvents > 0 ? (completedEvents / totalEvents) * 100 : 0;
-                  })()}%` 
-                }}
+                style={{ width: `${progressPercentage}%` }}
               />
             </div>
           </div>
-          <div className="flex gap-2">
+          
+          {/* Mobile scroll controls */}
+          <div className="flex gap-2 md:hidden">
             <Button
               variant="outline"
               size="sm"
@@ -151,7 +161,7 @@ const VisaTimeline: React.FC<VisaTimelineProps> = ({ events, className = '' }) =
         </div>
 
         {/* Empty State */}
-        {events.filter(e => e.date !== null).length === 0 ? (
+        {validEvents.length === 0 ? (
           <div className="text-center py-12">
             <div className="w-16 h-16 mx-auto mb-4 bg-gray-100 rounded-full flex items-center justify-center">
               <Calendar className="w-8 h-8 text-gray-400" />
@@ -180,120 +190,178 @@ const VisaTimeline: React.FC<VisaTimelineProps> = ({ events, className = '' }) =
           <>
             {/* Desktop Timeline */}
             <div className="hidden md:block">
-          <div className="relative">
-            {/* Timeline Line */}
-            <div className="absolute top-8 left-0 right-0 h-1 bg-gray-200 rounded-full">
-              {events.map((_, index) => {
-                if (index === events.length - 1) return null;
-                const lineColor = getLineColor(index, events);
-                const leftPosition = (index / (events.length - 1)) * 100;
-                const width = (1 / (events.length - 1)) * 100;
-                
-                return (
-                  <div
-                    key={`line-${index}`}
-                    className={`absolute top-0 h-full rounded-full ${lineColor}`}
-                    style={{
-                      left: `${leftPosition}%`,
-                      width: `${width}%`
-                    }}
-                  />
-                );
-              })}
-            </div>
-
-            {/* Timeline Events */}
-            <div className="flex justify-between items-start">
-              {events.map((event, index) => (
-                <div key={event.id} className="flex flex-col items-center relative group">
-                  {/* Event Circle */}
-                  <div className={`
-                    w-8 h-8 rounded-full border-2 flex items-center justify-center z-10 mb-4 relative
-                    ${getStatusColor(event.status)}
-                    transition-all duration-300 group-hover:scale-110
-                  `}>
-                    <div className="w-4 h-4">
-                      {event.icon}
+              <div className="py-8">
+                {/* Timeline container using flexbox approach */}
+                <div className="mx-8 relative">
+                  {/* Timeline container - dots level */}
+                  <div className="flex items-center justify-between relative mb-6">
+                    {/* Base line that passes through the center of dots */}
+                    <div className="absolute top-1/2 left-0 right-0 transform -translate-y-1/2">
+                      <div className="w-full h-0.5 bg-gray-200"></div>
                     </div>
                     
-                    {/* Tooltip */}
-                    <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-900 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-20">
-                      <div className="font-medium">{event.label}</div>
-                      <div className="text-gray-300">{formatDate(event.date)}</div>
-                      {event.description && (
-                        <div className="text-gray-400 mt-1">{event.description}</div>
-                      )}
-                      <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900"></div>
-                    </div>
-                  </div>
+                    {validEvents.map((event, index) => (
+                      <div key={event.id} className="relative group z-10">
+                        {/* Event dot */}
+                        <div className={`
+                          ${event.eventType === 'minor' ? 'w-6 h-6' : 'w-8 h-8'}
+                          rounded-full border-2 flex items-center justify-center bg-white shadow-sm
+                          ${getStatusColor(event.status)}
+                          transition-all duration-300 group-hover:scale-110
+                        `}>
+                          <div className={`${event.eventType === 'minor' ? 'w-3 h-3' : 'w-4 h-4'}`}>
+                            {event.icon}
+                          </div>
+                        </div>
 
-                  {/* Event Details */}
-                  <div className="text-center max-w-32">
-                    <p className="font-medium text-sm text-gray-900 mb-1">
-                      {event.label}
-                    </p>
-                    <p className="text-xs text-gray-600 mb-2">
-                      {formatDate(event.date)}
-                    </p>
-                    {getStatusBadge(event.status)}
-                    {event.description && (
-                      <p className="text-xs text-gray-500 mt-1 hidden group-hover:block">
-                        {event.description}
-                      </p>
-                    )}
+                        {/* Tooltip */}
+                        <div className="absolute bottom-full mb-3 left-1/2 transform -translate-x-1/2 px-3 py-2 bg-gray-900 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none z-50 w-56 shadow-xl">
+                          <div className="font-medium mb-1">{event.label}</div>
+                          <div className="text-gray-300 mb-1">{formatDate(event.date)}</div>
+                          
+                          {event.documentType && (
+                            <div className="text-blue-300 mb-1">📄 {event.documentType}</div>
+                          )}
+                          {event.visaType && (
+                            <div className="text-green-300 mb-1">🛂 {event.visaType}</div>
+                          )}
+                          {event.employer && (
+                            <div className="text-yellow-300 mb-1">🏢 {event.employer}</div>
+                          )}
+                          {event.additionalInfo?.receiptNumber && (
+                            <div className="text-gray-400 mb-1 text-xs">
+                              Receipt: {event.additionalInfo.receiptNumber}
+                            </div>
+                          )}
+                          {event.description && (
+                            <div className="text-gray-400 text-xs">{event.description}</div>
+                          )}
+                          
+                          {/* Tooltip arrow */}
+                          <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900"></div>
+                        </div>
+                      </div>
+                    ))}
+                    
+                    {/* Colored Line Segments */}
+                    {validEvents.map((event, index) => {
+                      if (index === validEvents.length - 1) return null;
+                      
+                      const nextEvent = validEvents[index + 1];
+                      const lineColor = getLineColor(event.status, nextEvent?.status);
+                      const segmentWidth = 100 / (validEvents.length - 1);
+                      const startPosition = (index / (validEvents.length - 1)) * 100;
+                      
+                      return (
+                        <div
+                          key={`line-${index}`}
+                          className={`absolute top-1/2 transform -translate-y-1/2 h-0.5 z-0 ${lineColor}`}
+                          style={{
+                            left: `${startPosition}%`,
+                            width: `${segmentWidth}%`
+                          }}
+                        />
+                      );
+                    })}
                   </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-
-        {/* Mobile Timeline */}
-        <div className="md:hidden">
-          <div 
-            ref={scrollContainerRef}
-            className="flex gap-6 overflow-x-auto pb-4 snap-x snap-mandatory scrollbar-hide"
-            style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
-          >
-            {events.map((event, index) => (
-              <div key={event.id} className="flex-shrink-0 snap-start">
-                <div className="flex items-center gap-3 min-w-[280px] p-4 bg-gray-50 rounded-lg">
-                  {/* Event Circle */}
-                  <div className={`
-                    w-10 h-10 rounded-full border-2 flex items-center justify-center flex-shrink-0
-                    ${getStatusColor(event.status)}
-                  `}>
-                    <div className="w-5 h-5">
-                      {event.icon}
-                    </div>
+                  
+                  {/* Event details (below the timeline) */}
+                  <div className="flex justify-between items-start">
+                    {validEvents.map((event) => (
+                      <div key={`details-${event.id}`} className="flex flex-col items-center max-w-[140px]">
+                        {event.eventType !== 'minor' && (
+                          <>
+                            <p className="font-medium text-sm text-gray-900 mb-1 leading-tight text-center">
+                              {event.label}
+                            </p>
+                            <p className="text-xs text-gray-600 mb-2 text-center">
+                              {formatDate(event.date)}
+                            </p>
+                            <div className="flex justify-center">
+                              {getStatusBadge(event.status)}
+                            </div>
+                          </>
+                        )}
+                      </div>
+                    ))}
                   </div>
-
-                  {/* Event Details */}
-                  <div className="flex-1">
-                    <div className="flex items-center justify-between mb-1">
-                      <p className="font-medium text-sm text-gray-900">
-                        {event.label}
-                      </p>
-                      {getStatusBadge(event.status)}
-                    </div>
-                    <p className="text-xs text-gray-600 mb-1">
-                      {formatDate(event.date)}
-                    </p>
-                    {event.description && (
-                      <p className="text-xs text-gray-500">
-                        {event.description}
-                      </p>
-                    )}
-                  </div>
-
-                  {/* Connection Line */}
-                  {index < events.length - 1 && (
-                    <div className="absolute right-0 top-1/2 w-6 h-0.5 bg-gray-300 transform translate-x-full -translate-y-1/2 hidden" />
-                  )}
                 </div>
               </div>
-            ))}
-          </div>            </div>
+            </div>
+
+            {/* Mobile Timeline */}
+            <div className="md:hidden">
+              <div 
+                ref={scrollContainerRef}
+                className="flex gap-4 overflow-x-auto pb-4 snap-x snap-mandatory scrollbar-hide"
+                style={{ 
+                  scrollbarWidth: 'none', 
+                  msOverflowStyle: 'none'
+                }}
+              >
+                {validEvents.map((event) => (
+                  <div key={event.id} className="flex-shrink-0 snap-start">
+                    <div className={`
+                      flex items-start gap-3 p-4 bg-gray-50 rounded-lg border border-gray-200
+                      ${event.eventType === 'minor' ? 'min-w-[260px]' : 'min-w-[300px]'}
+                    `}>
+                      {/* Event Circle */}
+                      <div className={`
+                        ${event.eventType === 'minor' ? 'w-8 h-8' : 'w-10 h-10'} 
+                        rounded-full border-2 flex items-center justify-center flex-shrink-0 bg-white
+                        ${getStatusColor(event.status)}
+                      `}>
+                        <div className={`${event.eventType === 'minor' ? 'w-4 h-4' : 'w-5 h-5'}`}>
+                          {event.icon}
+                        </div>
+                      </div>
+
+                      {/* Event Details */}
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-start justify-between mb-2">
+                          <p className={`font-medium text-gray-900 leading-tight ${event.eventType === 'minor' ? 'text-sm' : 'text-base'}`}>
+                            {event.label}
+                          </p>
+                          {event.eventType !== 'minor' && (
+                            <div className="ml-2 flex-shrink-0">
+                              {getStatusBadge(event.status)}
+                            </div>
+                          )}
+                        </div>
+                        
+                        <p className="text-sm text-gray-600 mb-2">
+                          {formatDate(event.date)}
+                        </p>
+                        
+                        {/* Additional Information */}
+                        <div className="space-y-1">
+                          {event.visaType && (
+                            <p className="text-sm text-blue-600 flex items-center gap-1">
+                              🛂 <span>{event.visaType}</span>
+                            </p>
+                          )}
+                          {event.employer && (
+                            <p className="text-sm text-orange-600 flex items-center gap-1">
+                              🏢 <span className="truncate">{event.employer}</span>
+                            </p>
+                          )}
+                          {event.additionalInfo?.receiptNumber && (
+                            <p className="text-xs text-gray-500">
+                              Receipt: <span className="font-mono">{event.additionalInfo.receiptNumber}</span>
+                            </p>
+                          )}
+                          {event.description && (
+                            <p className="text-xs text-gray-500 leading-relaxed">
+                              {event.description}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
 
             {/* Legend */}
             <div className="flex items-center justify-center gap-6 mt-6 pt-4 border-t border-gray-200">
@@ -362,8 +430,36 @@ export const createVisaTimelineEvents = (
       isEntry: docType.includes('i-94') || docType.includes('entry') || docType.includes('arrival') ||
               fileName.includes('i-94') || fileName.includes('entry'),
       isGreenCard: docType.includes('green card') || docType.includes('permanent resident') || docType.includes('i-551') ||
-                  fileName.includes('green') || fileName.includes('i-551')
+                  fileName.includes('green') || fileName.includes('i-551'),
+      isEAD: docType.includes('ead') || docType.includes('employment authorization') || docType.includes('i-765') ||
+             fileName.includes('ead') || fileName.includes('work authorization'),
+      isH1B: docType.includes('h-1b') || docType.includes('h1b') || fileName.includes('h-1b') || fileName.includes('h1b'),
+      isL1: docType.includes('l-1') || docType.includes('l1') || fileName.includes('l-1') || fileName.includes('l1'),
+      isO1: docType.includes('o-1') || docType.includes('o1') || fileName.includes('o-1') || fileName.includes('o1')
     };
+  };
+
+  // Helper function to get icon for document type
+  const getDocumentIcon = (docInfo: any, doc: any) => {
+    if (docInfo.isGreenCard) return <CreditCard className="w-full h-full" />;
+    if (docInfo.isEAD) return <Briefcase className="w-full h-full" />;
+    if (docInfo.isH1B || docInfo.isL1 || docInfo.isO1) return <Building2 className="w-full h-full" />;
+    if (docInfo.isPetition) return <FileCheck className="w-full h-full" />;
+    if (docInfo.isApproval) return <Calendar className="w-full h-full" />;
+    if (docInfo.isVisa) return <Stamp className="w-full h-full" />;
+    if (docInfo.isEntry) return <Plane className="w-full h-full" />;
+    return <FileText className="w-full h-full" />;
+  };
+
+  // Helper function to extract visa type from document
+  const getVisaTypeFromDocument = (doc: any) => {
+    const docInfo = getDocumentInfo(doc);
+    if (docInfo.isH1B) return 'H-1B';
+    if (docInfo.isL1) return 'L-1';
+    if (docInfo.isO1) return 'O-1';
+    if (docInfo.isEAD) return 'EAD';
+    if (docInfo.isGreenCard) return 'Green Card';
+    return doc.extracted?.document_type || null;
   };
 
   // Add first entry date if available from profile
@@ -377,110 +473,108 @@ export const createVisaTimelineEvents = (
       date: profile.firstEntryDate,
       icon: <Plane className="w-full h-full" />,
       status: getDateStatus(profile.firstEntryDate),
-      description: `First entry to the United States${visaTypeDescription}`
+      eventType: 'major',
+      description: `First entry to the United States${visaTypeDescription}`,
+      visaType: profile.firstEntryVisaType
     });
   }
 
-  // Extract petition filed date
-  const petitionDocs = documents.filter(doc => getDocumentInfo(doc).isPetition);
-  const petitionDate = petitionDocs.length > 0 ? 
-    petitionDocs[0].extracted?.issueDate || petitionDocs[0].extracted?.validFrom || petitionDocs[0].uploadedAt : null;
-
-  events.push({
-    id: 'petition-filed',
-    label: 'Petition Filed',
-    date: petitionDate,
-    icon: <FileCheck className="w-full h-full" />,
-    status: getDateStatus(petitionDate),
-    description: petitionDocs.length > 0 ? 
-      `${petitionDocs[0].extracted?.document_type || 'Petition'} submitted to USCIS` : 
-      'Initial petition submitted to USCIS'
+  // Add all intermediate visa documents with detailed information
+  const allVisaDocuments = documents.filter(doc => {
+    const docInfo = getDocumentInfo(doc);
+    return docInfo.isPetition || docInfo.isApproval || docInfo.isVisa || 
+           docInfo.isEAD || docInfo.isGreenCard || docInfo.isEntry;
   });
 
-  // Extract approval date
+  // Sort documents by date
+  const sortedDocs = allVisaDocuments.sort((a, b) => {
+    const dateA = a.extracted?.issueDate || a.extracted?.validFrom || a.extracted?.notice_date || a.uploadedAt;
+    const dateB = b.extracted?.issueDate || b.extracted?.validFrom || b.extracted?.notice_date || b.uploadedAt;
+    if (!dateA && !dateB) return 0;
+    if (!dateA) return 1;
+    if (!dateB) return -1;
+    return new Date(dateA).getTime() - new Date(dateB).getTime();
+  });
+
+  // Add each document as an event
+  sortedDocs.forEach((doc, index) => {
+    const docInfo = getDocumentInfo(doc);
+    const eventDate = doc.extracted?.issueDate || doc.extracted?.validFrom || 
+                     doc.extracted?.notice_date || doc.uploadedAt;
+    
+    // Determine if this is a major or minor event
+    const isMajorEvent = docInfo.isPetition || docInfo.isApproval || 
+                        docInfo.isGreenCard || docInfo.isEntry;
+
+    // Create appropriate label
+    let label = doc.extracted?.document_type || 'Document';
+    if (docInfo.isPetition) label = 'Petition Filed';
+    else if (docInfo.isApproval) label = 'Approval Notice';
+    else if (docInfo.isVisa) label = 'Visa Stamp';
+    else if (docInfo.isEAD) label = 'Work Authorization';
+    else if (docInfo.isGreenCard) label = 'Green Card';
+    else if (docInfo.isEntry) label = 'U.S. Entry';
+
+    events.push({
+      id: `doc-${doc.id}-${index}`,
+      label,
+      date: eventDate,
+      icon: getDocumentIcon(docInfo, doc),
+      status: getDateStatus(eventDate),
+      eventType: isMajorEvent ? 'major' : 'minor',
+      description: doc.extracted?.document_type || 'Visa-related document',
+      documentType: doc.extracted?.document_type,
+      visaType: getVisaTypeFromDocument(doc),
+      employer: doc.extracted?.petitioner,
+      additionalInfo: {
+        receiptNumber: doc.extracted?.receipt_number,
+        visaNumber: doc.extracted?.visa_number,
+        validFrom: doc.extracted?.valid_from,
+        validTo: doc.extracted?.valid_to
+      }
+    });
+  });
+
+  // Add status expiration event
   const approvalDocs = documents.filter(doc => getDocumentInfo(doc).isApproval);
-  const approvalDate = approvalDocs.length > 0 ? 
-    approvalDocs[0].extracted?.issueDate || approvalDocs[0].extracted?.validFrom || approvalDocs[0].uploadedAt : null;
-
-  events.push({
-    id: 'approval-notice',
-    label: 'Approval Notice',
-    date: approvalDate,
-    icon: <Calendar className="w-full h-full" />,
-    status: getDateStatus(approvalDate),
-    description: approvalDocs.length > 0 ? 
-      `${approvalDocs[0].extracted?.document_type || 'Approval notice'} received` : 
-      'USCIS approval received'
-  });
-
-  // Extract visa stamp date
-  const visaDocs = documents.filter(doc => getDocumentInfo(doc).isVisa);
-  const visaStampDate = visaDocs.length > 0 ? 
-    visaDocs[0].extracted?.issueDate || visaDocs[0].extracted?.validFrom || visaDocs[0].uploadedAt : null;
-
-  events.push({
-    id: 'visa-stamp',
-    label: 'Visa Stamp',
-    date: visaStampDate,
-    icon: <Stamp className="w-full h-full" />,
-    status: getDateStatus(visaStampDate),
-    description: visaDocs.length > 0 ? 
-      'Visa stamped in passport' : 
-      'Visa stamped in passport'
-  });
-
-  // Extract travel/entry date
-  const entryDocs = documents.filter(doc => getDocumentInfo(doc).isEntry);
-  const travelDate = entryDocs.length > 0 ? 
-    entryDocs[0].extracted?.validFrom || entryDocs[0].extracted?.issueDate || entryDocs[0].uploadedAt : null;
-
-  events.push({
-    id: 'travel-date',
-    label: 'Travel to U.S.',
-    date: travelDate,
-    icon: <Plane className="w-full h-full" />,
-    status: getDateStatus(travelDate),
-    description: 'Entered the United States'
-  });
-
-  // Extract I-94 admit until date
-  const i94AdmitDate = entryDocs.length > 0 ? 
-    entryDocs[0].extracted?.validTo || entryDocs[0].extracted?.expirationDate : null;
-
-  events.push({
-    id: 'i94-admit-until',
-    label: 'I-94 Admit Until',
-    date: i94AdmitDate,
-    icon: <Clock className="w-full h-full" />,
-    status: getDateStatus(i94AdmitDate),
-    description: 'Authorized stay until this date'
-  });
-
-  // Extract petition/visa end date
+  const petitionDocs = documents.filter(doc => getDocumentInfo(doc).isPetition);
+  
   const endDate = approvalDocs.length > 0 ? 
-    (approvalDocs[0].extracted?.validTo || approvalDocs[0].extracted?.expirationDate) :
+    (approvalDocs[0].extracted?.valid_to || approvalDocs[0].extracted?.expirationDate) :
     (petitionDocs.length > 0 ? 
-      (petitionDocs[0].extracted?.validTo || petitionDocs[0].extracted?.expirationDate) : null);
+      (petitionDocs[0].extracted?.valid_to || petitionDocs[0].extracted?.expirationDate) : null);
 
-  events.push({
-    id: 'petition-end',
-    label: 'Status Expires',
-    date: endDate,
-    icon: <CalendarX className="w-full h-full" />,
-    status: getDateStatus(endDate),
-    description: 'Current status validity expires'
-  });
-
-  // Filter out events without dates for better UX, but keep some structure
-  const eventsWithDates = events.filter(event => event.date !== null);
-  const eventsWithoutDates = events.filter(event => event.date === null);
-
-  // If we have few events with dates, include some without dates to show structure
-  if (eventsWithDates.length < 3) {
-    return events; // Show all events including unknowns
+  if (endDate) {
+    events.push({
+      id: 'status-expiration',
+      label: 'Status Expires',
+      date: endDate,
+      icon: <CalendarX className="w-full h-full" />,
+      status: getDateStatus(endDate),
+      eventType: 'major',
+      description: 'Current status validity expires'
+    });
   }
 
-  return eventsWithDates; // Only show events with actual dates
+  // Remove duplicate events and sort by date
+  const uniqueEvents = events.filter((event, index, self) => 
+    index === self.findIndex(e => e.id === event.id)
+  );
+
+  // Sort events by date
+  const sortedEvents = uniqueEvents.sort((a, b) => {
+    if (!a.date && !b.date) return 0;
+    if (!a.date) return 1;
+    if (!b.date) return -1;
+    return new Date(a.date).getTime() - new Date(b.date).getTime();
+  });
+
+  // Filter out events without dates for better UX, but include major events even without dates
+  const eventsWithDates = sortedEvents.filter(event => 
+    event.date !== null || event.eventType === 'major'
+  );
+
+  return eventsWithDates;
 };
 
 export default VisaTimeline;
