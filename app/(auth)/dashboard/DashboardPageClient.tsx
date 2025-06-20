@@ -452,19 +452,71 @@ const DashboardPageClient: React.FC<DashboardPageClientProps> = ({
                 {profiles.map(profile => renderProfileSummaryCard(profile))}
             </div>
 
-            {/* Admin Profile Visa Timeline */}
-            <div className="mb-8">
-                <h2 className="text-2xl font-bold text-slate-900 flex items-center gap-2 mb-4">
-                    <Calendar className="w-6 h-6 text-blue-600" />
-                    {adminProfile.firstName}'s Visa Timeline
-                </h2>
-                <VisaTimeline 
-                    events={createVisaTimelineEvents(
-                        allDocuments.filter(doc => doc.profileId === adminProfile.id),
-                        adminProfile.lastVisaStatusAnalysis || null,
-                        adminProfile
-                    )}
-                />
+            <div className="mb-8 space-y-6">
+                {[...profiles]
+                    .sort((a, b) => {
+                        if (a.admin && !b.admin) return -1;
+                        if (!a.admin && b.admin) return 1;
+                        return 0;
+                    })
+                    .map((profile) => {
+                        const profileDocuments = allDocuments.filter(doc => doc.profileId === profile.id);
+                        const hasDocuments = profileDocuments.length > 0;
+                        
+                        return (
+                            <Card key={profile.id} className="border border-slate-200 bg-white hover:border-slate-300 transition-colors">
+                                <CardHeader>
+                                    <CardTitle className="flex items-center justify-between">
+                                        <div className="flex items-center gap-3">
+                                            <Calendar className="w-5 h-5 text-blue-600" />
+                                            {profile.firstName} {profile.lastName}'s Immigration Timeline
+                                        </div>
+                                        <div className="flex items-center gap-2">
+                                            {profile.admin && (
+                                                <Badge className="bg-blue-100 text-blue-800 border-blue-300">
+                                                    Admin
+                                                </Badge>
+                                            )}
+                                            {profile.relationship && (
+                                                <Badge variant="outline" className="bg-gray-50 text-gray-600 border-gray-300">
+                                                    {profile.relationship}
+                                                </Badge>
+                                            )}
+                                        </div>
+                                    </CardTitle>
+                                </CardHeader>
+                                <CardContent>
+                                    {hasDocuments ? (
+                                        <VisaTimeline 
+                                            events={createVisaTimelineEvents(
+                                                profileDocuments,
+                                                profile.lastVisaStatusAnalysis || null,
+                                                profile
+                                            )}
+                                        />
+                                    ) : (
+                                        <div className="text-center py-8 text-gray-500">
+                                            <FileText className="w-12 h-12 mx-auto mb-3 text-gray-300" />
+                                            <p className="text-gray-600 mb-2">
+                                                No documents uploaded yet for {profile.firstName}
+                                            </p>
+                                            <p className="text-sm text-gray-500 mb-4">
+                                                Upload visa documents to see {profile.firstName}'s immigration timeline
+                                            </p>
+                                            <Button 
+                                                variant="outline" 
+                                                className="mt-2"
+                                                onClick={() => router.push('/upload')}
+                                            >
+                                                <Upload className="w-4 h-4 mr-2" />
+                                                Upload Documents
+                                            </Button>
+                                        </div>
+                                    )}
+                                </CardContent>
+                            </Card>
+                        );
+                    })}
             </div>
 
             {/* Family Visa Status Analysis */}
