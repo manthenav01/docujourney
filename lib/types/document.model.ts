@@ -30,6 +30,7 @@ export interface DocumentExtractedTransformedData {
   date_of_adjustment?: string,
   petitioner?: string,
   petitioner_address?: string,
+  class_of_admission?: string,
 }
 
 

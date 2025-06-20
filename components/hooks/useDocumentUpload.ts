@@ -5,6 +5,7 @@ import { DocumentTypeSchemaModel } from '@/lib/documentActions';
 import { DocumentMetaDataAPIModel } from '@/lib/types/document.model';
 import { Profile } from '@/lib/types/profile.model';
 import { toast } from 'sonner';
+import { triggerTimelineRegeneration } from '@/lib/timelineClientTriggers';
 
 // Import utility functions
 import {
@@ -404,8 +405,14 @@ export const useDocumentUpload = ({
     triggerVisaStatusAnalysis(userId, selectedProfileId).catch(error => {
       console.warn('Visa status analysis failed, but document was saved:', error);
     });
+
+    // Trigger timeline regeneration after document verification
+    console.log('Triggering timeline regeneration for user:', userId, 'profile:', selectedProfileId);
+    triggerTimelineRegeneration(userId, selectedProfileId, 'document_verification').catch((error: any) => {
+      console.warn('Timeline regeneration failed, but document was saved:', error);
+    });
     
-    toast.success('Document saved successfully!');
+    toast.success('Document saved successfully! Your timeline is being updated...');
     return selectedProfileId;
   }, [docRefId, documentType, userId, selectedProfileId, documentSchemas, extractedData, findDocumentInProfiles, localAllProfiles, currentProfile]);
 

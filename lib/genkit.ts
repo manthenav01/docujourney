@@ -8,6 +8,7 @@ export interface DocumentSummary {
   expirationDate?: string;
   classOfAdmission?: string;
   countryOfCitizen?: string;
+  countryOfBirth?: string;
 }
 
 export interface VisaStatusRequest {

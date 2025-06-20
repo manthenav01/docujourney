@@ -5,6 +5,7 @@ import { transformDocumentMetaData } from '@/utils/documentUtils';
 import { DocumentTypeSchemaModel } from '@/lib/documentActions';
 import { transformTimestampsToFormValues } from './dateTransformers';
 import { Profile } from '@/lib/types/profile.model';
+import { triggerTimelineRegeneration } from '@/lib/timelineClientTriggers';
 
 /**
  * Trigger visa status analysis for a profile after document verification
@@ -94,6 +95,15 @@ export const handleDocumentCompletion = async (
             // Delete the document from the original location
             await deleteDoc(oldDocRef);
             console.log('Successfully moved document from profile', profileId, 'to profile', matchingProfile.id);
+            
+            // Trigger timeline regeneration for both profiles
+            console.log('Triggering timeline regeneration after document move');
+            triggerTimelineRegeneration(userId, profileId, 'document_upload').catch((error: any) => {
+              console.warn('Timeline regeneration failed for source profile:', profileId, error);
+            });
+            triggerTimelineRegeneration(userId, matchingProfile.id, 'document_upload').catch((error: any) => {
+              console.warn('Timeline regeneration failed for destination profile:', matchingProfile.id, error);
+            });
           }
           
           onProfileSwitch(matchingProfile.id);

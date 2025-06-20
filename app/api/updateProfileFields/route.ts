@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { updateProfile } from '@/lib/profileApi';
-import { adminDb } from '@/lib/firebaseAdmin';
+import { triggerTimelineRegeneration } from '@/lib/timelineTriggers';
 
 export async function PATCH(request: NextRequest) {
   try {
@@ -73,6 +73,15 @@ export async function PATCH(request: NextRequest) {
     await updateProfile(userId, profileId, filteredUpdates);
 
     console.log('updateProfileFields - Successfully updated profile');
+
+    // Trigger timeline regeneration after profile update
+    try {
+      await triggerTimelineRegeneration(userId, profileId, 'profile_update');
+      console.log('Timeline regeneration triggered after profile update');
+    } catch (timelineError) {
+      console.warn('Timeline regeneration failed after profile update:', timelineError);
+      // Don't fail the profile update if timeline regeneration fails
+    }
 
     return NextResponse.json({ 
       success: true, 

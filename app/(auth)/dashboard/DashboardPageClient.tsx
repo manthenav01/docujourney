@@ -28,7 +28,7 @@ import {
     Globe
 } from 'lucide-react';
 import { getVisaStatusColorClasses, getVisaStatusIcon } from '@/lib/visaStatusUtils';
-import VisaTimeline, { createVisaTimelineEvents } from '@/components/VisaTimeline';
+import VisaTimeline from '@/components/VisaTimeline';
 import * as flags from 'country-flag-icons/react/3x2';
 
 // Helper function to get flag component dynamically
@@ -488,11 +488,8 @@ const DashboardPageClient: React.FC<DashboardPageClientProps> = ({
                                 <CardContent>
                                     {hasDocuments ? (
                                         <VisaTimeline 
-                                            events={createVisaTimelineEvents(
-                                                profileDocuments,
-                                                profile.lastVisaStatusAnalysis || null,
-                                                profile
-                                            )}
+                                            userId={userId}
+                                            profileId={profile.id}
                                         />
                                     ) : (
                                         <div className="text-center py-8 text-gray-500">
