@@ -96,6 +96,7 @@ export async function generateTimelineWithLLM(
       events: generatedEvents,
       generatedAt: new Date().toISOString(),
       confidence: 0.85,
+
       documentCount: profileDocuments.length
     };
   } catch (error) {
@@ -110,6 +111,7 @@ export async function generateTimelineWithLLM(
       events: fallbackEvents,
       generatedAt: new Date().toISOString(),
       confidence: 0.6,
+      
       documentCount: profileDocuments.length
     };
   }
@@ -155,34 +157,45 @@ ${index + 1}. Document Type: ${doc.documentType}
 Please create a comprehensive immigration timeline with the following requirements:
 
 1. **Event Types**: Generate events for major milestones, deadlines, requirements, and suggestions
-2. **Status Assignment**: Assign each event one of these statuses based on the date:
+
+2. **Document Validity Periods**: 
+   - For expired documents (passports, visas, permits), create SINGLE events showing the validity period
+   - Use title format: "{Document Type} Validity Period"
+   - Set status to "expired" for documents no longer valid
+   - Set eventType to "validity_period" for these events
+   - Include documentType field with the document type
+   - Do NOT create separate "valid from" and "valid to" events
+
+3. **Status Assignment**: Assign each event one of these statuses based on the date:
    - "completed": Events that happened more than 7 days ago
    - "current": Events happening within the next 30 days or within 7 days of today
    - "upcoming": Events more than 30 days in the future
+   - "expired": Documents or statuses that are no longer valid
 
-3. **Event Categories**:
+4. **Event Categories**:
    - **Major Milestones**: First entry, petition filings, approvals, status changes
    - **Deadlines**: Document expirations, renewal deadlines, grace periods
    - **Requirements**: Document submissions, medical exams, interviews
    - **Suggestions**: Recommended next steps, optimization opportunities
+   - **Validity Periods**: Document validity periods (for expired/historical documents)
 
-4. **AI Insights**: For each event, provide:
+5. **AI Insights**: For each event, provide:
    - Specific recommendations for action
    - Helpful links or resources
    - Checklist items for preparation
 
-5. **Required vs. Available Documents**: 
+6. **Required vs. Available Documents**: 
    - For completed/current events: List actual documents that support this event
    - For upcoming events: List document types that will be required
 
-6. **Smart Predictions**: Based on the immigration pattern, predict likely next steps and timeline
+7. **Smart Predictions**: Based on the immigration pattern, predict likely next steps and timeline
 
 Return your response as a JSON array of timeline events with this exact structure:
 [
   {
     "id": "unique-event-id",
     "title": "Event Title",
-    "status": "completed|current|upcoming",
+    "status": "completed|current|upcoming|expired",
     "date": "ISO timestamp",
     "description": "Detailed description of the event",
     "documents": ["doc-id-1", "doc-id-2"], // For completed/current events
@@ -195,8 +208,9 @@ Return your response as a JSON array of timeline events with this exact structur
     "duration": "Optional duration string",
     "visaType": "H-1B|F-1|Green Card|etc",
     "priority": "low|medium|high",
-    "eventType": "major|deadline|milestone|requirement|suggestion",
-    "employer": "Employer name if applicable"
+    "eventType": "major|deadline|milestone|requirement|suggestion|validity_period",
+    "employer": "Employer name if applicable",
+    "documentType": "passport|visa|i94|etc (for document-related events)"
   }
 ]
 
@@ -234,7 +248,7 @@ async function callLLMForTimeline(prompt: string): Promise<string> {
     model: 'googleai/gemini-1.5-flash',
     prompt: prompt,
     config: {
-      temperature: 0.3,
+      temperature: 0.1,
       maxOutputTokens: 2000
     }
   });
@@ -341,7 +355,7 @@ function parseTimelineEvents(llmResponse: string, userId: string): TimelineEvent
       const baseEvent: any = {
         id: event.id || `generated-event-${Date.now()}-${index}`,
         title: event.title || `Immigration Event ${index + 1}`,
-        status: ['completed', 'current', 'upcoming'].includes(event.status) ? event.status : 'upcoming',
+        status: ['completed', 'current', 'upcoming', 'expired'].includes(event.status) ? event.status : 'upcoming',
         date: safeParseDate(event.date, now),
         description: event.description || '',
         documents: Array.isArray(event.documents) ? event.documents : [],
@@ -352,7 +366,7 @@ function parseTimelineEvents(llmResponse: string, userId: string): TimelineEvent
           links: Array.isArray(event.aiInsights?.links) ? event.aiInsights.links : []
         },
         priority: ['low', 'medium', 'high'].includes(event.priority) ? event.priority : 'medium',
-        eventType: ['major', 'deadline', 'milestone', 'requirement', 'suggestion'].includes(event.eventType) ? event.eventType : 'milestone',
+        eventType: ['major', 'deadline', 'milestone', 'requirement', 'suggestion', 'validity_period'].includes(event.eventType) ? event.eventType : 'milestone',
         additionalInfo: typeof event.additionalInfo === 'object' ? event.additionalInfo : {},
         createdAt: now,
         updatedAt: now
@@ -371,11 +385,29 @@ function parseTimelineEvents(llmResponse: string, userId: string): TimelineEvent
         baseEvent.employer = event.employer;
       }
       
+      if (event.documentType && event.documentType.trim()) {
+        baseEvent.documentType = event.documentType;
+      }
+      
+      // Handle date ranges for validity periods
+      if (event.dateRange && event.dateRange.from && event.dateRange.to) {
+        baseEvent.dateRange = {
+          from: safeParseDate(event.dateRange.from, now),
+          to: safeParseDate(event.dateRange.to, now)
+        };
+      }
+      
       return baseEvent;
     });
 
-    console.log(`Successfully parsed ${validatedEvents.length} timeline events`);
-    return validatedEvents;
+    // Post-process to combine expired document validity events
+    const combinedEvents = combineExpiredDocumentEvents(validatedEvents);
+    
+    // Analyze document status to determine which expired documents should be highlighted
+    const processedEvents = analyzeDocumentStatus(combinedEvents);
+
+    console.log(`Successfully parsed ${processedEvents.length} timeline events`);
+    return processedEvents;
     
   } catch (error) {
     console.error('Failed to parse LLM timeline response:', error);
@@ -516,4 +548,247 @@ async function fetchTimelineEvents(userId: string, profileId: string): Promise<T
       updatedAt: data.updatedAt?.toDate?.()?.toISOString() || data.updatedAt
     } as TimelineEvent;
   });
+}
+
+/**
+ * Helper function to extract document type from event title
+ */
+function extractDocumentTypeFromTitle(title: string): string {
+  // Extract document type from titles like "Passport valid from", "Visa valid to", etc.
+  const patterns = [
+    /^([^:]+?)(?:\s+(?:valid|validity|expires?|issued))/i,
+    /^([^:]+?)(?:\s+(?:from|to|until|on))/i,
+    /^([A-Za-z\s]+?)(?:\s+[-–—])/i
+  ];
+  
+  for (const pattern of patterns) {
+    const match = title.match(pattern);
+    if (match) {
+      return match[1].trim();
+    }
+  }
+  
+  // Fallback: take first few words
+  const words = title.split(' ');
+  return words.slice(0, Math.min(2, words.length)).join(' ');
+}
+
+/**
+ * Helper function to format date as MM/YYYY
+ */
+function formatDateForRange(dateString: string): string {
+  try {
+    const date = new Date(dateString);
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const year = date.getFullYear();
+    return `${month}/${year}`;
+  } catch (error) {
+    return dateString;
+  }
+}
+
+/**
+ * Combine separate "valid from" and "valid to" events into single validity period events
+ */
+function combineExpiredDocumentEvents(events: TimelineEvent[]): TimelineEvent[] {
+  const processedEvents: TimelineEvent[] = [];
+  const expiredDocGroups: Map<string, { 
+    validFrom: TimelineEvent | null, 
+    validTo: TimelineEvent | null,
+    others: TimelineEvent[]
+  }> = new Map();
+  
+  for (const event of events) {
+    // Check if this is an expired document validity event
+    const isExpiredValidityEvent = (
+      (event.status === 'expired' || event.status === 'completed') &&
+      (event.title.toLowerCase().includes('valid from') || 
+       event.title.toLowerCase().includes('valid to') ||
+       event.title.toLowerCase().includes('validity period') ||
+       event.title.toLowerCase().includes('expires') ||
+       event.title.toLowerCase().includes('issued'))
+    );
+    
+    if (isExpiredValidityEvent) {
+      // Extract document type from title
+      const docType = extractDocumentTypeFromTitle(event.title);
+      const groupKey = `${docType.toLowerCase().replace(/\s+/g, '_')}_validity`;
+      
+      if (!expiredDocGroups.has(groupKey)) {
+        expiredDocGroups.set(groupKey, { validFrom: null, validTo: null, others: [] });
+      }
+      
+      const group = expiredDocGroups.get(groupKey)!;
+      
+      // Determine if this is a "from" or "to" event based on title or date comparison
+      if (event.title.toLowerCase().includes('valid from') || 
+          event.title.toLowerCase().includes('issued') ||
+          (!group.validFrom || event.date < group.validFrom.date)) {
+        group.validFrom = event;
+      } else if (event.title.toLowerCase().includes('valid to') || 
+                 event.title.toLowerCase().includes('expires') ||
+                 (!group.validTo || event.date > group.validTo.date)) {
+        group.validTo = event;
+      } else {
+        group.others.push(event);
+      }
+    } else {
+      processedEvents.push(event);
+    }
+  }
+  
+  // Combine expired document validity events
+  Array.from(expiredDocGroups.entries()).forEach(([groupKey, group]) => {
+    const { validFrom, validTo, others } = group;
+    const docType = groupKey.replace('_validity', '').replace(/_/g, ' ');
+    
+    if (validFrom && validTo) {
+      // Create combined event with date range
+      const fromFormatted = formatDateForRange(validFrom.date);
+      const toFormatted = formatDateForRange(validTo.date);
+      
+      const combinedEvent: TimelineEvent = {
+        id: `${validFrom.id}_combined`,
+        title: `${docType.charAt(0).toUpperCase() + docType.slice(1)} Validity Period`,
+        description: `${docType.charAt(0).toUpperCase() + docType.slice(1)} was valid from ${fromFormatted} to ${toFormatted}`,
+        date: validFrom.date, // Use the earlier date for sorting
+        dateRange: {
+          from: validFrom.date,
+          to: validTo.date
+        },
+        status: 'expired' as const,
+        documents: [...(validFrom.documents || []), ...(validTo.documents || [])],
+        documentsRequired: [],
+        checklist: [],
+        aiInsights: {
+          recommendation: validFrom.aiInsights?.recommendation || validTo.aiInsights?.recommendation || '',
+          links: [
+            ...(validFrom.aiInsights?.links || []), 
+            ...(validTo.aiInsights?.links || [])
+          ].filter((link, index, arr) => arr.indexOf(link) === index)
+        },
+        eventType: 'validity_period' as const,
+        documentType: validFrom.documentType || docType.toLowerCase(),
+        priority: validFrom.priority || validTo.priority || 'medium',
+        additionalInfo: {
+          ...(validFrom.additionalInfo || {}),
+          ...(validTo.additionalInfo || {}),
+          // Preserve historical expired flag if either event has it
+          isHistoricalExpired: validFrom.additionalInfo?.isHistoricalExpired || validTo.additionalInfo?.isHistoricalExpired
+        },
+        createdAt: validFrom.createdAt,
+        updatedAt: new Date().toISOString()
+      };
+      
+      // Merge additional fields
+      if (validFrom.visaType || validTo.visaType) {
+        combinedEvent.visaType = validFrom.visaType || validTo.visaType;
+      }
+      if (validFrom.employer || validTo.employer) {
+        combinedEvent.employer = validFrom.employer || validTo.employer;
+      }
+      
+      processedEvents.push(combinedEvent);
+    } else if (validFrom || validTo) {
+      // Single validity event - enhance its title and description
+      const singleEvent = validFrom || validTo!;
+      const enhancedEvent: TimelineEvent = {
+        ...singleEvent,
+        title: `${docType.charAt(0).toUpperCase() + docType.slice(1)} Validity Period`,
+        description: singleEvent.description || `${docType.charAt(0).toUpperCase() + docType.slice(1)} validity information`,
+        eventType: 'validity_period' as const,
+        documentType: singleEvent.documentType || docType.toLowerCase()
+      };
+      processedEvents.push(enhancedEvent);
+    }
+    
+    // Add any other events in this group
+    others.forEach((event: TimelineEvent) => processedEvents.push(event));
+  });
+  
+  return processedEvents.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+}
+
+/**
+ * Analyze document timeline to determine if expired documents should be highlighted as problematic
+ */
+function analyzeDocumentStatus(events: TimelineEvent[]): TimelineEvent[] {
+  // Group events by document type
+  const documentGroups = new Map<string, TimelineEvent[]>();
+  
+  events.forEach(event => {
+    if (event.documentType || event.eventType === 'validity_period') {
+      const docType = event.documentType || extractDocumentTypeFromTitle(event.title);
+      const normalizedType = normalizeDocumentType(docType);
+      
+      if (!documentGroups.has(normalizedType)) {
+        documentGroups.set(normalizedType, []);
+      }
+      documentGroups.get(normalizedType)!.push(event);
+    }
+  });
+  
+  // Analyze each document group to determine status
+  const updatedEvents = events.map(event => {
+    if (event.status !== 'expired' || (!event.documentType && event.eventType !== 'validity_period')) {
+      return event;
+    }
+    
+    const docType = event.documentType || extractDocumentTypeFromTitle(event.title);
+    const normalizedType = normalizeDocumentType(docType);
+    const documentEvents = documentGroups.get(normalizedType) || [];
+    
+    // Sort events by date to find the most recent ones
+    const sortedEvents = documentEvents.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+    
+    // For validity period events, use the end date (to date) for comparison
+    const eventDate = event.dateRange ? new Date(event.dateRange.to) : new Date(event.date);
+    
+    // Check if there are any valid/current documents after this expired one
+    const hasNewerValidDocuments = sortedEvents.some(e => {
+      const eDate = e.dateRange ? new Date(e.dateRange.from) : new Date(e.date);
+      return eDate > eventDate && (
+        e.status === 'completed' || 
+        e.status === 'current' || 
+        e.status === 'upcoming' ||
+        (e.status === 'expired' && e.dateRange && new Date(e.dateRange.to) > new Date())
+      );
+    });
+    
+    // If there are newer valid documents, mark this as historical (not problematic)
+    if (hasNewerValidDocuments) {
+      return {
+        ...event,
+        additionalInfo: {
+          ...event.additionalInfo,
+          isHistoricalExpired: true
+        }
+      };
+    }
+    
+    return event;
+  });
+  
+  return updatedEvents;
+}
+
+/**
+ * Normalize document type for consistent grouping
+ */
+function normalizeDocumentType(docType: string): string {
+  const normalized = docType.toLowerCase().trim();
+  
+  // Group similar document types together
+  if (normalized.includes('passport')) return 'passport';
+  if (normalized.includes('visa')) return 'visa';
+  if (normalized.includes('i-94') || normalized.includes('i94')) return 'i94';
+  if (normalized.includes('green card') || normalized.includes('permanent resident')) return 'green_card';
+  if (normalized.includes('ead') || normalized.includes('employment authorization')) return 'ead';
+  if (normalized.includes('h1b') || normalized.includes('h-1b')) return 'h1b';
+  if (normalized.includes('f1') || normalized.includes('f-1')) return 'f1';
+  if (normalized.includes('opt')) return 'opt';
+  if (normalized.includes('cpt')) return 'cpt';
+  
+  // Default: use the normalized string with spaces replaced by underscores
+  return normalized.replace(/\s+/g, '_');
 }

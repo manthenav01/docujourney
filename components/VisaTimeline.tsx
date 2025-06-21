@@ -68,7 +68,7 @@ const VisaTimeline: React.FC<VisaTimelineProps> = ({
     }
   };
 
-  const getStatusColor = (status: string) => {
+  const getStatusColor = (status: string, event?: TimelineEvent) => {
     switch (status) {
       case 'completed':
         return 'bg-green-500 border-green-500 text-white';
@@ -76,15 +76,29 @@ const VisaTimeline: React.FC<VisaTimelineProps> = ({
         return 'bg-blue-500 border-blue-500 text-white animate-pulse';
       case 'upcoming':
         return 'bg-gray-200 border-gray-300 text-gray-600';
+      case 'expired':
+        // Check if this is a historical expired document (not problematic)
+        if (event?.additionalInfo?.isHistoricalExpired) {
+          return 'bg-gray-400 border-gray-400 text-white';
+        }
+        // This is a problematic expired document (latest with no newer valid docs)
+        return 'bg-red-500 border-red-500 text-white';
       case 'unknown':
       default:
         return 'bg-gray-100 border-gray-200 text-gray-400';
     }
   };
 
-  const getLineColor = (currentStatus: string, nextStatus?: string) => {
+  const getLineColor = (currentStatus: string, nextStatus?: string, currentEvent?: TimelineEvent) => {
     if (currentStatus === 'completed' && nextStatus === 'completed') {
       return 'bg-green-500';
+    } else if (currentStatus === 'expired') {
+      // Historical expired documents get neutral gray line
+      if (currentEvent?.additionalInfo?.isHistoricalExpired) {
+        return 'bg-gray-300';
+      }
+      // Problematic expired documents get red line
+      return 'bg-red-300';
     } else if (currentStatus === 'completed' || currentStatus === 'current') {
       return 'bg-gradient-to-r from-green-500 to-gray-300';
     } else {
@@ -92,9 +106,37 @@ const VisaTimeline: React.FC<VisaTimelineProps> = ({
     }
   };
 
-  const formatDate = (dateString: string) => {
+  const formatDate = (dateString: string, event?: TimelineEvent) => {
     try {
       const date = new Date(dateString);
+      
+      // Handle date ranges for validity periods
+      if (event?.dateRange) {
+        const fromDate = new Date(event.dateRange.from);
+        const toDate = new Date(event.dateRange.to);
+        const fromFormatted = fromDate.toLocaleDateString('en-US', {
+          year: 'numeric',
+          month: '2-digit',
+          timeZone: 'UTC'
+        }).replace(/\/(\d{4})/, '/$1').replace(/^(\d{2})\/(\d{2})\/(\d{4})$/, '$1/$3');
+        const toFormatted = toDate.toLocaleDateString('en-US', {
+          year: 'numeric',
+          month: '2-digit',
+          timeZone: 'UTC'
+        }).replace(/\/(\d{4})/, '/$1').replace(/^(\d{2})\/(\d{2})\/(\d{4})$/, '$1/$3');
+        return `${fromFormatted} to ${toFormatted}`;
+      }
+      
+      // Special formatting for expired documents
+      if (event?.status === 'expired' && event?.eventType === 'validity_period') {
+        return date.toLocaleDateString('en-US', {
+          year: 'numeric',
+          month: '2-digit',
+          timeZone: 'UTC'
+        }).replace(/\/(\d{4})/, '/$1').replace(/^(\d{2})\/(\d{2})\/(\d{4})$/, '$1/$3');
+      }
+      
+      // Regular date formatting
       return date.toLocaleDateString('en-US', {
         year: 'numeric',
         month: 'short',
@@ -106,7 +148,7 @@ const VisaTimeline: React.FC<VisaTimelineProps> = ({
     }
   };
 
-  const getStatusBadge = (status: string) => {
+  const getStatusBadge = (status: string, event?: TimelineEvent) => {
     switch (status) {
       case 'completed':
         return <Badge className="bg-green-100 text-green-800 text-xs">Completed</Badge>;
@@ -114,6 +156,13 @@ const VisaTimeline: React.FC<VisaTimelineProps> = ({
         return <Badge className="bg-blue-100 text-blue-800 text-xs">Current</Badge>;
       case 'upcoming':
         return <Badge className="bg-gray-100 text-gray-600 text-xs">Upcoming</Badge>;
+      case 'expired':
+        // Check if this is a historical expired document (not problematic)
+        if (event?.additionalInfo?.isHistoricalExpired) {
+          return <Badge className="bg-gray-100 text-gray-600 text-xs">Historical</Badge>;
+        }
+        // This is a problematic expired document
+        return <Badge className="bg-red-100 text-red-800 text-xs">Expired</Badge>;
       case 'unknown':
       default:
         return <Badge variant="outline" className="text-xs">Unknown</Badge>;
@@ -300,7 +349,7 @@ const VisaTimeline: React.FC<VisaTimelineProps> = ({
                         <div className={`
                           w-7 h-7
                           rounded-full border-2 flex items-center justify-center bg-white shadow-sm
-                          ${getStatusColor(event.status)}
+                          ${getStatusColor(event.status, event)}
                           transition-all duration-300 group-hover:scale-110
                         `}>
                           <div className="w-3.5 h-3.5">
@@ -311,13 +360,24 @@ const VisaTimeline: React.FC<VisaTimelineProps> = ({
                         {/* Tooltip */}
                         <div className="absolute bottom-full mb-3 left-1/2 transform -translate-x-1/2 px-3 py-2 bg-gray-900 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none z-50 w-64 shadow-xl">
                           <div className="font-medium mb-1">{event.title}</div>
-                          <div className="text-gray-300 mb-1">{formatDate(event.date)}</div>
+                          <div className="text-gray-300 mb-1">{formatDate(event.date, event)}</div>
                           
+                          {event.eventType === 'validity_period' && event.dateRange && (
+                            <div className="text-amber-300 mb-1">
+                              📅 Validity Period
+                              {event.status === 'expired' && event.additionalInfo?.isHistoricalExpired && (
+                                <span className="text-gray-400 ml-1">(Historical)</span>
+                              )}
+                            </div>
+                          )}
                           {event.visaType && (
                             <div className="text-green-300 mb-1">🛂 {event.visaType}</div>
                           )}
                           {event.duration && (
                             <div className="text-blue-300 mb-1">⏱️ {event.duration}</div>
+                          )}
+                          {event.documentType && (
+                            <div className="text-purple-300 mb-1">📄 {event.documentType}</div>
                           )}
                           {event.description && (
                             <div className="text-gray-400 text-xs">{event.description}</div>
@@ -334,7 +394,7 @@ const VisaTimeline: React.FC<VisaTimelineProps> = ({
                       if (index === validEvents.length - 1) return null;
                       
                       const nextEvent = validEvents[index + 1];
-                      const lineColor = getLineColor(event.status, nextEvent?.status);
+                      const lineColor = getLineColor(event.status, nextEvent?.status, event);
                       const segmentWidth = 100 / (validEvents.length - 1);
                       const startPosition = (index / (validEvents.length - 1)) * 100;
                       
@@ -360,10 +420,10 @@ const VisaTimeline: React.FC<VisaTimelineProps> = ({
                             {event.title}
                           </p>
                           <p className="text-xs text-gray-600 mb-2 text-center">
-                            {formatDate(event.date)}
+                            {formatDate(event.date, event)}
                           </p>
                           <div className="flex justify-center">
-                            {getStatusBadge(event.status)}
+                            {getStatusBadge(event.status, event)}
                           </div>
                         </>
                       </div>
@@ -393,7 +453,7 @@ const VisaTimeline: React.FC<VisaTimelineProps> = ({
                       <div className={`
                         w-8 h-8 
                         rounded-full border-2 flex items-center justify-center flex-shrink-0 bg-white
-                        ${getStatusColor(event.status)}
+                        ${getStatusColor(event.status, event)}
                       `}>
                         <div className="w-4 h-4">
                           {getEventIcon(event.eventType, event.visaType)}
@@ -407,16 +467,26 @@ const VisaTimeline: React.FC<VisaTimelineProps> = ({
                             {event.title}
                           </p>
                           <div className="ml-2 flex-shrink-0">
-                            {getStatusBadge(event.status)}
+                            {getStatusBadge(event.status, event)}
                           </div>
                         </div>
                         
                         <p className="text-sm text-gray-600 mb-2">
-                          {formatDate(event.date)}
+                          {formatDate(event.date, event)}
                         </p>
                         
                         {/* Additional Information */}
                         <div className="space-y-1">
+                          {event.eventType === 'validity_period' && event.dateRange && (
+                            <p className="text-sm text-amber-600 flex items-center gap-1">
+                              📅 <span>
+                                Validity Period
+                                {event.status === 'expired' && event.additionalInfo?.isHistoricalExpired && (
+                                  <span className="text-gray-500 ml-1">(Historical)</span>
+                                )}
+                              </span>
+                            </p>
+                          )}
                           {event.visaType && (
                             <p className="text-sm text-blue-600 flex items-center gap-1">
                               🛂 <span>{event.visaType}</span>
@@ -425,6 +495,11 @@ const VisaTimeline: React.FC<VisaTimelineProps> = ({
                           {event.duration && (
                             <p className="text-sm text-purple-600 flex items-center gap-1">
                               ⏱️ <span>{event.duration}</span>
+                            </p>
+                          )}
+                          {event.documentType && (
+                            <p className="text-sm text-gray-600 flex items-center gap-1">
+                              📄 <span>{event.documentType}</span>
                             </p>
                           )}
                           {event.priority === 'high' && (

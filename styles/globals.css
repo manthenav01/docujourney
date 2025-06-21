@@ -135,3 +135,38 @@ button {
     @apply bg-background text-foreground;
   }
 }
+
+/* Timeline Event Styling */
+.timeline-event-validity {
+  border-left: 3px solid #f59e0b;
+  background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+}
+
+.timeline-event-expired {
+  opacity: 0.8;
+  filter: saturate(0.8);
+}
+
+.timeline-event-historical-expired {
+  opacity: 0.7;
+  filter: saturate(0.6) brightness(1.1);
+}
+
+.validity-period-badge {
+  background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+  color: #92400e;
+  border: 1px solid #f59e0b;
+  box-shadow: 0 1px 2px rgba(245, 158, 11, 0.1);
+}
+
+.historical-badge {
+  background: linear-gradient(135deg, #e5e7eb 0%, #d1d5db 100%);
+  color: #6b7280;
+  border: 1px solid #d1d5db;
+  box-shadow: 0 1px 2px rgba(209, 213, 219, 0.1);
+}
+
+.date-range-text {
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.025em;
+}
