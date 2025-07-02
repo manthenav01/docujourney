@@ -22,6 +22,7 @@ function HomePage() {
         </div>
         <nav className="hidden md:flex items-center gap-8 text-base font-medium">
           <a href="#features" className="text-gray-700 hover:text-blue-600 transition">Features</a>
+          <a href="/visa-dashboard" className="text-gray-700 hover:text-blue-600 transition">Visa Analytics</a>
           <a href="#howItWorks" className="text-gray-700 hover:text-blue-600 transition">How it works</a>
           <a href="#" className="text-gray-700 hover:text-blue-600 transition">Help</a>
         </nav>

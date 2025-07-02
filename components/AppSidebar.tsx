@@ -1,6 +1,6 @@
 "use client";
 
-import { Home, FileText, LayoutDashboard, Users, Upload } from "lucide-react";
+import { Home, FileText, LayoutDashboard, Users, Upload, BarChart3 } from "lucide-react";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
 
@@ -38,6 +38,11 @@ const items = [
     title: "Profiles",
     url: "/profiles",
     icon: Users,
+  },
+  {
+    title: "Visa Analytics",
+    url: "/visa-dashboard",
+    icon: BarChart3,
   },
 ];
 
