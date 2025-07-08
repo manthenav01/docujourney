@@ -14,3 +14,19 @@ yarn-error.log*
 functions/lib/
 functions/node_modules/
 .firebase/
+
+# Large data files and visa dashboard related files
+scripts/data/
+*.xlsx
+*.csv
+# Ignore files larger than 50MB
+*.pdf
+*.zip
+*.tar.gz
+*.dmg
+*.iso
+
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
