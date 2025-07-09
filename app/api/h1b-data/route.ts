@@ -1,106 +1,86 @@
-
 import { NextRequest, NextResponse } from 'next/server';
-import { BigQuery } from '@google-cloud/bigquery';
+import { H1BBigQueryService, H1BQueryFilters } from '@/lib/h1bBigQueryService';
+import path from 'path';
 
-const bigquery = new BigQuery({
-    keyFilename: 'serviceAccountKey.json',
-    projectId: 'doctracker-b4528',
+// Initialize BigQuery service
+const bigQueryService = new H1BBigQueryService({
+  projectId: 'doctracker-b4528',
+  keyFilename: path.join(process.cwd(), 'serviceAccountKey.json')
 });
 
-export async function GET(req: NextRequest) {
-    const { searchParams } = new URL(req.url);
-    const year = searchParams.get('year') || '2025';
-    const quarter = searchParams.get('quarter') || '1';
-    const topN = parseInt(searchParams.get('topN') || '10', 10);
-    const filterType = searchParams.get('filterType') || 'employer_name';
-
-    const getQuarterDateRange = (year: string, quarter: string) => {
-        const yearNum = parseInt(year, 10);
-        const quarterNum = parseInt(quarter, 10);
-        const startDate = new Date(yearNum, (quarterNum - 1) * 3, 1);
-        const endDate = new Date(yearNum, quarterNum * 3, 0);
-        return {
-            start: startDate.toISOString().split('T')[0],
-            end: endDate.toISOString().split('T')[0],
-        };
-    };
-
-    const { start, end } = getQuarterDateRange(year, quarter);
-
-    try {
-        const allowedFilterTypes = ['employer_name', 'job_title'];
-        if (!allowedFilterTypes.includes(filterType)) {
-            return NextResponse.json({ error: 'Invalid filter type' }, { status: 400 });
-        }
-
-        // Top Employers/Job Titles Query
-        const topQuery = `
-            SELECT
-                ${filterType} as name,
-                COUNT(*) as count
-            FROM
-                \`doctracker-b4528.h1b_data.lca_applications\`
-            WHERE
-                received_date BETWEEN @start_date AND @end_date
-            GROUP BY
-                name
-            ORDER BY
-                count DESC
-            LIMIT @limit
-        `;
-
-        const topOptions = {
-            query: topQuery,
-            location: 'US',
-            params: {
-                start_date: start,
-                end_date: end,
-                limit: topN
-            },
-        };
-
-        const [topEmployers] = await bigquery.query(topOptions);
-
-        // Case Status Trend Query
-        const caseStatusQuery = `
-            SELECT
-                FORMAT_DATE('%Y-%m', received_date) as month,
-                case_status,
-                COUNT(*) as count
-            FROM
-                \`doctracker-b4528.h1b_data.lca_applications\`
-            WHERE
-                received_date BETWEEN @start_date AND @end_date
-            GROUP BY
-                month, case_status
-            ORDER BY
-                month
-        `;
-
-        const caseStatusOptions = {
-            query: caseStatusQuery,
-            location: 'US',
-            params: {
-                start_date: start,
-                end_date: end
-            },
-        };
-
-        const [caseStatusResult] = await bigquery.query(caseStatusOptions);
-
-        // Process case status data
-        const caseStatusData = caseStatusResult.reduce((acc, row) => {
-            const { month, case_status, count } = row;
-            if (!acc[month]) {
-                acc[month] = { month };
-            }
-            acc[month][case_status] = count;
-            return acc;
-        }, {});
-
-        return NextResponse.json({ topEmployers, caseStatusData: Object.values(caseStatusData) });
-    } catch (error) {
-        console.error(error);
-        return NextResponse.json({ error: 'Failed to fetch data from BigQuery' }, { status: 500 });
+export async function GET(request: NextRequest) {
+  try {
+    const { searchParams } = new URL(request.url);
+    
+    // Check if this is a filter options request
+    if (searchParams.get('type') === 'filterOptions') {
+      const options = await bigQueryService.getFilterOptions();
+      return NextResponse.json(options);
     }
+    
+    // Parse filters from query parameters
+    const filters: H1BQueryFilters = {};
+    
+    if (searchParams.get('fiscalYears')) {
+      filters.fiscalYears = searchParams.get('fiscalYears')!.split(',');
+    }
+    
+    if (searchParams.get('states')) {
+      filters.states = searchParams.get('states')!.split(',');
+    }
+    
+    if (searchParams.get('minSalary') || searchParams.get('maxSalary')) {
+      const minSalary = parseInt(searchParams.get('minSalary') || '0');
+      const maxSalary = parseInt(searchParams.get('maxSalary') || '500000');
+      filters.salaryRange = [minSalary, maxSalary];
+    }
+    
+    if (searchParams.get('searchQuery')) {
+      filters.searchQuery = searchParams.get('searchQuery')!;
+    }
+    
+    console.log('Fetching H1B data with filters:', filters);
+    
+    // Fetch data from BigQuery
+    const data = await bigQueryService.getH1BDashboardData(filters);
+    
+    console.log('BigQuery data fetched successfully:', {
+      totalApplications: data.totalApplications,
+      avgSalary: data.avgSalary,
+      topEmployersCount: data.topEmployers.length,
+      statesCount: data.stateDistribution.length
+    });
+    
+    return NextResponse.json(data);
+    
+  } catch (error) {
+    console.error('Error fetching H1B data:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+    return NextResponse.json(
+      { error: 'Failed to fetch H1B data', details: errorMessage },
+      { status: 500 }
+    );
+  }
+}
+
+// Get filter options endpoint
+export async function POST(request: NextRequest) {
+  try {
+    const { action } = await request.json();
+    
+    if (action === 'getFilterOptions') {
+      const options = await bigQueryService.getFilterOptions();
+      return NextResponse.json(options);
+    }
+    
+    return NextResponse.json({ error: 'Invalid action' }, { status: 400 });
+    
+  } catch (error) {
+    console.error('Error fetching filter options:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+    return NextResponse.json(
+      { error: 'Failed to fetch filter options', details: errorMessage },
+      { status: 500 }
+    );
+  }
 }

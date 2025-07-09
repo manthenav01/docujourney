@@ -1,0 +1,327 @@
+/* H1B Dashboard Modern Styles */
+
+/* Enhanced chart container with glass morphism */
+.chart-container {
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(10px);
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  min-height: 400px;
+  transition: all 0.3s ease;
+}
+
+.chart-container:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.15);
+}
+
+.chart-container svg {
+  display: block;
+  margin: 0 auto;
+  background: transparent;
+  border-radius: 4px;
+  width: 100% !important;
+  height: 100% !important;
+  max-width: 100%;
+  overflow: visible;
+}
+
+/* On mobile, allow horizontal scrolling for charts */
+@media (max-width: 768px) {
+  .chart-container {
+    overflow-x: auto;
+    overflow-y: visible;
+    -webkit-overflow-scrolling: touch;
+    padding: 16px;
+  }
+  
+  .chart-container svg {
+    min-width: 700px;
+    width: 700px !important;
+  }
+}
+
+/* Improve chart text readability */
+.chart-container svg text {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-size: 12px;
+  fill: #374151;
+  user-select: none;
+}
+
+/* Chart axis styling */
+.chart-container svg .domain {
+  stroke: #d1d5db;
+  stroke-width: 1;
+}
+
+.chart-container svg .tick line {
+  stroke: #d1d5db;
+  stroke-width: 1;
+}
+
+.chart-container svg .tick text {
+  font-size: 11px;
+  fill: #6b7280;
+}
+
+/* Grid lines */
+.chart-container svg .grid-x,
+.chart-container svg .grid-y {
+  stroke: #f3f4f6;
+  stroke-width: 1;
+  stroke-dasharray: 2,2;
+}
+
+/* Modern tooltip styling */
+.tooltip {
+  position: absolute;
+  background: rgba(0, 0, 0, 0.9);
+  color: white;
+  padding: 12px 16px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 500;
+  pointer-events: none;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+  backdrop-filter: blur(10px);
+  z-index: 1000;
+  max-width: 200px;
+  line-height: 1.4;
+}
+
+.tooltip strong {
+  font-weight: 600;
+  color: #ffffff;
+}
+
+/* Enhanced mobile table */
+@media (max-width: 768px) {
+  .mobile-table {
+    display: block;
+    overflow-x: auto;
+    white-space: nowrap;
+    background: rgba(255, 255, 255, 0.8);
+    backdrop-filter: blur(10px);
+    border-radius: 16px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+  }
+  
+  .mobile-table table {
+    min-width: 600px;
+  }
+  
+  .mobile-table th,
+  .mobile-table td {
+    min-width: 120px;
+    padding: 0.75rem 0.5rem;
+    white-space: nowrap;
+  }
+  
+  .mobile-table th {
+    background: rgba(249, 250, 251, 0.8);
+    font-weight: 600;
+    color: #374151;
+    border-bottom: 2px solid #e5e7eb;
+  }
+  
+  .mobile-table td {
+    border-bottom: 1px solid #f3f4f6;
+  }
+}
+
+/* Enhanced tab buttons */
+.tab-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+}
+
+@media (max-width: 640px) {
+  .tab-buttons {
+    flex-direction: column;
+  }
+  
+  .tab-buttons button {
+    width: 100%;
+    justify-content: center;
+    padding: 0.75rem 1rem;
+    font-size: 14px;
+    border-radius: 12px;
+  }
+}
+
+/* Modern loading spinner */
+.loading-spinner {
+  display: inline-block;
+  width: 2rem;
+  height: 2rem;
+  border: 3px solid rgba(59, 130, 246, 0.2);
+  border-top: 3px solid #3b82f6;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Enhanced hover effects for desktop */
+@media (min-width: 1024px) {
+  .card-hover:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.15);
+    transition: all 0.3s ease-in-out;
+  }
+  
+  .filter-button:hover {
+    background-color: #f8fafc;
+    border-color: #e2e8f0;
+    transform: scale(1.02);
+  }
+}
+
+/* Glass morphism effect for cards */
+.glass-card {
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 16px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+}
+
+.glass-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.15);
+}
+
+/* Enhanced focus states for accessibility */
+.focus-ring:focus {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
+  border-radius: 8px;
+}
+
+/* Animation for filter toggles */
+.filter-toggle {
+  transition: all 0.2s ease-in-out;
+}
+
+.filter-toggle:hover {
+  transform: scale(1.02);
+}
+
+/* Enhanced badge styles */
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.status-badge.certified {
+  background-color: #dcfce7;
+  color: #166534;
+}
+
+.status-badge.denied {
+  background-color: #fee2e2;
+  color: #991b1b;
+}
+
+.status-badge.pending {
+  background-color: #fef3c7;
+  color: #92400e;
+}
+
+/* Chart-specific improvements */
+.chart-title {
+  font-size: 16px;
+  font-weight: 700;
+  fill: #1f2937;
+  text-anchor: middle;
+}
+
+.chart-axis-label {
+  font-size: 14px;
+  font-weight: 600;
+  fill: #374151;
+}
+
+.chart-legend {
+  font-size: 12px;
+  font-weight: 500;
+  fill: #6b7280;
+}
+
+/* Bar chart enhancements */
+.bar-chart rect {
+  transition: opacity 0.2s ease;
+}
+
+.bar-chart rect:hover {
+  opacity: 0.8;
+}
+
+/* Line chart enhancements */
+.line-chart path {
+  fill: none;
+  stroke-width: 2;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
+
+.line-chart circle {
+  fill: white;
+  stroke-width: 2;
+}
+
+.line-chart circle:hover {
+  r: 6;
+}
+
+/* Responsive text sizing */
+@media (max-width: 768px) {
+  .chart-title {
+    font-size: 14px;
+  }
+  
+  .chart-axis-label {
+    font-size: 12px;
+  }
+  
+  .chart-legend {
+    font-size: 10px;
+  }
+}
+
+/* Loading animation improvements */
+.chart-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 400px;
+  background: rgba(249, 250, 251, 0.8);
+  backdrop-filter: blur(10px);
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.chart-loading .loading-spinner {
+  width: 3rem;
+  height: 3rem;
+  border-width: 4px;
+}
