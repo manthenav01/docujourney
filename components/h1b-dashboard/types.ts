@@ -26,4 +26,4 @@ export interface H1BData {
   companyType: string;
 }
 
-export type TabType = 'salary' | 'trends' | 'comparison' | 'map';
+export type TabType = 'salary' | 'map';

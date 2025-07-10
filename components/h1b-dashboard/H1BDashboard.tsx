@@ -5,6 +5,26 @@ import { FilterState, TabType } from './types';
 import { SearchAndFilters } from './SearchAndFilters';
 import { VisualizationPanel } from './VisualizationPanel';
 import { TopEmployersTable } from './TopEmployersTable';
+import { 
+  BarChart3, 
+  Home, 
+  Users, 
+  Settings, 
+  Activity,
+  TrendingUp,
+  FileText,
+  Building,
+  DollarSign,
+  CheckCircle,
+  XCircle,
+  AlertCircle,
+  Share2,
+  Eye,
+  Pause,
+  Settings2,
+  ArrowUp,
+  ArrowDown
+} from 'lucide-react';
 import './dashboard.css';
 
 // BigQuery data structure
@@ -73,8 +93,10 @@ export const H1BDashboard: React.FC = () => {
   });
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<TabType>('salary');
+  const [activeNavItem, setActiveNavItem] = useState('overview');
   const [loading, setLoading] = useState(true);
   const [chartsLoading, setChartsLoading] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   useEffect(() => {
     Promise.all([
@@ -227,19 +249,158 @@ export const H1BDashboard: React.FC = () => {
     );
   }
 
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-gray-100">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Modern Header */}
-        <div className="mb-8">
-          <div className="text-center mb-6">
-            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 bg-clip-text text-transparent mb-4">
-              H1B Analytics Dashboard
-            </h1>
-            <p className="text-lg sm:text-xl text-gray-600 max-w-3xl mx-auto">
-              Real-time insights from BigQuery • Interactive data exploration
-            </p>
+  const sidebarItems = [
+    { id: 'overview', label: 'Overview', icon: Home },
+    { id: 'analytics', label: 'Analytics', icon: BarChart3 },
+    { id: 'trends', label: 'Trends', icon: TrendingUp },
+    { id: 'employers', label: 'Employers', icon: Building },
+    { id: 'settings', label: 'Settings', icon: Settings },
+  ];
+
+  const ActionButton: React.FC<{
+    label: string;
+    variant: 'primary' | 'secondary';
+    icon?: React.ReactNode;
+    onClick?: () => void;
+  }> = ({ label, variant, icon, onClick }) => (
+    <button
+      onClick={onClick}
+      className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium text-sm transition-all duration-200 ${
+        variant === 'primary'
+          ? 'bg-blue-600 text-white hover:bg-blue-700 active:bg-blue-800'
+          : 'bg-gray-100 text-gray-700 hover:bg-gray-200 active:bg-gray-300'
+      }`}
+    >
+      {icon}
+      {label}
+    </button>
+  );
+
+  const MetricCard: React.FC<{
+    title: string;
+    value: string;
+    change?: number;
+    status?: 'up' | 'down' | 'stable';
+    icon: React.ReactNode;
+    color?: string;
+  }> = ({ title, value, change, status, icon, color = 'blue' }) => (
+    <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100 hover:shadow-md transition-shadow duration-200">
+      <div className="flex items-center justify-between mb-4">
+        <div className={`p-2 bg-${color}-50 rounded-lg text-${color}-600`}>
+          {icon}
+        </div>
+        {change !== undefined && (
+          <div className={`flex items-center gap-1 text-sm font-medium ${
+            status === 'up' ? 'text-green-600' : 
+            status === 'down' ? 'text-red-600' : 
+            'text-gray-500'
+          }`}>
+            {status === 'up' && <ArrowUp className="w-4 h-4" />}
+            {status === 'down' && <ArrowDown className="w-4 h-4" />}
+            {change}%
           </div>
+        )}
+      </div>
+      <h3 className="text-gray-600 text-sm font-medium mb-1">{title}</h3>
+      <p className="text-3xl font-bold text-gray-900">{value}</p>
+    </div>
+  );
+
+  return (
+    <div className="min-h-screen bg-gray-50">
+      {/* Mobile overlay */}
+      {sidebarOpen && (
+        <div 
+          className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
+      
+      {/* Sidebar */}
+      <div className={`fixed left-0 top-0 h-full w-64 bg-white border-r border-gray-200 shadow-sm z-50 transform transition-transform duration-300 ease-in-out ${
+        sidebarOpen ? 'translate-x-0' : '-translate-x-full'
+      } lg:translate-x-0`}>
+        <div className="p-6">
+          <div className="flex items-center justify-between mb-8">
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
+                <BarChart3 className="w-5 h-5 text-white" />
+              </div>
+              <h1 className="text-xl font-bold text-gray-900">H1B Analytics</h1>
+            </div>
+            <button
+              onClick={() => setSidebarOpen(false)}
+              className="lg:hidden p-2 rounded-lg hover:bg-gray-100"
+            >
+              <XCircle className="w-5 h-5 text-gray-500" />
+            </button>
+          </div>
+          
+          <nav className="space-y-2">
+            {sidebarItems.map((item) => {
+              const Icon = item.icon;
+              return (
+                <button
+                  key={item.id}
+                  onClick={() => {
+                    setActiveNavItem(item.id);
+                    setSidebarOpen(false);
+                  }}
+                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-left transition-all duration-200 ${
+                    activeNavItem === item.id
+                      ? 'bg-blue-50 text-blue-700 border-r-2 border-blue-600'
+                      : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                  }`}
+                >
+                  <Icon className="w-5 h-5" />
+                  <span className="font-medium">{item.label}</span>
+                </button>
+              );
+            })}
+          </nav>
+        </div>
+      </div>
+
+      {/* Main Content */}
+      <div className="lg:ml-64 p-4 lg:p-8">
+        {/* Header */}
+        <div className="mb-8">
+          <div className="flex items-center gap-4 mb-4">
+            <button
+              onClick={() => setSidebarOpen(true)}
+              className="lg:hidden p-2 rounded-lg hover:bg-gray-100 border border-gray-200"
+            >
+              <BarChart3 className="w-5 h-5 text-gray-700" />
+            </button>
+            <div>
+              <h1 className="text-2xl lg:text-3xl font-bold text-gray-900">Dashboard Overview</h1>
+              <p className="text-gray-600 text-sm lg:text-base">Real-time insights from BigQuery • Interactive data exploration</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Action Buttons */}
+        <div className="flex flex-wrap gap-2 lg:gap-4 mb-8">
+          <ActionButton
+            label="Share Report"
+            variant="primary"
+            icon={<Share2 className="w-4 h-4" />}
+          />
+          <ActionButton
+            label="View Details"
+            variant="secondary"
+            icon={<Eye className="w-4 h-4" />}
+          />
+          <ActionButton
+            label="Export"
+            variant="secondary"
+            icon={<FileText className="w-4 h-4" />}
+          />
+          <ActionButton
+            label="Configure"
+            variant="secondary"
+            icon={<Settings2 className="w-4 h-4" />}
+          />
         </div>
 
         {/* Search and Filters */}
@@ -254,125 +415,71 @@ export const H1BDashboard: React.FC = () => {
         </div>
 
         {/* Results Summary */}
-        <div className="text-center mb-8">
-          <h2 className="text-lg font-semibold text-gray-700">
-            Showing results for {dashboardData.totalApplications.toLocaleString()} applications
-          </h2>
-          <p className="text-sm text-gray-500 mt-2">
-            {filters.searchQuery && `Search: "${filters.searchQuery}" • `}
-            {filters.fiscalYears.length > 0 && `Years: ${filters.fiscalYears.join(', ')} • `}
-            {filters.states.length > 0 && `States: ${filters.states.join(', ')} • `}
-            {filters.salaryRange[0] > 0 || filters.salaryRange[1] < 500000 ? 
-              `Salary: $${filters.salaryRange[0].toLocaleString()} - $${filters.salaryRange[1].toLocaleString()}` : 
-              'All data'
-            }
-          </p>
-        </div>
-
-        {/* Overview Card */}
         <div className="mb-8">
-          <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg border border-gray-200 p-6">
-            <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-4">Overview</h3>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-              {/* Total Applications */}
-              <div className="text-center">
-                <div className="flex justify-center mb-3">
-                  <div className="p-3 bg-gray-100 rounded-xl">
-                    <svg className="h-6 w-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                    </svg>
-                  </div>
-                </div>
-                <div className="text-3xl font-bold text-gray-900 mb-1">
-                  {dashboardData.totalApplications.toLocaleString()}
-                </div>
-                <div className="text-sm text-gray-600 font-medium">Total Applications</div>
-              </div>
-
-              {/* Average Salary */}
-              <div className="text-center">
-                <div className="flex justify-center mb-3">
-                  <div className="p-3 bg-blue-100 rounded-xl">
-                    <svg className="h-6 w-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
-                    </svg>
-                  </div>
-                </div>
-                <div className="text-3xl font-bold text-blue-600 mb-1">
-                  ${(dashboardData.avgSalary / 1000).toFixed(0)}K
-                </div>
-                <div className="text-sm text-gray-600 font-medium">Avg Salary</div>
-              </div>
-
-              {/* Unique Employers */}
-              <div className="text-center">
-                <div className="flex justify-center mb-3">
-                  <div className="p-3 bg-purple-100 rounded-xl">
-                    <svg className="h-6 w-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-                    </svg>
-                  </div>
-                </div>
-                <div className="text-3xl font-bold text-purple-600 mb-1">
-                  {dashboardData.uniqueEmployers.toLocaleString()}
-                </div>
-                <div className="text-sm text-gray-600 font-medium">Employers</div>
-              </div>
-            </div>
+          <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
+            <h2 className="text-lg font-semibold text-gray-700 mb-2">
+              Showing results for {dashboardData.totalApplications.toLocaleString()} applications
+            </h2>
+            <p className="text-sm text-gray-500">
+              {filters.searchQuery && `Search: "${filters.searchQuery}" • `}
+              {filters.fiscalYears.length > 0 && `Years: ${filters.fiscalYears.join(', ')} • `}
+              {filters.states.length > 0 && `States: ${filters.states.join(', ')} • `}
+              {filters.salaryRange[0] > 0 || filters.salaryRange[1] < 500000 ? 
+                `Salary: $${filters.salaryRange[0].toLocaleString()} - $${filters.salaryRange[1].toLocaleString()}` : 
+                'All data'
+              }
+            </p>
           </div>
         </div>
 
-        {/* Application Status Card */}
-        <div className="mb-8">
-          <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg border border-gray-200 p-6">
-            <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-4">Application Status</h3>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-              {/* Certified */}
-              <div className="text-center">
-                <div className="flex justify-center mb-3">
-                  <div className="p-3 bg-green-100 rounded-xl">
-                    <svg className="h-6 w-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
-                    </svg>
-                  </div>
-                </div>
-                <div className="text-3xl font-bold text-green-600 mb-1">
-                  {dashboardData.certifiedApplications.toLocaleString()}
-                </div>
-                <div className="text-sm text-gray-600 font-medium">Certified</div>
-              </div>
+        {/* Overview Cards */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6 mb-8">
+          <MetricCard
+            title="Total Applications"
+            value={dashboardData.totalApplications.toLocaleString()}
+            icon={<FileText className="w-6 h-6" />}
+            color="gray"
+          />
+          <MetricCard
+            title="Average Salary"
+            value={`$${(dashboardData.avgSalary / 1000).toFixed(0)}K`}
+            icon={<DollarSign className="w-6 h-6" />}
+            color="blue"
+          />
+          <MetricCard
+            title="Unique Employers"
+            value={dashboardData.uniqueEmployers.toLocaleString()}
+            icon={<Building className="w-6 h-6" />}
+            color="purple"
+          />
+          <MetricCard
+            title="Approval Rate"
+            value={`${dashboardData.certificationRate.toFixed(1)}%`}
+            icon={<TrendingUp className="w-6 h-6" />}
+            color="green"
+          />
+        </div>
 
-              {/* Denied */}
-              <div className="text-center">
-                <div className="flex justify-center mb-3">
-                  <div className="p-3 bg-red-100 rounded-xl">
-                    <svg className="h-6 w-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                  </div>
-                </div>
-                <div className="text-3xl font-bold text-red-600 mb-1">
-                  {dashboardData.deniedApplications.toLocaleString()}
-                </div>
-                <div className="text-sm text-gray-600 font-medium">Denied</div>
-              </div>
-
-              {/* Approval Rate */}
-              <div className="text-center">
-                <div className="flex justify-center mb-3">
-                  <div className="p-3 bg-green-100 rounded-xl">
-                    <svg className="h-6 w-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                  </div>
-                </div>
-                <div className="text-3xl font-bold text-green-600 mb-1">
-                  {dashboardData.certificationRate.toFixed(1)}%
-                </div>
-                <div className="text-sm text-gray-600 font-medium">Approval Rate</div>
-              </div>
-            </div>
-          </div>
+        {/* Application Status Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 lg:gap-6 mb-8">
+          <MetricCard
+            title="Certified Applications"
+            value={dashboardData.certifiedApplications.toLocaleString()}
+            icon={<CheckCircle className="w-6 h-6" />}
+            color="green"
+          />
+          <MetricCard
+            title="Denied Applications"
+            value={dashboardData.deniedApplications.toLocaleString()}
+            icon={<XCircle className="w-6 h-6" />}
+            color="red"
+          />
+          <MetricCard
+            title="Withdrawn Applications"
+            value={dashboardData.withdrawnApplications.toLocaleString()}
+            icon={<AlertCircle className="w-6 h-6" />}
+            color="yellow"
+          />
         </div>
 
         {/* Main Content */}

@@ -1,130 +1,253 @@
 "use client";
 
-import React, { useRef, useEffect } from 'react';
-import * as d3 from 'd3';
+import React from 'react';
 
 interface SalaryChartProps {
-  data: Array<{
+  salaryData: Array<{
     range: string;
     count: number;
     minSalary: number;
     maxSalary: number;
   }>;
+  stateData: Array<{
+    state: string;
+    applications: number;
+    avgSalary: number;
+  }>;
   isActive: boolean;
 }
 
-export const SalaryChart: React.FC<SalaryChartProps> = ({ data, isActive }) => {
-  const chartRef = useRef<SVGSVGElement>(null);
+export const SalaryChart: React.FC<SalaryChartProps> = ({ salaryData, stateData, isActive }) => {
 
-  useEffect(() => {
-    if (!isActive || !chartRef.current || data.length === 0) return;
+  // Transform salary data for visualization - use real data
+  const getSalaryDistributionData = () => {
+    return salaryData.map((item) => ({
+      range: item.range,
+      count: item.count,
+      percentage: (item.count / salaryData.reduce((sum, d) => sum + d.count, 0)) * 100
+    }));
+  };
 
-    const svg = d3.select(chartRef.current);
-    svg.selectAll("*").remove();
+  // Transform state data for salary by state visualization
+  const getStateSalaryData = () => {
+    // Get top 8 states by application count for better visualization
+    return stateData
+      .sort((a, b) => b.applications - a.applications)
+      .slice(0, 8)
+      .map((item) => ({
+        state: item.state,
+        avgSalary: item.avgSalary,
+        applications: item.applications
+      }));
+  };
 
-    // Fixed dimensions for better visibility
-    const margin = { top: 40, right: 40, bottom: 80, left: 80 };
-    const width = 700 - margin.left - margin.right;
-    const height = 400 - margin.top - margin.bottom;
+  const distributionData = getSalaryDistributionData();
+  const stateSalaryData = getStateSalaryData();
 
-    // Set SVG dimensions explicitly
-    svg.attr("width", width + margin.left + margin.right)
-       .attr("height", height + margin.top + margin.bottom)
-       .attr("viewBox", `0 0 ${width + margin.left + margin.right} ${height + margin.top + margin.bottom}`);
+  const SalaryDistributionChart = ({ data }: any) => (
+    <div className="relative h-48 w-full">
+      <svg viewBox="0 0 500 250" className="w-full h-full">
+        {/* Grid lines */}
+        {[40, 80, 120, 160, 200].map(y => (
+          <line
+            key={y}
+            x1="60"
+            y1={y}
+            x2="460"
+            y2={y}
+            stroke="#f1f5f9"
+            strokeWidth="1"
+          />
+        ))}
+        
+        {/* Render bars for salary distribution */}
+        {data.map((d: any, idx: number) => {
+          const barWidth = Math.min(35, (400 / data.length) * 0.8);
+          const x = 60 + (idx * (400 / data.length)) + ((400 / data.length) - barWidth) / 2;
+          const maxPercentage = Math.max(...data.map((item: any) => item.percentage));
+          const barHeight = (d.percentage / maxPercentage) * 120;
+          const y = 180 - barHeight;
+          
+          return (
+            <rect
+              key={idx}
+              x={x}
+              y={y}
+              width={barWidth}
+              height={barHeight}
+              fill="#3b82f6"
+              rx="2"
+              style={{ filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.1))' }}
+            />
+          );
+        })}
+        
+        {/* X-axis labels */}
+        {data.map((d: any, i: number) => {
+          const x = 60 + (i * (400 / data.length)) + (400 / data.length) / 2;
+          const label = d.range.replace('$', '').replace(' - ', '-');
+          return (
+            <text
+              key={i}
+              x={x}
+              y="200"
+              textAnchor="middle"
+              fontSize="11"
+              fill="#64748b"
+              transform={`rotate(-45, ${x}, 200)`}
+            >
+              {label.length > 12 ? label.substring(0, 10) + '...' : label}
+            </text>
+          );
+        })}
+        
+        {/* Y-axis labels */}
+        {[0, 25, 50].map((value, i) => (
+          <text
+            key={value}
+            x="50"
+            y={180 - (i * 60)}
+            textAnchor="end"
+            fontSize="12"
+            fill="#64748b"
+          >
+            {value}%
+          </text>
+        ))}
+        
+        {/* Y-axis line */}
+        <line x1="60" y1="40" x2="60" y2="180" stroke="#e2e8f0" strokeWidth="1"/>
+        {/* X-axis line */}
+        <line x1="60" y1="180" x2="460" y2="180" stroke="#e2e8f0" strokeWidth="1"/>
+      </svg>
+    </div>
+  );
 
-    const g = svg.append("g")
-      .attr("transform", `translate(${margin.left},${margin.top})`);
+  const StateSalaryChart = ({ data }: any) => (
+    <div className="relative h-48 w-full">
+      <svg viewBox="0 0 500 250" className="w-full h-full">
+        {/* Grid lines */}
+        {[40, 80, 120, 160, 200].map(y => (
+          <line
+            key={y}
+            x1="60"
+            y1={y}
+            x2="460"
+            y2={y}
+            stroke="#f1f5f9"
+            strokeWidth="1"
+          />
+        ))}
+        
+        {/* Render bars for state salaries */}
+        {data.map((d: any, idx: number) => {
+          const barWidth = Math.min(40, (400 / data.length) * 0.7);
+          const x = 60 + (idx * (400 / data.length)) + ((400 / data.length) - barWidth) / 2;
+          const minSalary = Math.min(...data.map((item: any) => item.avgSalary));
+          const maxSalary = Math.max(...data.map((item: any) => item.avgSalary));
+          const normalizedSalary = (d.avgSalary - minSalary) / (maxSalary - minSalary);
+          const barHeight = normalizedSalary * 120 + 20; // Add minimum height
+          const y = 180 - barHeight;
+          
+          return (
+            <rect
+              key={idx}
+              x={x}
+              y={y}
+              width={barWidth}
+              height={barHeight}
+              fill="#1e40af"
+              rx="2"
+              style={{ filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.1))' }}
+            />
+          );
+        })}
+        
+        {/* X-axis labels */}
+        {data.map((d: any, i: number) => {
+          const x = 60 + (i * (400 / data.length)) + (400 / data.length) / 2;
+          return (
+            <text
+              key={i}
+              x={x}
+              y="200"
+              textAnchor="middle"
+              fontSize="12"
+              fill="#64748b"
+            >
+              {d.state}
+            </text>
+          );
+        })}
+        
+        {/* Y-axis labels */}
+        {data.length > 0 && (
+          <>
+            {[
+              Math.min(...data.map((item: any) => item.avgSalary)),
+              Math.max(...data.map((item: any) => item.avgSalary))
+            ].map((value, i) => (
+              <text
+                key={value}
+                x="50"
+                y={180 - (i * 120)}
+                textAnchor="end"
+                fontSize="12"
+                fill="#64748b"
+              >
+                ${Math.round(value/1000)}K
+              </text>
+            ))}
+          </>
+        )}
+        
+        {/* Y-axis line */}
+        <line x1="60" y1="40" x2="60" y2="180" stroke="#e2e8f0" strokeWidth="1"/>
+        {/* X-axis line */}
+        <line x1="60" y1="180" x2="460" y2="180" stroke="#e2e8f0" strokeWidth="1"/>
+      </svg>
+    </div>
+  );
 
-    // Use the pre-aggregated salary distribution data
-    const x = d3.scaleBand()
-      .domain(data.map(d => d.range))
-      .range([0, width])
-      .padding(0.1);
+  if (!isActive) return null;
 
-    const y = d3.scaleLinear()
-      .domain([0, d3.max(data, d => d.count) as number])
-      .range([height, 0]);
+  return (
+    <div className="h-full w-full p-6 bg-white rounded-lg">
+      {/* Two panels side by side */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 h-full">
+        
+        {/* Salary Distribution Panel */}
+        <div className="bg-gray-50 rounded-xl p-6">
+          <div className="mb-6">
+            <h3 className="text-lg font-semibold text-gray-900">Salary Distribution</h3>
+          </div>
+          
+          {/* Stats */}
+          <div className="mb-4">
+            <p className="text-sm text-gray-600">
+              Total Applications: {salaryData.reduce((sum, d) => sum + d.count, 0).toLocaleString()}
+            </p>
+          </div>
+          
+          <SalaryDistributionChart data={distributionData} />
+        </div>
 
-    // Add bars
-    g.selectAll(".bar")
-      .data(data)
-      .enter().append("rect")
-      .attr("class", "bar")
-      .attr("x", d => x(d.range)!)
-      .attr("width", x.bandwidth())
-      .attr("y", d => y(d.count))
-      .attr("height", d => height - y(d.count))
-      .attr("fill", "#3b82f6")
-      .attr("stroke", "#1e40af")
-      .attr("stroke-width", 0.5);
-
-    // Add tooltips
-    g.selectAll(".bar")
-      .on("mouseover", function(event, d: any) {
-        // Create tooltip
-        const tooltip = d3.select("body").append("div")
-          .attr("class", "tooltip")
-          .style("opacity", 0)
-          .style("position", "absolute")
-          .style("background", "rgba(0, 0, 0, 0.8)")
-          .style("color", "white")
-          .style("padding", "8px")
-          .style("border-radius", "4px")
-          .style("font-size", "12px");
-
-        tooltip.transition()
-          .duration(200)
-          .style("opacity", .9);
-        tooltip.html(`${d.range}<br/>Applications: ${d.count.toLocaleString()}`)
-          .style("left", (event.pageX + 10) + "px")
-          .style("top", (event.pageY - 28) + "px");
-      })
-      .on("mouseout", function() {
-        d3.selectAll(".tooltip").remove();
-      });
-
-    // Add axes
-    g.append("g")
-      .attr("transform", `translate(0,${height})`)
-      .call(d3.axisBottom(x))
-      .selectAll("text")
-      .style("text-anchor", "end")
-      .attr("dx", "-.8em")
-      .attr("dy", ".15em")
-      .attr("transform", "rotate(-45)");
-
-    g.append("g")
-      .call(d3.axisLeft(y));
-
-    // Add axis labels
-    g.append("text")
-      .attr("transform", "rotate(-90)")
-      .attr("y", 0 - margin.left)
-      .attr("x", 0 - (height / 2))
-      .attr("dy", "1em")
-      .style("text-anchor", "middle")
-      .style("font-size", "14px")
-      .style("font-weight", "600")
-      .text("Number of Applications");
-
-    g.append("text")
-      .attr("transform", `translate(${width / 2}, ${height + margin.bottom - 20})`)
-      .style("text-anchor", "middle")
-      .style("font-size", "14px")
-      .style("font-weight", "600")
-      .text("Salary Range");
-
-    // Add title
-    g.append("text")
-      .attr("x", width / 2)
-      .attr("y", -15)
-      .attr("text-anchor", "middle")
-      .style("font-size", "16px")
-      .style("font-weight", "700")
-      .text("H1B Salary Distribution");
-
-    console.log("Salary chart rendered with", data.length, "salary ranges");
-  }, [data, isActive]);
-
-  return <svg ref={chartRef} width="100%" height="100%"></svg>;
+        {/* Salary by State Panel */}
+        <div className="bg-gray-50 rounded-xl p-6">
+          <div className="mb-6">
+            <h3 className="text-lg font-semibold text-gray-900">Salary by State</h3>
+          </div>
+          
+          {/* Stats */}
+          <div className="mb-4">
+            <p className="text-sm text-gray-600">
+              Top {stateSalaryData.length} States by Application Volume
+            </p>
+          </div>
+          
+          <StateSalaryChart data={stateSalaryData} />
+        </div>
+      </div>
+    </div>
+  );
 };

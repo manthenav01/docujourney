@@ -5,14 +5,11 @@ import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/Button';
 import { 
   DollarSign, 
-  TrendingUp, 
-  BarChart3, 
   Map 
 } from 'lucide-react';
 import { TabType } from './types';
-import { SalaryChart } from './SalaryChart';
-import { TrendChart } from './TrendChart';
-import { GeographicChart } from './GeographicChart';
+import { SalaryDistributionChart } from './SalaryDistributionChart';
+import { HighestSalaryByStateChart } from './HighestSalaryByStateChart';
 
 interface VisualizationPanelProps {
   activeTab: TabType;
@@ -47,9 +44,7 @@ export const VisualizationPanel: React.FC<VisualizationPanelProps> = ({
 }) => {
   const tabs = [
     { id: 'salary' as TabType, label: 'Salary Distribution', icon: DollarSign },
-    { id: 'trends' as TabType, label: 'Trends', icon: TrendingUp },
-    { id: 'comparison' as TabType, label: 'Comparison', icon: BarChart3 },
-    { id: 'map' as TabType, label: 'Geographic', icon: Map },
+    { id: 'map' as TabType, label: 'Highest Salary by State', icon: Map },
   ];
 
   return (
@@ -73,40 +68,42 @@ export const VisualizationPanel: React.FC<VisualizationPanelProps> = ({
           })}
         </div>
       </CardHeader>
-      <CardContent>
-        <div className="h-96 w-full">
+      <CardContent className="p-0">
+        <div className="h-[500px] w-full">
           {chartsLoading ? (
-            <div className="chart-loading">
+            <div className="chart-loading h-full flex items-center justify-center">
               <div className="text-center">
                 <div className="loading-spinner"></div>
                 <p className="text-gray-500 mt-2">Loading visualization...</p>
               </div>
             </div>
           ) : (
-            <>                      {activeTab === 'salary' && (
-                        <div className="chart-container h-full">
-                          <SalaryChart data={dashboardData.salaryDistribution} isActive={activeTab === 'salary'} />
-                        </div>
-                      )}
-                      {activeTab === 'trends' && (
-                        <div className="chart-container h-full">
-                          <TrendChart data={dashboardData.yearlyTrends} isActive={activeTab === 'trends'} />
-                        </div>
-                      )}
-                      {activeTab === 'comparison' && (
-                        <div className="h-full flex items-center justify-center bg-gray-50 rounded-lg">
-                          <div className="text-center">
-                            <BarChart3 className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                            <p className="text-gray-500 font-medium">Comparison Analysis</p>
-                            <p className="text-sm text-gray-400">Coming soon - Compare employers side by side</p>
-                          </div>
-                        </div>
-                      )}
-                      {activeTab === 'map' && (
-                        <div className="chart-container h-full">
-                          <GeographicChart data={dashboardData.stateDistribution} isActive={activeTab === 'map'} />
-                        </div>
-                      )}
+            <>
+              {activeTab === 'salary' && (
+                <div className="h-full">
+                  <SalaryDistributionChart 
+                    data={dashboardData.salaryDistribution ? dashboardData.salaryDistribution.map(item => ({
+                      range: item.range,
+                      count: item.count,
+                      percentage: (item.count / dashboardData.salaryDistribution.reduce((sum, s) => sum + s.count, 0)) * 100
+                    })) : []}
+                    loading={chartsLoading}
+                  />
+                </div>
+              )}
+              {activeTab === 'map' && (
+                <div className="h-full">
+                  <HighestSalaryByStateChart 
+                    data={dashboardData.stateDistribution ? dashboardData.stateDistribution.map(item => ({
+                      state: item.state,
+                      highestSalary: item.avgSalary,
+                      avgSalary: item.avgSalary,
+                      applications: item.applications
+                    })) : []}
+                    loading={chartsLoading}
+                  />
+                </div>
+              )}
             </>
           )}
         </div>
