@@ -46,34 +46,31 @@ export function HighestSalaryByStateChart({ data, loading }: HighestSalaryByStat
     )
   }
 
-  const sortedData = [...data].sort((a, b) => b.highestSalary - a.highestSalary).slice(0, 20)
+  const sortedData = [...data].sort((a, b) => b.highestSalary - a.highestSalary).slice(0, 5)
 
   return (
     <Card className="w-full">
       <CardHeader>
-        <CardTitle>Highest Salary by State (Top 20)</CardTitle>
+        <CardTitle>Highest Salary by State (Top 5)</CardTitle>
       </CardHeader>
       <CardContent>
-        <div style={{ height: '320px', width: '100%' }}>
+        <div style={{ height: '400px', width: '100%' }}>
           <ResponsiveBar
             data={sortedData}
             keys={['highestSalary']}
             indexBy="state"
-            margin={{ top: 30, right: 40, bottom: 80, left: 90 }}
-            padding={0.15}
+            margin={{ top: 20, right: 30, bottom: 80, left: 80 }}
+            padding={0.4}
             valueScale={{ type: 'linear' }}
             indexScale={{ type: 'band', round: true }}
             colors={(d) => {
               const index = sortedData.findIndex(item => item.state === d.indexValue);
               const colorMap = [
-                '#1E40AF', '#2563EB', '#3B82F6', '#60A5FA', '#93C5FD', 
-                '#DBEAFE', '#1D4ED8', '#6366F1', '#8B5CF6', '#A78BFA',
-                '#C4B5FD', '#DDD6FE', '#0F172A', '#1E293B', '#334155',
-                '#475569', '#64748B', '#94A3B8', '#CBD5E1', '#E2E8F0'
+                '#1E40AF', '#2563EB', '#3B82F6', '#60A5FA', '#93C5FD'
               ];
               return colorMap[index % colorMap.length];
             }}
-            borderRadius={6}
+            borderRadius={2}
             borderWidth={0}
             theme={{
               background: 'transparent',
@@ -124,7 +121,7 @@ export function HighestSalaryByStateChart({ data, loading }: HighestSalaryByStat
               tickRotation: -45,
               legend: 'State',
               legendPosition: 'middle',
-              legendOffset: 60
+              legendOffset: 65
             }}
             axisLeft={{
               tickSize: 0,

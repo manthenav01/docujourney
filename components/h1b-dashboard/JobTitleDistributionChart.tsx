@@ -3,27 +3,33 @@
 import { ResponsiveBar } from '@nivo/bar'
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 
-interface SalaryDistributionData {
-  range: string
-  count: number
+interface JobTitleData {
+  jobTitle: string
+  applications: number
   percentage: number
+  avgSalary: number
 }
 
-interface SalaryDistributionChartProps {
-  data: SalaryDistributionData[]
+interface JobTitleDistributionChartProps {
+  data: JobTitleData[]
   loading?: boolean
 }
 
-export function SalaryDistributionChart({ data, loading }: SalaryDistributionChartProps) {
+export function JobTitleDistributionChart({ data, loading }: JobTitleDistributionChartProps) {
   if (loading) {
     return (
       <Card className="w-full">
         <CardHeader>
-          <CardTitle>Salary Distribution</CardTitle>
+          <CardTitle>Top Job Titles</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="h-80 flex items-center justify-center">
-            <div className="text-muted-foreground">Loading...</div>
+          <div style={{ height: '400px', width: '100%' }}>
+            <div className="h-full flex items-center justify-center">
+              <div className="text-center">
+                <div className="loading-spinner mx-auto"></div>
+                <p className="text-gray-500 mt-2">Loading job titles...</p>
+              </div>
+            </div>
           </div>
         </CardContent>
       </Card>
@@ -34,81 +40,52 @@ export function SalaryDistributionChart({ data, loading }: SalaryDistributionCha
     return (
       <Card className="w-full">
         <CardHeader>
-          <CardTitle>Salary Distribution</CardTitle>
+          <CardTitle>Top Job Titles</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="h-80 flex items-center justify-center">
-            <div className="text-muted-foreground">No data available</div>
+          <div style={{ height: '400px', width: '100%' }}>
+            <div className="h-full flex items-center justify-center">
+              <div className="text-muted-foreground">No job title data available</div>
+            </div>
           </div>
         </CardContent>
       </Card>
     )
   }
 
-  // Group salary ranges into broader categories
-  const groupedData = data.reduce((acc, item) => {
-    let broadRange = '';
-    const range = item.range.toLowerCase();
-    
-    if (range.includes('under') || range.includes('below') || range.includes('< ')) {
-      broadRange = 'Under $60K';
-    } else if (range.includes('60') || range.includes('70')) {
-      broadRange = '$60K - $80K';
-    } else if (range.includes('80') || range.includes('90')) {
-      broadRange = '$80K - $100K';
-    } else if (range.includes('100') || range.includes('110') || range.includes('120')) {
-      broadRange = '$100K - $130K';
-    } else if (range.includes('130') || range.includes('140') || range.includes('150')) {
-      broadRange = '$130K - $160K';
-    } else if (range.includes('160') || range.includes('170') || range.includes('180')) {
-      broadRange = '$160K - $190K';
-    } else if (range.includes('190') || range.includes('200') || range.includes('210') || range.includes('220')) {
-      broadRange = '$190K - $230K';
-    } else {
-      broadRange = '$230K+';
-    }
-    
-    const existing = acc.find(item => item.range === broadRange);
-    if (existing) {
-      existing.count += item.count;
-      existing.percentage += item.percentage;
-    } else {
-      acc.push({
-        range: broadRange,
-        count: item.count,
-        percentage: item.percentage
-      });
-    }
-    
-    return acc;
-  }, [] as SalaryDistributionData[]);
-
-  // Sort by salary range order
-  const sortOrder = ['Under $60K', '$60K - $80K', '$80K - $100K', '$100K - $130K', '$130K - $160K', '$160K - $190K', '$190K - $230K', '$230K+'];
-  const sortedData = groupedData.sort((a, b) => sortOrder.indexOf(a.range) - sortOrder.indexOf(b.range));
+  // Get top 10 job titles and truncate long names
+  const processedData = data
+    .slice(0, 10)
+    .map(item => ({
+      ...item,
+      jobTitle: item.jobTitle.length > 30 
+        ? item.jobTitle.substring(0, 30) + '...' 
+        : item.jobTitle
+    }))
 
   return (
     <Card className="w-full">
       <CardHeader>
-        <CardTitle>Salary Distribution</CardTitle>
+        <CardTitle>Top Job Titles (Top 10)</CardTitle>
       </CardHeader>
       <CardContent>
         <div style={{ height: '400px', width: '100%' }}>
           <ResponsiveBar
-            data={sortedData}
-            keys={['count']}
-            indexBy="range"
-            margin={{ top: 20, right: 30, bottom: 80, left: 70 }}
+            data={processedData}
+            keys={['applications']}
+            indexBy="jobTitle"
+            layout="horizontal"
+            margin={{ top: 20, right: 40, bottom: 80, left: 180 }}
             padding={0.4}
             valueScale={{ type: 'linear' }}
             indexScale={{ type: 'band', round: true }}
-            colors={['#3B82F6', '#60A5FA', '#93C5FD', '#DBEAFE', '#1E40AF', '#2563EB', '#1D4ED8', '#6366F1']}
+            colors={['#1E40AF', '#2563EB', '#3B82F6', '#60A5FA', '#93C5FD', '#DBEAFE', '#1D4ED8', '#6366F1', '#8B5CF6', '#A78BFA']}
             borderRadius={2}
             borderWidth={0}
             theme={{
               background: 'transparent',
               text: {
-                fontSize: 12,
+                fontSize: 11,
                 fill: '#64748B',
                 fontFamily: 'Inter, system-ui, sans-serif'
               },
@@ -121,7 +98,7 @@ export function SalaryDistributionChart({ data, loading }: SalaryDistributionCha
                 },
                 legend: {
                   text: {
-                    fontSize: 13,
+                    fontSize: 12,
                     fill: '#475569',
                     fontWeight: 500,
                     fontFamily: 'Inter, system-ui, sans-serif'
@@ -133,7 +110,7 @@ export function SalaryDistributionChart({ data, loading }: SalaryDistributionCha
                     strokeWidth: 1
                   },
                   text: {
-                    fontSize: 11,
+                    fontSize: 10,
                     fill: '#64748B',
                     fontFamily: 'Inter, system-ui, sans-serif'
                   }
@@ -151,8 +128,8 @@ export function SalaryDistributionChart({ data, loading }: SalaryDistributionCha
             axisBottom={{
               tickSize: 0,
               tickPadding: 8,
-              tickRotation: -45,
-              legend: 'Salary Range',
+              tickRotation: 0,
+              legend: 'Number of Applications',
               legendPosition: 'middle',
               legendOffset: 65
             }}
@@ -160,26 +137,32 @@ export function SalaryDistributionChart({ data, loading }: SalaryDistributionCha
               tickSize: 0,
               tickPadding: 8,
               tickRotation: 0,
-              legend: 'Number of Applications',
+              legend: 'Job Title',
               legendPosition: 'middle',
-              legendOffset: -60
+              legendOffset: -160
             }}
-            enableGridX={false}
-            enableGridY={true}
+            enableGridX={true}
+            enableGridY={false}
             labelSkipWidth={12}
             labelSkipHeight={12}
             labelTextColor="#FFFFFF"
             tooltip={({ indexValue, value, data }) => (
               <div className="bg-white/95 backdrop-blur-sm p-4 border border-gray-200 rounded-xl shadow-xl">
-                <div className="text-sm font-semibold text-gray-900 mb-2">{indexValue}</div>
-                <div className="space-y-1">
+                <div className="text-sm font-semibold text-gray-900 mb-3 max-w-48">
+                  {data.jobTitle.length > 30 ? data.jobTitle.replace('...', '') : data.jobTitle}
+                </div>
+                <div className="space-y-2">
                   <div className="flex justify-between items-center">
-                    <span className="text-xs text-gray-600">Count:</span>
+                    <span className="text-xs text-gray-600">Applications:</span>
                     <span className="text-sm font-medium text-blue-600">{value?.toLocaleString()}</span>
                   </div>
                   <div className="flex justify-between items-center">
                     <span className="text-xs text-gray-600">Percentage:</span>
                     <span className="text-sm font-medium text-blue-600">{data.percentage?.toFixed(1)}%</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-xs text-gray-600">Avg Salary:</span>
+                    <span className="text-sm font-medium text-blue-600">${data.avgSalary?.toLocaleString()}</span>
                   </div>
                 </div>
               </div>

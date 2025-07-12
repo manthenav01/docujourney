@@ -53,6 +53,18 @@ export interface H1BAggregatedData {
     applications: number;
     avgSalary: number;
   }>;
+  jobTitleDistribution: Array<{
+    jobTitle: string;
+    applications: number;
+    avgSalary: number;
+    percentage: number;
+  }>;
+  industryDistribution: Array<{
+    industry: string;
+    applications: number;
+    avgSalary: number;
+    percentage: number;
+  }>;
 }
 
 export class H1BBigQueryService {
@@ -289,6 +301,90 @@ export class H1BBigQueryService {
       LIMIT 1
     `;
 
+    // Job title distribution query
+    const jobTitleDistQuery = `
+      WITH job_totals AS (
+        SELECT COUNT(*) as total_count
+        FROM \`${this.projectId}.${this.datasetId}.lca_applications\`
+        ${whereClause}
+        AND case_status = 'Certified'
+        AND job_title IS NOT NULL
+      )
+      SELECT 
+        job_title,
+        COUNT(*) as applications,
+        AVG(wage_rate_of_pay_from) as avg_salary,
+        ROUND(COUNT(*) * 100.0 / (SELECT total_count FROM job_totals), 2) as percentage
+      FROM \`${this.projectId}.${this.datasetId}.lca_applications\`
+      ${whereClause}
+      AND case_status = 'Certified'
+      AND job_title IS NOT NULL
+      AND wage_rate_of_pay_from IS NOT NULL
+      AND wage_rate_of_pay_from > 0
+      GROUP BY job_title
+      ORDER BY applications DESC
+      LIMIT 15
+    `;
+
+    // Industry distribution query - using NAICS codes for actual employer industries
+    const industryDistQuery = `
+      WITH industry_totals AS (
+        SELECT COUNT(*) as total_count
+        FROM \`${this.projectId}.${this.datasetId}.lca_applications\`
+        ${whereClause}
+        AND case_status = 'Certified'
+        AND naics_code IS NOT NULL
+        AND naics_code != ''
+      ),
+      naics_mapping AS (
+        SELECT 
+          naics_code,
+          CASE 
+            WHEN naics_code LIKE '11%' THEN 'Agriculture, Forestry, Fishing'
+            WHEN naics_code LIKE '21%' THEN 'Mining, Quarrying, Oil & Gas'
+            WHEN naics_code LIKE '22%' THEN 'Utilities'
+            WHEN naics_code LIKE '23%' THEN 'Construction'
+            WHEN naics_code LIKE '31%' OR naics_code LIKE '32%' OR naics_code LIKE '33%' THEN 'Manufacturing'
+            WHEN naics_code LIKE '42%' THEN 'Wholesale Trade'
+            WHEN naics_code LIKE '44%' OR naics_code LIKE '45%' THEN 'Retail Trade'
+            WHEN naics_code LIKE '48%' OR naics_code LIKE '49%' THEN 'Transportation & Warehousing'
+            WHEN naics_code LIKE '51%' THEN 'Information & Technology'
+            WHEN naics_code LIKE '52%' THEN 'Finance & Insurance'
+            WHEN naics_code LIKE '53%' THEN 'Real Estate & Rental'
+            WHEN naics_code LIKE '54%' THEN 'Professional & Technical Services'
+            WHEN naics_code LIKE '55%' THEN 'Management of Companies'
+            WHEN naics_code LIKE '56%' THEN 'Administrative & Support Services'
+            WHEN naics_code LIKE '61%' THEN 'Educational Services'
+            WHEN naics_code LIKE '62%' THEN 'Healthcare & Social Assistance'
+            WHEN naics_code LIKE '71%' THEN 'Arts, Entertainment & Recreation'
+            WHEN naics_code LIKE '72%' THEN 'Accommodation & Food Services'
+            WHEN naics_code LIKE '81%' THEN 'Other Services'
+            WHEN naics_code LIKE '92%' THEN 'Public Administration'
+            ELSE 'Other Industries'
+          END as industry_name,
+          COUNT(*) as applications,
+          AVG(wage_rate_of_pay_from) as avg_salary,
+          ROUND(COUNT(*) * 100.0 / (SELECT total_count FROM industry_totals), 2) as percentage
+        FROM \`${this.projectId}.${this.datasetId}.lca_applications\`
+        ${whereClause}
+        AND case_status = 'Certified'
+        AND naics_code IS NOT NULL
+        AND naics_code != ''
+        AND wage_rate_of_pay_from IS NOT NULL
+        AND wage_rate_of_pay_from > 0
+        GROUP BY naics_code
+      )
+      SELECT 
+        industry_name as industry,
+        SUM(applications) as applications,
+        AVG(avg_salary) as avg_salary,
+        SUM(percentage) as percentage
+      FROM naics_mapping
+      GROUP BY industry_name
+      ORDER BY applications DESC
+      LIMIT 12
+    `;
+
     try {
       // Execute all queries in parallel
       const [
@@ -297,14 +393,18 @@ export class H1BBigQueryService {
         [salaryDistResults],
         [yearlyTrendsResults],
         [stateDistResults],
-        [mostAppliedJobResults]
+        [mostAppliedJobResults],
+        [jobTitleDistResults],
+        [industryDistResults]
       ] = await Promise.all([
         this.bigquery.query({ query: mainQuery, params }),
         this.bigquery.query({ query: employersQuery, params }),
         this.bigquery.query({ query: salaryDistQuery, params }),
         this.bigquery.query({ query: yearlyTrendsQuery }),
         this.bigquery.query({ query: stateDistQuery, params }),
-        this.bigquery.query({ query: mostAppliedJobQuery, params })
+        this.bigquery.query({ query: mostAppliedJobQuery, params }),
+        this.bigquery.query({ query: jobTitleDistQuery, params }),
+        this.bigquery.query({ query: industryDistQuery, params })
       ]);
 
       // Process main aggregated data
@@ -348,6 +448,22 @@ export class H1BBigQueryService {
         applications: mostAppliedJobData.applications || 0
       };
 
+      // Process job title distribution
+      const jobTitleDistribution = jobTitleDistResults.map((row: any) => ({
+        jobTitle: row.job_title,
+        applications: row.applications || 0,
+        avgSalary: Math.round(row.avg_salary || 0),
+        percentage: row.percentage || 0
+      }));
+
+      // Process industry distribution
+      const industryDistribution = industryDistResults.map((row: any) => ({
+        industry: row.industry,
+        applications: row.applications || 0,
+        avgSalary: Math.round(row.avg_salary || 0),
+        percentage: row.percentage || 0
+      }));
+
       return {
         totalApplications: mainData.total_applications || 0,
         certifiedApplications: mainData.certified_applications || 0,
@@ -362,7 +478,9 @@ export class H1BBigQueryService {
         topEmployers,
         salaryDistribution,
         yearlyTrends,
-        stateDistribution
+        stateDistribution,
+        jobTitleDistribution,
+        industryDistribution
       };
     } catch (error) {
       console.error('BigQuery error:', error);

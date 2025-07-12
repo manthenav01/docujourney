@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
-import { FilterState, TabType } from './types';
+import { FilterState } from './types';
 import { SearchAndFilters } from './SearchAndFilters';
 import { VisualizationPanel } from './VisualizationPanel';
 import { TopEmployersTable } from './TopEmployersTable';
@@ -65,6 +65,18 @@ interface H1BDashboardData {
     applications: number;
     avgSalary: number;
   }>;
+  jobTitleDistribution: Array<{
+    jobTitle: string;
+    applications: number;
+    avgSalary: number;
+    percentage: number;
+  }>;
+  industryDistribution: Array<{
+    industry: string;
+    applications: number;
+    avgSalary: number;
+    percentage: number;
+  }>;
 }
 
 interface FilterOptions {
@@ -92,7 +104,6 @@ export const H1BDashboard: React.FC = () => {
     companyTypes: []
   });
   const [isFilterOpen, setIsFilterOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState<TabType>('salary');
   const [activeNavItem, setActiveNavItem] = useState('overview');
   const [loading, setLoading] = useState(true);
   const [chartsLoading, setChartsLoading] = useState(false);
@@ -123,7 +134,7 @@ export const H1BDashboard: React.FC = () => {
         setChartsLoading(false);
       }, 100);
     }
-  }, [dashboardData, activeTab]);
+  }, [dashboardData]);
 
   const fetchFilterOptions = async () => {
     try {
@@ -212,7 +223,9 @@ export const H1BDashboard: React.FC = () => {
         topEmployers: [],
         salaryDistribution: [],
         yearlyTrends: [],
-        stateDistribution: []
+        stateDistribution: [],
+        jobTitleDistribution: [],
+        industryDistribution: []
       });
     } finally {
       setLoading(false);
@@ -485,8 +498,6 @@ export const H1BDashboard: React.FC = () => {
         {/* Main Content */}
         <div className="space-y-8">
           <VisualizationPanel
-            activeTab={activeTab}
-            setActiveTab={setActiveTab}
             dashboardData={dashboardData}
             chartsLoading={chartsLoading}
           />
