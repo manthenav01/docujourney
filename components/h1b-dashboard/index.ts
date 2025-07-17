@@ -4,7 +4,15 @@ export { QuickStats } from './QuickStats';
 export { VisualizationPanel } from './VisualizationPanel';
 export { SalaryDistributionChart } from './SalaryDistributionChart';
 export { HighestSalaryByStateChart } from './HighestSalaryByStateChart';
-export { JobTitleDistributionChart } from './JobTitleDistributionChart';
+export { TopJobTitlesCard } from './TopJobTitlesCard';
 export { IndustryDistributionChart } from './IndustryDistributionChart';
 export { TopEmployersTable } from './TopEmployersTable';
+
+// New Phase 2 components
+export { SemanticSearch } from './SemanticSearch';
+export { CompanyComparison } from './CompanyComparison';
+export { TrendComparison } from './TrendComparison';
+export { CompanyDashboard } from './CompanyDashboard';
+export { JobDashboard } from './JobDashboard';
+
 export type { FilterState, H1BData, TabType } from './types';

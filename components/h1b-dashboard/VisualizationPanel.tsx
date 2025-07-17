@@ -4,7 +4,7 @@ import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { SalaryDistributionChart } from './SalaryDistributionChart';
 import { HighestSalaryByStateChart } from './HighestSalaryByStateChart';
-import { JobTitleDistributionChart } from './JobTitleDistributionChart';
+import { TopJobTitlesCard } from './TopJobTitlesCard';
 import { IndustryDistributionChart } from './IndustryDistributionChart';
 
 interface VisualizationPanelProps {
@@ -72,16 +72,7 @@ export const VisualizationPanel: React.FC<VisualizationPanelProps> = ({
           </Card>
         </div>
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <Card className="bg-white/80 backdrop-blur-sm shadow-lg border-0">
-            <CardContent className="p-6">
-              <div className="h-80 flex items-center justify-center">
-                <div className="text-center">
-                  <div className="loading-spinner mx-auto"></div>
-                  <p className="text-gray-500 mt-2">Loading job titles...</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+          <TopJobTitlesCard data={[]} loading={true} />
           <Card className="bg-white/80 backdrop-blur-sm shadow-lg border-0">
             <CardContent className="p-6">
               <div className="h-80 flex items-center justify-center">
@@ -119,7 +110,7 @@ export const VisualizationPanel: React.FC<VisualizationPanelProps> = ({
         />
       </div>
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <JobTitleDistributionChart 
+        <TopJobTitlesCard 
           data={dashboardData.jobTitleDistribution ? dashboardData.jobTitleDistribution.map(item => ({
             jobTitle: item.jobTitle,
             applications: item.applications,

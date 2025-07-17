@@ -93,7 +93,7 @@ export const H1BDashboard: React.FC = () => {
     jobCategories: []
   });
   const [filters, setFilters] = useState<FilterState>({
-    searchQuery: '',
+    searchQuery: '', // Keep this for now but don't use it
     fiscalYears: [],
     salaryRange: [0, 500000],
     states: [],
@@ -154,6 +154,7 @@ export const H1BDashboard: React.FC = () => {
     }
   };
 
+
   const fetchH1BData = async () => {
     try {
       setChartsLoading(true);
@@ -177,9 +178,7 @@ export const H1BDashboard: React.FC = () => {
         params.append('maxSalary', filters.salaryRange[1].toString());
       }
       
-      if (filters.searchQuery.trim()) {
-        params.append('searchQuery', filters.searchQuery.trim());
-      }
+      // Don't include searchQuery - search is now only for autocomplete, not filtering
       
       console.log('Fetching H1B data with params:', params.toString());
       
@@ -392,30 +391,6 @@ export const H1BDashboard: React.FC = () => {
           </div>
         </div>
 
-        {/* Action Buttons */}
-        <div className="flex flex-wrap gap-2 lg:gap-4 mb-8">
-          <ActionButton
-            label="Share Report"
-            variant="primary"
-            icon={<Share2 className="w-4 h-4" />}
-          />
-          <ActionButton
-            label="View Details"
-            variant="secondary"
-            icon={<Eye className="w-4 h-4" />}
-          />
-          <ActionButton
-            label="Export"
-            variant="secondary"
-            icon={<FileText className="w-4 h-4" />}
-          />
-          <ActionButton
-            label="Configure"
-            variant="secondary"
-            icon={<Settings2 className="w-4 h-4" />}
-          />
-        </div>
-
         {/* Search and Filters */}
         <div className="mb-8">
           <SearchAndFilters
@@ -424,6 +399,8 @@ export const H1BDashboard: React.FC = () => {
             isFilterOpen={isFilterOpen}
             setIsFilterOpen={setIsFilterOpen}
             filterOptions={filterOptions}
+            enableSemanticSearch={true}
+            showSearchInstructions={true}
           />
         </div>
 

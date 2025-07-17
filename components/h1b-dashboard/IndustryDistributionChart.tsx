@@ -2,6 +2,7 @@
 
 import { ResponsivePie } from '@nivo/pie'
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { useState } from 'react'
 
 interface IndustryData {
   industry: string
@@ -16,6 +17,9 @@ interface IndustryDistributionChartProps {
 }
 
 export function IndustryDistributionChart({ data, loading }: IndustryDistributionChartProps) {
+  const [hoveredSegment, setHoveredSegment] = useState<any>(null)
+  const [hoveredLegendItem, setHoveredLegendItem] = useState<string | null>(null)
+
   if (loading) {
     return (
       <Card className="w-full">
@@ -53,115 +57,172 @@ export function IndustryDistributionChart({ data, loading }: IndustryDistributio
     )
   }
 
+  // Shorten industry names for better display
+  const shortenIndustryName = (name: string) => {
+    const shortNames: { [key: string]: string } = {
+      'Information & Technology': 'Tech',
+      'Professional & Technical Services': 'Prof Services',
+      'Healthcare & Social Assistance': 'Healthcare',
+      'Finance & Insurance': 'Finance',
+      'Administrative & Support Services': 'Admin Services',
+      'Manufacturing': 'Manufacturing',
+      'Educational Services': 'Education',
+      'Accommodation & Food Services': 'Hospitality',
+      'Transportation & Warehousing': 'Transport',
+      'Arts, Entertainment & Recreation': 'Entertainment',
+      'Real Estate & Rental': 'Real Estate',
+      'Management of Companies': 'Management'
+    }
+    return shortNames[name] || (name.length > 12 ? name.substring(0, 12) + '...' : name)
+  }
+
+  // Enhanced color palette with better contrast (Top 5)
+  const enhancedColors = [
+    '#1E40AF', '#DC2626', '#059669', '#D97706', '#7C3AED'
+  ]
+
   // Process data for Nivo pie chart format
-  const pieData = data.slice(0, 8).map((item, index) => ({
+  const pieData = data.slice(0, 5).map((item, index) => ({
     id: item.industry,
-    label: item.industry.length > 25 ? item.industry.substring(0, 25) + '...' : item.industry,
+    label: shortenIndustryName(item.industry),
     value: item.applications,
     percentage: item.percentage,
     avgSalary: item.avgSalary,
-    color: [
-      '#1E40AF', '#2563EB', '#3B82F6', '#60A5FA', 
-      '#93C5FD', '#DBEAFE', '#6366F1', '#8B5CF6'
-    ][index]
+    color: enhancedColors[index] || '#6B7280'
   }))
+
+  const totalApplications = pieData.reduce((sum, item) => sum + item.value, 0)
+  const topIndustry = pieData[0]
+
+  // Center content component
+  const CenterContent = () => (
+    <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+      <div className="text-center">
+        {hoveredSegment && hoveredSegment.data ? (
+          <>
+            <div className="text-xs text-gray-500 font-medium mb-1">
+              {hoveredSegment.data.id || hoveredSegment.id}
+            </div>
+            <div className="text-lg font-bold text-gray-900">
+              {(hoveredSegment.data.percentage || hoveredSegment.percentage || 0).toFixed(1)}%
+            </div>
+            <div className="text-xs text-gray-500">
+              {(hoveredSegment.value || hoveredSegment.applications || 0).toLocaleString()} apps
+            </div>
+          </>
+        ) : (
+          <>
+            <div className="text-xs text-gray-500 font-medium mb-1">
+              Total Applications
+            </div>
+            <div className="text-lg font-bold text-blue-600">
+              {totalApplications.toLocaleString()}
+            </div>
+            <div className="text-xs text-gray-500">
+              across {pieData.length} industries
+            </div>
+          </>
+        )}
+      </div>
+    </div>
+  )
 
   return (
     <Card className="w-full">
       <CardHeader>
-        <CardTitle>Industry Distribution (Top 8)</CardTitle>
+        <CardTitle>Industry Distribution</CardTitle>
       </CardHeader>
       <CardContent>
-        <div style={{ height: '400px', width: '100%' }}>
+        <div style={{ height: '400px', width: '100%', position: 'relative' }}>
           <ResponsivePie
             data={pieData}
-            margin={{ top: 20, right: 80, bottom: 80, left: 80 }}
-            innerRadius={0.4}
-            padAngle={1}
-            cornerRadius={2}
-            activeOuterRadiusOffset={8}
+            margin={{ top: 20, right: 20, bottom: 80, left: 20 }}
+            innerRadius={0.55}
+            padAngle={2}
+            cornerRadius={3}
+            activeOuterRadiusOffset={12}
+            activeInnerRadiusOffset={-8}
             colors={{ datum: 'data.color' }}
-            borderWidth={0}
+            borderWidth={2}
+            borderColor={{ from: 'color', modifiers: [['darker', 0.3]] }}
             theme={{
               background: 'transparent',
               text: {
                 fontSize: 11,
-                fill: '#64748B',
-                fontFamily: 'Inter, system-ui, sans-serif'
-              },
-              legends: {
-                text: {
-                  fontSize: 10,
-                  fill: '#64748B',
-                  fontFamily: 'Inter, system-ui, sans-serif'
-                }
-              },
-              tooltip: {
-                container: {
-                  background: 'white',
-                  border: '1px solid #E2E8F0',
-                  borderRadius: '12px',
-                  boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)',
-                  fontSize: '12px',
-                  fontFamily: 'Inter, system-ui, sans-serif'
-                }
+                fill: '#374151',
+                fontFamily: 'Inter, system-ui, sans-serif',
+                fontWeight: 500
               }
             }}
-            arcLinkLabelsSkipAngle={15}
-            arcLinkLabelsTextColor="#64748B"
-            arcLinkLabelsThickness={2}
-            arcLinkLabelsColor={{ from: 'color' }}
-            arcLabelsSkipAngle={20}
+            enableArcLinkLabels={false}
+            arcLabelsSkipAngle={25}
             arcLabelsTextColor="#FFFFFF"
-            legends={[
-              {
-                anchor: 'bottom',
-                direction: 'row',
-                justify: false,
-                translateX: 0,
-                translateY: 56,
-                itemsSpacing: 0,
-                itemWidth: 100,
-                itemHeight: 18,
-                itemTextColor: '#64748B',
-                itemDirection: 'left-to-right',
-                itemOpacity: 1,
-                symbolSize: 12,
-                symbolShape: 'circle',
-                effects: [
-                  {
-                    on: 'hover',
-                    style: {
-                      itemTextColor: '#1E40AF'
-                    }
-                  }
-                ]
-              }
-            ]}
+            enableArcLabels={false}
+            onMouseEnter={(data) => {
+              setHoveredSegment(data)
+              setHoveredLegendItem(data.id)
+            }}
+            onMouseLeave={() => {
+              setHoveredSegment(null)
+              setHoveredLegendItem(null)
+            }}
             tooltip={({ datum }) => (
               <div className="bg-white/95 backdrop-blur-sm p-4 border border-gray-200 rounded-xl shadow-xl">
-                <div className="text-sm font-semibold text-gray-900 mb-3 max-w-48">
+                <div className="text-sm font-semibold text-gray-900 mb-3">
                   {datum.data.id}
                 </div>
                 <div className="space-y-2">
                   <div className="flex justify-between items-center">
                     <span className="text-xs text-gray-600">Applications:</span>
-                    <span className="text-sm font-medium text-blue-600">{datum.value.toLocaleString()}</span>
+                    <span className="text-sm font-semibold text-blue-600">{datum.value.toLocaleString()}</span>
                   </div>
                   <div className="flex justify-between items-center">
                     <span className="text-xs text-gray-600">Percentage:</span>
-                    <span className="text-sm font-medium text-blue-600">{datum.data.percentage?.toFixed(1)}%</span>
+                    <span className="text-sm font-semibold text-blue-600">{datum.data.percentage?.toFixed(1)}%</span>
                   </div>
                   <div className="flex justify-between items-center">
                     <span className="text-xs text-gray-600">Avg Salary:</span>
-                    <span className="text-sm font-medium text-blue-600">${datum.data.avgSalary?.toLocaleString()}</span>
+                    <span className="text-sm font-semibold text-blue-600">${datum.data.avgSalary?.toLocaleString()}</span>
                   </div>
                 </div>
               </div>
             )}
             animate={true}
-            motionConfig="gentle"
+            motionConfig="wobbly"
+            transitionMode="pushIn"
           />
+          <CenterContent />
+          
+          {/* Bottom Legend */}
+          <div className="absolute bottom-0 left-0 right-0">
+            <div className="grid grid-cols-1 sm:grid-cols-5 gap-2 px-4 pb-2">
+              {pieData.map((item, index) => (
+                <div
+                  key={item.id}
+                  className={`flex items-center space-x-2 p-1 rounded cursor-pointer transition-all duration-200 ${
+                    hoveredLegendItem === item.id ? 'bg-gray-100' : 'hover:bg-gray-50'
+                  }`}
+                  onMouseEnter={() => {
+                    setHoveredLegendItem(item.id)
+                    setHoveredSegment(item)
+                  }}
+                  onMouseLeave={() => {
+                    setHoveredLegendItem(null)
+                    setHoveredSegment(null)
+                  }}
+                  title={item.id} // Full name on hover
+                >
+                  <div
+                    className="w-3 h-3 rounded-full flex-shrink-0"
+                    style={{ backgroundColor: item.color }}
+                  />
+                  <span className="text-xs text-gray-600 truncate font-medium">
+                    {item.label}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
       </CardContent>
     </Card>

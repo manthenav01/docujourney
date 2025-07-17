@@ -45,27 +45,24 @@ export function SalaryDistributionChart({ data, loading }: SalaryDistributionCha
     )
   }
 
-  // Group salary ranges into broader categories
+  // Group salary ranges into 6 meaningful brackets for better clarity
   const groupedData = data.reduce((acc, item) => {
     let broadRange = '';
     const range = item.range.toLowerCase();
     
-    if (range.includes('under') || range.includes('below') || range.includes('< ')) {
-      broadRange = 'Under $60K';
-    } else if (range.includes('60') || range.includes('70')) {
-      broadRange = '$60K - $80K';
-    } else if (range.includes('80') || range.includes('90')) {
-      broadRange = '$80K - $100K';
-    } else if (range.includes('100') || range.includes('110') || range.includes('120')) {
-      broadRange = '$100K - $130K';
-    } else if (range.includes('130') || range.includes('140') || range.includes('150')) {
-      broadRange = '$130K - $160K';
-    } else if (range.includes('160') || range.includes('170') || range.includes('180')) {
-      broadRange = '$160K - $190K';
-    } else if (range.includes('190') || range.includes('200') || range.includes('210') || range.includes('220')) {
-      broadRange = '$190K - $230K';
+    if (range.includes('under') || range.includes('below') || range.includes('< ') || 
+        range.includes('60') || range.includes('70')) {
+      broadRange = 'Under $80K';
+    } else if (range.includes('80') || range.includes('90') || range.includes('100') || range.includes('110')) {
+      broadRange = '$80K - $120K';
+    } else if (range.includes('120') || range.includes('130') || range.includes('140') || range.includes('150')) {
+      broadRange = '$120K - $160K';
+    } else if (range.includes('160') || range.includes('170') || range.includes('180') || range.includes('190')) {
+      broadRange = '$160K - $200K';
+    } else if (range.includes('200') || range.includes('210') || range.includes('220') || range.includes('230') || range.includes('240')) {
+      broadRange = '$200K - $250K';
     } else {
-      broadRange = '$230K+';
+      broadRange = '$250K+';
     }
     
     const existing = acc.find(item => item.range === broadRange);
@@ -84,8 +81,14 @@ export function SalaryDistributionChart({ data, loading }: SalaryDistributionCha
   }, [] as SalaryDistributionData[]);
 
   // Sort by salary range order
-  const sortOrder = ['Under $60K', '$60K - $80K', '$80K - $100K', '$100K - $130K', '$130K - $160K', '$160K - $190K', '$190K - $230K', '$230K+'];
+  const sortOrder = ['Under $80K', '$80K - $120K', '$120K - $160K', '$160K - $200K', '$200K - $250K', '$250K+'];
   const sortedData = groupedData.sort((a, b) => sortOrder.indexOf(a.range) - sortOrder.indexOf(b.range));
+
+  // Calculate statistics for overlays
+  const totalApplications = sortedData.reduce((sum, item) => sum + item.count, 0);
+  const averageApplications = totalApplications / sortedData.length;
+  const medianIndex = Math.floor(sortedData.length / 2);
+  const medianApplications = sortedData[medianIndex]?.count || 0;
 
   return (
     <Card className="w-full">
@@ -93,56 +96,64 @@ export function SalaryDistributionChart({ data, loading }: SalaryDistributionCha
         <CardTitle>Salary Distribution</CardTitle>
       </CardHeader>
       <CardContent>
-        <div style={{ height: '400px', width: '100%' }}>
+        <div style={{ height: '450px', width: '100%', position: 'relative' }}>
           <ResponsiveBar
             data={sortedData}
             keys={['count']}
             indexBy="range"
-            margin={{ top: 20, right: 30, bottom: 80, left: 70 }}
-            padding={0.4}
+            margin={{ top: 40, right: 40, bottom: 80, left: 80 }}
+            padding={0.3}
             valueScale={{ type: 'linear' }}
             indexScale={{ type: 'band', round: true }}
-            colors={['#3B82F6', '#60A5FA', '#93C5FD', '#DBEAFE', '#1E40AF', '#2563EB', '#1D4ED8', '#6366F1']}
-            borderRadius={2}
+            colors={({ index }) => {
+              const gradientColors = [
+                '#1E3A8A', '#1E40AF', '#2563EB', '#3B82F6', '#60A5FA', '#93C5FD'
+              ];
+              return gradientColors[index] || '#3B82F6';
+            }}
+            borderRadius={6}
             borderWidth={0}
             theme={{
               background: 'transparent',
               text: {
-                fontSize: 12,
-                fill: '#64748B',
-                fontFamily: 'Inter, system-ui, sans-serif'
+                fontSize: 13,
+                fill: '#374151',
+                fontFamily: 'Inter, system-ui, sans-serif',
+                fontWeight: 500
               },
               axis: {
                 domain: {
                   line: {
-                    stroke: '#E2E8F0',
+                    stroke: '#E5E7EB',
                     strokeWidth: 1
                   }
                 },
                 legend: {
                   text: {
-                    fontSize: 13,
-                    fill: '#475569',
-                    fontWeight: 500,
+                    fontSize: 14,
+                    fill: '#1F2937',
+                    fontWeight: 600,
                     fontFamily: 'Inter, system-ui, sans-serif'
                   }
                 },
                 ticks: {
                   line: {
-                    stroke: '#E2E8F0',
+                    stroke: '#E5E7EB',
                     strokeWidth: 1
                   },
                   text: {
-                    fontSize: 11,
-                    fill: '#64748B',
-                    fontFamily: 'Inter, system-ui, sans-serif'
+                    fontSize: 12,
+                    fill: '#6B7280',
+                    fontFamily: 'Inter, system-ui, sans-serif',
+                    fontWeight: 500
                   }
                 }
               },
               grid: {
                 line: {
-                  stroke: '#F1F5F9',
-                  strokeWidth: 1
+                  stroke: '#F3F4F6',
+                  strokeWidth: 1,
+                  strokeDasharray: '2 4'
                 }
               }
             }}
@@ -150,36 +161,45 @@ export function SalaryDistributionChart({ data, loading }: SalaryDistributionCha
             axisRight={null}
             axisBottom={{
               tickSize: 0,
-              tickPadding: 8,
-              tickRotation: -45,
+              tickPadding: 12,
+              tickRotation: -35,
               legend: 'Salary Range',
               legendPosition: 'middle',
               legendOffset: 65
             }}
             axisLeft={{
               tickSize: 0,
-              tickPadding: 8,
+              tickPadding: 12,
               tickRotation: 0,
               legend: 'Number of Applications',
               legendPosition: 'middle',
-              legendOffset: -60
+              legendOffset: -65
             }}
             enableGridX={false}
             enableGridY={true}
-            labelSkipWidth={12}
-            labelSkipHeight={12}
+            labelSkipWidth={0}
+            labelSkipHeight={0}
             labelTextColor="#FFFFFF"
+            labelFormat={(value) => `${(value / 1000).toFixed(0)}K`}
             tooltip={({ indexValue, value, data }) => (
-              <div className="bg-white/95 backdrop-blur-sm p-4 border border-gray-200 rounded-xl shadow-xl">
-                <div className="text-sm font-semibold text-gray-900 mb-2">{indexValue}</div>
-                <div className="space-y-1">
+              <div className="bg-white/95 backdrop-blur-sm p-5 border border-gray-200 rounded-xl shadow-2xl">
+                <div className="text-sm font-bold text-gray-900 mb-3 border-b border-gray-100 pb-2">{indexValue}</div>
+                <div className="space-y-3">
                   <div className="flex justify-between items-center">
-                    <span className="text-xs text-gray-600">Count:</span>
-                    <span className="text-sm font-medium text-blue-600">{value?.toLocaleString()}</span>
+                    <span className="text-xs text-gray-600 font-medium">Applications:</span>
+                    <span className="text-sm font-bold text-blue-600">{value?.toLocaleString()}</span>
                   </div>
                   <div className="flex justify-between items-center">
-                    <span className="text-xs text-gray-600">Percentage:</span>
-                    <span className="text-sm font-medium text-blue-600">{data.percentage?.toFixed(1)}%</span>
+                    <span className="text-xs text-gray-600 font-medium">Share:</span>
+                    <span className="text-sm font-bold text-emerald-600">{data.percentage?.toFixed(1)}%</span>
+                  </div>
+                  <div className="flex justify-between items-center pt-2 border-t border-gray-100">
+                    <span className="text-xs text-gray-500">vs Average:</span>
+                    <span className={`text-sm font-semibold ${
+                      (value || 0) > averageApplications ? 'text-emerald-600' : 'text-orange-600'
+                    }`}>
+                      {((((value || 0) - averageApplications) / averageApplications) * 100).toFixed(0)}%
+                    </span>
                   </div>
                 </div>
               </div>
@@ -187,6 +207,21 @@ export function SalaryDistributionChart({ data, loading }: SalaryDistributionCha
             animate={true}
             motionConfig="gentle"
           />
+          
+          {/* Statistical Overlay Lines */}
+          <div className="absolute top-12 right-12 bg-white/90 backdrop-blur-sm p-3 rounded-lg border border-gray-200 shadow-sm">
+            <div className="text-xs font-semibold text-gray-700 mb-2">Statistics</div>
+            <div className="space-y-1">
+              <div className="flex items-center space-x-2">
+                <div className="w-3 h-0.5 bg-blue-500"></div>
+                <span className="text-xs text-gray-600">Avg: {averageApplications.toLocaleString()}</span>
+              </div>
+              <div className="flex items-center space-x-2">
+                <div className="w-3 h-0.5 bg-emerald-500"></div>
+                <span className="text-xs text-gray-600">Total: {totalApplications.toLocaleString()}</span>
+              </div>
+            </div>
+          </div>
         </div>
       </CardContent>
     </Card>
