@@ -120,7 +120,7 @@ export const CompanyDashboard: React.FC<CompanyDashboardProps> = ({
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-6">
+      <div className="min-h-screen bg-gray-50 p-6">
         <div className="max-w-7xl mx-auto">
           <div className="mb-6">
             <Button 
@@ -143,7 +143,7 @@ export const CompanyDashboard: React.FC<CompanyDashboardProps> = ({
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-6">
+      <div className="min-h-screen bg-gray-50 p-6">
         <div className="max-w-7xl mx-auto">
           <div className="mb-6">
             <Button 
@@ -190,7 +190,7 @@ export const CompanyDashboard: React.FC<CompanyDashboardProps> = ({
   const hasTrendData = companyInfo.yearlyTrends.length > 0;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-6">
+    <div className="min-h-screen bg-gray-50 p-6">
       <div className="max-w-7xl mx-auto space-y-6">
       {/* Header */}
       <div className="mb-6">
@@ -204,8 +204,8 @@ export const CompanyDashboard: React.FC<CompanyDashboardProps> = ({
         </Button>
         
         <div className="flex items-center space-x-4">
-          <div className="p-3 bg-gradient-to-br from-blue-600 to-blue-700 rounded-xl shadow-lg">
-            <Building className="w-8 h-8 text-white" />
+          <div className="p-3 bg-blue-50 rounded-xl">
+            <Building className="w-8 h-8 text-blue-600" />
           </div>
           <div>
             <h1 className="text-3xl font-bold text-gray-900">{companyName}</h1>
@@ -221,65 +221,57 @@ export const CompanyDashboard: React.FC<CompanyDashboardProps> = ({
 
       {/* Key Metrics Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <Card className="bg-gradient-to-br from-blue-50 to-blue-100 border-blue-200">
-          <CardHeader className="pb-3">
-            <CardTitle className="flex items-center text-sm font-medium text-blue-700">
-              <Users className="w-4 h-4 mr-2" />
-              Total Applications
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-blue-900">{formatNumber(companyInfo.totalApplications)}</div>
-            <p className="text-sm text-blue-600 mt-1">H1B petitions filed</p>
-          </CardContent>
-        </Card>
-
-        <Card className="bg-gradient-to-br from-green-50 to-green-100 border-green-200">
-          <CardHeader className="pb-3">
-            <CardTitle className="flex items-center text-sm font-medium text-green-700">
-              <Award className="w-4 h-4 mr-2" />
-              Certification Rate
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-green-900">{certificationRate}%</div>
-            <p className="text-sm text-green-600 mt-1">{formatNumber(companyInfo.certifiedApplications)} approved</p>
-          </CardContent>
-        </Card>
-
-        <Card className="bg-gradient-to-br from-purple-50 to-purple-100 border-purple-200">
-          <CardHeader className="pb-3">
-            <CardTitle className="flex items-center text-sm font-medium text-purple-700">
-              <DollarSign className="w-4 h-4 mr-2" />
-              Average Salary
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-purple-900">
-              {hasFinancialData ? formatCurrency(companyInfo.avgSalary) : 'N/A'}
+        <Card className="bg-white rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow duration-200">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between mb-4">
+              <div className="p-2 bg-blue-50 rounded-lg text-blue-600">
+                <Users className="w-6 h-6" />
+              </div>
             </div>
-            <p className="text-sm text-purple-600 mt-1">
-              {hasFinancialData ? `Median: ${formatCurrency(companyInfo.medianSalary)}` : 'No salary data available'}
+            <h3 className="text-gray-600 text-sm font-medium mb-1">Total Applications</h3>
+            <p className="text-3xl font-bold text-gray-900">{formatNumber(companyInfo.totalApplications)}</p>
+          </CardContent>
+        </Card>
+
+        <Card className="bg-white rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow duration-200">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between mb-4">
+              <div className="p-2 bg-green-50 rounded-lg text-green-600">
+                <Award className="w-6 h-6" />
+              </div>
+            </div>
+            <h3 className="text-gray-600 text-sm font-medium mb-1">Certification Rate</h3>
+            <p className="text-3xl font-bold text-gray-900">{certificationRate}%</p>
+          </CardContent>
+        </Card>
+
+        <Card className="bg-white rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow duration-200">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between mb-4">
+              <div className="p-2 bg-purple-50 rounded-lg text-purple-600">
+                <DollarSign className="w-6 h-6" />
+              </div>
+            </div>
+            <h3 className="text-gray-600 text-sm font-medium mb-1">Average Salary</h3>
+            <p className="text-3xl font-bold text-gray-900">
+              {hasFinancialData ? formatCurrency(companyInfo.avgSalary) : 'N/A'}
             </p>
           </CardContent>
         </Card>
 
-        <Card className="bg-gradient-to-br from-orange-50 to-orange-100 border-orange-200">
-          <CardHeader className="pb-3">
-            <CardTitle className="flex items-center text-sm font-medium text-orange-700">
-              <TrendingUp className="w-4 h-4 mr-2" />
-              Salary Range
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-lg font-bold text-orange-900">
+        <Card className="bg-white rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow duration-200">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between mb-4">
+              <div className="p-2 bg-orange-50 rounded-lg text-orange-600">
+                <TrendingUp className="w-6 h-6" />
+              </div>
+            </div>
+            <h3 className="text-gray-600 text-sm font-medium mb-1">Salary Range</h3>
+            <p className="text-3xl font-bold text-gray-900">
               {hasFinancialData && companyInfo.minSalary > 0 && companyInfo.maxSalary > 0
                 ? `${formatCurrency(companyInfo.minSalary)} - ${formatCurrency(companyInfo.maxSalary)}`
                 : 'N/A'
               }
-            </div>
-            <p className="text-sm text-orange-600 mt-1">
-              {hasFinancialData ? 'Salary spectrum' : 'No range data available'}
             </p>
           </CardContent>
         </Card>

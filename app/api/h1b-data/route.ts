@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { H1BBigQueryService, H1BQueryFilters } from '@/lib/h1bBigQueryService';
+import { cacheService } from '@/lib/cacheService';
 import path from 'path';
 
 // Initialize BigQuery service
@@ -39,12 +40,45 @@ export async function GET(request: NextRequest) {
       filters.searchQuery = searchParams.get('searchQuery')!;
     }
     
-    console.log('Fetching H1B data with filters:', filters);
+    // Check if this is a request for default dashboard data (no filters)
+    const isDefaultRequest = Object.keys(filters).length === 0 || 
+      (Object.keys(filters).length === 1 && filters.salaryRange && 
+       filters.salaryRange[0] === 0 && filters.salaryRange[1] === 500000);
     
-    // Fetch data from BigQuery
+    if (isDefaultRequest) {
+      // Try to get data from cache first
+      const cacheKey = 'dashboard_default';
+      const cachedData = cacheService.get(cacheKey);
+      
+      if (cachedData) {
+        console.log('Serving H1B data from cache (default dashboard)');
+        return NextResponse.json(cachedData);
+      }
+      
+      console.log('Cache miss - fetching default H1B data from BigQuery');
+      
+      // Fetch from BigQuery and cache the result
+      const data = await bigQueryService.getH1BDashboardData({});
+      
+      // Cache for 6 hours (H1B data doesn't change frequently)
+      cacheService.set(cacheKey, data, 6 * 60 * 60);
+      
+      console.log('Default H1B data cached successfully:', {
+        totalApplications: data.totalApplications,
+        avgSalary: data.avgSalary,
+        topEmployersCount: data.topEmployers.length,
+        statesCount: data.stateDistribution.length
+      });
+      
+      return NextResponse.json(data);
+    }
+    
+    // For filtered requests, fetch directly from BigQuery (no caching)
+    console.log('Fetching filtered H1B data from BigQuery:', filters);
+    
     const data = await bigQueryService.getH1BDashboardData(filters);
     
-    console.log('BigQuery data fetched successfully:', {
+    console.log('Filtered BigQuery data fetched successfully:', {
       totalApplications: data.totalApplications,
       avgSalary: data.avgSalary,
       topEmployersCount: data.topEmployers.length,

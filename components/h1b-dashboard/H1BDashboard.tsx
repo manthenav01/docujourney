@@ -118,6 +118,7 @@ export const H1BDashboard: React.FC = () => {
 
   useEffect(() => {
     // Debounce the API call when filters change
+    // Exclude searchQuery from dependencies since it's only used for autocomplete
     const timeoutId = setTimeout(() => {
       if (!loading) {
         fetchH1BData();
@@ -125,7 +126,7 @@ export const H1BDashboard: React.FC = () => {
     }, 500);
 
     return () => clearTimeout(timeoutId);
-  }, [filters]);
+  }, [filters.fiscalYears, filters.salaryRange, filters.states, filters.cities, filters.jobCategories, filters.skillLevels, filters.companySizes, filters.companyTypes, loading]);
 
   useEffect(() => {
     if (dashboardData) {
