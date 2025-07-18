@@ -15,9 +15,7 @@ import {
   FileText,
   Building,
   DollarSign,
-  CheckCircle,
   XCircle,
-  AlertCircle,
   Share2,
   Eye,
   Pause,
@@ -451,27 +449,7 @@ export const H1BDashboard: React.FC = () => {
           />
         </div>
 
-        {/* Application Status Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 lg:gap-6 mb-8">
-          <MetricCard
-            title="Certified Applications"
-            value={dashboardData.certifiedApplications.toLocaleString()}
-            icon={<CheckCircle className="w-6 h-6" />}
-            color="green"
-          />
-          <MetricCard
-            title="Denied Applications"
-            value={dashboardData.deniedApplications.toLocaleString()}
-            icon={<XCircle className="w-6 h-6" />}
-            color="red"
-          />
-          <MetricCard
-            title="Withdrawn Applications"
-            value={dashboardData.withdrawnApplications.toLocaleString()}
-            icon={<AlertCircle className="w-6 h-6" />}
-            color="yellow"
-          />
-        </div>
+
 
         {/* Main Content */}
         <div className="space-y-8">
