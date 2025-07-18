@@ -69,11 +69,11 @@ interface H1BDashboardData {
     avgSalary: number;
     percentage: number;
   }>;
-  industryDistribution: Array<{
-    industry: string;
-    applications: number;
+  caseStatusByJobCategory: Array<{
+    jobCategory: string;
+    caseStatus: string;
+    applicationCount: number;
     avgSalary: number;
-    percentage: number;
   }>;
 }
 
@@ -223,7 +223,7 @@ export const H1BDashboard: React.FC = () => {
         yearlyTrends: [],
         stateDistribution: [],
         jobTitleDistribution: [],
-        industryDistribution: []
+        caseStatusByJobCategory: []
       });
     } finally {
       setLoading(false);
