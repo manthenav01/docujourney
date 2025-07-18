@@ -21,7 +21,7 @@ export const doNamesMatch = (
   firstName1: string, 
   lastName1: string, 
   firstName2: string, 
-  lastName2: string
+  lastName2: string,
 ): boolean => {
   // Normalize all names
   const normalizedFirst1 = normalizeName(firstName1 || '');
@@ -31,20 +31,20 @@ export const doNamesMatch = (
   
   // Method 1: Exact first/last name match
   const exactMatch = normalizedFirst1 === normalizedFirst2 && normalizedLast1 === normalizedLast2;
-  if (exactMatch) return true;
+  if (exactMatch) {return true;}
   
   // Method 2: Full name comparison (handles cases where first name includes middle name)
   const fullName1 = normalizeName(createFullName(firstName1, lastName1));
   const fullName2 = normalizeName(createFullName(firstName2, lastName2));
   const fullNameMatch = fullName1 === fullName2;
-  if (fullNameMatch) return true;
+  if (fullNameMatch) {return true;}
   
   // Method 3: Check if one first name is contained in the other (for middle name cases)
   // e.g., "John Michael" matches "John" or "Michael John" matches "John"
   if (normalizedLast1 === normalizedLast2) {
     const containsMatch = normalizedFirst1.includes(normalizedFirst2) || 
                          normalizedFirst2.includes(normalizedFirst1);
-    if (containsMatch) return true;
+    if (containsMatch) {return true;}
   }
   
   // Method 4: Check if the extracted name parts match when split differently
@@ -58,7 +58,7 @@ export const doNamesMatch = (
     const longerWords = allWords1.length > allWords2.length ? allWords1 : allWords2;
     
     const allWordsPresent = shorterWords.every(word => longerWords.includes(word));
-    if (allWordsPresent) return true;
+    if (allWordsPresent) {return true;}
   }
   
   return false;
@@ -74,9 +74,9 @@ export const doNamesMatch = (
 export const findMatchingProfile = (
   extractedFirstName: string, 
   extractedLastName: string, 
-  profiles: Profile[]
+  profiles: Profile[],
 ): Profile | null => {
   return profiles.find(profile => 
-    doNamesMatch(extractedFirstName, extractedLastName, profile.firstName, profile.lastName)
+    doNamesMatch(extractedFirstName, extractedLastName, profile.firstName, profile.lastName),
   ) || null;
 };

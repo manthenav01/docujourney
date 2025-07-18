@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
@@ -12,7 +12,7 @@ import {
   User,
   X,
   ChevronRight,
-  Zap
+  Zap,
 } from 'lucide-react';
 
 interface SearchSuggestion {
@@ -39,10 +39,10 @@ interface SemanticSearchOptions {
 export const SemanticSearch: React.FC<SemanticSearchProps> = ({
   onSearch,
   onSuggestionSelect,
-  placeholder = "Search jobs, companies, or locations...",
-  className = "",
-  initialQuery = "",
-  showSemanticToggle = true
+  placeholder = 'Search jobs, companies, or locations...',
+  className = '',
+  initialQuery = '',
+  showSemanticToggle = true,
 }) => {
   const [query, setQuery] = useState(initialQuery);
   const [suggestions, setSuggestions] = useState<SearchSuggestion[]>([]);
@@ -108,12 +108,12 @@ export const SemanticSearch: React.FC<SemanticSearchProps> = ({
   }, []);
 
   const fetchSuggestions = async (searchQuery: string) => {
-    if (!searchQuery.trim()) return;
+    if (!searchQuery.trim()) {return;}
     
     setIsLoading(true);
     try {
       const response = await fetch(
-        `/api/semantic-search?action=autocomplete&query=${encodeURIComponent(searchQuery)}&limit=12`
+        `/api/semantic-search?action=autocomplete&query=${encodeURIComponent(searchQuery)}&limit=12`,
       );
       
       if (response.ok) {
@@ -129,14 +129,14 @@ export const SemanticSearch: React.FC<SemanticSearchProps> = ({
   };
 
   const handleSearch = (searchQuery: string = query) => {
-    if (!searchQuery.trim()) return;
+    if (!searchQuery.trim()) {return;}
     
     const trimmedQuery = searchQuery.trim();
     
     // Add to recent searches
     const newRecentSearches = [
       trimmedQuery,
-      ...recentSearches.filter(s => s !== trimmedQuery)
+      ...recentSearches.filter(s => s !== trimmedQuery),
     ].slice(0, 5);
     
     setRecentSearches(newRecentSearches);
@@ -158,7 +158,7 @@ export const SemanticSearch: React.FC<SemanticSearchProps> = ({
     // Add to recent searches
     const newRecentSearches = [
       suggestion.text,
-      ...recentSearches.filter(s => s !== suggestion.text)
+      ...recentSearches.filter(s => s !== suggestion.text),
     ].slice(0, 5);
     
     setRecentSearches(newRecentSearches);
@@ -172,13 +172,13 @@ export const SemanticSearch: React.FC<SemanticSearchProps> = ({
       const looksLikeCompanyName = (text: string) => {
         const companyIndicators = [
           'INC', 'LLC', 'CORP', 'LTD', 'CORPORATION', 'COMPANY', 'CO',
-          'TECHNOLOGIES', 'SYSTEMS', 'SOLUTIONS', 'SERVICES', 'GROUP'
+          'TECHNOLOGIES', 'SYSTEMS', 'SOLUTIONS', 'SERVICES', 'GROUP',
         ];
         const upperText = text.toUpperCase();
         return companyIndicators.some(indicator => 
           upperText.includes(indicator + '.') || 
           upperText.includes(indicator + ',') || 
-          upperText.endsWith(indicator)
+          upperText.endsWith(indicator),
         );
       };
       
@@ -204,7 +204,7 @@ export const SemanticSearch: React.FC<SemanticSearchProps> = ({
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (!showSuggestions) return;
+    if (!showSuggestions) {return;}
     
     const totalItems = suggestions.length + (query.length < 2 ? recentSearches.length : 0);
     
@@ -259,7 +259,7 @@ export const SemanticSearch: React.FC<SemanticSearchProps> = ({
   };
 
   const highlightMatch = (text: string, query: string) => {
-    if (!query.trim()) return text;
+    if (!query.trim()) {return text;}
     
     const regex = new RegExp(`(${query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
     const parts = text.split(regex);
@@ -269,7 +269,7 @@ export const SemanticSearch: React.FC<SemanticSearchProps> = ({
         <span key={index} className="bg-yellow-200 font-semibold">{part}</span>
       ) : (
         part
-      )
+      ),
     );
   };
 

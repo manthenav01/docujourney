@@ -63,19 +63,19 @@ export async function POST(request: NextRequest) {
       profileId,
       profile,
       documents: allDocuments,
-      forceRegenerate
+      forceRegenerate,
     });
 
     return NextResponse.json({
       success: true,
-      ...timelineResult
+      ...timelineResult,
     });
 
   } catch (error) {
     console.error('Timeline generation API error:', error);
     return NextResponse.json(
       { error: 'Internal server error' },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

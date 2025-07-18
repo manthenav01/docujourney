@@ -128,13 +128,13 @@ Return your response as a JSON object with this exact structure:
     const requestBody = {
       contents: [
         {
-          parts: [{ text: prompt }]
-        }
+          parts: [{ text: prompt }],
+        },
       ],
       generationConfig: {
         temperature: 0.3,
         maxOutputTokens: 1000,
-      }
+      },
     };
 
     console.log('Request body:', JSON.stringify(requestBody, null, 2));
@@ -190,7 +190,7 @@ Return your response as a JSON object with this exact structure:
         statusDetails: 'Unable to parse AI response, but analysis was attempted',
         expirationWarnings: [],
         nextActions: ['Please try again or review documents manually'],
-        confidence: 0.1
+        confidence: 0.1,
       };
     }
     return {
@@ -199,7 +199,7 @@ Return your response as a JSON object with this exact structure:
       statusDetails: parsedResponse.statusDetails || 'Unable to determine status',
       expirationWarnings: parsedResponse.expirationWarnings || [],
       nextActions: parsedResponse.nextActions || [],
-      confidence: parsedResponse.confidence || 0.5
+      confidence: parsedResponse.confidence || 0.5,
     };
   } catch (error) {
     console.error('Error analyzing visa status:', error);
@@ -209,7 +209,7 @@ Return your response as a JSON object with this exact structure:
       statusDetails: 'Failed to analyze visa status',
       expirationWarnings: [],
       nextActions: ['Please review documents manually'],
-      confidence: 0
+      confidence: 0,
     };
   }
 }
@@ -219,7 +219,7 @@ Return your response as a JSON object with this exact structure:
  */
 export function prepareDocumentsForAnalysis(documents: any[]): DocumentSummary[] {
   const convertFirebaseTimestamp = (value: any): string | undefined => {
-    if (!value) return undefined;
+    if (!value) {return undefined;}
     
     // Check if it's a Firebase Timestamp
     if (value && typeof value === 'object' && typeof value.toDate === 'function') {
@@ -255,6 +255,6 @@ export function prepareDocumentsForAnalysis(documents: any[]): DocumentSummary[]
       issueDate: convertFirebaseTimestamp(doc.extracted.notice_date),
       expirationDate: convertFirebaseTimestamp(doc.extracted.valid_to), // Using valid_to as expiration date
       classOfAdmission: doc.extracted.class_of_admission || undefined,
-      countryOfCitizen: doc.extracted.country_of_citizen || undefined
+      countryOfCitizen: doc.extracted.country_of_citizen || undefined,
     }));
 }

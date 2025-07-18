@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 /**
  * Client-side timeline trigger functions
@@ -11,7 +11,7 @@
 export async function triggerTimelineRegeneration(
   userId: string,
   profileId: string,
-  reason: 'document_upload' | 'document_verification' | 'profile_update' | 'manual'
+  reason: 'document_upload' | 'document_verification' | 'profile_update' | 'manual',
 ): Promise<void> {
   try {
     // Get the current user's auth token
@@ -30,13 +30,13 @@ export async function triggerTimelineRegeneration(
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`
+        'Authorization': `Bearer ${token}`,
       },
       body: JSON.stringify({
         userId,
         profileId,
         reason,
-        forceRegenerate: true
+        forceRegenerate: true,
       }),
     });
 
@@ -59,7 +59,7 @@ export async function triggerTimelineRegeneration(
  */
 export async function checkTimelineHealthAndRegenerate(
   userId: string,
-  profileId: string
+  profileId: string,
 ): Promise<void> {
   try {
     const { getAuth } = await import('firebase/auth');
@@ -76,12 +76,12 @@ export async function checkTimelineHealthAndRegenerate(
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`
+        'Authorization': `Bearer ${token}`,
       },
       body: JSON.stringify({
         userId,
         profileId,
-        action: 'health_check'
+        action: 'health_check',
       }),
     });
 

@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import React, { useState } from 'react';
 import { Profile } from '@/lib/types/profile.model';
@@ -11,7 +11,7 @@ import ProfileEditDialog from './ProfileEditDialog';
 import { 
     getVisaStatusColorClasses, 
     getVisaStatusIcon, 
-    getVisaStatusDisplayText 
+    getVisaStatusDisplayText, 
 } from '@/lib/visaStatusUtils';
 import { formatValue } from '@/utils/documentUtils';
 import { sortProfilesByRelationship } from '@/utils/profileUtils';
@@ -21,7 +21,6 @@ interface ProfilesDisplayProps {
     userId: string;
     onAddProfile?: () => void;
 }
-
 
 
 const ProfilesDisplay: React.FC<ProfilesDisplayProps> = ({ profiles, userId, onAddProfile }) => {
@@ -139,7 +138,7 @@ const ProfilesDisplay: React.FC<ProfilesDisplayProps> = ({ profiles, userId, onA
                                     <div className="flex justify-between items-center">
                                         <span className="text-xs text-gray-500">Visa Status:</span>
                                         <div className="flex items-center gap-1">
-                                            {statusIcon && React.createElement(statusIcon, { className: "w-3 h-3" })}
+                                            {statusIcon && React.createElement(statusIcon, { className: 'w-3 h-3' })}
                                             <Badge 
                                                 className={`${getVisaStatusColorClasses(profile.lastVisaStatusAnalysis.currentStatus)} text-xs border-0`}
                                             >

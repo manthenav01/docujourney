@@ -9,7 +9,7 @@ export async function GET(request: NextRequest) {
     if (!userId) {
       return NextResponse.json(
         { error: 'Missing userId parameter' },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -27,7 +27,7 @@ export async function GET(request: NextRequest) {
     console.error('Error fetching user info:', error);
     return NextResponse.json(
       { error: 'Failed to fetch user information' },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

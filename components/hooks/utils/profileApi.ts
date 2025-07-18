@@ -10,7 +10,7 @@ export const createNewProfile = async (
   firstName: string, 
   lastName: string, 
   relationship: string, 
-  email?: string
+  email?: string,
 ): Promise<string> => {
   try {
     const response = await fetch('/api/createProfile', {
@@ -21,7 +21,7 @@ export const createNewProfile = async (
         firstName,
         lastName,
         email: email || '',
-        relationship
+        relationship,
       }),
     });
     
@@ -37,7 +37,7 @@ export const createNewProfile = async (
       console.error('Failed to create profile:', {
         status: response.status,
         statusText: response.statusText,
-        error: errorData
+        error: errorData,
       });
       throw new Error(`Failed to create profile: ${errorData.error || response.statusText}`);
     }
@@ -73,7 +73,7 @@ export const fetchProfileById = async (userId: string, profileId: string): Promi
       lastVisaStatusAnalysis = {
         ...data.lastVisaStatusAnalysis,
         analyzedAt: data.lastVisaStatusAnalysis.analyzedAt?.toDate?.()?.toISOString() || 
-                   (typeof data.lastVisaStatusAnalysis.analyzedAt === 'string' ? data.lastVisaStatusAnalysis.analyzedAt : null)
+                   (typeof data.lastVisaStatusAnalysis.analyzedAt === 'string' ? data.lastVisaStatusAnalysis.analyzedAt : null),
       };
     }
     
@@ -95,7 +95,7 @@ export const fetchProfileById = async (userId: string, profileId: string): Promi
       isAdmin: data.admin || false,
       relationship: data.relationship || '',
       currentlyEmployed: data.currentlyEmployed || false,
-      lastVisaStatusAnalysis
+      lastVisaStatusAnalysis,
     } as Profile;
   } catch (error) {
     console.error('Error fetching profile:', error);

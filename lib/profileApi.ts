@@ -1,6 +1,6 @@
-import { adminDb } from "./firebaseAdmin";
-import { Profile } from "./types/profile.model";
-import { ensureUserDocumentExists } from "./userApi";
+import { adminDb } from './firebaseAdmin';
+import { Profile } from './types/profile.model';
+import { ensureUserDocumentExists } from './userApi';
 
 export const fetchProfiles = async (userId: string) => {
     // Use Firebase Admin SDK to bypass security rules for SSR
@@ -18,7 +18,7 @@ export const fetchProfiles = async (userId: string) => {
             lastVisaStatusAnalysis = {
                 ...data.lastVisaStatusAnalysis,
                 analyzedAt: data.lastVisaStatusAnalysis.analyzedAt?.toDate?.()?.toISOString() || 
-                           (typeof data.lastVisaStatusAnalysis.analyzedAt === 'string' ? data.lastVisaStatusAnalysis.analyzedAt : null)
+                           (typeof data.lastVisaStatusAnalysis.analyzedAt === 'string' ? data.lastVisaStatusAnalysis.analyzedAt : null),
             };
         }
         
@@ -41,7 +41,7 @@ export const fetchProfiles = async (userId: string) => {
             isAdmin: data.admin || false, // Alias for easier component use
             relationship: data.relationship || null,
             currentlyEmployed: data.currentlyEmployed || false,
-            lastVisaStatusAnalysis
+            lastVisaStatusAnalysis,
         } as Profile;
     });
 };
@@ -86,7 +86,7 @@ export const createProfile = async (userId: string, profileData: {
     const docRef = await profileRef.add(newProfile);
     console.log(`Created profile ${docRef.id} for user ${userId}:`, { 
         firstName: profileData.firstName, 
-        lastName: profileData.lastName 
+        lastName: profileData.lastName, 
     });
     return docRef.id;
 };

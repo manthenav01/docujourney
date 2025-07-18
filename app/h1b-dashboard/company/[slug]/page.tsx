@@ -1,17 +1,11 @@
-"use client";
+import { CompanyPageClient } from './CompanyPageClient';
 
-import { useSearchParams } from 'next/navigation';
-import { useEffect, useState } from 'react';
-import { CompanyDashboard } from '@/components/h1b-dashboard';
+type PageProps = {
+  params: Promise<{ slug: string }>;
+};
 
-export default function CompanyPage({ params }: { params: { slug: string } }) {
-  const searchParams = useSearchParams();
-  const companyName = searchParams.get('name') || 'Unknown Company';
-
-  return (
-    <CompanyDashboard 
-      companySlug={params.slug}
-      companyName={companyName}
-    />
-  );
+export default async function CompanyPage({ params }: PageProps) {
+  const { slug } = await params;
+  
+  return <CompanyPageClient slug={slug} />;
 }

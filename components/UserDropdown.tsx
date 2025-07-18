@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import React, { useEffect, useState } from 'react';
 import { User, Settings, LogOut, ChevronUp } from 'lucide-react';
@@ -9,9 +9,9 @@ import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from "@/components/ui/popover";
-import { Button } from "@/components/ui/Button";
-import { Separator } from "@/components/ui/separator";
+} from '@/components/ui/popover';
+import { Button } from '@/components/ui/Button';
+import { Separator } from '@/components/ui/separator';
 import { toast } from 'sonner';
 
 interface UserInfo {

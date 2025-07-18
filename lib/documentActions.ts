@@ -48,7 +48,7 @@ export async function fetchDocumentSchemas(): Promise<Record<string, DocumentTyp
 
         return schemas;
     } catch (error) {
-        console.error("Failed to fetch document schemas:", error);
+        console.error('Failed to fetch document schemas:', error);
         return {};
     }
 }
@@ -57,7 +57,7 @@ export async function fetchDocumentSchemas(): Promise<Record<string, DocumentTyp
 export async function fetchAndGroupDocuments(
     userId: string, 
     profileId: string, 
-    documentSchemas?: Record<string, DocumentTypeSchemaModel>
+    documentSchemas?: Record<string, DocumentTypeSchemaModel>,
 ): Promise<{
     documentGroups: { documentType: string; docs: DocumentMetaDataTransformedModel[] }[];
 }> {
@@ -99,7 +99,7 @@ export async function fetchAndGroupDocuments(
 
         return { documentGroups };
     } catch (error) {
-        console.error("Failed to fetch and group documents:", error);
+        console.error('Failed to fetch and group documents:', error);
         return { documentGroups: [] };
     }
 }
@@ -109,7 +109,7 @@ export async function fetchAndGroupDocuments(
 export async function fetchDocumentsByType(
     userId: string,
     profileId: string,
-    documentType: string
+    documentType: string,
 ): Promise<DocumentMetaDataTransformedModel[]> {
     const snapshot = await adminDb
         .collection('users')
@@ -130,20 +130,18 @@ export async function fetchDocumentsByType(
 }
 
 
-
-
 // Utility to sort documents by schema order
 export function sortDocumentsBySchemaOrder(
     documents: DocumentMetaDataTransformedModel[],
-    documentSchema: DocumentTypeSchemaModel
+    documentSchema: DocumentTypeSchemaModel,
 ): DocumentMetaDataTransformedModel[] {
-    if (!documentSchema?.sortByKeyOrder || documentSchema.sortByKeyOrder.length === 0) return documents;
+    if (!documentSchema?.sortByKeyOrder || documentSchema.sortByKeyOrder.length === 0) {return documents;}
 
     // Only sort by keys that exist in DocumentExtractedResponseAPIData
     const validSortKey = documentSchema.sortByKeyOrder.find(key =>
-        documents[0]?.extracted && (key as keyof DocumentExtractedResponseAPIData) in documents[0].extracted!
+        documents[0]?.extracted && (key as keyof DocumentExtractedResponseAPIData) in documents[0].extracted!,
     );
-    if (!validSortKey) return documents;
+    if (!validSortKey) {return documents;}
 
     const isFirestoreTimestamp = (value: any): value is FirebaseFirestore.Timestamp =>
         value && typeof value.seconds === 'number';

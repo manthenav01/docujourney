@@ -19,7 +19,7 @@ import { fetchAndGroupDocuments } from './documentActions';
 export async function triggerTimelineRegeneration(
   userId: string,
   profileId: string,
-  reason: 'document_upload' | 'document_verification' | 'profile_update' | 'manual'
+  reason: 'document_upload' | 'document_verification' | 'profile_update' | 'manual',
 ) {
   console.log(`=== TIMELINE TRIGGER ===`);
   console.log(`User: ${userId}, Profile: ${profileId}, Reason: ${reason}`);
@@ -70,7 +70,7 @@ export async function triggerTimelineRegeneration(
       profileId,
       profile,
       documents: allDocuments,
-      forceRegenerate: shouldAutoRegenerate
+      forceRegenerate: shouldAutoRegenerate,
     });
 
     console.log(`Timeline regeneration completed for reason: ${reason}`);

@@ -9,7 +9,7 @@ export const uploadFileToStorage = async (
   file: File,
   userId: string,
   profileId: string,
-  onProgress: (progress: number) => void
+  onProgress: (progress: number) => void,
 ): Promise<string> => {
   return new Promise(async (resolve, reject) => {
     try {
@@ -21,7 +21,7 @@ export const uploadFileToStorage = async (
         extracted: null,
         url: '',
         filePath: '',
-        uploadedAt: new Date().toISOString()
+        uploadedAt: new Date().toISOString(),
       });
       
       // 2) Upload to Storage
@@ -50,7 +50,7 @@ export const uploadFileToStorage = async (
             console.error('Error getting download URL:', err);
             reject(new Error('Failed to complete upload. Please try again.'));
           }
-        }
+        },
       );
     } catch (error) {
       console.error('Error starting upload:', error);

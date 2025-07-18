@@ -18,7 +18,7 @@ export const DocumentTypeSelection: React.FC<DocumentTypeSelectionProps> = ({
   onSelect,
   onCancel,
   isLoading = false,
-  showFirstEntryStep = false
+  showFirstEntryStep = false,
 }) => {
   const [selectedType, setSelectedType] = React.useState<string>('');
 
@@ -26,7 +26,7 @@ export const DocumentTypeSelection: React.FC<DocumentTypeSelectionProps> = ({
     value: key,
     label: schema.displayName || key,
     description: `${schema.fields?.filter(f => f.editable)?.length || 0} fields to fill`,
-    fieldCount: schema.fields?.filter(f => f.editable)?.length || 0
+    fieldCount: schema.fields?.filter(f => f.editable)?.length || 0,
   }));
 
   const handleContinue = () => {
@@ -42,12 +42,12 @@ export const DocumentTypeSelection: React.FC<DocumentTypeSelectionProps> = ({
       <div className="flex-shrink-0">
         <Stepper 
           steps={showFirstEntryStep ? [
-            { title: "First Entry Date", description: "Date entered" },
-            { title: "Document Type", description: "Select type" },
-            { title: "Verify Data", description: "Review fields" }
+            { title: 'First Entry Date', description: 'Date entered' },
+            { title: 'Document Type', description: 'Select type' },
+            { title: 'Verify Data', description: 'Review fields' },
           ] : [
-            { title: "Document Type", description: "Select type" },
-            { title: "Verify Data", description: "Review fields" }
+            { title: 'Document Type', description: 'Select type' },
+            { title: 'Verify Data', description: 'Review fields' },
           ]}
           currentStep={showFirstEntryStep ? 1 : 0}
           className="mb-6"

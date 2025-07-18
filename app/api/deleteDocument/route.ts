@@ -9,7 +9,7 @@ export async function POST(request: NextRequest) {
         if (!userId || !profileId || !documentId) {
             return NextResponse.json(
                 { error: 'Missing required parameters: userId, profileId, or documentId' },
-                { status: 400 }
+                { status: 400 },
             );
         }
 
@@ -18,13 +18,13 @@ export async function POST(request: NextRequest) {
 
         return NextResponse.json(
             { message: 'Document deleted successfully' },
-            { status: 200 }
+            { status: 200 },
         );
     } catch (error) {
         console.error('Error deleting document:', error);
         return NextResponse.json(
             { error: 'Failed to delete document' },
-            { status: 500 }
+            { status: 500 },
         );
     }
 }

@@ -1,6 +1,6 @@
-'use client'
+'use client';
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 interface JobTitleData {
   jobTitle: string
@@ -35,7 +35,7 @@ export function TopJobTitlesCard({ data, loading }: TopJobTitlesCardProps) {
           </div>
         </CardContent>
       </Card>
-    )
+    );
   }
 
   if (!data || data.length === 0) {
@@ -50,12 +50,12 @@ export function TopJobTitlesCard({ data, loading }: TopJobTitlesCardProps) {
           </div>
         </CardContent>
       </Card>
-    )
+    );
   }
 
   // Get top 5 job titles
-  const topJobTitles = data.slice(0, 5)
-  const maxApplications = Math.max(...topJobTitles.map(item => item.applications))
+  const topJobTitles = data.slice(0, 5);
+  const maxApplications = Math.max(...topJobTitles.map(item => item.applications));
 
   return (
     <Card className="w-full">
@@ -64,7 +64,7 @@ export function TopJobTitlesCard({ data, loading }: TopJobTitlesCardProps) {
       </CardHeader>
       <CardContent className="space-y-4">
         {topJobTitles.map((item, index) => {
-          const progressWidth = (item.applications / maxApplications) * 100
+          const progressWidth = (item.applications / maxApplications) * 100;
           
           return (
             <div
@@ -109,7 +109,7 @@ export function TopJobTitlesCard({ data, loading }: TopJobTitlesCardProps) {
                 </div>
               </div>
             </div>
-          )
+          );
         })}
         
         {/* Summary footer */}
@@ -123,5 +123,5 @@ export function TopJobTitlesCard({ data, loading }: TopJobTitlesCardProps) {
         </div>
       </CardContent>
     </Card>
-  )
+  );
 }

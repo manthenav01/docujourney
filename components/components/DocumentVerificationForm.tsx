@@ -40,7 +40,7 @@ export const DocumentVerificationForm: React.FC<DocumentVerificationFormProps> =
   onSubmit,
   onCancel,
   onDelete,
-  isLoading = false
+  isLoading = false,
 }) => {
   // Initialize form with proper default values to prevent controlled/uncontrolled switching
   const getDefaultValues = () => {
@@ -65,7 +65,7 @@ export const DocumentVerificationForm: React.FC<DocumentVerificationFormProps> =
   };
 
   const form = useForm<{ [key: string]: any }>({ 
-    defaultValues: getDefaultValues()
+    defaultValues: getDefaultValues(),
   });
   const [isDeleting, setIsDeleting] = useState(false);
   
@@ -73,7 +73,7 @@ export const DocumentVerificationForm: React.FC<DocumentVerificationFormProps> =
   const schema = documentSchemas[documentType];
   const editableFields = useMemo(() => 
     schema?.fields.filter(field => field.editable) || [], 
-    [schema]
+    [schema],
   );
 
   useEffect(() => {
@@ -94,7 +94,7 @@ export const DocumentVerificationForm: React.FC<DocumentVerificationFormProps> =
       // Only reset if the values are actually different
       const currentValues = form.getValues();
       const hasChanges = Object.keys(sanitizedFields).some(key => 
-        currentValues[key] !== sanitizedFields[key]
+        currentValues[key] !== sanitizedFields[key],
       );
       
       if (hasChanges) {
@@ -153,13 +153,13 @@ export const DocumentVerificationForm: React.FC<DocumentVerificationFormProps> =
               className="w-full justify-start h-11 bg-white border-gray-200 focus:border-blue-400 focus:ring-2 focus:ring-blue-100 transition-colors"
             >
               <CalendarIcon className="h-4 w-4 mr-3 text-gray-500" />
-              <span className={controllerField.value ? "text-gray-900" : "text-gray-500"}>
+              <span className={controllerField.value ? 'text-gray-900' : 'text-gray-500'}>
                 {controllerField.value 
                   ? new Date(controllerField.value).toLocaleDateString('en-US', {
                       year: 'numeric',
                       month: 'long',
                       day: 'numeric',
-                      timeZone: 'UTC'
+                      timeZone: 'UTC',
                     })
                   : 'Select date'
                 }
@@ -250,15 +250,15 @@ export const DocumentVerificationForm: React.FC<DocumentVerificationFormProps> =
                     ...(field.type === 'email' && {
                       pattern: {
                         value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
-                        message: 'Invalid email address'
-                      }
+                        message: 'Invalid email address',
+                      },
                     }),
                     ...(field.type === 'number' && {
                       pattern: {
                         value: /^\d+$/,
-                        message: 'Please enter a valid number'
-                      }
-                    })
+                        message: 'Please enter a valid number',
+                      },
+                    }),
                   }}
                   render={({ field: controllerField }) => {
                     // Ensure the field value is always defined to prevent controlled/uncontrolled switching
@@ -268,7 +268,7 @@ export const DocumentVerificationForm: React.FC<DocumentVerificationFormProps> =
                     
                     const enhancedControllerField = {
                       ...controllerField,
-                      value: fieldValue
+                      value: fieldValue,
                     };
                     
                     return (

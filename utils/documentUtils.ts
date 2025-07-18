@@ -2,13 +2,13 @@ import { DocumentExtractedTransformedData, DocumentMetaDataAPIModel, DocumentMet
 import { DocumentTypeSchemaModel } from '@/lib/documentActions';
 
 export function sortDocumentsBySchemaOrder(documents: DocumentMetaDataTransformedModel[], documentSchema: DocumentTypeSchemaModel): DocumentMetaDataTransformedModel[] {
-    if (!documentSchema?.sortByKeyOrder || documentSchema.sortByKeyOrder.length === 0) return documents;
+    if (!documentSchema?.sortByKeyOrder || documentSchema.sortByKeyOrder.length === 0) {return documents;}
 
     // Only sort by keys that exist in DocumentExtractedResponseData
     const validSortKey = documentSchema.sortByKeyOrder.find(key =>
-        documents[0]?.extracted && (key as keyof DocumentExtractedTransformedData) in documents[0].extracted!
+        documents[0]?.extracted && (key as keyof DocumentExtractedTransformedData) in documents[0].extracted!,
     );
-    if (!validSortKey) return documents;
+    if (!validSortKey) {return documents;}
 
     return documents.slice().sort((a, b) => {
         const aExtracted = a.extracted as DocumentExtractedTransformedData | null;
@@ -38,7 +38,7 @@ export function sortDocumentsBySchemaOrder(documents: DocumentMetaDataTransforme
 
 export function formatValue(value: any, fieldType?: string): string {
     // Handle null or undefined
-    if (value === undefined || value === null) return 'N/A';
+    if (value === undefined || value === null) {return 'N/A';}
 
     // Handle date strings if field type is date
     if (fieldType === 'date' && typeof value === 'string') {
@@ -51,7 +51,7 @@ export function formatValue(value: any, fieldType?: string): string {
                 month: 'long',
                 day: 'numeric',
                 year: 'numeric',
-                timeZone: 'UTC'
+                timeZone: 'UTC',
             });
         }
     }
@@ -61,7 +61,7 @@ export function formatValue(value: any, fieldType?: string): string {
 }
 
 export function transformDocumentMetaData(
-    doc: DocumentMetaDataAPIModel
+    doc: DocumentMetaDataAPIModel,
 ): DocumentMetaDataTransformedModel {
     const isTimestamp = (value: any): value is { toDate: () => Date } =>
         value && typeof value.toDate === 'function';

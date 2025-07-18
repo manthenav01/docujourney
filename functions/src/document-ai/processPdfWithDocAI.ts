@@ -1,25 +1,25 @@
-import { onObjectFinalized } from "firebase-functions/v2/storage";
-import { setGlobalOptions } from "firebase-functions/v2";
-import admin from "../firebase-admin";
-import { DocumentProcessorServiceClient } from "@google-cloud/documentai";
-import { Timestamp } from "firebase-admin/firestore";
+import { onObjectFinalized } from 'firebase-functions/v2/storage';
+import { setGlobalOptions } from 'firebase-functions/v2';
+import admin from '../firebase-admin';
+import { DocumentProcessorServiceClient } from '@google-cloud/documentai';
+import { Timestamp } from 'firebase-admin/firestore';
 
 // Set global options
 setGlobalOptions({
   maxInstances: 10,
-  region: "us-central1",
+  region: 'us-central1',
 });
 
 const db = admin.firestore();
-const location = "us"; // Change to your processor's region
-const processorId = "7acdd81f19827371"; // Replace with your processor ID
-const projectId = "213026976072";
+const location = 'us'; // Change to your processor's region
+const processorId = '7acdd81f19827371'; // Replace with your processor ID
+const projectId = '213026976072';
 
 const client = new DocumentProcessorServiceClient();
 
 export const processPdfWithDocAI = onObjectFinalized(
   {
-    memory: "1GiB",
+    memory: '1GiB',
     timeoutSeconds: 540,
   },
   async (event) => {
@@ -27,8 +27,8 @@ export const processPdfWithDocAI = onObjectFinalized(
     const bucketName = object.bucket;
     const filePath = object.name;
 
-    if (!filePath || !filePath.endsWith(".pdf")) {
-        console.log("Not a PDF. Skipping.");
+    if (!filePath || !filePath.endsWith('.pdf')) {
+        console.log('Not a PDF. Skipping.');
         return;
     }
 
@@ -50,7 +50,7 @@ export const processPdfWithDocAI = onObjectFinalized(
     // logger.info("File metadata:", JSON.stringify(metadata));
     // const firestoreDocId: string = (metadata.metadata?.firestoreDocId as string) || '';
     if (!firestoreDocId) {
-        console.error("No firestoreDocId found in file metadata.");
+        console.error('No firestoreDocId found in file metadata.');
         return;
     }
 
@@ -61,13 +61,13 @@ export const processPdfWithDocAI = onObjectFinalized(
                 documents: [
                     {
                         gcsUri,
-                        mimeType: "application/pdf",
+                        mimeType: 'application/pdf',
                     },
                 ],
             },
         },
     };
-    console.log("Batch process request:", JSON.stringify(request));
+    console.log('Batch process request:', JSON.stringify(request));
     try {
         const pdfBuffer = await getPdfBytes(bucketName, filePath);
         console.log(`PDF buffer size: ${pdfBuffer.length}`);
@@ -76,29 +76,29 @@ export const processPdfWithDocAI = onObjectFinalized(
             name,
             rawDocument: {
                 content: pdfBuffer,
-                mimeType: "application/pdf",
+                mimeType: 'application/pdf',
             },
         });
-        console.log("Document AI processing complete.", docResult.document?.entities);
+        console.log('Document AI processing complete.', docResult.document?.entities);
         const extracted = parseFields(docResult.document?.entities || []);
         const docRef = db.collection(`users/${userId}/profiles/${profileId}/documents`).doc(firestoreDocId);
 
         await docRef.update({
             extracted: {
-                ...extracted
+                ...extracted,
             },
-            status: "completed",
+            status: 'completed',
         });
-        console.log("Extracted data saved to Firestore.");
+        console.log('Extracted data saved to Firestore.');
     } catch (error) {
-        console.error("Document AI error:", error);
+        console.error('Document AI error:', error);
     }
-  }
+  },
 );
 
 // Helper: Get PDF file bytes from Cloud Storage
 async function getPdfBytes(bucketName: string, filePath: string): Promise<Buffer> {
-    const { Storage } = require("@google-cloud/storage");
+    const { Storage } = require('@google-cloud/storage');
     const storage = new Storage();
     const [contents] = await storage.bucket(bucketName).file(filePath).download();
     return contents;
@@ -110,7 +110,7 @@ function massageValue(entity: any): string | number | Timestamp {
         const dateObj = new Date(year, month - 1, day);
         return admin.firestore.Timestamp.fromDate(dateObj);
     }
-    return entity?.mentionText || "";
+    return entity?.mentionText || '';
 }
 
 // Helper: Format key-value pairs from entities

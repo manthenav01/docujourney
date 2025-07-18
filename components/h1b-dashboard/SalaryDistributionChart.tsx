@@ -1,12 +1,13 @@
-'use client'
+'use client';
 
-import { ResponsiveBar } from '@nivo/bar'
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { ResponsiveBar } from '@nivo/bar';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 interface SalaryDistributionData {
-  range: string
-  count: number
-  percentage: number
+  range: string;
+  count: number;
+  percentage: number;
+  [key: string]: string | number; // Index signature for compatibility with @nivo/bar
 }
 
 interface SalaryDistributionChartProps {
@@ -27,7 +28,7 @@ export function SalaryDistributionChart({ data, loading }: SalaryDistributionCha
           </div>
         </CardContent>
       </Card>
-    )
+    );
   }
 
   if (!data || data.length === 0) {
@@ -42,7 +43,7 @@ export function SalaryDistributionChart({ data, loading }: SalaryDistributionCha
           </div>
         </CardContent>
       </Card>
-    )
+    );
   }
 
   // Group salary ranges into 6 meaningful brackets for better clarity
@@ -73,7 +74,7 @@ export function SalaryDistributionChart({ data, loading }: SalaryDistributionCha
       acc.push({
         range: broadRange,
         count: item.count,
-        percentage: item.percentage
+        percentage: item.percentage,
       });
     }
     
@@ -107,7 +108,7 @@ export function SalaryDistributionChart({ data, loading }: SalaryDistributionCha
             indexScale={{ type: 'band', round: true }}
             colors={({ index }) => {
               const gradientColors = [
-                '#1E3A8A', '#1E40AF', '#2563EB', '#3B82F6', '#60A5FA', '#93C5FD'
+                '#1E3A8A', '#1E40AF', '#2563EB', '#3B82F6', '#60A5FA', '#93C5FD',
               ];
               return gradientColors[index] || '#3B82F6';
             }}
@@ -119,43 +120,43 @@ export function SalaryDistributionChart({ data, loading }: SalaryDistributionCha
                 fontSize: 13,
                 fill: '#374151',
                 fontFamily: 'Inter, system-ui, sans-serif',
-                fontWeight: 500
+                fontWeight: 500,
               },
               axis: {
                 domain: {
                   line: {
                     stroke: '#E5E7EB',
-                    strokeWidth: 1
-                  }
+                    strokeWidth: 1,
+                  },
                 },
                 legend: {
                   text: {
                     fontSize: 14,
                     fill: '#1F2937',
                     fontWeight: 600,
-                    fontFamily: 'Inter, system-ui, sans-serif'
-                  }
+                    fontFamily: 'Inter, system-ui, sans-serif',
+                  },
                 },
                 ticks: {
                   line: {
                     stroke: '#E5E7EB',
-                    strokeWidth: 1
+                    strokeWidth: 1,
                   },
                   text: {
                     fontSize: 12,
                     fill: '#6B7280',
                     fontFamily: 'Inter, system-ui, sans-serif',
-                    fontWeight: 500
-                  }
-                }
+                    fontWeight: 500,
+                  },
+                },
               },
               grid: {
                 line: {
                   stroke: '#F3F4F6',
                   strokeWidth: 1,
-                  strokeDasharray: '2 4'
-                }
-              }
+                  strokeDasharray: '2 4',
+                },
+              },
             }}
             axisTop={null}
             axisRight={null}
@@ -165,7 +166,7 @@ export function SalaryDistributionChart({ data, loading }: SalaryDistributionCha
               tickRotation: -35,
               legend: 'Salary Range',
               legendPosition: 'middle',
-              legendOffset: 65
+              legendOffset: 65,
             }}
             axisLeft={{
               tickSize: 0,
@@ -173,7 +174,7 @@ export function SalaryDistributionChart({ data, loading }: SalaryDistributionCha
               tickRotation: 0,
               legend: 'Number of Applications',
               legendPosition: 'middle',
-              legendOffset: -65
+              legendOffset: -65,
             }}
             enableGridX={false}
             enableGridY={true}
@@ -225,5 +226,5 @@ export function SalaryDistributionChart({ data, loading }: SalaryDistributionCha
         </div>
       </CardContent>
     </Card>
-  )
+  );
 }

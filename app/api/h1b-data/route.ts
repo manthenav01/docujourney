@@ -5,7 +5,7 @@ import path from 'path';
 // Initialize BigQuery service
 const bigQueryService = new H1BBigQueryService({
   projectId: 'doctracker-b4528',
-  keyFilename: path.join(process.cwd(), 'serviceAccountKey.json')
+  keyFilename: path.join(process.cwd(), 'serviceAccountKey.json'),
 });
 
 export async function GET(request: NextRequest) {
@@ -48,7 +48,7 @@ export async function GET(request: NextRequest) {
       totalApplications: data.totalApplications,
       avgSalary: data.avgSalary,
       topEmployersCount: data.topEmployers.length,
-      statesCount: data.stateDistribution.length
+      statesCount: data.stateDistribution.length,
     });
     
     return NextResponse.json(data);
@@ -58,7 +58,7 @@ export async function GET(request: NextRequest) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
     return NextResponse.json(
       { error: 'Failed to fetch H1B data', details: errorMessage },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -80,7 +80,7 @@ export async function POST(request: NextRequest) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
     return NextResponse.json(
       { error: 'Failed to fetch filter options', details: errorMessage },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

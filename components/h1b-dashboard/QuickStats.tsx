@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -26,27 +26,27 @@ export const QuickStats: React.FC<QuickStatsProps> = ({ dashboardData }) => {
   const volumeStats = [
     {
       icon: <Users className="h-5 w-5 text-blue-600" />,
-      label: "Total Applications",
+      label: 'Total Applications',
       value: dashboardData.totalApplications.toLocaleString(),
     },
     {
       icon: <CheckCircle className="h-5 w-5 text-green-600" />,
-      label: "Certified Applications",
+      label: 'Certified Applications',
       value: dashboardData.certifiedApplications.toLocaleString(),
     },
     {
       icon: <XCircle className="h-5 w-5 text-red-600" />,
-      label: "Denied Applications",
+      label: 'Denied Applications',
       value: dashboardData.deniedApplications.toLocaleString(),
     },
     {
       icon: <FileX className="h-5 w-5 text-orange-600" />,
-      label: "Withdrawn Applications",
+      label: 'Withdrawn Applications',
       value: dashboardData.withdrawnApplications.toLocaleString(),
     },
     {
       icon: <TrendingUp className="h-5 w-5 text-purple-600" />,
-      label: "Certification Rate",
+      label: 'Certification Rate',
       value: `${dashboardData.certificationRate.toFixed(2)}%`,
     },
   ];
@@ -55,22 +55,22 @@ export const QuickStats: React.FC<QuickStatsProps> = ({ dashboardData }) => {
   const overviewStats = [
     {
       icon: <DollarSign className="h-5 w-5 text-green-600" />,
-      label: "Avg Salary (Certified)",
+      label: 'Avg Salary (Certified)',
       value: `$${dashboardData.avgSalary.toLocaleString()}`,
     },
     {
       icon: <Building2 className="h-5 w-5 text-purple-600" />,
-      label: "Unique Employers",
+      label: 'Unique Employers',
       value: dashboardData.uniqueEmployers.toLocaleString(),
     },
     {
       icon: <MapPin className="h-5 w-5 text-orange-600" />,
-      label: "Unique Locations",
+      label: 'Unique Locations',
       value: dashboardData.uniqueStates.toLocaleString(),
     },
     {
       icon: <Users className="h-5 w-5 text-blue-600" />,
-      label: "Most Applied Job",
+      label: 'Most Applied Job',
       value: dashboardData.mostAppliedJob.title || 'N/A',
       subValue: `${dashboardData.mostAppliedJob.applications.toLocaleString()} applications`,
     },

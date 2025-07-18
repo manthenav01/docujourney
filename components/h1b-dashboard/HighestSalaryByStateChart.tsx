@@ -1,13 +1,14 @@
-'use client'
+'use client';
 
-import { ResponsiveBar } from '@nivo/bar'
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { ResponsiveBar } from '@nivo/bar';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 interface StateSalaryData {
-  state: string
-  highestSalary: number
-  avgSalary: number
-  applications: number
+  state: string;
+  highestSalary: number;
+  avgSalary: number;
+  applications: number;
+  [key: string]: string | number; // Index signature for compatibility with @nivo/bar
 }
 
 interface HighestSalaryByStateChartProps {
@@ -28,7 +29,7 @@ export function HighestSalaryByStateChart({ data, loading }: HighestSalaryByStat
           </div>
         </CardContent>
       </Card>
-    )
+    );
   }
 
   if (!data || data.length === 0) {
@@ -43,10 +44,10 @@ export function HighestSalaryByStateChart({ data, loading }: HighestSalaryByStat
           </div>
         </CardContent>
       </Card>
-    )
+    );
   }
 
-  const sortedData = [...data].sort((a, b) => b.highestSalary - a.highestSalary).slice(0, 5)
+  const sortedData = [...data].sort((a, b) => b.highestSalary - a.highestSalary).slice(0, 5);
 
   return (
     <Card className="w-full">
@@ -66,7 +67,7 @@ export function HighestSalaryByStateChart({ data, loading }: HighestSalaryByStat
             colors={(d) => {
               const index = sortedData.findIndex(item => item.state === d.indexValue);
               const colorMap = [
-                '#1E40AF', '#2563EB', '#3B82F6', '#60A5FA', '#93C5FD'
+                '#1E40AF', '#2563EB', '#3B82F6', '#60A5FA', '#93C5FD',
               ];
               return colorMap[index % colorMap.length];
             }}
@@ -77,41 +78,41 @@ export function HighestSalaryByStateChart({ data, loading }: HighestSalaryByStat
               text: {
                 fontSize: 12,
                 fill: '#64748B',
-                fontFamily: 'Inter, system-ui, sans-serif'
+                fontFamily: 'Inter, system-ui, sans-serif',
               },
               axis: {
                 domain: {
                   line: {
                     stroke: '#E2E8F0',
-                    strokeWidth: 1
-                  }
+                    strokeWidth: 1,
+                  },
                 },
                 legend: {
                   text: {
                     fontSize: 13,
                     fill: '#475569',
                     fontWeight: 500,
-                    fontFamily: 'Inter, system-ui, sans-serif'
-                  }
+                    fontFamily: 'Inter, system-ui, sans-serif',
+                  },
                 },
                 ticks: {
                   line: {
                     stroke: '#E2E8F0',
-                    strokeWidth: 1
+                    strokeWidth: 1,
                   },
                   text: {
                     fontSize: 11,
                     fill: '#64748B',
-                    fontFamily: 'Inter, system-ui, sans-serif'
-                  }
-                }
+                    fontFamily: 'Inter, system-ui, sans-serif',
+                  },
+                },
               },
               grid: {
                 line: {
                   stroke: '#F1F5F9',
-                  strokeWidth: 1
-                }
-              }
+                  strokeWidth: 1,
+                },
+              },
             }}
             axisTop={null}
             axisRight={null}
@@ -121,7 +122,7 @@ export function HighestSalaryByStateChart({ data, loading }: HighestSalaryByStat
               tickRotation: -45,
               legend: 'State',
               legendPosition: 'middle',
-              legendOffset: 65
+              legendOffset: 65,
             }}
             axisLeft={{
               tickSize: 0,
@@ -130,7 +131,7 @@ export function HighestSalaryByStateChart({ data, loading }: HighestSalaryByStat
               legend: 'Highest Salary ($)',
               legendPosition: 'middle',
               legendOffset: -70,
-              format: (value) => `$${(value / 1000).toFixed(0)}K`
+              format: (value) => `$${(value / 1000).toFixed(0)}K`,
             }}
             enableGridX={false}
             enableGridY={true}
@@ -162,5 +163,5 @@ export function HighestSalaryByStateChart({ data, loading }: HighestSalaryByStat
         </div>
       </CardContent>
     </Card>
-  )
+  );
 }

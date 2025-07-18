@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
@@ -25,7 +25,7 @@ import {
     Mail,
     Loader2,
     Edit,
-    Globe
+    Globe,
 } from 'lucide-react';
 import { getVisaStatusColorClasses, getVisaStatusIcon } from '@/lib/visaStatusUtils';
 import VisaTimeline from '@/components/VisaTimeline';
@@ -92,7 +92,7 @@ const getCountryCode = (countryName: string): string => {
         'morocco': 'MA',
         'kenya': 'KE',
         'ghana': 'GH',
-        'ethiopia': 'ET'
+        'ethiopia': 'ET',
         // Add more mappings as needed
     };
     
@@ -118,7 +118,7 @@ const DashboardPageClient: React.FC<DashboardPageClientProps> = ({
     userId,
     profiles,
     documentSchemas,
-    allDocuments
+    allDocuments,
 }) => {
     const router = useRouter();
     const [isTestEmailLoading, setIsTestEmailLoading] = useState(false);
@@ -147,7 +147,7 @@ const DashboardPageClient: React.FC<DashboardPageClientProps> = ({
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({
-                    userId: user.uid
+                    userId: user.uid,
                 }),
             });
 
@@ -174,7 +174,7 @@ const DashboardPageClient: React.FC<DashboardPageClientProps> = ({
     // Calculate documents per profile for better insights
     const documentsByProfile = profiles.map(profile => ({
         profile,
-        documentCount: allDocuments.filter(doc => doc.profileId === profile.id).length
+        documentCount: allDocuments.filter(doc => doc.profileId === profile.id).length,
     }));
 
     // Helper function to render status icon
@@ -188,7 +188,7 @@ const DashboardPageClient: React.FC<DashboardPageClientProps> = ({
             return new Date(dateString).toLocaleDateString('en-US', {
                 month: 'short',
                 day: 'numeric',
-                year: 'numeric'
+                year: 'numeric',
             });
         } catch {
             return 'Invalid date';
@@ -272,7 +272,7 @@ const DashboardPageClient: React.FC<DashboardPageClientProps> = ({
                                     {new Date(profile.firstEntryDate).toLocaleDateString('en-US', {
                                         month: 'short',
                                         day: 'numeric',
-                                        year: 'numeric'
+                                        year: 'numeric',
                                     })}
                                     {profile.firstEntryVisaType && (
                                         <span className="text-sm text-blue-600 font-normal ml-2">
@@ -455,8 +455,8 @@ const DashboardPageClient: React.FC<DashboardPageClientProps> = ({
             <div className="mb-8 space-y-6">
                 {[...profiles]
                     .sort((a, b) => {
-                        if (a.admin && !b.admin) return -1;
-                        if (!a.admin && b.admin) return 1;
+                        if (a.admin && !b.admin) {return -1;}
+                        if (!a.admin && b.admin) {return 1;}
                         return 0;
                     })
                     .map((profile) => {

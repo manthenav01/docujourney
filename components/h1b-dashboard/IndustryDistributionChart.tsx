@@ -1,8 +1,8 @@
-'use client'
+'use client';
 
-import { ResponsivePie } from '@nivo/pie'
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { useState } from 'react'
+import { ResponsivePie } from '@nivo/pie';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { useState } from 'react';
 
 interface IndustryData {
   industry: string
@@ -17,8 +17,8 @@ interface IndustryDistributionChartProps {
 }
 
 export function IndustryDistributionChart({ data, loading }: IndustryDistributionChartProps) {
-  const [hoveredSegment, setHoveredSegment] = useState<any>(null)
-  const [hoveredLegendItem, setHoveredLegendItem] = useState<string | null>(null)
+  const [hoveredSegment, setHoveredSegment] = useState<any>(null);
+  const [hoveredLegendItem, setHoveredLegendItem] = useState<string | null>(null);
 
   if (loading) {
     return (
@@ -37,7 +37,7 @@ export function IndustryDistributionChart({ data, loading }: IndustryDistributio
           </div>
         </CardContent>
       </Card>
-    )
+    );
   }
 
   if (!data || data.length === 0) {
@@ -54,7 +54,7 @@ export function IndustryDistributionChart({ data, loading }: IndustryDistributio
           </div>
         </CardContent>
       </Card>
-    )
+    );
   }
 
   // Shorten industry names for better display
@@ -71,15 +71,15 @@ export function IndustryDistributionChart({ data, loading }: IndustryDistributio
       'Transportation & Warehousing': 'Transport',
       'Arts, Entertainment & Recreation': 'Entertainment',
       'Real Estate & Rental': 'Real Estate',
-      'Management of Companies': 'Management'
-    }
-    return shortNames[name] || (name.length > 12 ? name.substring(0, 12) + '...' : name)
-  }
+      'Management of Companies': 'Management',
+    };
+    return shortNames[name] || (name.length > 12 ? name.substring(0, 12) + '...' : name);
+  };
 
   // Enhanced color palette with better contrast (Top 5)
   const enhancedColors = [
-    '#1E40AF', '#DC2626', '#059669', '#D97706', '#7C3AED'
-  ]
+    '#1E40AF', '#DC2626', '#059669', '#D97706', '#7C3AED',
+  ];
 
   // Process data for Nivo pie chart format
   const pieData = data.slice(0, 5).map((item, index) => ({
@@ -88,11 +88,11 @@ export function IndustryDistributionChart({ data, loading }: IndustryDistributio
     value: item.applications,
     percentage: item.percentage,
     avgSalary: item.avgSalary,
-    color: enhancedColors[index] || '#6B7280'
-  }))
+    color: enhancedColors[index] || '#6B7280',
+  }));
 
-  const totalApplications = pieData.reduce((sum, item) => sum + item.value, 0)
-  const topIndustry = pieData[0]
+  const totalApplications = pieData.reduce((sum, item) => sum + item.value, 0);
+  const topIndustry = pieData[0];
 
   // Center content component
   const CenterContent = () => (
@@ -125,7 +125,7 @@ export function IndustryDistributionChart({ data, loading }: IndustryDistributio
         )}
       </div>
     </div>
-  )
+  );
 
   return (
     <Card className="w-full">
@@ -151,20 +151,20 @@ export function IndustryDistributionChart({ data, loading }: IndustryDistributio
                 fontSize: 11,
                 fill: '#374151',
                 fontFamily: 'Inter, system-ui, sans-serif',
-                fontWeight: 500
-              }
+                fontWeight: 500,
+              },
             }}
             enableArcLinkLabels={false}
             arcLabelsSkipAngle={25}
             arcLabelsTextColor="#FFFFFF"
             enableArcLabels={false}
             onMouseEnter={(data) => {
-              setHoveredSegment(data)
-              setHoveredLegendItem(data.id)
+              setHoveredSegment(data);
+              setHoveredLegendItem(String(data.id));
             }}
             onMouseLeave={() => {
-              setHoveredSegment(null)
-              setHoveredLegendItem(null)
+              setHoveredSegment(null);
+              setHoveredLegendItem(null);
             }}
             tooltip={({ datum }) => (
               <div className="bg-white/95 backdrop-blur-sm p-4 border border-gray-200 rounded-xl shadow-xl">
@@ -203,12 +203,12 @@ export function IndustryDistributionChart({ data, loading }: IndustryDistributio
                     hoveredLegendItem === item.id ? 'bg-gray-100' : 'hover:bg-gray-50'
                   }`}
                   onMouseEnter={() => {
-                    setHoveredLegendItem(item.id)
-                    setHoveredSegment(item)
+                    setHoveredLegendItem(item.id);
+                    setHoveredSegment(item);
                   }}
                   onMouseLeave={() => {
-                    setHoveredLegendItem(null)
-                    setHoveredSegment(null)
+                    setHoveredLegendItem(null);
+                    setHoveredSegment(null);
                   }}
                   title={item.id} // Full name on hover
                 >
@@ -226,5 +226,5 @@ export function IndustryDistributionChart({ data, loading }: IndustryDistributio
         </div>
       </CardContent>
     </Card>
-  )
+  );
 }

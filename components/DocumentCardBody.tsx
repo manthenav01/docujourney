@@ -1,4 +1,4 @@
-'use client'
+'use client';
 import React from 'react';
 import { CardContent } from '@/components/ui/card';
 import { DocumentTypeSchemaModel } from '@/lib/documentActions';
@@ -14,9 +14,9 @@ const DocumentCardBody: React.FC<DocumentCardBodyProps> = ({ doc, documentSchema
     return (
         <>
             {documentSchema?.fields && documentSchema.fields.filter((field: any) => field.displayInOverview).map((field: any) => {
-                if (!field.key || !doc.extracted) return null;
+                if (!field.key || !doc.extracted) {return null;}
                 const value = doc.extracted[field.key as keyof typeof doc.extracted];
-                if (value === undefined || value === null) return null;
+                if (value === undefined || value === null) {return null;}
                 const displayValue = formatValue(value, field.type);
                 return (
                     <div key={field.key} className="flex justify-between pb-2">

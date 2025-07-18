@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import { useEffect, useState } from 'react';
 
@@ -31,7 +31,7 @@ const DocumentPage = ({ params }: { params: Promise<{ slug: string }> }) => {
   }, [params]);
 
   useEffect(() => {
-    if (!slug) return;
+    if (!slug) {return;}
     
     const loadDocument = async () => {
       try {

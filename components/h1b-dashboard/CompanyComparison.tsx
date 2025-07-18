@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import React, { useState, useEffect } from 'react';
 import { 
@@ -17,9 +17,20 @@ import {
   RefreshCw,
   BarChart3,
   Zap,
-  MapPin
+  MapPin,
 } from 'lucide-react';
 import { ComparisonResult, ComparisonEntity } from '@/lib/types/comparison';
+
+// Helper function to get ranking value safely
+function getRankingValue(rankings: any, metricName: string): number | undefined {
+  if (!rankings) {return undefined;}
+  switch (metricName) {
+    case 'totalApplications': return rankings.totalApplications;
+    case 'approvalRate': return rankings.approvalRate;
+    case 'avgSalary': return rankings.avgSalary;
+    default: return undefined;
+  }
+}
 
 interface CompanyComparisonProps {
   className?: string;
@@ -28,9 +39,9 @@ interface CompanyComparisonProps {
 }
 
 export const CompanyComparison: React.FC<CompanyComparisonProps> = ({
-  className = "",
+  className = '',
   initialEntities = [],
-  onComparisonChange
+  onComparisonChange,
 }) => {
   const [entities, setEntities] = useState<ComparisonEntity[]>(initialEntities);
   const [comparisonResult, setComparisonResult] = useState<ComparisonResult | null>(null);
@@ -38,7 +49,7 @@ export const CompanyComparison: React.FC<CompanyComparisonProps> = ({
   const [selectedMetrics, setSelectedMetrics] = useState([
     'totalApplications',
     'avgSalary',
-    'approvalRate'
+    'approvalRate',
   ]);
   const [showAddEntity, setShowAddEntity] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -75,7 +86,7 @@ export const CompanyComparison: React.FC<CompanyComparisonProps> = ({
   };
 
   const runComparison = async () => {
-    if (entities.length < 2) return;
+    if (entities.length < 2) {return;}
     
     setIsLoading(true);
     try {
@@ -96,10 +107,10 @@ export const CompanyComparison: React.FC<CompanyComparisonProps> = ({
               type: getMetricType(id),
               format: getMetricFormat(id),
               higherIsBetter: true,
-              category: 'general'
-            }))
-          }
-        })
+              category: 'general',
+            })),
+          },
+        }),
       });
       
       if (response.ok) {
@@ -143,8 +154,8 @@ export const CompanyComparison: React.FC<CompanyComparisonProps> = ({
           action: 'entitySuggestions',
           type: 'company',
           query,
-          limit: 8
-        })
+          limit: 8,
+        }),
       });
       
       if (response.ok) {
@@ -174,7 +185,7 @@ export const CompanyComparison: React.FC<CompanyComparisonProps> = ({
       totalApplications: 'Total Applications',
       avgSalary: 'Average Salary',
       approvalRate: 'Approval Rate',
-      medianSalary: 'Median Salary'
+      medianSalary: 'Median Salary',
     };
     return names[id] || id;
   };
@@ -184,7 +195,7 @@ export const CompanyComparison: React.FC<CompanyComparisonProps> = ({
       totalApplications: 'number',
       avgSalary: 'currency',
       approvalRate: 'percentage',
-      medianSalary: 'currency'
+      medianSalary: 'currency',
     };
     return types[id] || 'number';
   };
@@ -210,9 +221,9 @@ export const CompanyComparison: React.FC<CompanyComparisonProps> = ({
 
   const getRankColor = (rank: number, total: number) => {
     const percentile = (total - rank + 1) / total;
-    if (percentile >= 0.8) return 'text-green-600 bg-green-50';
-    if (percentile >= 0.6) return 'text-blue-600 bg-blue-50';
-    if (percentile >= 0.4) return 'text-yellow-600 bg-yellow-50';
+    if (percentile >= 0.8) {return 'text-green-600 bg-green-50';}
+    if (percentile >= 0.6) {return 'text-blue-600 bg-blue-50';}
+    if (percentile >= 0.4) {return 'text-yellow-600 bg-yellow-50';}
     return 'text-red-600 bg-red-50';
   };
 
@@ -220,7 +231,7 @@ export const CompanyComparison: React.FC<CompanyComparisonProps> = ({
     { id: 'totalApplications', name: 'Total Applications', icon: Users },
     { id: 'avgSalary', name: 'Average Salary', icon: DollarSign },
     { id: 'approvalRate', name: 'Approval Rate', icon: Target },
-    { id: 'medianSalary', name: 'Median Salary', icon: Award }
+    { id: 'medianSalary', name: 'Median Salary', icon: Award },
   ];
 
   return (
@@ -318,9 +329,8 @@ export const CompanyComparison: React.FC<CompanyComparisonProps> = ({
                       key={index}
                       onClick={() => addEntity({
                         id: `company_${suggestion.name.toLowerCase().replace(/\s+/g, '_')}`,
-                        type: 'company',
-                        name: suggestion.name,
-                        displayName: suggestion.displayName
+                        type: 'employer',
+                        displayName: suggestion.displayName,
                       })}
                       className="w-full text-left px-4 py-2 hover:bg-gray-50 rounded-lg transition-colors"
                     >
@@ -414,7 +424,7 @@ export const CompanyComparison: React.FC<CompanyComparisonProps> = ({
                     </td>
                     {selectedMetrics.map((metric) => {
                       const value = getMetricValue(entity, metric);
-                      const rank = entity.rank[metric] || 0;
+                      const rank = getRankingValue(entity.rankings, metric) || 0;
                       const format = getMetricFormat(metric);
                       
                       return (
@@ -455,7 +465,7 @@ export const CompanyComparison: React.FC<CompanyComparisonProps> = ({
                 </div>
                 <div>
                   <span className="text-blue-600">Generated:</span>
-                  <div className="font-medium text-blue-900">{new Date(comparisonResult.generatedAt).toLocaleTimeString()}</div>
+                  <div className="font-medium text-blue-900">{new Date(comparisonResult.metadata.timestamp).toLocaleTimeString()}</div>
                 </div>
               </div>
             </div>

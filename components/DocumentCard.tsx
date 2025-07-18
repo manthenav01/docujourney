@@ -1,4 +1,4 @@
-"use client";
+'use client';
 import React from 'react';
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
@@ -29,7 +29,7 @@ const DocumentCard: React.FC<DocumentCardProps> = ({ doc, userId, profileId, doc
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ userId, profileId, documentId: doc.id }),
             });
-            if (!res.ok) throw new Error();
+            if (!res.ok) {throw new Error();}
             toast.success('Document deleted successfully.');
             router.refresh();
         } catch (error) {
@@ -59,10 +59,10 @@ const DocumentCard: React.FC<DocumentCardProps> = ({ doc, userId, profileId, doc
             </CardContent>
             <Separator orientation="horizontal" />
             <CardFooter className="flex justify-between">
-                <Button variant={"outline"} onClick={handleDelete}>
+                <Button variant={'outline'} onClick={handleDelete}>
                     <TrashIcon className="h-4 w-4 mr-2 " />
                 </Button>
-                <Button variant={"outline"}>
+                <Button variant={'outline'}>
                     <FileIcon className="h-4 w-4 mr-2" />
                     View
                 </Button>

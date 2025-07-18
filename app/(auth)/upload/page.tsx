@@ -18,7 +18,7 @@ const UploadPage = async () => {
     // Fetch profiles and document schemas in parallel
     const [profiles, documentSchemas] = await Promise.all([
         fetchProfiles(userId),
-        fetchDocumentSchemas()
+        fetchDocumentSchemas(),
     ]);
 
     if (!profiles.length) {

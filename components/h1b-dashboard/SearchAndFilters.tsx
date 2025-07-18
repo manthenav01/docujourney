@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import React from 'react';
 import { useRouter } from 'next/navigation';
@@ -17,7 +17,7 @@ import {
   Briefcase,
   Globe,
   DollarSign,
-  Sparkles
+  Sparkles,
 } from 'lucide-react';
 import { FilterState } from './types';
 import { SemanticSearch } from './SemanticSearch';
@@ -47,7 +47,7 @@ interface SearchAndFiltersProps {
 const FilterSection: React.FC<{ title: string; icon: React.ReactNode; children: React.ReactNode }> = ({ 
   title, 
   icon, 
-  children 
+  children, 
 }) => (
   <div className="space-y-3">
     <div className="flex items-center space-x-3">
@@ -66,7 +66,7 @@ export const SearchAndFilters: React.FC<SearchAndFiltersProps> = ({
   filterOptions,
   onSemanticSearch,
   enableSemanticSearch = true,
-  showSearchInstructions = false
+  showSearchInstructions = false,
 }) => {
   const router = useRouter();
   const toggleFilter = (type: keyof FilterState, value: string) => {
@@ -105,13 +105,13 @@ export const SearchAndFilters: React.FC<SearchAndFiltersProps> = ({
     const looksLikeCompanyName = (text: string) => {
       const companyIndicators = [
         'INC', 'LLC', 'CORP', 'LTD', 'CORPORATION', 'COMPANY', 'CO',
-        'TECHNOLOGIES', 'SYSTEMS', 'SOLUTIONS', 'SERVICES', 'GROUP'
+        'TECHNOLOGIES', 'SYSTEMS', 'SOLUTIONS', 'SERVICES', 'GROUP',
       ];
       const upperText = text.toUpperCase();
       return companyIndicators.some(indicator => 
         upperText.includes(indicator + '.') || 
         upperText.includes(indicator + ',') || 
-        upperText.endsWith(indicator)
+        upperText.endsWith(indicator),
       );
     };
     
@@ -138,7 +138,7 @@ export const SearchAndFilters: React.FC<SearchAndFiltersProps> = ({
       if (state && !filters.states.includes(state)) {
         setFilters(prev => ({
           ...prev,
-          states: [...prev.states, state]
+          states: [...prev.states, state],
         }));
       }
     }
@@ -216,7 +216,7 @@ export const SearchAndFilters: React.FC<SearchAndFiltersProps> = ({
                     {uniqueYears.map(year => (
                       <Button
                         key={year}
-                        variant={filters.fiscalYears.includes(year) ? "default" : "outline"}
+                        variant={filters.fiscalYears.includes(year) ? 'default' : 'outline'}
                         size="sm"
                         onClick={() => toggleFilter('fiscalYears', year)}
                         className="w-full justify-start rounded-lg transition-all duration-200"
@@ -239,7 +239,7 @@ export const SearchAndFilters: React.FC<SearchAndFiltersProps> = ({
                         value={filters.salaryRange[0]}
                         onChange={(e) => setFilters(prev => ({
                           ...prev,
-                          salaryRange: [parseInt(e.target.value) || 0, prev.salaryRange[1]]
+                          salaryRange: [parseInt(e.target.value) || 0, prev.salaryRange[1]],
                         }))}
                         className="rounded-lg border-gray-200 focus:border-green-500 focus:ring-green-500/20"
                       />
@@ -249,7 +249,7 @@ export const SearchAndFilters: React.FC<SearchAndFiltersProps> = ({
                         value={filters.salaryRange[1]}
                         onChange={(e) => setFilters(prev => ({
                           ...prev,
-                          salaryRange: [prev.salaryRange[0], parseInt(e.target.value) || 300000]
+                          salaryRange: [prev.salaryRange[0], parseInt(e.target.value) || 300000],
                         }))}
                         className="rounded-lg border-gray-200 focus:border-green-500 focus:ring-green-500/20"
                       />
@@ -265,7 +265,7 @@ export const SearchAndFilters: React.FC<SearchAndFiltersProps> = ({
                     {uniqueStates.slice(0, 12).map(state => (
                       <Button
                         key={state}
-                        variant={filters.states.includes(state) ? "default" : "outline"}
+                        variant={filters.states.includes(state) ? 'default' : 'outline'}
                         size="sm"
                         onClick={() => toggleFilter('states', state)}
                         className="w-full justify-start rounded-lg transition-all duration-200"
@@ -284,7 +284,7 @@ export const SearchAndFilters: React.FC<SearchAndFiltersProps> = ({
                     {uniqueCategories.map(category => (
                       <Button
                         key={category}
-                        variant={filters.jobCategories.includes(category) ? "default" : "outline"}
+                        variant={filters.jobCategories.includes(category) ? 'default' : 'outline'}
                         size="sm"
                         onClick={() => toggleFilter('jobCategories', category)}
                         className="w-full justify-start rounded-lg transition-all duration-200"
@@ -303,7 +303,7 @@ export const SearchAndFilters: React.FC<SearchAndFiltersProps> = ({
                     {uniqueSkillLevels.map(level => (
                       <Button
                         key={level}
-                        variant={filters.skillLevels.includes(level) ? "default" : "outline"}
+                        variant={filters.skillLevels.includes(level) ? 'default' : 'outline'}
                         size="sm"
                         onClick={() => toggleFilter('skillLevels', level)}
                         className="w-full justify-start rounded-lg transition-all duration-200"
@@ -322,7 +322,7 @@ export const SearchAndFilters: React.FC<SearchAndFiltersProps> = ({
                     {uniqueCompanySizes.map(size => (
                       <Button
                         key={size}
-                        variant={filters.companySizes.includes(size) ? "default" : "outline"}
+                        variant={filters.companySizes.includes(size) ? 'default' : 'outline'}
                         size="sm"
                         onClick={() => toggleFilter('companySizes', size)}
                         className="w-full justify-start rounded-lg transition-all duration-200"

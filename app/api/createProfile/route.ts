@@ -8,7 +8,7 @@ export async function POST(request: NextRequest) {
     if (!userId || !firstName || !lastName) {
       return NextResponse.json(
         { error: 'Missing required fields: userId, firstName, lastName' },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -19,16 +19,16 @@ export async function POST(request: NextRequest) {
     
     const duplicateProfile = existingProfiles.find(profile => 
       profile.firstName.trim().toLowerCase() === normalizedFirstName &&
-      profile.lastName.trim().toLowerCase() === normalizedLastName
+      profile.lastName.trim().toLowerCase() === normalizedLastName,
     );
 
     if (duplicateProfile) {
       return NextResponse.json(
         { 
           error: 'A profile with this name already exists',
-          existingProfileId: duplicateProfile.id 
+          existingProfileId: duplicateProfile.id, 
         },
-        { status: 409 } // Conflict status code
+        { status: 409 }, // Conflict status code
       );
     }
 
@@ -51,7 +51,7 @@ export async function POST(request: NextRequest) {
     console.error('Error creating profile:', error);
     return NextResponse.json(
       { error: 'Failed to create profile' },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -63,7 +63,7 @@ export async function PUT(request: NextRequest) {
     if (!id || !userId || !firstName || !lastName) {
       return NextResponse.json(
         { error: 'Missing required fields: id, userId, firstName, lastName' },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -75,16 +75,16 @@ export async function PUT(request: NextRequest) {
     const duplicateProfile = existingProfiles.find(profile => 
       profile.id !== id &&
       profile.firstName.trim().toLowerCase() === normalizedFirstName &&
-      profile.lastName.trim().toLowerCase() === normalizedLastName
+      profile.lastName.trim().toLowerCase() === normalizedLastName,
     );
 
     if (duplicateProfile) {
       return NextResponse.json(
         { 
           error: 'A profile with this name already exists',
-          existingProfileId: duplicateProfile.id 
+          existingProfileId: duplicateProfile.id, 
         },
-        { status: 409 } // Conflict status code
+        { status: 409 }, // Conflict status code
       );
     }
 
@@ -107,7 +107,7 @@ export async function PUT(request: NextRequest) {
     console.error('Error updating profile:', error);
     return NextResponse.json(
       { error: 'Failed to update profile' },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

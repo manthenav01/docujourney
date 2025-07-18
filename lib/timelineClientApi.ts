@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import { db } from './firebase';
 import { 
@@ -10,7 +10,7 @@ import {
   orderBy, 
   where,
   onSnapshot,
-  Unsubscribe
+  Unsubscribe,
 } from 'firebase/firestore';
 import { TimelineEvent } from './types/timeline.model';
 
@@ -26,7 +26,7 @@ export async function fetchTimelineEvents(userId: string, profileId: string): Pr
   try {
     const timelineQuery = query(
       collection(db, `users/${userId}/profiles/${profileId}/timeline`),
-      orderBy('date', 'asc')
+      orderBy('date', 'asc'),
     );
     
     const snapshot = await getDocs(timelineQuery);
@@ -38,7 +38,7 @@ export async function fetchTimelineEvents(userId: string, profileId: string): Pr
         id: doc.id,
         date: data.date?.toDate?.()?.toISOString() || data.date,
         createdAt: data.createdAt?.toDate?.()?.toISOString() || data.createdAt,
-        updatedAt: data.updatedAt?.toDate?.()?.toISOString() || data.updatedAt
+        updatedAt: data.updatedAt?.toDate?.()?.toISOString() || data.updatedAt,
       } as TimelineEvent;
     });
   } catch (error) {
@@ -53,13 +53,13 @@ export async function fetchTimelineEvents(userId: string, profileId: string): Pr
 export async function getTimelineEventsByStatus(
   userId: string, 
   profileId: string,
-  status: 'completed' | 'current' | 'upcoming'
+  status: 'completed' | 'current' | 'upcoming',
 ): Promise<TimelineEvent[]> {
   try {
     const timelineQuery = query(
       collection(db, `users/${userId}/profiles/${profileId}/timeline`),
       where('status', '==', status),
-      orderBy('date', 'asc')
+      orderBy('date', 'asc'),
     );
     
     const snapshot = await getDocs(timelineQuery);
@@ -71,7 +71,7 @@ export async function getTimelineEventsByStatus(
         id: doc.id,
         date: data.date?.toDate?.()?.toISOString() || data.date,
         createdAt: data.createdAt?.toDate?.()?.toISOString() || data.createdAt,
-        updatedAt: data.updatedAt?.toDate?.()?.toISOString() || data.updatedAt
+        updatedAt: data.updatedAt?.toDate?.()?.toISOString() || data.updatedAt,
       } as TimelineEvent;
     });
   } catch (error) {
@@ -98,7 +98,7 @@ export async function getTimelineStatistics(userId: string, profileId: string): 
       completed: events.filter(e => e.status === 'completed').length,
       current: events.filter(e => e.status === 'current').length,
       upcoming: events.filter(e => e.status === 'upcoming').length,
-      progressPercentage: 0
+      progressPercentage: 0,
     };
     
     if (stats.total > 0) {
@@ -113,7 +113,7 @@ export async function getTimelineStatistics(userId: string, profileId: string): 
       completed: 0,
       current: 0,
       upcoming: 0,
-      progressPercentage: 0
+      progressPercentage: 0,
     };
   }
 }
@@ -125,11 +125,11 @@ export function subscribeToTimelineEvents(
   userId: string,
   profileId: string,
   callback: (events: TimelineEvent[]) => void,
-  onError?: (error: Error) => void
+  onError?: (error: Error) => void,
 ): Unsubscribe {
   const timelineQuery = query(
     collection(db, `users/${userId}/profiles/${profileId}/timeline`),
-    orderBy('date', 'asc')
+    orderBy('date', 'asc'),
   );
   
   return onSnapshot(
@@ -143,7 +143,7 @@ export function subscribeToTimelineEvents(
             id: doc.id,
             date: data.date?.toDate?.()?.toISOString() || data.date,
             createdAt: data.createdAt?.toDate?.()?.toISOString() || data.createdAt,
-            updatedAt: data.updatedAt?.toDate?.()?.toISOString() || data.updatedAt
+            updatedAt: data.updatedAt?.toDate?.()?.toISOString() || data.updatedAt,
           } as TimelineEvent;
         });
         
@@ -160,7 +160,7 @@ export function subscribeToTimelineEvents(
       if (onError) {
         onError(new Error('Failed to subscribe to timeline updates'));
       }
-    }
+    },
   );
 }
 
@@ -181,7 +181,7 @@ export async function getTimelineEvent(userId: string, profileId: string, eventI
       id: eventDoc.id,
       date: data.date?.toDate?.()?.toISOString() || data.date,
       createdAt: data.createdAt?.toDate?.()?.toISOString() || data.createdAt,
-      updatedAt: data.updatedAt?.toDate?.()?.toISOString() || data.updatedAt
+      updatedAt: data.updatedAt?.toDate?.()?.toISOString() || data.updatedAt,
     } as TimelineEvent;
   } catch (error) {
     console.error('Error fetching timeline event:', error);

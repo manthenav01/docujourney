@@ -23,7 +23,7 @@ export interface TimelineGenerationResponse {
  * Generate timeline events using LLM based on user's documents and profile
  */
 export async function generateTimelineWithLLM(
-  request: TimelineGenerationRequest
+  request: TimelineGenerationRequest,
 ): Promise<TimelineGenerationResponse> {
   const { userId, profileId, profile, documents, forceRegenerate = false } = request;
   
@@ -48,7 +48,7 @@ export async function generateTimelineWithLLM(
         events: existingEvents,
         generatedAt: existingEvents[0]?.createdAt || new Date().toISOString(),
         confidence: 0.9,
-        documentCount: profileDocuments.length
+        documentCount: profileDocuments.length,
       };
     }
   }
@@ -70,14 +70,14 @@ export async function generateTimelineWithLLM(
   const profileContext = {
     firstEntryDate: profile.firstEntryDate,
     firstEntryVisaType: profile.firstEntryVisaType,
-    currentlyEmployed: profile.currentlyEmployed
+    currentlyEmployed: profile.currentlyEmployed,
   };
 
   // Generate timeline using LLM
   const llmPrompt = await buildTimelineGenerationPrompt(
     documentSummaries,
     profileContext,
-    profile
+    profile,
   );
 
   try {
@@ -97,7 +97,7 @@ export async function generateTimelineWithLLM(
       generatedAt: new Date().toISOString(),
       confidence: 0.85,
 
-      documentCount: profileDocuments.length
+      documentCount: profileDocuments.length,
     };
   } catch (error) {
     console.error('Error generating timeline with LLM:', error);
@@ -112,7 +112,7 @@ export async function generateTimelineWithLLM(
       generatedAt: new Date().toISOString(),
       confidence: 0.6,
       
-      documentCount: profileDocuments.length
+      documentCount: profileDocuments.length,
     };
   }
 }
@@ -123,7 +123,7 @@ export async function generateTimelineWithLLM(
 async function buildTimelineGenerationPrompt(
   documents: DocumentSummary[],
   profileContext: any,
-  profile: Profile
+  profile: Profile,
 ): Promise<string> {
   const currentDate = new Date().toISOString();
   
@@ -249,8 +249,8 @@ async function callLLMForTimeline(prompt: string): Promise<string> {
     prompt: prompt,
     config: {
       temperature: 0.1,
-      maxOutputTokens: 2000
-    }
+      maxOutputTokens: 2000,
+    },
   });
 
   console.log('LLM response received, length:', response.text.length);
@@ -363,13 +363,13 @@ function parseTimelineEvents(llmResponse: string, userId: string): TimelineEvent
         checklist: Array.isArray(event.checklist) ? event.checklist : [],
         aiInsights: {
           recommendation: event.aiInsights?.recommendation || '',
-          links: Array.isArray(event.aiInsights?.links) ? event.aiInsights.links : []
+          links: Array.isArray(event.aiInsights?.links) ? event.aiInsights.links : [],
         },
         priority: ['low', 'medium', 'high'].includes(event.priority) ? event.priority : 'medium',
         eventType: ['major', 'deadline', 'milestone', 'requirement', 'suggestion', 'validity_period'].includes(event.eventType) ? event.eventType : 'milestone',
         additionalInfo: typeof event.additionalInfo === 'object' ? event.additionalInfo : {},
         createdAt: now,
-        updatedAt: now
+        updatedAt: now,
       };
       
       // Only add optional fields if they have actual values (not undefined/null/empty)
@@ -393,7 +393,7 @@ function parseTimelineEvents(llmResponse: string, userId: string): TimelineEvent
       if (event.dateRange && event.dateRange.from && event.dateRange.to) {
         baseEvent.dateRange = {
           from: safeParseDate(event.dateRange.from, now),
-          to: safeParseDate(event.dateRange.to, now)
+          to: safeParseDate(event.dateRange.to, now),
         };
       }
       
@@ -422,7 +422,7 @@ function parseTimelineEvents(llmResponse: string, userId: string): TimelineEvent
 function generateFallbackTimeline(
   documents: DocumentMetaDataTransformedModel[],
   profile: Profile,
-  userId: string
+  userId: string,
 ): TimelineEvent[] {
   const events: TimelineEvent[] = [];
   const now = new Date().toISOString();
@@ -441,13 +441,13 @@ function generateFallbackTimeline(
         checklist: [],
         aiInsights: {
           recommendation: 'Review document details for accuracy',
-          links: []
+          links: [],
         },
         visaType: extractVisaTypeFromDocument(doc.extracted.document_type),
         priority: 'medium',
         eventType: 'milestone',
         createdAt: now,
-        updatedAt: now
+        updatedAt: now,
       });
     }
   });
@@ -460,12 +460,12 @@ function generateFallbackTimeline(
  */
 function extractVisaTypeFromDocument(documentType: string): string {
   const type = documentType.toLowerCase();
-  if (type.includes('h-1b') || type.includes('h1b')) return 'H-1B';
-  if (type.includes('f-1') || type.includes('f1')) return 'F-1';
-  if (type.includes('green card') || type.includes('i-551')) return 'Green Card';
-  if (type.includes('ead') || type.includes('i-765')) return 'EAD';
-  if (type.includes('l-1') || type.includes('l1')) return 'L-1';
-  if (type.includes('o-1') || type.includes('o1')) return 'O-1';
+  if (type.includes('h-1b') || type.includes('h1b')) {return 'H-1B';}
+  if (type.includes('f-1') || type.includes('f1')) {return 'F-1';}
+  if (type.includes('green card') || type.includes('i-551')) {return 'Green Card';}
+  if (type.includes('ead') || type.includes('i-765')) {return 'EAD';}
+  if (type.includes('l-1') || type.includes('l1')) {return 'L-1';}
+  if (type.includes('o-1') || type.includes('o1')) {return 'O-1';}
   return 'Other';
 }
 
@@ -521,7 +521,7 @@ async function saveTimelineEvents(userId: string, profileId: string, events: Tim
       ...event,
       createdAt: safeDate(event.createdAt),
       updatedAt: safeDate(event.updatedAt),
-      date: safeDate(event.date)
+      date: safeDate(event.date),
     });
     
     console.log(`Saving event ${event.id}: ${event.title} with date ${event.date}`);
@@ -545,7 +545,7 @@ async function fetchTimelineEvents(userId: string, profileId: string): Promise<T
       id: doc.id,
       date: data.date?.toDate?.()?.toISOString() || data.date,
       createdAt: data.createdAt?.toDate?.()?.toISOString() || data.createdAt,
-      updatedAt: data.updatedAt?.toDate?.()?.toISOString() || data.updatedAt
+      updatedAt: data.updatedAt?.toDate?.()?.toISOString() || data.updatedAt,
     } as TimelineEvent;
   });
 }
@@ -558,7 +558,7 @@ function extractDocumentTypeFromTitle(title: string): string {
   const patterns = [
     /^([^:]+?)(?:\s+(?:valid|validity|expires?|issued))/i,
     /^([^:]+?)(?:\s+(?:from|to|until|on))/i,
-    /^([A-Za-z\s]+?)(?:\s+[-–—])/i
+    /^([A-Za-z\s]+?)(?:\s+[-–—])/i,
   ];
   
   for (const pattern of patterns) {
@@ -654,7 +654,7 @@ function combineExpiredDocumentEvents(events: TimelineEvent[]): TimelineEvent[] 
         date: validFrom.date, // Use the earlier date for sorting
         dateRange: {
           from: validFrom.date,
-          to: validTo.date
+          to: validTo.date,
         },
         status: 'expired' as const,
         documents: [...(validFrom.documents || []), ...(validTo.documents || [])],
@@ -664,8 +664,8 @@ function combineExpiredDocumentEvents(events: TimelineEvent[]): TimelineEvent[] 
           recommendation: validFrom.aiInsights?.recommendation || validTo.aiInsights?.recommendation || '',
           links: [
             ...(validFrom.aiInsights?.links || []), 
-            ...(validTo.aiInsights?.links || [])
-          ].filter((link, index, arr) => arr.indexOf(link) === index)
+            ...(validTo.aiInsights?.links || []),
+          ].filter((link, index, arr) => arr.indexOf(link) === index),
         },
         eventType: 'validity_period' as const,
         documentType: validFrom.documentType || docType.toLowerCase(),
@@ -674,10 +674,10 @@ function combineExpiredDocumentEvents(events: TimelineEvent[]): TimelineEvent[] 
           ...(validFrom.additionalInfo || {}),
           ...(validTo.additionalInfo || {}),
           // Preserve historical expired flag if either event has it
-          isHistoricalExpired: validFrom.additionalInfo?.isHistoricalExpired || validTo.additionalInfo?.isHistoricalExpired
+          isHistoricalExpired: validFrom.additionalInfo?.isHistoricalExpired || validTo.additionalInfo?.isHistoricalExpired,
         },
         createdAt: validFrom.createdAt,
-        updatedAt: new Date().toISOString()
+        updatedAt: new Date().toISOString(),
       };
       
       // Merge additional fields
@@ -697,7 +697,7 @@ function combineExpiredDocumentEvents(events: TimelineEvent[]): TimelineEvent[] 
         title: `${docType.charAt(0).toUpperCase() + docType.slice(1)} Validity Period`,
         description: singleEvent.description || `${docType.charAt(0).toUpperCase() + docType.slice(1)} validity information`,
         eventType: 'validity_period' as const,
-        documentType: singleEvent.documentType || docType.toLowerCase()
+        documentType: singleEvent.documentType || docType.toLowerCase(),
       };
       processedEvents.push(enhancedEvent);
     }
@@ -761,8 +761,8 @@ function analyzeDocumentStatus(events: TimelineEvent[]): TimelineEvent[] {
         ...event,
         additionalInfo: {
           ...event.additionalInfo,
-          isHistoricalExpired: true
-        }
+          isHistoricalExpired: true,
+        },
       };
     }
     
@@ -779,15 +779,15 @@ function normalizeDocumentType(docType: string): string {
   const normalized = docType.toLowerCase().trim();
   
   // Group similar document types together
-  if (normalized.includes('passport')) return 'passport';
-  if (normalized.includes('visa')) return 'visa';
-  if (normalized.includes('i-94') || normalized.includes('i94')) return 'i94';
-  if (normalized.includes('green card') || normalized.includes('permanent resident')) return 'green_card';
-  if (normalized.includes('ead') || normalized.includes('employment authorization')) return 'ead';
-  if (normalized.includes('h1b') || normalized.includes('h-1b')) return 'h1b';
-  if (normalized.includes('f1') || normalized.includes('f-1')) return 'f1';
-  if (normalized.includes('opt')) return 'opt';
-  if (normalized.includes('cpt')) return 'cpt';
+  if (normalized.includes('passport')) {return 'passport';}
+  if (normalized.includes('visa')) {return 'visa';}
+  if (normalized.includes('i-94') || normalized.includes('i94')) {return 'i94';}
+  if (normalized.includes('green card') || normalized.includes('permanent resident')) {return 'green_card';}
+  if (normalized.includes('ead') || normalized.includes('employment authorization')) {return 'ead';}
+  if (normalized.includes('h1b') || normalized.includes('h-1b')) {return 'h1b';}
+  if (normalized.includes('f1') || normalized.includes('f-1')) {return 'f1';}
+  if (normalized.includes('opt')) {return 'opt';}
+  if (normalized.includes('cpt')) {return 'cpt';}
   
   // Default: use the normalized string with spaces replaced by underscores
   return normalized.replace(/\s+/g, '_');

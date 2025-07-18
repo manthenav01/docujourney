@@ -1,20 +1,20 @@
 module.exports = [
   {
     ignores: [
-      "lib/**/*",
-      "generated/**/*",
-      "node_modules/**/*"
-    ]
+      'lib/**/*',
+      'generated/**/*',
+      'node_modules/**/*',
+    ],
   },
   {
-    files: ["src/**/*.ts", "src/**/*.js"],
+    files: ['src/**/*.ts', 'src/**/*.js'],
     languageOptions: {
       ecmaVersion: 2020,
-      sourceType: "module"
+      sourceType: 'module',
     },
     rules: {
-      "quotes": ["error", "double"],
-      "indent": ["error", 2]
-    }
-  }
+      'quotes': ['error', 'double'],
+      'indent': ['error', 2],
+    },
+  },
 ];

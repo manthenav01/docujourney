@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import React, { useState, useMemo, useCallback } from 'react';
 import { Button } from '@/components/ui/Button';
@@ -31,7 +31,7 @@ const visaTypeOptions = [
   { value: 'H1B', label: 'H-1B (Specialty Worker)' },
   { value: 'H4', label: 'H-4 (H-1B Dependent)' },
   { value: 'F1', label: 'F-1 (Student)' },
-  { value: 'F2', label: 'F-2 (F-1 Dependent)' }
+  { value: 'F2', label: 'F-2 (F-1 Dependent)' },
 ];
 
 export const FirstEntryDateSelection: React.FC<FirstEntryDateSelectionProps> = ({
@@ -41,7 +41,7 @@ export const FirstEntryDateSelection: React.FC<FirstEntryDateSelectionProps> = (
   isLoading = false,
   existingDate = null,
   existingVisaType = null,
-  existingEmploymentStatus = null
+  existingEmploymentStatus = null,
 }) => {
   // Determine what information is missing
   const needsDate = !existingDate;
@@ -50,10 +50,10 @@ export const FirstEntryDateSelection: React.FC<FirstEntryDateSelectionProps> = (
   
   // Initialize state with existing values if available
   const [dateValue, setDateValue] = useState<string>(
-    existingDate ? new Date(existingDate).toLocaleDateString('en-US') : ''
+    existingDate ? new Date(existingDate).toLocaleDateString('en-US') : '',
   );
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(
-    existingDate ? new Date(existingDate) : undefined
+    existingDate ? new Date(existingDate) : undefined,
   );
   const [visaType, setVisaType] = useState<string>(existingVisaType || '');
   const [currentlyEmployed, setCurrentlyEmployed] = useState<boolean | null>(existingEmploymentStatus);
@@ -151,9 +151,9 @@ export const FirstEntryDateSelection: React.FC<FirstEntryDateSelectionProps> = (
     
     // Return only the fields that are needed and provided
     const result: { date?: Date; visaType?: string; currentlyEmployed?: boolean } = {};
-    if (needsDate && parsedDate) result.date = parsedDate;
-    if (needsVisaType && visaType.trim()) result.visaType = visaType;
-    if (needsEmploymentStatus && currentlyEmployed !== null) result.currentlyEmployed = currentlyEmployed;
+    if (needsDate && parsedDate) {result.date = parsedDate;}
+    if (needsVisaType && visaType.trim()) {result.visaType = visaType;}
+    if (needsEmploymentStatus && currentlyEmployed !== null) {result.currentlyEmployed = currentlyEmployed;}
     
     return result;
   };
@@ -197,9 +197,9 @@ export const FirstEntryDateSelection: React.FC<FirstEntryDateSelectionProps> = (
       <div className="flex-shrink-0">
         <Stepper 
           steps={[
-            { title: "First Entry Date", description: "Enter date" },
-            { title: "Document Type", description: "Select type" },
-            { title: "Verify Data", description: "Review fields" }
+            { title: 'First Entry Date', description: 'Enter date' },
+            { title: 'Document Type', description: 'Select type' },
+            { title: 'Verify Data', description: 'Review fields' },
           ]}
           currentStep={0}
           className="mb-6"
@@ -270,7 +270,7 @@ export const FirstEntryDateSelection: React.FC<FirstEntryDateSelectionProps> = (
                     mode="single"
                     selected={selectedDate}
                     onSelect={handleCalendarSelect}
-                    disabled={(date) => date > new Date() || date < new Date("1900-01-01")}
+                    disabled={(date) => date > new Date() || date < new Date('1900-01-01')}
                     initialFocus
                   />
                 </PopoverContent>

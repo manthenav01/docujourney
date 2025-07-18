@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import React from 'react';
 import {
@@ -21,7 +21,7 @@ interface ProfileSelectorProps {
 export default function ProfileSelector({ 
   profiles, 
   selectedProfileId, 
-  onProfileChange 
+  onProfileChange, 
 }: ProfileSelectorProps) {
   // Sort profiles by relationship priority
   const sortedProfiles = sortProfilesByRelationship(profiles);

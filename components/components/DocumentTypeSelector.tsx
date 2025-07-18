@@ -14,7 +14,7 @@ export const DocumentTypeSelectorrr: React.FC<DocumentTypeSelectorProps> = ({
   documentSchemas,
   onSelectDocumentType,
   onCancel,
-  isLoading = false
+  isLoading = false,
 }) => {
   const [selectedType, setSelectedType] = useState<string>('');
 
@@ -26,7 +26,7 @@ export const DocumentTypeSelectorrr: React.FC<DocumentTypeSelectorProps> = ({
 
   const documentTypes = Object.entries(documentSchemas).map(([key, schema]) => ({
     value: key,
-    label: schema.displayName || key.charAt(0).toUpperCase() + key.slice(1).replace(/([A-Z])/g, ' $1')
+    label: schema.displayName || key.charAt(0).toUpperCase() + key.slice(1).replace(/([A-Z])/g, ' $1'),
   }));
 
   return (

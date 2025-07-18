@@ -19,7 +19,7 @@ import {
   handleDocumentCompletion,
   setupFormFields,
   triggerVisaStatusAnalysis,
-  updateProfileFromDocumentData
+  updateProfileFromDocumentData,
 } from './utils';
 
 interface UseDocumentUploadProps {
@@ -62,7 +62,7 @@ export const useDocumentUpload = ({
   allProfiles, 
   documentSchemas, 
   onSuccess, 
-  onProfileCreated 
+  onProfileCreated, 
 }: UseDocumentUploadProps) => {
   // Core state
   const [file, setFile] = useState<File | null>(null);
@@ -77,7 +77,7 @@ export const useDocumentUpload = ({
     verification: false,
     profileCreation: false,
     profileUpdate: false,
-    documentMove: false
+    documentMove: false,
   });
   
   // Document processing state
@@ -98,12 +98,12 @@ export const useDocumentUpload = ({
   // Computed loading flags for UI
   const isAnyLoading = useMemo(() => 
     Object.values(loadingStates).some(loading => loading), 
-    [loadingStates]
+    [loadingStates],
   );
   
   const isFormDisabled = useMemo(() => 
     isAnyLoading || phase === 'saving' || phase === 'profile-dialog' || phase === 'completed',
-    [isAnyLoading, phase]
+    [isAnyLoading, phase],
   );
 
   // Helper function to update loading states
@@ -119,7 +119,7 @@ export const useDocumentUpload = ({
       verification: false,
       profileCreation: false,
       profileUpdate: false,
-      documentMove: false
+      documentMove: false,
     });
   }, []);
 
@@ -149,7 +149,7 @@ export const useDocumentUpload = ({
       docRefId,
       selectedProfileId,
       phase,
-      path: `users/${userId}/profiles/${selectedProfileId}/documents/${docRefId}`
+      path: `users/${userId}/profiles/${selectedProfileId}/documents/${docRefId}`,
     });
     
     const docRef = firestoreDoc(db, `users/${userId}/profiles/${selectedProfileId}/documents`, docRefId);
@@ -158,7 +158,7 @@ export const useDocumentUpload = ({
         exists: snap.exists(),
         path: snap.ref.path,
         phase,
-        data: snap.exists() ? snap.data() : null
+        data: snap.exists() ? snap.data() : null,
       });
       
       // Handle document not found (could be moved or deleted)
@@ -211,11 +211,11 @@ export const useDocumentUpload = ({
 
   // Helper function to find document in all profiles
   const findDocumentInProfiles = useCallback(async (): Promise<string | null> => {
-    if (!docRefId) return null;
+    if (!docRefId) {return null;}
     
     console.log('Searching for document in all profiles...');
     for (const profile of localAllProfiles) {
-      if (profile.id === selectedProfileId) continue; // Skip current profile
+      if (profile.id === selectedProfileId) {continue;} // Skip current profile
       
       const altRef = firestoreDoc(db, `users/${userId}/profiles/${profile.id}/documents`, docRefId);
       try {
@@ -233,7 +233,7 @@ export const useDocumentUpload = ({
 
   // Helper function to process completed document
   const processCompletedDocument = useCallback(async (data: DocumentMetaDataAPIModel) => {
-    if (!docRefId) return;
+    if (!docRefId) {return;}
     
     try {
       await handleDocumentCompletion(
@@ -270,7 +270,7 @@ export const useDocumentUpload = ({
         currentProfile,
         localAllProfiles,
         doNamesMatch,
-        findMatchingProfile
+        findMatchingProfile,
       );
     } catch (error) {
       throw error; // Re-throw to be handled by caller
@@ -298,7 +298,7 @@ export const useDocumentUpload = ({
 
   // Upload handler
   const startUpload = useCallback(async () => {
-    if (!file || phase !== 'file-selected') return;
+    if (!file || phase !== 'file-selected') {return;}
     
     setPhase('uploading');
     setLoading('upload', true);
@@ -309,7 +309,7 @@ export const useDocumentUpload = ({
         file,
         userId,
         selectedProfileId,
-        setUploadProgress
+        setUploadProgress,
       );
       
       setDocRefId(documentId);
@@ -323,7 +323,7 @@ export const useDocumentUpload = ({
 
   // Verification submission handler
   const handleVerificationSubmit = useCallback(async (values: Record<string, any>) => {
-    if (!docRefId || !documentType || phase !== 'verification') return;
+    if (!docRefId || !documentType || phase !== 'verification') {return;}
     
     setPhase('saving');
     setLoading('verification', true);
@@ -357,7 +357,7 @@ export const useDocumentUpload = ({
 
   // Save verified document data
   const saveVerifiedDocument = useCallback(async (values: Record<string, any>): Promise<string | undefined> => {
-    if (!docRefId || !documentType) return;
+    if (!docRefId || !documentType) {return;}
     
     // Find the actual document location
     let documentRef = firestoreDoc(db, `users/${userId}/profiles/${selectedProfileId}/documents`, docRefId);
@@ -384,13 +384,13 @@ export const useDocumentUpload = ({
     const mergedData = {
       ...extractedData,
       ...transformedValues,
-      document_type: documentType
+      document_type: documentType,
     };
     
     console.log('Updating document with verified data:', mergedData);
     await updateDoc(documentRef, { 
       extracted: mergedData, 
-      status: 'verified' 
+      status: 'verified', 
     });
     
     // Update profile with document data if needed
@@ -418,13 +418,13 @@ export const useDocumentUpload = ({
 
   // Handle first entry date submission
   const handleFirstEntryDateSubmit = useCallback(async (data: { date?: Date; visaType?: string; currentlyEmployed?: boolean }) => {
-    if (phase !== 'profile-info') return;
+    if (phase !== 'profile-info') {return;}
     
     setLoading('profileUpdate', true);
     
     try {
       const updateData: { [key: string]: any } = {
-        updatedAt: new Date().toISOString()
+        updatedAt: new Date().toISOString(),
       };
       
       if (data.date) {
@@ -469,7 +469,7 @@ export const useDocumentUpload = ({
 
   // Document type selection handler
   const handleDocumentTypeSelection = useCallback(async (selectedDocumentType: string) => {
-    if (!documentSchemas[selectedDocumentType] || !docRefId || phase !== 'type-selection') return;
+    if (!documentSchemas[selectedDocumentType] || !docRefId || phase !== 'type-selection') {return;}
     
     setDocumentType(selectedDocumentType);
     setShowDocumentTypeSelection(false);
@@ -480,7 +480,7 @@ export const useDocumentUpload = ({
         documentSchemas,
         userId,
         selectedProfileId,
-        docRefId
+        docRefId,
       );
       setFormFields(formReadyFields);
       setPhase('verification');
@@ -500,7 +500,7 @@ export const useDocumentUpload = ({
 
   // Profile creation handlers
   const handleNewProfileConfirm = useCallback(async (relationship: string, email?: string) => {
-    if (!extractedPersonInfo || phase !== 'profile-dialog') return;
+    if (!extractedPersonInfo || phase !== 'profile-dialog') {return;}
     
     setLoading('profileCreation', true);
     setLoading('documentMove', true);
@@ -511,7 +511,7 @@ export const useDocumentUpload = ({
         extractedPersonInfo.firstName,
         extractedPersonInfo.lastName,
         relationship,
-        email
+        email,
       );
 
       // Verify profile creation
@@ -519,7 +519,7 @@ export const useDocumentUpload = ({
       for (let attempts = 0; attempts < 10; attempts++) {
         await new Promise(resolve => setTimeout(resolve, 500));
         newProfile = await fetchProfileById(userId, newProfileId);
-        if (newProfile) break;
+        if (newProfile) {break;}
       }
       
       if (!newProfile) {
@@ -543,7 +543,7 @@ export const useDocumentUpload = ({
           console.log('Document data after profile creation:', {
             status: documentData.status,
             hasExtracted: !!documentData.extracted,
-            extractedDocType: documentData.extracted?.document_type
+            extractedDocType: documentData.extracted?.document_type,
           });
           
           if (documentData.status === 'completed' && documentData.extracted) {
@@ -563,7 +563,7 @@ export const useDocumentUpload = ({
                   documentSchemas,
                   userId,
                   newProfileId,
-                  docRefId
+                  docRefId,
                 );
                 setFormFields(formReadyFields);
                 setPhase('verification');
@@ -610,7 +610,7 @@ export const useDocumentUpload = ({
 
   // Move document to a different profile
   const moveDocumentToProfile = useCallback(async (targetProfileId: string) => {
-    if (!docRefId) return;
+    if (!docRefId) {return;}
     
     console.log(`Moving document ${docRefId} from profile ${selectedProfileId} to profile ${targetProfileId}`);
     
@@ -660,7 +660,7 @@ export const useDocumentUpload = ({
         console.log(`Profile ${profile.id} (${profile.firstName} ${profile.lastName}):`, {
           exists: docSnap.exists(),
           path: docRef.path,
-          data: docSnap.exists() ? docSnap.data() : null
+          data: docSnap.exists() ? docSnap.data() : null,
         });
       } catch (error) {
         console.error(`Error checking profile ${profile.id}:`, error);
@@ -671,7 +671,7 @@ export const useDocumentUpload = ({
 
   // Document deletion helper
   const deleteCurrentDocument = useCallback(async () => {
-    if (!docRefId) return;
+    if (!docRefId) {return;}
     
     try {
       const docRef = firestoreDoc(db, `users/${userId}/profiles/${selectedProfileId}/documents`, docRefId);
@@ -756,6 +756,6 @@ export const useDocumentUpload = ({
     goBackToDocumentTypeSelection,
     resetUpload,
     deleteCurrentDocument,
-    debugDocumentLocation
+    debugDocumentLocation,
   };
 };

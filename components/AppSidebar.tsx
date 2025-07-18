@@ -1,8 +1,8 @@
-"use client";
+'use client';
 
-import { Home, FileText, LayoutDashboard, Users, Upload, BarChart3 } from "lucide-react";
-import { usePathname } from "next/navigation";
-import Link from "next/link";
+import { Home, FileText, LayoutDashboard, Users, Upload, BarChart3 } from 'lucide-react';
+import { usePathname } from 'next/navigation';
+import Link from 'next/link';
 
 import {
   Sidebar,
@@ -14,34 +14,34 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-} from "@/components/ui/sidebar";
-import { UserDropdown } from "@/components/UserDropdown";
+} from '@/components/ui/sidebar';
+import { UserDropdown } from '@/components/UserDropdown';
 
 // Menu items
 const items = [
   {
-    title: "Dashboard",
-    url: "/dashboard",
+    title: 'Dashboard',
+    url: '/dashboard',
     icon: LayoutDashboard,
   },
   {
-    title: "Upload Document",
-    url: "/upload",
+    title: 'Upload Document',
+    url: '/upload',
     icon: Upload,
   },
   {
-    title: "Documents",
-    url: "/documents",
+    title: 'Documents',
+    url: '/documents',
     icon: FileText,
   },
   {
-    title: "Profiles",
-    url: "/profiles",
+    title: 'Profiles',
+    url: '/profiles',
     icon: Users,
   },
   {
-    title: "Visa Analytics",
-    url: "/visa-dashboard",
+    title: 'Visa Analytics',
+    url: '/visa-dashboard',
     icon: BarChart3,
   },
 ];

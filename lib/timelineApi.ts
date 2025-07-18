@@ -24,7 +24,7 @@ export async function saveTimelineEvents(userId: string, events: TimelineEvent[]
       ...event,
       createdAt: new Date(event.createdAt),
       updatedAt: new Date(event.updatedAt),
-      date: new Date(event.date)
+      date: new Date(event.date),
     });
   }
   
@@ -48,7 +48,7 @@ export async function fetchTimelineEvents(userId: string): Promise<TimelineEvent
       id: doc.id,
       date: data.date?.toDate?.()?.toISOString() || data.date,
       createdAt: data.createdAt?.toDate?.()?.toISOString() || data.createdAt,
-      updatedAt: data.updatedAt?.toDate?.()?.toISOString() || data.updatedAt
+      updatedAt: data.updatedAt?.toDate?.()?.toISOString() || data.updatedAt,
     } as TimelineEvent;
   });
 }
@@ -61,7 +61,7 @@ export async function updateTimelineEvent(userId: string, eventId: string, updat
   
   const updateData: any = {
     ...updates,
-    updatedAt: new Date()
+    updatedAt: new Date(),
   };
   
   // Convert date strings to Firestore timestamps if present
@@ -104,7 +104,7 @@ export async function clearTimelineEvents(userId: string): Promise<void> {
  */
 export async function getTimelineEventsByStatus(
   userId: string, 
-  status: 'completed' | 'current' | 'upcoming'
+  status: 'completed' | 'current' | 'upcoming',
 ): Promise<TimelineEvent[]> {
   const snapshot = await adminDb
     .collection(`users/${userId}/timeline`)
@@ -119,7 +119,7 @@ export async function getTimelineEventsByStatus(
       id: doc.id,
       date: data.date?.toDate?.()?.toISOString() || data.date,
       createdAt: data.createdAt?.toDate?.()?.toISOString() || data.createdAt,
-      updatedAt: data.updatedAt?.toDate?.()?.toISOString() || data.updatedAt
+      updatedAt: data.updatedAt?.toDate?.()?.toISOString() || data.updatedAt,
     } as TimelineEvent;
   });
 }
@@ -153,7 +153,7 @@ export async function updateTimelineEventStatuses(userId: string): Promise<void>
       const eventRef = adminDb.collection(`users/${userId}/timeline`).doc(event.id);
       batch.update(eventRef, {
         status: newStatus,
-        updatedAt: new Date()
+        updatedAt: new Date(),
       });
       updateCount++;
     }
@@ -182,7 +182,7 @@ export async function getTimelineStatistics(userId: string): Promise<{
     completed: events.filter(e => e.status === 'completed').length,
     current: events.filter(e => e.status === 'current').length,
     upcoming: events.filter(e => e.status === 'upcoming').length,
-    progressPercentage: 0
+    progressPercentage: 0,
   };
   
   if (stats.total > 0) {

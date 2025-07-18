@@ -1,11 +1,11 @@
-import { onRequest } from "firebase-functions/v2/https";
-import { setGlobalOptions } from "firebase-functions/v2";
-import admin from "../firebase-admin";
+import { onRequest } from 'firebase-functions/v2/https';
+import { setGlobalOptions } from 'firebase-functions/v2';
+import admin from '../firebase-admin';
 
 // Set global options for all functions
 setGlobalOptions({
   maxInstances: 10,
-  region: "us-central1",
+  region: 'us-central1',
 });
 
 /**
@@ -52,8 +52,8 @@ export const getSecureFile = onRequest(
       const userId = decodedToken.uid;
 
       // Validate the file path structure
-      const pathParts = filePath.split("/");
-      if (pathParts.length < 2 || pathParts[0] !== "uploads" || pathParts[1] !== userId) {
+      const pathParts = filePath.split('/');
+      if (pathParts.length < 2 || pathParts[0] !== 'uploads' || pathParts[1] !== userId) {
         res.status(403).send({ error: 'Unauthorized access attempt.' });
         return;
       }
@@ -68,17 +68,17 @@ export const getSecureFile = onRequest(
       }
       
       const [url] = await file.getSignedUrl({
-        action: "read",
+        action: 'read',
         expires: Date.now() + 5 * 60 * 1000, // URL valid for 5 minutes
       });
       
-      console.log("Generated signed URL:", url);
+      console.log('Generated signed URL:', url);
       res.status(200).send({ url });
       return;
     } catch (error) {
-      console.error("Error generating signed URL:", error);
+      console.error('Error generating signed URL:', error);
       res.status(500).send({ error: 'Unable to generate signed URL.' });
       return;
     }
-  }
+  },
 );
