@@ -402,24 +402,6 @@ export const H1BDashboard: React.FC = () => {
           />
         </div>
 
-        {/* Results Summary */}
-        <div className="mb-8">
-          <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
-            <h2 className="text-lg font-semibold text-gray-700 mb-2">
-              Showing results for {dashboardData.totalApplications.toLocaleString()} applications
-            </h2>
-            <p className="text-sm text-gray-500">
-              {filters.searchQuery && `Search: "${filters.searchQuery}" • `}
-              {filters.fiscalYears.length > 0 && `Years: ${filters.fiscalYears.join(', ')} • `}
-              {filters.states.length > 0 && `States: ${filters.states.join(', ')} • `}
-              {filters.salaryRange[0] > 0 || filters.salaryRange[1] < 500000 ? 
-                `Salary: $${filters.salaryRange[0].toLocaleString()} - $${filters.salaryRange[1].toLocaleString()}` : 
-                'All data'
-              }
-            </p>
-          </div>
-        </div>
-
         {/* Overview Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6 mb-8">
           <MetricCard
