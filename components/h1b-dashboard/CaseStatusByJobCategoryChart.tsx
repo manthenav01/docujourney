@@ -2,6 +2,7 @@
 
 import { ResponsivePie } from '@nivo/pie'
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
 import { useState } from 'react'
 
 interface CaseStatusData {
@@ -274,27 +275,35 @@ export function CaseStatusByJobCategoryChart({ data, loading }: CaseStatusByJobC
           <div>
             <CardTitle>Case Status by Job Category</CardTitle>
           </div>
-          <div className="flex gap-2">
-            <button
+          <div className="flex gap-1">
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
               onClick={() => setViewMode('top')}
-              className={`px-3 py-1 text-xs rounded transition-colors ${
+              className={`px-2 py-1 h-7 text-xs rounded transition-colors ${
                 viewMode === 'top' 
-                  ? 'bg-blue-100 text-blue-700 font-medium' 
+                  ? 'bg-gray-900 text-white font-medium' 
                   : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
               }`}
+              aria-pressed={viewMode === 'top'}
             >
-              Top
-            </button>
-            <button
+              Top 3
+            </Button>
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
               onClick={() => setViewMode('bottom')}
-              className={`px-3 py-1 text-xs rounded transition-colors ${
+              className={`px-2 py-1 h-7 text-xs rounded transition-colors ${
                 viewMode === 'bottom' 
-                  ? 'bg-blue-100 text-blue-700 font-medium' 
+                  ? 'bg-gray-900 text-white font-medium' 
                   : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
               }`}
+              aria-pressed={viewMode === 'bottom'}
             >
-              Bottom
-            </button>
+              Bottom 3
+            </Button>
           </div>
         </div>
       </CardHeader>

@@ -2,6 +2,8 @@
 
 import { ResponsiveBar } from '@nivo/bar'
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
+import { useState } from 'react'
 
 interface StateSalaryData {
   state: string
@@ -16,6 +18,7 @@ interface HighestSalaryByStateChartProps {
 }
 
 export function HighestSalaryByStateChart({ data, loading }: HighestSalaryByStateChartProps) {
+  const [viewMode, setViewMode] = useState<'top' | 'bottom'>('top')
   if (loading) {
     return (
       <Card className="w-full">
@@ -46,12 +49,54 @@ export function HighestSalaryByStateChart({ data, loading }: HighestSalaryByStat
     )
   }
 
-  const sortedData = [...data].sort((a, b) => b.highestSalary - a.highestSalary).slice(0, 5)
+  // Sort data and select top 5 or bottom 5 based on view mode
+  const sortedData = (() => {
+    const sorted = [...data].sort((a, b) => b.highestSalary - a.highestSalary)
+    if (viewMode === 'top') {
+      return sorted.slice(0, 5)
+    } else {
+      return sorted.slice(-5).reverse() // Bottom 5, but keep descending order
+    }
+  })()
 
   return (
     <Card className="w-full">
       <CardHeader>
-        <CardTitle>Highest Salary by State (Top 5)</CardTitle>
+        <div className="flex justify-between items-start">
+          <div>
+            <CardTitle>Highest Salary by State</CardTitle>
+          </div>
+          <div className="flex gap-1">
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={() => setViewMode('top')}
+              className={`px-2 py-1 h-7 text-xs rounded transition-colors ${
+                viewMode === 'top' 
+                  ? 'bg-gray-900 text-white font-medium' 
+                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+              }`}
+              aria-pressed={viewMode === 'top'}
+            >
+              Top 5
+            </Button>
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={() => setViewMode('bottom')}
+              className={`px-2 py-1 h-7 text-xs rounded transition-colors ${
+                viewMode === 'bottom' 
+                  ? 'bg-gray-900 text-white font-medium' 
+                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+              }`}
+              aria-pressed={viewMode === 'bottom'}
+            >
+              Bottom 5
+            </Button>
+          </div>
+        </div>
       </CardHeader>
       <CardContent>
         <div style={{ height: '400px', width: '100%' }}>
