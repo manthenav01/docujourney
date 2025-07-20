@@ -3,6 +3,7 @@ import crypto from 'crypto';
 import { BigQuery } from '@google-cloud/bigquery';
 import {
   ComparisonEntity,
+  ComparisonRequest,
   ComparisonResult,
   ComparisonMetrics,
   ComparisonEntityWithMetrics,
@@ -31,27 +32,27 @@ export class ComparisonService {
    * Perform comprehensive comparison analysis
    */
   async performComparison(request: ComparisonRequest): Promise<ComparisonResult> {
-    const { entities, includeCorrelations, includeTrends, includeMarketAnalysis } = request;
+    const { entities = [], includeCorrelations, includeTrends, includeMarketAnalysis } = request;
     
     // Get metrics for each entity
-    const entitiesWithMetrics = await this.getEntitiesWithMetrics(entities, config);
+    const entitiesWithMetrics = await this.getEntitiesWithMetrics(entities);
     
     // Calculate rankings
     const rankings = this.calculateRankings(entitiesWithMetrics);
     
     // Get correlations if requested
     const correlations = includeCorrelations 
-      ? await this.calculateCorrelations(entities, config)
+      ? await this.calculateCorrelations(entities)
       : [];
     
     // Get trends if requested
     const trends = includeTrends 
-      ? await this.calculateTrends(entities, config)
+      ? await this.calculateTrends(entities)
       : [];
     
     // Perform market analysis if requested
     const marketAnalysis = includeMarketAnalysis 
-      ? await this.performMarketAnalysis(entitiesWithMetrics, config)
+      ? await this.performMarketAnalysis(entitiesWithMetrics)
       : this.getEmptyMarketAnalysis();
 
     return {
@@ -60,11 +61,10 @@ export class ComparisonService {
       trends,
       rankings,
       marketAnalysis,
-      metadata: {
-        comparisonId: crypto.randomUUID(),
-        timestamp: new Date(),
-        filters: this.extractFiltersFromConfig(config),
-        config,
+      summary: {
+        totalEntities: entities.length,
+        comparisonDate: new Date().toISOString(),
+        methodology: 'H1B LCA data analysis',
       },
     };
   }
@@ -73,11 +73,10 @@ export class ComparisonService {
    * Get metrics for multiple entities
    */
   private async getEntitiesWithMetrics(
-    entities: ComparisonEntity[], 
-    config: ComparisonConfig,
+    entities: ComparisonEntity[],
   ): Promise<ComparisonEntityWithMetrics[]> {
     const results = await Promise.all(
-      entities.map(entity => this.getEntityMetrics(entity, config)),
+      entities.map(entity => this.getEntityMetrics(entity)),
     );
     
     // Calculate percentile ranks
@@ -88,10 +87,9 @@ export class ComparisonService {
    * Get metrics for a single entity
    */
   private async getEntityMetrics(
-    entity: ComparisonEntity, 
-    config: ComparisonConfig,
+    entity: ComparisonEntity,
   ): Promise<ComparisonEntityWithMetrics> {
-    const whereClause = this.buildEntityWhereClause(entity, config);
+    const whereClause = this.buildEntityWhereClause(entity);
     
     const metricsQuery = `
       WITH entity_data AS (

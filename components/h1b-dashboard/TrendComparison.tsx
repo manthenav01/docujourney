@@ -111,7 +111,7 @@ export const TrendComparison: React.FC<TrendComparisonProps> = ({
     // Get all unique periods
     const allPeriods = new Set<string>();
     metricTrends.forEach(trend => {
-      trend.periods.forEach(period => allPeriods.add(period.period));
+      trend.data.forEach(period => allPeriods.add(period.period));
     });
     
     // Sort periods
@@ -124,8 +124,8 @@ export const TrendComparison: React.FC<TrendComparisonProps> = ({
       metricTrends.forEach(trend => {
         const entity = entities.find(e => e.id === trend.entityId);
         if (entity && visibleEntities.has(entity.id)) {
-          const periodData = trend.periods.find(p => p.period === period);
-          dataPoint[entity.displayName] = periodData ? periodData.value : null;
+          const periodData = trend.data.find(p => p.period === period);
+          dataPoint[entity.name] = periodData ? periodData.value : null;
         }
       });
       
@@ -296,7 +296,7 @@ export const TrendComparison: React.FC<TrendComparisonProps> = ({
                   className="w-3 h-3 rounded-full"
                   style={{ backgroundColor: isVisible ? color : '#D1D5DB' }}
                 />
-                <span className="text-sm font-medium text-gray-900">{entity.displayName}</span>
+                <span className="text-sm font-medium text-gray-900">{entity.name}</span>
                 {isVisible ? (
                   <Eye className="w-4 h-4 text-gray-400" />
                 ) : (
@@ -350,7 +350,7 @@ export const TrendComparison: React.FC<TrendComparisonProps> = ({
                     <Line
                       key={entity.id}
                       type="monotone"
-                      dataKey={entity.displayName}
+                      dataKey={entity.name}
                       stroke={entityColors[index % entityColors.length]}
                       strokeWidth={2}
                       dot={{ fill: entityColors[index % entityColors.length], strokeWidth: 2, r: 4 }}
@@ -386,24 +386,16 @@ export const TrendComparison: React.FC<TrendComparisonProps> = ({
                 return (
                   <div key={trend.entityId} className="p-4 bg-gray-50 rounded-lg">
                     <div className="flex items-center justify-between mb-2">
-                      <span className="font-medium text-gray-900">{entity.displayName}</span>
-                      <div className={`p-1 rounded-full ${getTrendColor(trend.trend)}`}>
-                        {getTrendIcon(trend.trend)}
-                      </div>
+                      <span className="font-medium text-gray-900">{entity.name}</span>
                     </div>
                     <div className="text-sm text-gray-600">
-                      <div className="flex items-center justify-between">
-                        <span>Change Rate:</span>
-                        <span className={`font-medium ${
-                          trend.changeRate > 0 ? 'text-green-600' : 
-                          trend.changeRate < 0 ? 'text-red-600' : 'text-gray-600'
-                        }`}>
-                          {trend.changeRate > 0 ? '+' : ''}{trend.changeRate.toFixed(1)}%
-                        </span>
+                      <div className="flex items-center justify-between mt-1">
+                        <span>Data Points:</span>
+                        <span className="font-medium">{trend.data.length}</span>
                       </div>
                       <div className="flex items-center justify-between mt-1">
-                        <span>Periods:</span>
-                        <span className="font-medium">{trend.periods.length}</span>
+                        <span>Metric:</span>
+                        <span className="font-medium">{trend.metric}</span>
                       </div>
                     </div>
                   </div>

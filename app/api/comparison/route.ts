@@ -3,7 +3,8 @@ import { createComparisonService } from '@/lib/comparisonService';
 import { 
   ComparisonConfig, 
   ComparisonEntity, 
-  ComparisonFilters, 
+  ComparisonFilters,
+  ComparisonRequest,
 } from '@/lib/types/comparison';
 import path from 'path';
 
@@ -96,7 +97,6 @@ async function handleComparison(body: any) {
     timeframe: config?.timeframe || 'all',
     includeCorrelations: config?.includeCorrelations ?? true,
     includeTrends: config?.includeTrends ?? true,
-    includeRankings: config?.includeRankings ?? true,
     includeMarketAnalysis: config?.includeMarketAnalysis ?? true,
   };
   
@@ -105,7 +105,7 @@ async function handleComparison(body: any) {
   return NextResponse.json({
     success: true,
     result,
-    config: comparisonConfig,
+    config: comparisonRequest,
     generatedAt: new Date().toISOString(),
   });
 }
@@ -149,7 +149,6 @@ async function handleQuickCompare(body: any) {
     timeframe: 'last_2_years',
     includeCorrelations: false,
     includeTrends: false,
-    includeRankings: false,
     includeMarketAnalysis: false,
   };
   
@@ -160,14 +159,12 @@ async function handleQuickCompare(body: any) {
     entity1: {
       name: result.entities[0].name,
       value: getMetricValue(result.entities[0].metrics, metric),
-      rank: result.entities[0].rank[metric] || 1,
     },
     entity2: {
       name: result.entities[1].name,
       value: getMetricValue(result.entities[1].metrics, metric),
-      rank: result.entities[1].rank[metric] || 2,
     },
-    winner: result.entities[0].rank[metric] < result.entities[1].rank[metric] ? 'entity1' : 'entity2',
+    winner: getMetricValue(result.entities[0].metrics, metric) > getMetricValue(result.entities[1].metrics, metric) ? 'entity1' : 'entity2',
     difference: Math.abs(
       getMetricValue(result.entities[0].metrics, metric) - 
       getMetricValue(result.entities[1].metrics, metric),
@@ -356,9 +353,9 @@ function validateEntity(entity: any): ComparisonEntity {
   
   return {
     id: `${entity.type}_${entity.name.toLowerCase().replace(/\s+/g, '_')}`,
+    name: entity.name,
     type: entity.type,
-    displayName: entity.displayName || entity.name,
-    metadata: entity.metadata || {},
+    data: entity.metadata || {},
   };
 }
 

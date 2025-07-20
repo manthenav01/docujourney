@@ -135,8 +135,22 @@ export const SearchAndFilters: React.FC<SearchAndFiltersProps> = ({
       // Direct navigation - no API calls needed on dashboard
       router.push(`/h1b-dashboard/job/${encodeURIComponent(jobSlug)}?title=${encodeURIComponent(suggestion.text)}`);
     } else if (finalType === 'location') {
-      // Auto-apply location filter
-      const state = suggestion.text.split(',')[1]?.trim();
+      // Navigate to city page if it's a city, state format
+      if (suggestion.text.includes(',')) {
+        const [cityPart, statePart] = suggestion.text.split(',');
+        const cityName = cityPart.trim();
+        const stateName = statePart.trim();
+        
+        if (cityName && stateName) {
+          const citySlug = cityName.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+          console.log('Navigating to city page:', `/h1b-dashboard/city/${encodeURIComponent(citySlug)}?city=${encodeURIComponent(cityName)}&state=${encodeURIComponent(stateName)}`);
+          router.push(`/h1b-dashboard/city/${encodeURIComponent(citySlug)}?city=${encodeURIComponent(cityName)}&state=${encodeURIComponent(stateName)}`);
+          return;
+        }
+      }
+      
+      // Fall back to auto-applying location filter for states only
+      const state = suggestion.text.split(',')[1]?.trim() || suggestion.text.trim();
       if (state && !filters.states.includes(state)) {
         setFilters(prev => ({
           ...prev,

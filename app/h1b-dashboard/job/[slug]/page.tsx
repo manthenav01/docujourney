@@ -30,7 +30,7 @@ function JobPageClient({ slug }: { slug: string }) {
     }
 
     // Add job-specific structured data
-    const structuredData = generateStructuredData('job', { 
+    const structuredData = generateStructuredData('h1b-data', { 
       title: cleanJobTitle,
       slug: slug, 
     });
