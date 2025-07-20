@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import { H1BDashboard } from '@/components/h1b-dashboard';
 import { generateH1BMetadata, generateStructuredData } from '@/lib/seo';

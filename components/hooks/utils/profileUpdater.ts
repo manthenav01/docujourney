@@ -9,7 +9,7 @@ export const updateProfileFromDocumentData = async (
   userId: string,
   profileId: string,
   extractedData: Record<string, any>,
-  currentProfile: Profile
+  currentProfile: Profile,
 ): Promise<void> => {
   try {
     // Check if profile already has the information we want to update
@@ -24,7 +24,7 @@ export const updateProfileFromDocumentData = async (
       hasDateOfBirth,
       hasCountryOfCitizen,
       documentDateOfBirth: dateOfBirth,
-      documentCountryOfCitizen: countryOfCitizen
+      documentCountryOfCitizen: countryOfCitizen,
     });
     
     // Prepare update data - only include fields that need updating
@@ -77,7 +77,7 @@ export const updateProfileFromDocumentData = async (
         body: JSON.stringify({
           userId: userId,
           profileId: profileId,
-          updates: updateData
+          updates: updateData,
         }),
       });
       

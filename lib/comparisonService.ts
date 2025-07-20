@@ -1,4 +1,5 @@
 // Comparison service for multi-entity analysis
+import crypto from 'crypto';
 import { BigQuery } from '@google-cloud/bigquery';
 import {
   ComparisonEntity,
@@ -10,8 +11,7 @@ import {
   RankingData,
   MarketAnalysis,
   ComparisonFilters,
-  ComparisonConfig,
-  ComparisonRequest
+  ComparisonConfig
 } from './types/comparison';
 
 export class ComparisonService {
@@ -60,8 +60,12 @@ export class ComparisonService {
       trends,
       rankings,
       marketAnalysis,
-      filters: this.extractFiltersFromConfig(config),
-      generatedAt: new Date()
+      metadata: {
+        comparisonId: crypto.randomUUID(),
+        timestamp: new Date(),
+        filters: this.extractFiltersFromConfig(config),
+        config,
+      },
     };
   }
 
@@ -70,10 +74,10 @@ export class ComparisonService {
    */
   private async getEntitiesWithMetrics(
     entities: ComparisonEntity[], 
-    config: ComparisonConfig
+    config: ComparisonConfig,
   ): Promise<ComparisonEntityWithMetrics[]> {
     const results = await Promise.all(
-      entities.map(entity => this.getEntityMetrics(entity, config))
+      entities.map(entity => this.getEntityMetrics(entity, config)),
     );
     
     // Calculate percentile ranks
@@ -85,7 +89,7 @@ export class ComparisonService {
    */
   private async getEntityMetrics(
     entity: ComparisonEntity, 
-    config: ComparisonConfig
+    config: ComparisonConfig,
   ): Promise<ComparisonEntityWithMetrics> {
     const whereClause = this.buildEntityWhereClause(entity, config);
     
@@ -141,27 +145,33 @@ export class ComparisonService {
           min: Math.round(data.min_salary || 0),
           max: Math.round(data.max_salary || 0),
           percentile25: Math.round(data.percentile_25 || 0),
-          percentile75: Math.round(data.percentile_75 || 0)
+          percentile75: Math.round(data.percentile_75 || 0),
         },
         uniqueEmployers: data.unique_employers || 0,
         uniqueJobTitles: data.unique_job_titles || 0,
         topJobTitle: data.top_job_title || 'N/A',
-        topState: data.top_state || 'N/A'
+        topState: data.top_state || 'N/A',
       };
 
       return {
         ...entity,
         metrics,
-        rank: {},
-        percentileRank: {}
+        rankings: {
+          totalApplications: 0,
+          approvalRate: 0,
+          avgSalary: 0,
+        },
       };
     } catch (error) {
       console.error(`Error getting metrics for entity ${entity.id}:`, error);
       return {
         ...entity,
         metrics: this.getEmptyMetrics(),
-        rank: {},
-        percentileRank: {}
+        rankings: {
+          totalApplications: 0,
+          approvalRate: 0,
+          avgSalary: 0,
+        },
       };
     }
   }
@@ -173,14 +183,14 @@ export class ComparisonService {
     const conditions: string[] = [];
     
     switch (entity.type) {
-      case 'company':
-        conditions.push(`LOWER(employer_name) LIKE '%${entity.name.toLowerCase()}%'`);
+      case 'employer':
+        conditions.push(`LOWER(employer_name) LIKE '%${entity.displayName.toLowerCase()}%'`);
         break;
       case 'job_title':
-        conditions.push(`LOWER(job_title) LIKE '%${entity.name.toLowerCase()}%'`);
+        conditions.push(`LOWER(job_title) LIKE '%${entity.displayName.toLowerCase()}%'`);
         break;
       case 'location':
-        conditions.push(`LOWER(worksite_state) = '${entity.name.toLowerCase()}'`);
+        conditions.push(`LOWER(worksite_state) = '${entity.displayName.toLowerCase()}'`);
         break;
       case 'industry':
         // Would need NAICS code mapping for industry
@@ -211,7 +221,7 @@ export class ComparisonService {
       'totalApplications',
       'approvalRate', 
       'avgSalary',
-      'medianSalary'
+      'medianSalary',
     ];
     
     const rankings: RankingData[] = [];
@@ -225,24 +235,32 @@ export class ComparisonService {
       });
       
       // Calculate rankings and percentiles
-      const rankingData: RankingData = {
-        metric,
-        rankings: sortedEntities.map((entity, index) => ({
+      sortedEntities.forEach((entity, index) => {
+        const rankingData: RankingData = {
           entityId: entity.id,
+          metric,
           rank: index + 1,
           value: this.getMetricValue(entity.metrics, metric),
-          percentile: Math.round(((entities.length - index) / entities.length) * 100)
-        }))
-      };
-      
-      rankings.push(rankingData);
+          percentile: Math.round(((entities.length - index) / entities.length) * 100),
+        };
+        rankings.push(rankingData);
+      });
       
       // Update entity rank data
       sortedEntities.forEach((entity, index) => {
         const originalEntity = entities.find(e => e.id === entity.id);
-        if (originalEntity) {
-          originalEntity.rank[metric] = index + 1;
-          originalEntity.percentileRank[metric] = rankingData.rankings[index].percentile;
+        if (originalEntity && originalEntity.rankings) {
+          switch (metric) {
+            case 'totalApplications':
+              originalEntity.rankings.totalApplications = index + 1;
+              break;
+            case 'approvalRate':
+              originalEntity.rankings.approvalRate = index + 1;
+              break;
+            case 'avgSalary':
+              originalEntity.rankings.avgSalary = index + 1;
+              break;
+          }
         }
       });
     }
@@ -255,25 +273,21 @@ export class ComparisonService {
    */
   private async calculateCorrelations(
     entities: ComparisonEntity[], 
-    config: ComparisonConfig
+    config: ComparisonConfig,
   ): Promise<CorrelationData[]> {
     // For now, return some common correlations
     // In a full implementation, this would calculate actual correlations from the data
     return [
       {
-        metric1: 'totalApplications',
-        metric2: 'approvalRate',
-        correlation: 0.23,
-        significance: 0.05,
-        interpretation: 'weak'
-      },
-      {
-        metric1: 'avgSalary',
-        metric2: 'approvalRate',
-        correlation: 0.67,
+        entityPair: [entities[0]?.id || '', entities[1]?.id || ''],
+        metrics: {
+          salary: 0.67,
+          applications: 0.23,
+          approvalRate: 0.45,
+        },
+        strength: 'moderate',
         significance: 0.01,
-        interpretation: 'moderate'
-      }
+      },
     ];
   }
 
@@ -282,7 +296,7 @@ export class ComparisonService {
    */
   private async calculateTrends(
     entities: ComparisonEntity[], 
-    config: ComparisonConfig
+    config: ComparisonConfig,
   ): Promise<TrendData[]> {
     const trends: TrendData[] = [];
     
@@ -322,10 +336,10 @@ export class ComparisonService {
             periods: results.map((row: any) => ({
               period: row.fiscal_year.toString(),
               value: row.applications || 0,
-              date: new Date(row.fiscal_year, 0, 1)
+              date: new Date(row.fiscal_year, 0, 1),
             })),
             trend: this.calculateTrendDirection(results.map((r: any) => r.applications)),
-            changeRate: this.calculateChangeRate(results.map((r: any) => r.applications))
+            changeRate: this.calculateChangeRate(results.map((r: any) => r.applications)),
           };
           trends.push(applicationsTrend);
           
@@ -336,10 +350,10 @@ export class ComparisonService {
             periods: results.map((row: any) => ({
               period: row.fiscal_year.toString(),
               value: Math.round(row.avg_salary || 0),
-              date: new Date(row.fiscal_year, 0, 1)
+              date: new Date(row.fiscal_year, 0, 1),
             })),
             trend: this.calculateTrendDirection(results.map((r: any) => r.avg_salary)),
-            changeRate: this.calculateChangeRate(results.map((r: any) => r.avg_salary))
+            changeRate: this.calculateChangeRate(results.map((r: any) => r.avg_salary)),
           };
           trends.push(salaryTrend);
         }
@@ -356,7 +370,7 @@ export class ComparisonService {
    */
   private async performMarketAnalysis(
     entities: ComparisonEntityWithMetrics[], 
-    config: ComparisonConfig
+    config: ComparisonConfig,
   ): Promise<MarketAnalysis> {
     const insights = this.generateMarketInsights(entities);
     const benchmarks = await this.calculateMarketBenchmarks(config);
@@ -366,10 +380,10 @@ export class ComparisonService {
         topPerformer: this.findTopPerformer(entities, 'avgSalary'),
         worstPerformer: this.findWorstPerformer(entities, 'approvalRate'),
         marketLeader: this.findTopPerformer(entities, 'totalApplications'),
-        fastestGrowing: entities[0]?.id || 'N/A' // Would need trend analysis
+        fastestGrowing: entities[0]?.id || 'N/A', // Would need trend analysis
       },
       insights,
-      benchmarks
+      benchmarks,
     };
   }
 
@@ -400,19 +414,19 @@ export class ComparisonService {
   }
 
   private calculateTrendDirection(values: number[]): 'increasing' | 'decreasing' | 'stable' {
-    if (values.length < 2) return 'stable';
+    if (values.length < 2) {return 'stable';}
     
     const first = values[0];
     const last = values[values.length - 1];
     const change = (last - first) / first;
     
-    if (change > 0.1) return 'increasing';
-    if (change < -0.1) return 'decreasing';
+    if (change > 0.1) {return 'increasing';}
+    if (change < -0.1) {return 'decreasing';}
     return 'stable';
   }
 
   private calculateChangeRate(values: number[]): number {
-    if (values.length < 2) return 0;
+    if (values.length < 2) {return 0;}
     
     const first = values[0];
     const last = values[values.length - 1];
@@ -436,7 +450,7 @@ export class ComparisonService {
           title: 'Above Market Salary',
           description: `Offers salaries 20% above market average`,
           impact: 'high' as const,
-          confidence: 0.8
+          confidence: 0.8,
         });
       }
     }
@@ -450,23 +464,23 @@ export class ComparisonService {
       industryAverage: {
         avgSalary: 120000,
         approvalRate: 85.5,
-        totalApplications: 1500
+        totalApplications: 1500,
       },
       topQuartile: {
         avgSalary: 160000,
         approvalRate: 95.0,
-        totalApplications: 5000
+        totalApplications: 5000,
       },
       median: {
         avgSalary: 135000,
         approvalRate: 88.0,
-        totalApplications: 2500
-      }
+        totalApplications: 2500,
+      },
     };
   }
 
   private findTopPerformer(entities: ComparisonEntityWithMetrics[], metric: string): string {
-    if (entities.length === 0) return 'N/A';
+    if (entities.length === 0) {return 'N/A';}
     
     const top = entities.reduce((best, current) => {
       const currentValue = this.getMetricValue(current.metrics, metric);
@@ -478,7 +492,7 @@ export class ComparisonService {
   }
 
   private findWorstPerformer(entities: ComparisonEntityWithMetrics[], metric: string): string {
-    if (entities.length === 0) return 'N/A';
+    if (entities.length === 0) {return 'N/A';}
     
     const worst = entities.reduce((worst, current) => {
       const currentValue = this.getMetricValue(current.metrics, metric);
@@ -501,7 +515,7 @@ export class ComparisonService {
       uniqueEmployers: 0,
       uniqueJobTitles: 0,
       topJobTitle: 'N/A',
-      topState: 'N/A'
+      topState: 'N/A',
     };
   }
 
@@ -511,14 +525,14 @@ export class ComparisonService {
         topPerformer: 'N/A',
         worstPerformer: 'N/A',
         marketLeader: 'N/A',
-        fastestGrowing: 'N/A'
+        fastestGrowing: 'N/A',
       },
       insights: [],
       benchmarks: {
         industryAverage: {},
         topQuartile: {},
-        median: {}
-      }
+        median: {},
+      },
     };
   }
 

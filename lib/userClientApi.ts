@@ -1,12 +1,12 @@
-import { db } from "./firebase";
-import { doc, setDoc, getDoc } from "firebase/firestore";
+import { db } from './firebase';
+import { doc, setDoc, getDoc } from 'firebase/firestore';
 
 export const ensureUserDocumentExistsClient = async (
     userId: string,
     email: string | null,
     displayName: string | null,
     photoURL: string | null,
-    provider: string
+    provider: string,
 ): Promise<void> => {
     try {
         const userDocRef = doc(db, 'users', userId);
@@ -22,14 +22,14 @@ export const ensureUserDocumentExistsClient = async (
                 createdAt: new Date(),
                 updatedAt: new Date(),
                 provider: provider,
-                lastLoginAt: new Date()
+                lastLoginAt: new Date(),
             });
             console.log('Created user document for:', userId);
         } else {
             // Update last login time
             await setDoc(userDocRef, {
                 lastLoginAt: new Date(),
-                updatedAt: new Date()
+                updatedAt: new Date(),
             }, { merge: true });
             console.log('Updated last login for:', userId);
         }
@@ -57,7 +57,7 @@ export const createUserDocumentClient = async (userData: {
             createdAt: new Date(),
             updatedAt: new Date(),
             provider: userData.provider,
-            lastLoginAt: new Date()
+            lastLoginAt: new Date(),
         });
         
         console.log('Created user document for:', userData.userId);
@@ -73,7 +73,7 @@ export const updateUserLastLoginClient = async (userId: string): Promise<void> =
         
         await setDoc(userDocRef, {
             lastLoginAt: new Date(),
-            updatedAt: new Date()
+            updatedAt: new Date(),
         }, { merge: true });
         
         console.log('Updated last login for:', userId);

@@ -11,7 +11,7 @@ export async function PATCH(request: NextRequest) {
     if (!userId || !profileId || !updates) {
       return NextResponse.json(
         { error: 'Missing required fields: userId, profileId, updates' },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -66,7 +66,7 @@ export async function PATCH(request: NextRequest) {
     if (Object.keys(filteredUpdates).length === 0) {
       return NextResponse.json(
         { error: 'No valid fields to update' },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -85,13 +85,13 @@ export async function PATCH(request: NextRequest) {
 
     return NextResponse.json({ 
       success: true, 
-      updatedFields: Object.keys(filteredUpdates) 
+      updatedFields: Object.keys(filteredUpdates), 
     }, { status: 200 });
   } catch (error) {
     console.error('Error updating profile fields:', error);
     return NextResponse.json(
       { error: 'Failed to update profile fields', details: error instanceof Error ? error.message : 'Unknown error' },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

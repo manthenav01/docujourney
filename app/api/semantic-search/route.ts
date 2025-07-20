@@ -5,7 +5,7 @@ import path from 'path';
 // Initialize services
 const bigQueryService = new H1BBigQueryService({
   projectId: 'doctracker-b4528',
-  keyFilename: path.join(process.cwd(), 'serviceAccountKey.json')
+  keyFilename: path.join(process.cwd(), 'serviceAccountKey.json'),
 });
 
 
@@ -20,7 +20,7 @@ export async function GET(request: NextRequest) {
       default:
         return NextResponse.json(
           { error: 'Invalid action. Use: autocomplete' },
-          { status: 400 }
+          { status: 400 },
         );
     }
   } catch (error) {
@@ -28,11 +28,10 @@ export async function GET(request: NextRequest) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
     return NextResponse.json(
       { error: 'Failed to process semantic search request', details: errorMessage },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
-
 
 
 // Handle autocomplete suggestions
@@ -50,7 +49,7 @@ async function handleAutocomplete(searchParams: URLSearchParams) {
     return NextResponse.json({
       query: partialQuery,
       suggestions,
-      count: suggestions.length
+      count: suggestions.length,
     });
   } catch (error) {
     console.error('Autocomplete error:', error);
@@ -58,7 +57,7 @@ async function handleAutocomplete(searchParams: URLSearchParams) {
       query: partialQuery,
       suggestions: [],
       count: 0,
-      error: 'Failed to fetch suggestions'
+      error: 'Failed to fetch suggestions',
     });
   }
 }

@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
@@ -22,7 +22,7 @@ const FirstEntryDateDialog: React.FC<FirstEntryDateDialogProps> = ({
   profileName,
   onSubmit,
   onCancel,
-  isLoading = false
+  isLoading = false,
 }) => {
   const [selectedDate, setSelectedDate] = useState<Date | undefined>();
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
@@ -70,8 +70,8 @@ const FirstEntryDateDialog: React.FC<FirstEntryDateDialogProps> = ({
                 <Button
                   variant="outline"
                   className={cn(
-                    "w-full justify-start text-left font-normal",
-                    !selectedDate && "text-muted-foreground"
+                    'w-full justify-start text-left font-normal',
+                    !selectedDate && 'text-muted-foreground',
                   )}
                   disabled={isLoading}
                 >
@@ -89,7 +89,7 @@ const FirstEntryDateDialog: React.FC<FirstEntryDateDialogProps> = ({
                   selected={selectedDate}
                   onSelect={handleDateSelect}
                   disabled={(date) => 
-                    date > new Date() || date < new Date("1900-01-01")
+                    date > new Date() || date < new Date('1900-01-01')
                   }
                   initialFocus
                 />

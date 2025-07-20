@@ -14,7 +14,7 @@ async function fetchDocumentSchema(documentType: string) {
 
 const DocumentTypePage = async ({ 
     params, 
-    searchParams 
+    searchParams, 
 }: { 
     params: Promise<{ documentType: string }>, 
     searchParams: Promise<{ profileId?: string }> 

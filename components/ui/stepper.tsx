@@ -12,19 +12,19 @@ interface StepperProps {
 
 export const Stepper: React.FC<StepperProps> = ({ steps, currentStep, className }) => {
   return (
-    <div className={cn("flex items-center", className)}>
+    <div className={cn('flex items-center', className)}>
       {steps.map((step, index) => (
         <React.Fragment key={index}>
           {/* Step Circle */}
           <div className="flex items-center">
             <div
               className={cn(
-                "flex items-center justify-center w-8 h-8 rounded-full text-sm font-bold",
+                'flex items-center justify-center w-8 h-8 rounded-full text-sm font-bold',
                 index < currentStep
-                  ? "bg-green-100 text-green-700" // Completed step
+                  ? 'bg-green-100 text-green-700' // Completed step
                   : index === currentStep
-                  ? "bg-blue-100 text-blue-700" // Current step
-                  : "bg-gray-100 text-gray-400" // Future step
+                  ? 'bg-blue-100 text-blue-700' // Current step
+                  : 'bg-gray-100 text-gray-400', // Future step
               )}
             >
               {index < currentStep ? (
@@ -38,8 +38,8 @@ export const Stepper: React.FC<StepperProps> = ({ steps, currentStep, className 
             <div className="ml-2">
               <span
                 className={cn(
-                  "text-xs font-medium",
-                  index === currentStep ? "text-blue-700" : "text-gray-400"
+                  'text-xs font-medium',
+                  index === currentStep ? 'text-blue-700' : 'text-gray-400',
                 )}
               >
                 {step.title}
@@ -54,8 +54,8 @@ export const Stepper: React.FC<StepperProps> = ({ steps, currentStep, className 
           {index < steps.length - 1 && (
             <div
               className={cn(
-                "w-8 h-px mx-3",
-                index < currentStep ? "bg-green-300" : "bg-gray-200"
+                'w-8 h-px mx-3',
+                index < currentStep ? 'bg-green-300' : 'bg-gray-200',
               )}
             />
           )}

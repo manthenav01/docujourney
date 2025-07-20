@@ -4,7 +4,7 @@ const path = require('path');
 async function checkFiscalYears() {
   const bigquery = new BigQuery({
     projectId: 'doctracker-b4528',
-    keyFilename: path.join(__dirname, 'serviceAccountKey.json')
+    keyFilename: path.join(__dirname, 'serviceAccountKey.json'),
   });
 
   try {

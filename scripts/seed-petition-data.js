@@ -16,7 +16,7 @@ const serviceAccount = require('../serviceAccountKey.json');
 
 if (!admin.apps.length) {
   admin.initializeApp({
-    credential: admin.credential.cert(serviceAccount)
+    credential: admin.credential.cert(serviceAccount),
   });
 }
 
@@ -181,7 +181,7 @@ if (require.main === module) {
 
 module.exports = {
   checkJobsData,
-  showDataMapping
+  showDataMapping,
 };
 
 // Sample data arrays
@@ -191,7 +191,7 @@ const companies = [
   'Oracle Corporation', 'Adobe Inc.', 'Uber Technologies Inc.', 'Airbnb Inc.', 'Twitter Inc.',
   'LinkedIn Corporation', 'Dropbox Inc.', 'Spotify Technology S.A.', 'Zoom Video Communications',
   'Palantir Technologies Inc.', 'Stripe Inc.', 'Shopify Inc.', 'Square Inc.', 'DocuSign Inc.',
-  'Snowflake Inc.', 'Databricks Inc.', 'Coinbase Global Inc.', 'Robinhood Markets Inc.'
+  'Snowflake Inc.', 'Databricks Inc.', 'Coinbase Global Inc.', 'Robinhood Markets Inc.',
 ];
 
 const jobTitles = [
@@ -203,7 +203,7 @@ const jobTitles = [
   'Engineering Manager', 'Senior Engineering Manager', 'Director of Engineering',
   'Frontend Engineer', 'Backend Engineer', 'Full Stack Engineer', 'DevOps Engineer', 'Site Reliability Engineer',
   'Security Engineer', 'Cloud Architect', 'Solutions Architect', 'Data Engineer', 'Analytics Engineer',
-  'Quality Assurance Engineer', 'Technical Lead', 'Architect', 'Consultant', 'Business Analyst'
+  'Quality Assurance Engineer', 'Technical Lead', 'Architect', 'Consultant', 'Business Analyst',
 ];
 
 const cities = [
@@ -226,7 +226,7 @@ const cities = [
   { city: 'Phoenix', state: 'AZ', zipCode: '85001' },
   { city: 'Dallas', state: 'TX', zipCode: '75201' },
   { city: 'Houston', state: 'TX', zipCode: '77002' },
-  { city: 'Miami', state: 'FL', zipCode: '33101' }
+  { city: 'Miami', state: 'FL', zipCode: '33101' },
 ];
 
 const visaTypes = ['H-1B', 'L-1A', 'L-1B', 'O-1', 'TN', 'E-3', 'H-1B1'];
@@ -254,7 +254,7 @@ function generateRandomName() {
 }
 
 function calculateApprovalDate(filingDate, status, processingTime) {
-  if (status !== 'approved') return null;
+  if (status !== 'approved') {return null;}
   
   const approval = new Date(filingDate);
   approval.setDate(approval.getDate() + processingTime);
@@ -273,7 +273,7 @@ function generateWageRange(jobTitle, location) {
     'Machine Learning Engineer': [110000, 170000],
     'Product Manager': [100000, 160000],
     'Senior Product Manager': [140000, 200000],
-    'Engineering Manager': [150000, 220000]
+    'Engineering Manager': [150000, 220000],
   };
   
   // Location multipliers
@@ -284,7 +284,7 @@ function generateWageRange(jobTitle, location) {
     'MA': 1.15,
     'TX': 1.0,
     'CO': 1.05,
-    'default': 0.9
+    'default': 0.9,
   };
   
   // Find base range
@@ -325,10 +325,10 @@ function generatePetition(index) {
   // Generate status with realistic distribution
   let status;
   const statusRand = Math.random();
-  if (statusRand < 0.75) status = 'approved';
-  else if (statusRand < 0.9) status = 'pending';
-  else if (statusRand < 0.97) status = 'denied';
-  else status = 'withdrawn';
+  if (statusRand < 0.75) {status = 'approved';}
+  else if (statusRand < 0.9) {status = 'pending';}
+  else if (statusRand < 0.97) {status = 'denied';}
+  else {status = 'withdrawn';}
   
   // Processing time varies by priority and status
   const baseProcessingTime = priority === 'premium' ? 
@@ -369,7 +369,7 @@ function generatePetition(index) {
                status === 'denied' ? 'Case Denied' : 'Case Withdrawn',
     priority: priority,
     createdAt: now,
-    updatedAt: now
+    updatedAt: now,
   };
 }
 
@@ -410,7 +410,7 @@ async function seedPetitionData(count = 5000) {
       
       const readline = require('readline').createInterface({
         input: process.stdin,
-        output: process.stdout
+        output: process.stdout,
       });
       
       const answer = await new Promise(resolve => {
@@ -454,8 +454,8 @@ async function seedPetitionData(count = 5000) {
         Object.entries(petitions.reduce((acc, p) => {
           acc[p.employer] = (acc[p.employer] || 0) + 1;
           return acc;
-        }, {})).slice(0, 10)
-      )
+        }, {})).slice(0, 10),
+      ),
     };
     
     console.log('\n📈 Seeding Summary:');
@@ -537,5 +537,5 @@ if (require.main === module) {
 module.exports = {
   seedPetitionData,
   clearPetitionData,
-  generatePetition
+  generatePetition,
 };

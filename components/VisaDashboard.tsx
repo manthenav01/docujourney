@@ -12,7 +12,7 @@ import {
   BarChart3,
   MapPin,
   Calendar,
-  DollarSign
+  DollarSign,
 } from 'lucide-react';
 
 interface EmployerData {
@@ -63,7 +63,7 @@ const VisaDashboard: React.FC = () => {
     try {
       // Fetch top sponsoring employers
       const sponsorsResponse = await fetch(
-        `/api/petitions/employers?sortBy=totalPetitions&sortOrder=desc&limit=10`
+        `/api/petitions/employers?sortBy=totalPetitions&sortOrder=desc&limit=10`,
       );
       
       if (!sponsorsResponse.ok) {
@@ -76,7 +76,7 @@ const VisaDashboard: React.FC = () => {
 
       // Fetch top success rate employers (minimum 10 petitions)
       const successResponse = await fetch(
-        `/api/petitions/employers?sortBy=approvalRate&sortOrder=desc&limit=50`
+        `/api/petitions/employers?sortBy=approvalRate&sortOrder=desc&limit=50`,
       );
       
       if (!successResponse.ok) {
@@ -324,8 +324,8 @@ const VisaDashboard: React.FC = () => {
                   </div>
                   <div className="text-right">
                     <Badge 
-                      variant={employer.approvalRate >= 95 ? "default" : employer.approvalRate >= 85 ? "secondary" : "outline"}
-                      className={employer.approvalRate >= 95 ? "bg-green-600" : ""}
+                      variant={employer.approvalRate >= 95 ? 'default' : employer.approvalRate >= 85 ? 'secondary' : 'outline'}
+                      className={employer.approvalRate >= 95 ? 'bg-green-600' : ''}
                     >
                       {formatPercentage(employer.approvalRate)}
                     </Badge>

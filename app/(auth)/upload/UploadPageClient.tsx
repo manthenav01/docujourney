@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -21,13 +21,13 @@ interface UploadPageClientProps {
 export default function UploadPageClient({ 
   userId, 
   profiles, 
-  documentSchemas
+  documentSchemas,
 }: UploadPageClientProps) {
   const router = useRouter();
   const [localProfiles, setLocalProfiles] = useState<Profile[]>(profiles);
   const [isInitialLoading, setIsInitialLoading] = useState(true);
   const [selectedProfileId, setSelectedProfileId] = useState<string>(
-    profiles.find(p => p.admin)?.id || profiles[0].id
+    profiles.find(p => p.admin)?.id || profiles[0].id,
   );
   const [selectedDocumentType, setSelectedDocumentType] = useState<string>('auto-detect');
   
@@ -70,7 +70,7 @@ export default function UploadPageClient({
     handleFirstEntryDateCancel,
     goBackToDocumentTypeSelection,
     resetUpload,
-    deleteCurrentDocument
+    deleteCurrentDocument,
   } = useDocumentUpload({ 
     userId, 
     profileId: selectedProfileId,
@@ -98,7 +98,7 @@ export default function UploadPageClient({
           return [...prev, newProfile];
         });
       }
-    }
+    },
   });
 
   // Show toast notification when error occurs
@@ -112,8 +112,8 @@ export default function UploadPageClient({
     // Create a mock ChangeEvent to match the hook's expected interface
     const mockEvent = {
       target: {
-        files: [selectedFile]
-      }
+        files: [selectedFile],
+      },
     } as unknown as React.ChangeEvent<HTMLInputElement>;
     handleFileSelect(mockEvent);
   };
@@ -329,10 +329,10 @@ export default function UploadPageClient({
       <Card>
         <CardHeader>
           <CardTitle>
-            {showNewProfileDialog ? "Create New Profile" :
-             showFirstEntryDateSelection ? "First Entry Date Required" :
-             showDocumentTypeSelection ? "Select Document Type" :
-             formFields && documentType ? "Verify Extracted Data" : "Upload Document"}
+            {showNewProfileDialog ? 'Create New Profile' :
+             showFirstEntryDateSelection ? 'First Entry Date Required' :
+             showDocumentTypeSelection ? 'Select Document Type' :
+             formFields && documentType ? 'Verify Extracted Data' : 'Upload Document'}
           </CardTitle>
         </CardHeader>
         <CardContent className="min-h-[400px]">

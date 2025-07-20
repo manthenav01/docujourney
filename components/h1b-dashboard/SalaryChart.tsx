@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import React from 'react';
 
@@ -24,7 +24,7 @@ export const SalaryChart: React.FC<SalaryChartProps> = ({ salaryData, stateData,
     return salaryData.map((item) => ({
       range: item.range,
       count: item.count,
-      percentage: (item.count / salaryData.reduce((sum, d) => sum + d.count, 0)) * 100
+      percentage: (item.count / salaryData.reduce((sum, d) => sum + d.count, 0)) * 100,
     }));
   };
 
@@ -37,7 +37,7 @@ export const SalaryChart: React.FC<SalaryChartProps> = ({ salaryData, stateData,
       .map((item) => ({
         state: item.state,
         avgSalary: item.avgSalary,
-        applications: item.applications
+        applications: item.applications,
       }));
   };
 
@@ -185,7 +185,7 @@ export const SalaryChart: React.FC<SalaryChartProps> = ({ salaryData, stateData,
           <>
             {[
               Math.min(...data.map((item: any) => item.avgSalary)),
-              Math.max(...data.map((item: any) => item.avgSalary))
+              Math.max(...data.map((item: any) => item.avgSalary)),
             ].map((value, i) => (
               <text
                 key={value}
@@ -209,7 +209,7 @@ export const SalaryChart: React.FC<SalaryChartProps> = ({ salaryData, stateData,
     </div>
   );
 
-  if (!isActive) return null;
+  if (!isActive) {return null;}
 
   return (
     <div className="h-full w-full p-6 bg-white rounded-lg">

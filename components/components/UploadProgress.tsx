@@ -13,14 +13,14 @@ export const UploadProgress: React.FC<UploadProgressProps> = ({ file, uploadProg
   const isCompleted = uploadProgress === 100;
 
   const getStatusMessage = () => {
-    if (uploadProgress === 0) return 'Ready to upload';
-    if (uploadProgress < 100) return 'Uploading...';
+    if (uploadProgress === 0) {return 'Ready to upload';}
+    if (uploadProgress < 100) {return 'Uploading...';}
     return 'Processing document...';
   };
 
   const getStatusColor = () => {
-    if (uploadProgress === 0) return 'text-gray-500';
-    if (uploadProgress < 100) return 'text-blue-600';
+    if (uploadProgress === 0) {return 'text-gray-500';}
+    if (uploadProgress < 100) {return 'text-blue-600';}
     return 'text-green-600';
   };
 

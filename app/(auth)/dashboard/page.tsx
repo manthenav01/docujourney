@@ -72,7 +72,7 @@ const DashboardPage = async ({
     // Fetch profiles and document schemas in parallel
     const [profiles, documentSchemas] = await Promise.all([
         fetchProfiles(userId),
-        fetchDocumentSchemas()
+        fetchDocumentSchemas(),
     ]);
 
     // If no profiles exist, create an admin profile for the user

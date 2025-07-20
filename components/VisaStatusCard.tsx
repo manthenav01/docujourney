@@ -16,12 +16,12 @@ const VisaStatusCard: React.FC<VisaStatusCardProps> = ({
   userId,
   profileId,
   profileName,
-  autoAnalyze = false
+  autoAnalyze = false,
 }) => {
   const { visaStatus, isLoading, error, lastAnalyzed, analyzeStatus } = useVisaStatus({
     userId,
     profileId,
-    autoAnalyze
+    autoAnalyze,
   });
 
   const getStatusColor = (status: string) => {
@@ -39,8 +39,8 @@ const VisaStatusCard: React.FC<VisaStatusCardProps> = ({
   };
 
   const getConfidenceColor = (confidence: number) => {
-    if (confidence >= 0.8) return 'text-green-600';
-    if (confidence >= 0.6) return 'text-yellow-600';
+    if (confidence >= 0.8) {return 'text-green-600';}
+    if (confidence >= 0.6) {return 'text-yellow-600';}
     return 'text-red-600';
   };
 

@@ -27,8 +27,8 @@ const RELATIONSHIP_PRIORITY: Record<string, number> = {
 export function sortProfilesByRelationship(profiles: Profile[]): Profile[] {
   return [...profiles].sort((a, b) => {
     // First, prioritize admin profiles
-    if (a.isAdmin && !b.isAdmin) return -1;
-    if (!a.isAdmin && b.isAdmin) return 1;
+    if (a.isAdmin && !b.isAdmin) {return -1;}
+    if (!a.isAdmin && b.isAdmin) {return 1;}
 
     // Get relationship priorities
     const aRelationship = a.relationship || 'other';

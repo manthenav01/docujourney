@@ -1,19 +1,18 @@
-import { onRequest } from "firebase-functions/v2/https";
-import { logger } from "firebase-functions/v2";
-import { setGlobalOptions } from "firebase-functions/v2";
-import { sendDocumentExpiryNotifications } from "./scheduledEmailNotifier";
+import { onRequest } from 'firebase-functions/v2/https';
+import { logger, setGlobalOptions } from 'firebase-functions/v2';
+import { sendDocumentExpiryNotifications } from './scheduledEmailNotifier';
 
 // Set global options
 setGlobalOptions({
   maxInstances: 10,
-  region: "us-central1",
+  region: 'us-central1',
 });
 
 export const testEmailNotifier = onRequest(
     {
         cors: true,
-        region: "us-central1",
-        secrets: ["GOOGLE_GENAI_API_KEY"]
+        region: 'us-central1',
+        secrets: ['GOOGLE_GENAI_API_KEY'],
     },
     async (req, res) => {
         // Only allow POST requests
@@ -23,14 +22,14 @@ export const testEmailNotifier = onRequest(
         }
 
         try {
-            logger.info("Test email function triggered");
-            logger.info("Request body:", req.body);
+            logger.info('Test email function triggered');
+            logger.info('Request body:', req.body);
             
             // Get userId from request body
             const { userId } = req.body;
             
-            logger.info("Extracted userId:", userId);
-            logger.info("UserId type:", typeof userId);
+            logger.info('Extracted userId:', userId);
+            logger.info('UserId type:', typeof userId);
             
             if (!userId) {
                 res.status(400).json({ error: 'userId is required' });
@@ -43,14 +42,14 @@ export const testEmailNotifier = onRequest(
             logger.info(`Test email sent successfully for user: ${userId}`);
             res.status(200).json({ 
                 success: true, 
-                message: 'Test email sent successfully!' 
+                message: 'Test email sent successfully!', 
             });
         } catch (error) {
             logger.error('Error sending test email:', error);
             res.status(500).json({
                 error: 'Failed to send test email',
-                details: error instanceof Error ? error.message : 'Unknown error'
+                details: error instanceof Error ? error.message : 'Unknown error',
             });
         }
-    }
+    },
 );

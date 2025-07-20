@@ -1,6 +1,6 @@
-import { db } from "./firebase";
-import { collection, getDocs } from "firebase/firestore";
-import { DocumentMetaDataAPIModel } from "./types/document.model";
+import { db } from './firebase';
+import { collection, getDocs } from 'firebase/firestore';
+import { DocumentMetaDataAPIModel } from './types/document.model';
 
 // Define Schema interface
 

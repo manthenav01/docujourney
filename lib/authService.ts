@@ -4,14 +4,14 @@
  * This is the proper place to handle user document creation as it's part of the auth flow
  */
 
-import { ensureUserDocumentExistsClient } from "./userClientApi";
-import { auth } from "./firebase";
+import { ensureUserDocumentExistsClient } from './userClientApi';
+import { auth } from './firebase';
 import { 
     GoogleAuthProvider, 
     signInWithPopup, 
     signInWithEmailAndPassword,
-    User 
-} from "firebase/auth";
+    User, 
+} from 'firebase/auth';
 
 /**
  * Complete Google authentication flow including user document creation
@@ -27,7 +27,7 @@ export const authenticateWithGoogle = async (): Promise<User> => {
         user.email,
         user.displayName,
         user.photoURL,
-        'google'
+        'google',
     );
     
     // Set authentication cookie
@@ -49,7 +49,7 @@ export const authenticateWithEmailPassword = async (email: string, password: str
         user.email,
         user.displayName,
         user.photoURL,
-        'email'
+        'email',
     );
     
     // Set authentication cookie

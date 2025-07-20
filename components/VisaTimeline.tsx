@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import React, { useRef } from 'react';
 import { 
@@ -17,7 +17,7 @@ import {
   Sparkles,
   Clock,
   CheckCircle,
-  AlertTriangle
+  AlertTriangle,
 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/badge';
@@ -33,7 +33,7 @@ interface VisaTimelineProps {
 const VisaTimeline: React.FC<VisaTimelineProps> = ({ 
   userId, 
   profileId, 
-  className = ''
+  className = '',
 }) => {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   
@@ -45,11 +45,11 @@ const VisaTimeline: React.FC<VisaTimelineProps> = ({
     isGenerating, 
     error, 
     generateTimeline,
-    clearError 
+    clearError, 
   } = useTimeline({ 
     userId, 
     profileId, 
-    autoGenerate: true 
+    autoGenerate: true, 
   });
 
   // Use timeline events from the hook
@@ -63,7 +63,7 @@ const VisaTimeline: React.FC<VisaTimelineProps> = ({
       
       scrollContainerRef.current.scrollTo({
         left: newScrollLeft,
-        behavior: 'smooth'
+        behavior: 'smooth',
       });
     }
   };
@@ -117,12 +117,12 @@ const VisaTimeline: React.FC<VisaTimelineProps> = ({
         const fromFormatted = fromDate.toLocaleDateString('en-US', {
           year: 'numeric',
           month: '2-digit',
-          timeZone: 'UTC'
+          timeZone: 'UTC',
         }).replace(/\/(\d{4})/, '/$1').replace(/^(\d{2})\/(\d{2})\/(\d{4})$/, '$1/$3');
         const toFormatted = toDate.toLocaleDateString('en-US', {
           year: 'numeric',
           month: '2-digit',
-          timeZone: 'UTC'
+          timeZone: 'UTC',
         }).replace(/\/(\d{4})/, '/$1').replace(/^(\d{2})\/(\d{2})\/(\d{4})$/, '$1/$3');
         return `${fromFormatted} to ${toFormatted}`;
       }
@@ -132,7 +132,7 @@ const VisaTimeline: React.FC<VisaTimelineProps> = ({
         return date.toLocaleDateString('en-US', {
           year: 'numeric',
           month: '2-digit',
-          timeZone: 'UTC'
+          timeZone: 'UTC',
         }).replace(/\/(\d{4})/, '/$1').replace(/^(\d{2})\/(\d{2})\/(\d{4})$/, '$1/$3');
       }
       
@@ -141,7 +141,7 @@ const VisaTimeline: React.FC<VisaTimelineProps> = ({
         year: 'numeric',
         month: 'short',
         day: 'numeric',
-        timeZone: 'UTC'
+        timeZone: 'UTC',
       });
     } catch {
       return 'Invalid date';
@@ -181,13 +181,13 @@ const VisaTimeline: React.FC<VisaTimelineProps> = ({
         return <Sparkles className="w-full h-full" />;
       default:
         // Default icons based on visa type
-        if (visaType?.includes('H-1B')) return <Building2 className="w-full h-full" />;
-        if (visaType?.includes('F-1')) return <FileCheck className="w-full h-full" />;
-        if (visaType?.includes('Green Card')) return <CreditCard className="w-full h-full" />;
-        if (visaType?.includes('B-1') || visaType?.includes('B-2')) return <Plane className="w-full h-full" />;
-        if (visaType?.includes('L-1')) return <Building2 className="w-full h-full" />;
-        if (visaType?.includes('O-1')) return <Building2 className="w-full h-full" />;
-        if (visaType?.includes('EAD')) return <Briefcase className="w-full h-full" />;
+        if (visaType?.includes('H-1B')) {return <Building2 className="w-full h-full" />;}
+        if (visaType?.includes('F-1')) {return <FileCheck className="w-full h-full" />;}
+        if (visaType?.includes('Green Card')) {return <CreditCard className="w-full h-full" />;}
+        if (visaType?.includes('B-1') || visaType?.includes('B-2')) {return <Plane className="w-full h-full" />;}
+        if (visaType?.includes('L-1')) {return <Building2 className="w-full h-full" />;}
+        if (visaType?.includes('O-1')) {return <Building2 className="w-full h-full" />;}
+        if (visaType?.includes('EAD')) {return <Briefcase className="w-full h-full" />;}
         return <Calendar className="w-full h-full" />;
     }
   };
@@ -315,8 +315,8 @@ const VisaTimeline: React.FC<VisaTimelineProps> = ({
             <h4 className="text-lg font-medium text-gray-900 mb-2">No Timeline Data Yet</h4>
             <p className="text-gray-600 mb-4 max-w-md mx-auto">
               {isGenerating 
-                ? "Generating your personalized immigration timeline..." 
-                : "Upload your visa-related documents to see your immigration journey."
+                ? 'Generating your personalized immigration timeline...' 
+                : 'Upload your visa-related documents to see your immigration journey.'
               }
             </p>
             {!isGenerating && (
@@ -391,7 +391,7 @@ const VisaTimeline: React.FC<VisaTimelineProps> = ({
                     
                     {/* Colored Line Segments */}
                     {validEvents.map((event, index) => {
-                      if (index === validEvents.length - 1) return null;
+                      if (index === validEvents.length - 1) {return null;}
                       
                       const nextEvent = validEvents[index + 1];
                       const lineColor = getLineColor(event.status, nextEvent?.status, event);
@@ -404,7 +404,7 @@ const VisaTimeline: React.FC<VisaTimelineProps> = ({
                           className={`absolute top-1/2 transform -translate-y-1/2 h-0.5 z-0 ${lineColor}`}
                           style={{
                             left: `${startPosition}%`,
-                            width: `${segmentWidth}%`
+                            width: `${segmentWidth}%`,
                           }}
                         />
                       );
@@ -440,7 +440,7 @@ const VisaTimeline: React.FC<VisaTimelineProps> = ({
                 className="flex gap-3 overflow-x-auto pb-4 snap-x snap-mandatory scrollbar-hide -mx-2 px-2"
                 style={{ 
                   scrollbarWidth: 'none', 
-                  msOverflowStyle: 'none'
+                  msOverflowStyle: 'none',
                 }}
               >
                 {validEvents.map((event) => (

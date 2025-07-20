@@ -37,14 +37,14 @@ export async function POST(request: NextRequest) {
     } else {
       return NextResponse.json(
         { error: result.error || 'Failed to send test email' },
-        { status: response.status }
+        { status: response.status },
       );
     }
   } catch (error) {
     console.error('Error calling Firebase function:', error);
     return NextResponse.json(
       { error: 'Failed to send test email', details: error instanceof Error ? error.message : 'Unknown error' },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

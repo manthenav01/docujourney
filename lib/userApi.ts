@@ -1,4 +1,4 @@
-import { adminDb } from "./firebaseAdmin";
+import { adminDb } from './firebaseAdmin';
 
 export const ensureUserDocumentExists = async (userId: string): Promise<void> => {
     try {
@@ -19,14 +19,14 @@ export const ensureUserDocumentExists = async (userId: string): Promise<void> =>
                 createdAt: new Date(),
                 updatedAt: new Date(),
                 provider: userRecord.providerData?.[0]?.providerId || 'email',
-                lastLoginAt: new Date()
+                lastLoginAt: new Date(),
             });
             console.log(`Created user document for user ${userId}`);
         } else {
             // Update lastLoginAt if user document exists
             await userDocRef.update({
                 lastLoginAt: new Date(),
-                updatedAt: new Date()
+                updatedAt: new Date(),
             });
             console.log(`Updated user document for user ${userId}`);
         }
@@ -53,7 +53,7 @@ export const createUserDocument = async (userId: string, userData: {
             createdAt: new Date(),
             updatedAt: new Date(),
             provider: userData.provider,
-            lastLoginAt: new Date()
+            lastLoginAt: new Date(),
         });
         
         console.log(`Created user document for user ${userId}`);
@@ -69,7 +69,7 @@ export const updateUserLastLogin = async (userId: string): Promise<void> => {
         
         await userDocRef.update({
             lastLoginAt: new Date(),
-            updatedAt: new Date()
+            updatedAt: new Date(),
         });
         
         console.log(`Updated last login for user ${userId}`);

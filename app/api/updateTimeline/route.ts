@@ -30,7 +30,7 @@ export async function POST(request: NextRequest) {
       const eventRef = adminDb.collection(`users/${userId}/timeline`).doc(eventId);
       const updateData = {
         ...updates,
-        updatedAt: new Date()
+        updatedAt: new Date(),
       };
 
       // Convert date strings to Firestore timestamps if present
@@ -52,7 +52,7 @@ export async function POST(request: NextRequest) {
     console.error('Timeline update API error:', error);
     return NextResponse.json(
       { error: 'Internal server error' },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

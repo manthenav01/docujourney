@@ -7,7 +7,7 @@ export type BadgeVariant = 'default' | 'secondary' | 'destructive' | 'outline' |
  * Determines the status variant based on visa status text
  */
 export function getVisaStatusVariant(status: string): VisaStatusVariant {
-  if (!status) return 'unknown';
+  if (!status) {return 'unknown';}
   
   const lowerStatus = status.toLowerCase();
   
@@ -98,7 +98,7 @@ export function getVisaStatusIcon(status: string) {
  * Gets a user-friendly display text for visa status
  */
 export function getVisaStatusDisplayText(status: string): string {
-  if (!status) return 'Unknown';
+  if (!status) {return 'Unknown';}
   
   const variant = getVisaStatusVariant(status);
   

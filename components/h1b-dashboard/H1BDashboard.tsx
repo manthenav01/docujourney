@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import React, { useState, useEffect } from 'react';
 import { FilterState } from './types';
@@ -21,7 +21,7 @@ import {
   Pause,
   Settings2,
   ArrowUp,
-  ArrowDown
+  ArrowDown,
 } from 'lucide-react';
 import './dashboard.css';
 
@@ -75,6 +75,12 @@ interface H1BDashboardData {
     applicationCount: number;
     avgSalary: number;
   }>;
+  industryDistribution: Array<{
+    industry: string;
+    applications: number;
+    avgSalary: number;
+    percentage: number;
+  }>;
 }
 
 interface FilterOptions {
@@ -88,7 +94,7 @@ export const H1BDashboard: React.FC = () => {
   const [filterOptions, setFilterOptions] = useState<FilterOptions>({
     fiscalYears: [],
     states: [],
-    jobCategories: []
+    jobCategories: [],
   });
   const [filters, setFilters] = useState<FilterState>({
     searchQuery: '', // Keep this for now but don't use it
@@ -99,7 +105,7 @@ export const H1BDashboard: React.FC = () => {
     jobCategories: [],
     skillLevels: [],
     companySizes: [],
-    companyTypes: []
+    companyTypes: [],
   });
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [activeNavItem, setActiveNavItem] = useState('overview');
@@ -110,7 +116,7 @@ export const H1BDashboard: React.FC = () => {
   useEffect(() => {
     Promise.all([
       fetchFilterOptions(),
-      fetchH1BData()
+      fetchH1BData(),
     ]);
   }, []);
 
@@ -140,7 +146,7 @@ export const H1BDashboard: React.FC = () => {
       const response = await fetch('/api/h1b-data', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'getFilterOptions' })
+        body: JSON.stringify({ action: 'getFilterOptions' }),
       });
       
       if (response.ok) {
@@ -197,7 +203,7 @@ export const H1BDashboard: React.FC = () => {
         totalApplications: data.totalApplications,
         avgSalary: data.avgSalary,
         topEmployersCount: data.topEmployers?.length || 0,
-        statesCount: data.stateDistribution?.length || 0
+        statesCount: data.stateDistribution?.length || 0,
       });
       
       setDashboardData(data);
@@ -216,14 +222,15 @@ export const H1BDashboard: React.FC = () => {
         uniqueStates: 0,
         mostAppliedJob: {
           title: 'N/A',
-          applications: 0
+          applications: 0,
         },
         topEmployers: [],
         salaryDistribution: [],
         yearlyTrends: [],
         stateDistribution: [],
         jobTitleDistribution: [],
-        caseStatusByJobCategory: []
+        caseStatusByJobCategory: [],
+        industryDistribution: [],
       });
     } finally {
       setLoading(false);
@@ -430,7 +437,6 @@ export const H1BDashboard: React.FC = () => {
             color="green"
           />
         </div>
-
 
 
         {/* Main Content */}

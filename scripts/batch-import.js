@@ -60,8 +60,8 @@ async function importEmployers() {
             initial_denials: parseInt(row['initialdenial']) || 0,
             continuing_approvals: parseInt(row['continuingapproval']) || 0,
             continuing_denials: parseInt(row['continuingdenial']) || 0,
-            imported_at: admin.firestore.FieldValue.serverTimestamp()
-          }
+            imported_at: admin.firestore.FieldValue.serverTimestamp(),
+          },
         });
       })
       .on('end', async () => {
@@ -120,8 +120,8 @@ async function importJobs() {
             pw_oes_year: parseInt(row['pw_oes_year']) || null,
             h1b_dependent: row['h_1b_dependent'],
             willful_violator: row['willful_violator'],
-            imported_at: admin.firestore.FieldValue.serverTimestamp()
-          }
+            imported_at: admin.firestore.FieldValue.serverTimestamp(),
+          },
         });
       })
       .on('end', async () => {
@@ -171,8 +171,8 @@ async function importWorksites() {
             prevailing_wage: parseFloat(row['prevailing_wage']) || 0,
             pw_unit: row['pw_unit_of_pay'],
             pw_oes_year: parseInt(row['pw_oes_year']) || null,
-            imported_at: admin.firestore.FieldValue.serverTimestamp()
-          }
+            imported_at: admin.firestore.FieldValue.serverTimestamp(),
+          },
         });
       })
       .on('end', async () => {

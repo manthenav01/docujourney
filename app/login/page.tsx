@@ -1,22 +1,22 @@
-"use client";
+'use client';
 
-import { useState } from "react";
-import { auth } from "../../lib/firebase";
+import { useState } from 'react';
+import { auth } from '../../lib/firebase';
 import {
   GoogleAuthProvider,
   signInWithPopup,
   signInWithEmailAndPassword,
 //   AppleAuthProvider,
-} from "firebase/auth";
-import { Button } from "../../components/ui/Button";
-import { Apple } from "lucide-react";
-import { useRouter } from "next/navigation";
-import { toast } from "sonner";
-import { ensureUserDocumentExistsClient } from "../../lib/userClientApi";
+} from 'firebase/auth';
+import { Button } from '../../components/ui/Button';
+import { Apple } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { toast } from 'sonner';
+import { ensureUserDocumentExistsClient } from '../../lib/userClientApi';
 
 const LoginPage = () => {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const router = useRouter();
 
   const handleGoogleLogin = async () => {
@@ -25,7 +25,7 @@ const LoginPage = () => {
       await signInWithPopup(auth, provider);
       const user = auth.currentUser;
       if (user) {
-        console.log("User ID:", user.uid);
+        console.log('User ID:', user.uid);
         document.cookie = `userId=${user.uid}; path=/;`;
         
         // Create or update user document in Firestore using the user service
@@ -34,13 +34,13 @@ const LoginPage = () => {
           user.email,
           user.displayName,
           user.photoURL,
-          'google'
+          'google',
         );
       }
-      router.push("/dashboard");
+      router.push('/dashboard');
     } catch (err: any) {
-        console.error("Google login error:", err);
-      toast.error("Failed to sign in with Google. Please try again.");
+        console.error('Google login error:', err);
+      toast.error('Failed to sign in with Google. Please try again.');
     }
   };
 
@@ -66,12 +66,12 @@ const LoginPage = () => {
           user.email,
           user.displayName,
           user.photoURL,
-          'email'
+          'email',
         );
       }
-      router.push("/dashboard");
+      router.push('/dashboard');
     } catch (err: any) {
-      toast.error("Failed to sign in. Please check your credentials and try again.");
+      toast.error('Failed to sign in. Please check your credentials and try again.');
     }
   };
 

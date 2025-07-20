@@ -6,7 +6,7 @@ import {
   PresentationIcon,
   FileVideoIcon,
   FileAudioIcon,
-  ArchiveIcon
+  ArchiveIcon,
 } from 'lucide-react';
 
 export function getFileTypeIcon(fileName: string) {

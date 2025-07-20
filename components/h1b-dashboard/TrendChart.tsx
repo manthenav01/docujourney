@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import React, { useState } from 'react';
 
@@ -19,7 +19,7 @@ export const TrendChart: React.FC<TrendChartProps> = ({ data, isActive }) => {
   const categories = [
     { name: 'Technology', color: '#3b82f6', lightColor: '#dbeafe' },
     { name: 'Healthcare', color: '#94a3b8', lightColor: '#f1f5f9' },
-    { name: 'Finance', color: '#1e40af', lightColor: '#dbeafe' }
+    { name: 'Finance', color: '#1e40af', lightColor: '#dbeafe' },
   ];
 
   // Generate mock uptime data (line chart)
@@ -29,7 +29,7 @@ export const TrendChart: React.FC<TrendChartProps> = ({ data, isActive }) => {
       year,
       tech: 90 + Math.random() * 20 + index * 2,
       healthcare: 85 + Math.random() * 25 + index * 1.5,
-      finance: 88 + Math.random() * 22 + index * 1.8
+      finance: 88 + Math.random() * 22 + index * 1.8,
     }));
   };
 
@@ -40,7 +40,7 @@ export const TrendChart: React.FC<TrendChartProps> = ({ data, isActive }) => {
       year,
       tech: Math.floor(Math.random() * 40) + 80 + index * 3,
       healthcare: Math.floor(Math.random() * 35) + 85 + index * 2,
-      finance: Math.floor(Math.random() * 45) + 75 + index * 4
+      finance: Math.floor(Math.random() * 45) + 75 + index * 4,
     }));
   };
 
@@ -206,7 +206,7 @@ export const TrendChart: React.FC<TrendChartProps> = ({ data, isActive }) => {
     </div>
   );
 
-  if (!isActive) return null;
+  if (!isActive) {return null;}
 
   return (
     <div className="h-full w-full p-6 bg-white rounded-lg">

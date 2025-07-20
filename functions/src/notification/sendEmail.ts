@@ -1,5 +1,5 @@
-import { onCall, HttpsError, CallableRequest } from "firebase-functions/v2/https";
-import { CreateEmailResponse, Resend } from "resend";
+import { onCall, HttpsError, CallableRequest } from 'firebase-functions/v2/https';
+import { CreateEmailResponse, Resend } from 'resend';
 import { SecretManagerServiceClient } from '@google-cloud/secret-manager';
 
 async function getResendApiKey(): Promise<string> {
@@ -31,7 +31,7 @@ export const sendEmail = onCall<ProcessRequestData, Promise<ProcessUserDataRespo
         // Throw HttpsError - automatically handled by client SDK
         throw new HttpsError(
             'unauthenticated', // Error code
-            'The function must be called while authenticated.' // Error message for client
+            'The function must be called while authenticated.', // Error message for client
         );
     }
     const callingUid: string = request.auth.uid;
@@ -43,7 +43,7 @@ export const sendEmail = onCall<ProcessRequestData, Promise<ProcessUserDataRespo
     if (!to || !subject || !html) {
         throw new HttpsError(
             'invalid-argument',
-            'The function must be called with a valid positive integer "age".'
+            'The function must be called with a valid positive integer "age".',
         );
     }
     const apiKey = await getResendApiKey();
@@ -51,7 +51,7 @@ export const sendEmail = onCall<ProcessRequestData, Promise<ProcessUserDataRespo
     console.log('Resend API Key:', apiKey);
     try {
         const response = await resend.emails.send({
-            from: "Track Vision  <onboarding@resend.dev>",
+            from: 'Track Vision  <onboarding@resend.dev>',
             to,
             subject,
             html,
@@ -59,7 +59,7 @@ export const sendEmail = onCall<ProcessRequestData, Promise<ProcessUserDataRespo
         if (response.error) {
             throw new HttpsError(
                 'internal',
-                response.error.message
+                response.error.message,
             );
         }
         return { success: true, response };
@@ -74,5 +74,5 @@ export const sendEmail = onCall<ProcessRequestData, Promise<ProcessUserDataRespo
             );
         }
     }
-}
+},
 );

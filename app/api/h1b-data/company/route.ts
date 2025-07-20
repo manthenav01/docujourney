@@ -5,7 +5,7 @@ import path from 'path';
 // Initialize services
 const bigQueryService = new H1BBigQueryService({
   projectId: 'doctracker-b4528',
-  keyFilename: path.join(process.cwd(), 'serviceAccountKey.json')
+  keyFilename: path.join(process.cwd(), 'serviceAccountKey.json'),
 });
 
 export async function GET(request: NextRequest) {
@@ -16,7 +16,7 @@ export async function GET(request: NextRequest) {
     if (!companyName) {
       return NextResponse.json(
         { error: 'Company name parameter is required' },
-        { status: 400 }
+        { status: 400 },
       );
     }
     
@@ -28,7 +28,7 @@ export async function GET(request: NextRequest) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
     return NextResponse.json(
       { error: 'Failed to fetch company data', details: errorMessage },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

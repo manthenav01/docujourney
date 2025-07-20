@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
@@ -72,7 +72,7 @@ interface JobDashboardProps {
 
 export const JobDashboard: React.FC<JobDashboardProps> = ({
   jobSlug,
-  jobTitle
+  jobTitle,
 }) => {
   const router = useRouter();
   const [jobInfo, setJobInfo] = useState<JobInfo | null>(null);

@@ -13,7 +13,7 @@ export const validateFile = (file: File): string | null => {
     'image/jpeg',
     'image/jpg',
     'image/png',
-    'text/plain'
+    'text/plain',
   ];
   
   if (!allowedTypes.includes(file.type)) {

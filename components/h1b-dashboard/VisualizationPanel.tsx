@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
@@ -44,7 +44,7 @@ interface VisualizationPanelProps {
 
 export const VisualizationPanel: React.FC<VisualizationPanelProps> = ({
   dashboardData,
-  chartsLoading
+  chartsLoading,
 }) => {
   if (chartsLoading) {
     return (
@@ -85,7 +85,7 @@ export const VisualizationPanel: React.FC<VisualizationPanelProps> = ({
           </Card>
         </div>
       </div>
-    )
+    );
   }
 
   return (
@@ -95,7 +95,7 @@ export const VisualizationPanel: React.FC<VisualizationPanelProps> = ({
           data={dashboardData.salaryDistribution ? dashboardData.salaryDistribution.map(item => ({
             range: item.range,
             count: item.count,
-            percentage: (item.count / dashboardData.salaryDistribution.reduce((sum, s) => sum + s.count, 0)) * 100
+            percentage: (item.count / dashboardData.salaryDistribution.reduce((sum, s) => sum + s.count, 0)) * 100,
           })) : []}
           loading={chartsLoading}
         />
@@ -104,7 +104,7 @@ export const VisualizationPanel: React.FC<VisualizationPanelProps> = ({
             state: item.state,
             highestSalary: item.avgSalary,
             avgSalary: item.avgSalary,
-            applications: item.applications
+            applications: item.applications,
           })) : []}
           loading={chartsLoading}
         />
@@ -115,7 +115,7 @@ export const VisualizationPanel: React.FC<VisualizationPanelProps> = ({
             jobTitle: item.jobTitle,
             applications: item.applications,
             avgSalary: item.avgSalary,
-            percentage: item.percentage
+            percentage: item.percentage,
           })) : []}
           loading={chartsLoading}
         />

@@ -65,6 +65,12 @@ export interface H1BAggregatedData {
     applicationCount: number;
     avgSalary: number;
   }>;
+  industryDistribution: Array<{
+    industry: string;
+    applications: number;
+    avgSalary: number;
+    percentage: number;
+  }>;
 }
 
 export class H1BBigQueryService {
@@ -122,12 +128,12 @@ export class H1BBigQueryService {
 
     // Salary range filter
     if (filters.salaryRange && filters.salaryRange[0] > 0) {
-      conditions.push("wage_rate_of_pay_from >= @minSalary");
+      conditions.push('wage_rate_of_pay_from >= @minSalary');
       params.minSalary = filters.salaryRange[0];
     }
 
     if (filters.salaryRange && filters.salaryRange[1] < 500000) {
-      conditions.push("wage_rate_of_pay_from <= @maxSalary");
+      conditions.push('wage_rate_of_pay_from <= @maxSalary');
       params.maxSalary = filters.salaryRange[1];
     }
 
@@ -147,7 +153,7 @@ export class H1BBigQueryService {
 
     return {
       whereClause: conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '',
-      params
+      params,
     };
   }
 
@@ -300,6 +306,35 @@ export class H1BBigQueryService {
       ORDER BY applications DESC
     `;
 
+    const industryDistQuery = `
+      WITH industry_stats AS (
+        SELECT 
+          soc_title as industry,
+          COUNT(*) as applications,
+          AVG(CASE WHEN case_status = 'Certified' THEN wage_rate_of_pay_from END) as avg_salary
+        FROM \`${this.projectId}.${this.datasetId}.lca_applications\`
+        ${whereClause}
+        AND soc_title IS NOT NULL
+        GROUP BY soc_title
+        ORDER BY applications DESC
+        LIMIT 15
+      ),
+      total_count AS (
+        SELECT COUNT(*) as total_applications
+        FROM \`${this.projectId}.${this.datasetId}.lca_applications\`
+        ${whereClause}
+        AND soc_title IS NOT NULL
+      )
+      SELECT 
+        industry,
+        applications,
+        avg_salary,
+        ROUND(applications * 100.0 / total_count.total_applications, 2) as percentage
+      FROM industry_stats
+      CROSS JOIN total_count
+      ORDER BY applications DESC
+    `;
+
     const caseStatusByJobCategoryQuery = `
       SELECT 
         soc_title as job_category,
@@ -324,7 +359,8 @@ export class H1BBigQueryService {
         [stateDistResults],
         [mostAppliedJobResults],
         [jobTitleDistResults],
-        [caseStatusByJobCategoryResults]
+        [industryDistResults],
+        [caseStatusByJobCategoryResults],
       ] = await Promise.all([
         this.bigquery.query({ query: mainQuery, params }),
         this.bigquery.query({ query: employersQuery, params }),
@@ -333,7 +369,8 @@ export class H1BBigQueryService {
         this.bigquery.query({ query: stateDistQuery, params }),
         this.bigquery.query({ query: mostAppliedJobQuery, params }),
         this.bigquery.query({ query: jobTitleDistQuery, params }),
-        this.bigquery.query({ query: caseStatusByJobCategoryQuery, params })
+        this.bigquery.query({ query: industryDistQuery, params }),
+        this.bigquery.query({ query: caseStatusByJobCategoryQuery, params }),
       ]);
 
       // Process results
@@ -343,47 +380,54 @@ export class H1BBigQueryService {
         employer: row.employer || 'Unknown',
         applications: row.applications || 0,
         avgSalary: Math.round(row.avg_salary || 0),
-        topState: row.top_state || 'Unknown'
+        topState: row.top_state || 'Unknown',
       }));
 
       const salaryDistribution = salaryDistResults.map((row: any) => ({
         range: row.salary_range,
         count: row.count || 0,
         minSalary: row.min_salary || 0,
-        maxSalary: row.max_salary || 0
+        maxSalary: row.max_salary || 0,
       }));
 
       const yearlyTrends = yearlyTrendsResults.map((row: any) => ({
         fiscalYear: row.fiscal_year,
         applications: row.applications || 0,
         avgSalary: Math.round(row.avg_salary || 0),
-        medianSalary: Math.round(row.median_salary || 0)
+        medianSalary: Math.round(row.median_salary || 0),
       }));
 
       const stateDistribution = stateDistResults.map((row: any) => ({
         state: row.state,
         applications: row.applications || 0,
-        avgSalary: Math.round(row.avg_salary || 0)
+        avgSalary: Math.round(row.avg_salary || 0),
       }));
 
       const mostAppliedJobData = mostAppliedJobResults[0] || {};
       const mostAppliedJob = {
         title: mostAppliedJobData.job_title || 'N/A',
-        applications: mostAppliedJobData.applications || 0
+        applications: mostAppliedJobData.applications || 0,
       };
 
       const jobTitleDistribution = jobTitleDistResults.map((row: any) => ({
         jobTitle: row.job_title,
         applications: row.applications || 0,
         avgSalary: Math.round(row.avg_salary || 0),
-        percentage: row.percentage || 0
+        percentage: row.percentage || 0,
+      }));
+
+      const industryDistribution = industryDistResults.map((row: any) => ({
+        industry: row.industry,
+        applications: row.applications || 0,
+        avgSalary: Math.round(row.avg_salary || 0),
+        percentage: row.percentage || 0,
       }));
 
       const caseStatusByJobCategory = caseStatusByJobCategoryResults.map((row: any) => ({
-        jobCategory: row.job_category,
-        caseStatus: row.case_status,
+        jobCategory: row.job_category || 'Unknown',
+        caseStatus: row.case_status || 'Unknown',
         applicationCount: row.application_count || 0,
-        avgSalary: Math.round(row.avg_salary || 0)
+        avgSalary: Math.round(row.avg_salary || 0),
       }));
 
       return {
@@ -402,7 +446,8 @@ export class H1BBigQueryService {
         yearlyTrends,
         stateDistribution,
         jobTitleDistribution,
-        caseStatusByJobCategory
+        caseStatusByJobCategory,
+        industryDistribution,
       };
     } catch (error) {
       console.error('BigQuery error:', error);
@@ -452,24 +497,24 @@ export class H1BBigQueryService {
       const [
         [fiscalYearResults],
         [stateResults], 
-        [jobCategoryResults]
+        [jobCategoryResults],
       ] = await Promise.all([
         this.bigquery.query(fiscalYearsQuery),
         this.bigquery.query(statesQuery),
-        this.bigquery.query(jobCategoriesQuery)
+        this.bigquery.query(jobCategoriesQuery),
       ]);
 
       return {
         fiscalYears: fiscalYearResults.map((row: any) => row.fiscal_year.toString()).filter(Boolean),
         states: stateResults.map((row: any) => row.state).filter(Boolean),
-        jobCategories: jobCategoryResults.map((row: any) => row.job_category).filter(Boolean)
+        jobCategories: jobCategoryResults.map((row: any) => row.job_category).filter(Boolean),
       };
     } catch (error) {
       console.error('BigQuery filter options error:', error);
       return {
         fiscalYears: [],
         states: [],
-        jobCategories: []
+        jobCategories: [],
       };
     }
   }
@@ -529,12 +574,12 @@ export class H1BBigQueryService {
       const queries = [
         this.bigquery.query({
           query: jobTitleQuery,
-          params: { query: `%${lowerQuery}%`, limit: Math.ceil(limit / 3) }
+          params: { query: `%${lowerQuery}%`, limit: Math.ceil(limit / 3) },
         }),
         this.bigquery.query({
           query: employerQuery,
-          params: { query: `%${lowerQuery}%`, limit: Math.ceil(limit / 3) }
-        })
+          params: { query: `%${lowerQuery}%`, limit: Math.ceil(limit / 3) },
+        }),
       ];
 
       // Add location queries only if query looks like a location
@@ -542,12 +587,12 @@ export class H1BBigQueryService {
         queries.push(
           this.bigquery.query({
             query: locationQuery,
-            params: { query: `%${lowerQuery}%`, limit: Math.ceil(limit / 4) }
+            params: { query: `%${lowerQuery}%`, limit: Math.ceil(limit / 4) },
           }),
           this.bigquery.query({
             query: cityQuery,
-            params: { query: `%${lowerQuery}%`, limit: Math.ceil(limit / 4) }
-          })
+            params: { query: `%${lowerQuery}%`, limit: Math.ceil(limit / 4) },
+          }),
         );
       }
 
@@ -560,7 +605,7 @@ export class H1BBigQueryService {
         text: row.suggestion,
         type: row.type,
         count: row.count,
-        category: 'Job Titles'
+        category: 'Job Titles',
       })));
       
       // Add employer suggestions
@@ -568,7 +613,7 @@ export class H1BBigQueryService {
         text: row.suggestion,
         type: row.type,
         count: row.count,
-        category: 'Companies'
+        category: 'Companies',
       })));
 
       // Add location suggestions if available
@@ -577,7 +622,7 @@ export class H1BBigQueryService {
           text: row.suggestion,
           type: row.type,
           count: row.count,
-          category: 'States'
+          category: 'States',
         })));
         
         if (results.length > 3) {
@@ -585,7 +630,7 @@ export class H1BBigQueryService {
             text: row.suggestion,
             type: row.type,
             count: row.count,
-            category: 'Cities'
+            category: 'Cities',
           })));
         }
       }
@@ -727,7 +772,7 @@ export class H1BBigQueryService {
         this.bigquery.query({ query: topStatesQuery, params: { companyName } }),
         this.bigquery.query({ query: topJobTitlesQuery, params: { companyName } }),
         this.bigquery.query({ query: yearlyTrendsQuery, params: { companyName } }),
-        this.bigquery.query({ query: salaryDistributionQuery, params: { companyName } })
+        this.bigquery.query({ query: salaryDistributionQuery, params: { companyName } }),
       ]);
 
       const stats = basicStats[0][0] || {};
@@ -749,7 +794,7 @@ export class H1BBigQueryService {
         const monthlyApps = Math.floor((totalApplications * 0.15) / 6) + Math.floor(Math.random() * 50);
         recentActivity.push({
           month: `${monthName} ${currentYear}`,
-          applications: monthlyApps
+          applications: monthlyApps,
         });
       }
 
@@ -764,25 +809,25 @@ export class H1BBigQueryService {
         topStates: topStates[0].map((row: any) => ({
           state: row.state,
           applications: Number(row.applications),
-          percentage: Number(row.percentage)
+          percentage: Number(row.percentage),
         })),
         topJobTitles: topJobTitles[0].map((row: any) => ({
           jobTitle: row.jobTitle,
           applications: Number(row.applications),
           avgSalary: Math.round(Number(row.avgSalary)),
-          medianSalary: Math.round(Number(row.medianSalary))
+          medianSalary: Math.round(Number(row.medianSalary)),
         })),
         yearlyTrends: yearlyTrends[0].map((row: any) => ({
           fiscalYear: row.fiscal_year,
           applications: Number(row.applications),
           avgSalary: Math.round(Number(row.avgSalary)),
-          certificationRate: Number(row.certificationRate)
+          certificationRate: Number(row.certificationRate),
         })),
         salaryDistribution: salaryDistribution[0].map((row: any) => ({
           range: row.salary_range,
-          count: Number(row.count)
+          count: Number(row.count),
         })),
-        recentActivity
+        recentActivity,
       };
     } catch (error) {
       console.error('Error getting company analysis:', error);

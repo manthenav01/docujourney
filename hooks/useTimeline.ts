@@ -1,11 +1,11 @@
-"use client";
+'use client';
 
 import { useState, useEffect, useCallback } from 'react';
 import { TimelineEvent } from '@/lib/types/timeline.model';
 import { 
   fetchTimelineEvents, 
   getTimelineStatistics,
-  subscribeToTimelineEvents
+  subscribeToTimelineEvents,
 } from '@/lib/timelineClientApi';
 import { getAuth, onAuthStateChanged, User } from 'firebase/auth';
 
@@ -41,7 +41,7 @@ export function useTimeline(options: UseTimelineOptions): UseTimelineReturn {
     completed: 0,
     current: 0,
     upcoming: 0,
-    progressPercentage: 0
+    progressPercentage: 0,
   });
   const [isLoading, setIsLoading] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
@@ -89,7 +89,7 @@ export function useTimeline(options: UseTimelineOptions): UseTimelineReturn {
 
   // Fetch timeline events from Firebase
   const fetchTimeline = useCallback(async () => {
-    if (!userId || !profileId || !authReady) return;
+    if (!userId || !profileId || !authReady) {return;}
     
     // If we don't have a current user, skip fetching
     if (!currentUser) {
@@ -103,7 +103,7 @@ export function useTimeline(options: UseTimelineOptions): UseTimelineReturn {
     try {
       const [events, statistics] = await Promise.all([
         fetchTimelineEvents(userId, profileId),
-        getTimelineStatistics(userId, profileId)
+        getTimelineStatistics(userId, profileId),
       ]);
       
       setTimeline(events);
@@ -124,7 +124,7 @@ export function useTimeline(options: UseTimelineOptions): UseTimelineReturn {
 
   // Generate timeline using LLM
   const generateTimeline = useCallback(async (forceRegenerate = false) => {
-    if (!userId) return;
+    if (!userId) {return;}
     
     setIsGenerating(true);
     setError(null);
@@ -139,12 +139,12 @@ export function useTimeline(options: UseTimelineOptions): UseTimelineReturn {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
+          'Authorization': `Bearer ${token}`,
         },
         body: JSON.stringify({
           userId,
           profileId,
-          forceRegenerate
+          forceRegenerate,
         }),
       });
 
@@ -207,6 +207,6 @@ export function useTimeline(options: UseTimelineOptions): UseTimelineReturn {
     error,
     generateTimeline,
     clearError,
-    refreshTimeline
+    refreshTimeline,
   };
 }

@@ -28,7 +28,7 @@ async function testFirebaseConnection() {
     const testDoc = {
       test: true,
       timestamp: admin.firestore.FieldValue.serverTimestamp(),
-      message: 'Test connection successful'
+      message: 'Test connection successful',
     };
     
     await db.collection('test').doc('connection-test').set(testDoc);

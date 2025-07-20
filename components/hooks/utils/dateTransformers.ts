@@ -6,7 +6,7 @@ import { DocumentTypeSchemaModel } from '@/lib/documentActions';
  */
 export const transformDatesToFirestore = (
   values: Record<string, any>, 
-  documentSchema: DocumentTypeSchemaModel
+  documentSchema: DocumentTypeSchemaModel,
 ): Record<string, any> => {
   const transformed = { ...values };
   
@@ -14,7 +14,7 @@ export const transformDatesToFirestore = (
   const dateFields = documentSchema.fields.filter(field => 
     field.type === 'date' || 
     field.key.toLowerCase().includes('date') || 
-    field.key.toLowerCase().includes('time')
+    field.key.toLowerCase().includes('time'),
   );
   
   dateFields.forEach(field => {
@@ -40,14 +40,14 @@ export const transformDatesToFirestore = (
  */
 export const transformTimestampsToFormValues = (
   values: Record<string, any>, 
-  documentSchema: DocumentTypeSchemaModel
+  documentSchema: DocumentTypeSchemaModel,
 ): Record<string, any> => {
   const transformed = { ...values };
   
   const dateFields = documentSchema.fields.filter(field => 
     field.type === 'date' || 
     field.key.toLowerCase().includes('date') || 
-    field.key.toLowerCase().includes('time')
+    field.key.toLowerCase().includes('time'),
   );
   
   dateFields.forEach(field => {

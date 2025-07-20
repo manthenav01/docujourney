@@ -33,7 +33,7 @@ export const triggerVisaStatusAnalysis = async (userId: string, profileId: strin
     console.error('Error triggering visa status analysis:', error);
     // Don't throw error to avoid breaking the document verification flow
   }
-}
+};
 
 /**
  * Handle document completion and profile matching logic
@@ -51,7 +51,7 @@ export const handleDocumentCompletion = async (
   currentProfile: { firstName: string; lastName: string },
   allProfiles: Profile[],
   doNamesMatch: (fn1: string, ln1: string, fn2: string, ln2: string) => boolean,
-  findMatchingProfile: (fn: string, ln: string, profiles: Profile[]) => Profile | null
+  findMatchingProfile: (fn: string, ln: string, profiles: Profile[]) => Profile | null,
 ) => {
   const transformedData = transformDocumentMetaData(data);
   const detectedDocumentType = transformedData?.extracted?.document_type;
@@ -71,7 +71,7 @@ export const handleDocumentCompletion = async (
       extractedFirstName, 
       extractedLastName, 
       currentProfile.firstName, 
-      currentProfile.lastName
+      currentProfile.lastName,
     );
 
     if (!currentProfileMatches) {
@@ -89,7 +89,7 @@ export const handleDocumentCompletion = async (
             const newDocRef = firestoreDoc(db, `users/${userId}/profiles/${matchingProfile.id}/documents`, docRefId);
             await setDoc(newDocRef, { 
               ...data,
-              status: 'completed'
+              status: 'completed',
             });
             
             // Delete the document from the original location
@@ -138,7 +138,7 @@ export const setupFormFields = async (
   documentSchemas: Record<string, DocumentTypeSchemaModel>,
   userId: string,
   profileId: string,
-  docRefId: string
+  docRefId: string,
 ): Promise<Record<string, any>> => {
   const fields = documentSchemas[selectedDocumentType].fields.filter((f) => f.editable);
   
@@ -149,7 +149,7 @@ export const setupFormFields = async (
     
     // Update the document with the selected document type
     await updateDoc(docRef, { 
-      'extracted.document_type': selectedDocumentType 
+      'extracted.document_type': selectedDocumentType, 
     });
     
     if (data?.extracted) {

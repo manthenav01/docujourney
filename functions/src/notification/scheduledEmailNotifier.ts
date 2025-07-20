@@ -1,15 +1,14 @@
-import { onSchedule } from "firebase-functions/v2/scheduler";
-import { logger } from "firebase-functions/v2";
-import { getFirestore } from "firebase-admin/firestore";
-import { setGlobalOptions } from "firebase-functions/v2";
-import { Resend } from "resend";
-import { SecretManagerServiceClient } from "@google-cloud/secret-manager";
-import { analyzeVisaStatus, prepareDocumentsForAnalysis, VisaStatusResponse } from "../utils/genkit";
+import { onSchedule } from 'firebase-functions/v2/scheduler';
+import { logger, setGlobalOptions } from 'firebase-functions/v2';
+import { getFirestore } from 'firebase-admin/firestore';
+import { Resend } from 'resend';
+import { SecretManagerServiceClient } from '@google-cloud/secret-manager';
+import { analyzeVisaStatus, prepareDocumentsForAnalysis, VisaStatusResponse } from '../utils/genkit';
 
 // Set global options
 setGlobalOptions({
   maxInstances: 10,
-  region: "us-central1",
+  region: 'us-central1',
 });
 
 async function getResendApiKey(): Promise<string> {
@@ -23,7 +22,7 @@ async function getResendApiKey(): Promise<string> {
 
 // Extract the email notification logic into a reusable function
 export async function sendDocumentExpiryNotifications(userId?: string): Promise<void> {
-    logger.info("Sending document expiry notifications");
+    logger.info('Sending document expiry notifications');
     const db = getFirestore();
     const apiKey = await getResendApiKey();
     const resend = new Resend(apiKey);
@@ -31,23 +30,23 @@ export async function sendDocumentExpiryNotifications(userId?: string): Promise<
     // Get users (either specific user or all users)
     let usersSnap;
     if (userId) {
-        const userDoc = await db.collection("users").doc(userId).get();
+        const userDoc = await db.collection('users').doc(userId).get();
         if (!userDoc.exists) {
             logger.warn(`User ${userId} not found`);
             return;
         }
         usersSnap = { docs: [userDoc] };
     } else {
-        usersSnap = await db.collection("users").get();
+        usersSnap = await db.collection('users').get();
     }
 
     for (const userDoc of usersSnap.docs) {
         const currentUserId = userDoc.id;
         const userData = userDoc.data();
-        if (!userData) continue;
+        if (!userData) {continue;}
         
         const userEmail = userData.email;
-        const userName = userData.firstName || userData.lastName || "User";
+        const userName = userData.firstName || userData.lastName || 'User';
 
         const profilesSnap = await db.collection(`users/${currentUserId}/profiles`).get();
 
@@ -78,7 +77,7 @@ export async function sendDocumentExpiryNotifications(userId?: string): Promise<
                     
                     // Get documents for this specific profile (only completed/verified)
                     const docsSnap = await db.collection(`users/${currentUserId}/profiles/${profileId}/documents`)
-                        .where("status", "in", ["completed", "verified", "pending", "processed"])
+                        .where('status', 'in', ['completed', 'verified', 'pending', 'processed'])
                         .get();
                     
                     logger.info(`Found ${docsSnap.docs.length} completed/verified documents for profile ${profileId}`);
@@ -91,7 +90,7 @@ export async function sendDocumentExpiryNotifications(userId?: string): Promise<
                             hasExtracted: !!docData?.extracted,
                             documentType: docData?.extracted?.document_type,
                             validTo: docData?.extracted?.valid_to,
-                            validFrom: docData?.extracted?.valid_from
+                            validFrom: docData?.extracted?.valid_from,
                         });
                         if (docData && docData.extracted) {
                             profileDocs.push(docData);
@@ -117,8 +116,8 @@ export async function sendDocumentExpiryNotifications(userId?: string): Promise<
                         profileContext: {
                             firstEntryDate: profileData?.firstEntryDate,
                             firstEntryVisaType: profileData?.firstEntryVisaType,
-                            currentlyEmployed: profileData?.currentlyEmployed
-                        }
+                            currentlyEmployed: profileData?.currentlyEmployed,
+                        },
                     });
                     
                     logger.info(`Fresh visa analysis result for profile ${profileId}:`, {
@@ -127,7 +126,7 @@ export async function sendDocumentExpiryNotifications(userId?: string): Promise<
                         confidence: visaAnalysis.confidence,
                         expirationWarnings: visaAnalysis.expirationWarnings,
                         nextActions: visaAnalysis.nextActions,
-                        statusDetails: visaAnalysis.statusDetails
+                        statusDetails: visaAnalysis.statusDetails,
                     });
                     
                     // Still cache the result for future reference (optional)
@@ -139,8 +138,8 @@ export async function sendDocumentExpiryNotifications(userId?: string): Promise<
                             lastVisaAnalysis: {
                                 result: visaAnalysis,
                                 documentHash: documentHash,
-                                analyzedAt: new Date()
-                            }
+                                analyzedAt: new Date(),
+                            },
                         });
                         
                         logger.info(`Analysis cached for profile ${profileId}`);
@@ -151,7 +150,7 @@ export async function sendDocumentExpiryNotifications(userId?: string): Promise<
                     profileAnalyses.push({
                         profileId,
                         profileName,
-                        analysis: visaAnalysis
+                        analysis: visaAnalysis,
                     });
                     
                 } catch (error) {
@@ -354,7 +353,7 @@ export async function sendDocumentExpiryNotifications(userId?: string): Promise<
                       <div class="warnings-section">
                         <div class="section-title">⚠️ Important Alerts</div>
                         ${analysis.expirationWarnings.map(warning => 
-                          `<div class="warning-item">${warning}</div>`
+                          `<div class="warning-item">${warning}</div>`,
                         ).join('')}
                       </div>
                       ` : ''}
@@ -388,11 +387,11 @@ export async function sendDocumentExpiryNotifications(userId?: string): Promise<
 
             // Determine email urgency and create user-friendly subject
             const hasUrgentIssues = profileAnalyses.some(pa => 
-                pa.analysis.currentStatus === 'Out of Status'
+                pa.analysis.currentStatus === 'Out of Status',
             );
             
             const hasWarnings = profileAnalyses.some(pa => 
-                pa.analysis.expirationWarnings && pa.analysis.expirationWarnings.length > 0
+                pa.analysis.expirationWarnings && pa.analysis.expirationWarnings.length > 0,
             );
             
             // Create a friendly subject line
@@ -406,7 +405,7 @@ export async function sendDocumentExpiryNotifications(userId?: string): Promise<
             }
 
             await resend.emails.send({
-                from: "DocuJourney AI <onboarding@resend.dev>",
+                from: 'DocuJourney AI <onboarding@resend.dev>',
                 to: userEmail,
                 subject,
                 html,
@@ -419,8 +418,8 @@ export async function sendDocumentExpiryNotifications(userId?: string): Promise<
                     profileId: pa.profileId,
                     profileName: pa.profileName,
                     status: pa.analysis.currentStatus,
-                    visaType: pa.analysis.visaType
-                }))
+                    visaType: pa.analysis.visaType,
+                })),
             });
 
             logger.info(`AI-powered email sent to ${userEmail}:`, {
@@ -429,9 +428,9 @@ export async function sendDocumentExpiryNotifications(userId?: string): Promise<
                     profileId: pa.profileId,
                     status: pa.analysis.currentStatus,
                     visaType: pa.analysis.visaType,
-                    confidence: pa.analysis.confidence
+                    confidence: pa.analysis.confidence,
                 })),
-                hasUrgentIssues
+                hasUrgentIssues,
             });
         } else {
             logger.warn(`No email address found for user ${currentUserId}`);
@@ -441,13 +440,13 @@ export async function sendDocumentExpiryNotifications(userId?: string): Promise<
 
 export const scheduledEmailNotifier = onSchedule(
     {
-        schedule: "0 18 * * 1,3,5", // 6PM UTC on Monday, Wednesday, Friday
-        timeZone: "America/Los_Angeles", // Change to your preferred timezone
-        region: "us-central1",
-        secrets: ["GOOGLE_GENAI_API_KEY"]
+        schedule: '0 18 * * 1,3,5', // 6PM UTC on Monday, Wednesday, Friday
+        timeZone: 'America/Los_Angeles', // Change to your preferred timezone
+        region: 'us-central1',
+        secrets: ['GOOGLE_GENAI_API_KEY'],
     },
     async (event) => {
-        logger.info("AI-powered scheduled email notifier triggered");
+        logger.info('AI-powered scheduled email notifier triggered');
         await sendDocumentExpiryNotifications();
-    }
+    },
 );

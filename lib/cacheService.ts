@@ -39,7 +39,7 @@ class InMemoryCache {
     
     this.cache.set(key, {
       data,
-      expiresAt
+      expiresAt,
     });
 
     console.log(`Cache set: ${key} (TTL: ${ttlSeconds}s, Expires: ${new Date(expiresAt).toISOString()})`);
@@ -88,8 +88,8 @@ class InMemoryCache {
       keys: validEntries.map(([key, item]) => ({
         key,
         expiresAt: new Date(item.expiresAt).toISOString(),
-        dataSize: JSON.stringify(item.data).length
-      }))
+        dataSize: JSON.stringify(item.data).length,
+      })),
     };
   }
 

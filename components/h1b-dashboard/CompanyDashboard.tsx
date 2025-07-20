@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
@@ -22,7 +22,7 @@ import {
   PieChart,
   LineChart,
   Star,
-  CheckCircle
+  CheckCircle,
 } from 'lucide-react';
 
 interface CompanyInfo {
@@ -67,7 +67,7 @@ interface CompanyDashboardProps {
 
 export const CompanyDashboard: React.FC<CompanyDashboardProps> = ({
   companySlug,
-  companyName
+  companyName,
 }) => {
   const router = useRouter();
   const [companyInfo, setCompanyInfo] = useState<CompanyInfo | null>(null);
@@ -178,7 +178,7 @@ export const CompanyDashboard: React.FC<CompanyDashboardProps> = ({
     );
   }
 
-  if (!companyInfo) return null;
+  if (!companyInfo) {return null;}
 
   const certificationRate = companyInfo.totalApplications > 0 
     ? ((companyInfo.certifiedApplications / companyInfo.totalApplications) * 100).toFixed(1)

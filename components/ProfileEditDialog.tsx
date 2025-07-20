@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import React, { useState, useEffect } from 'react';
 import { Profile } from '@/lib/types/profile.model';
@@ -43,7 +43,7 @@ const visaTypeOptions = [
     { value: 'H1B', label: 'H-1B (Specialty Worker)' },
     { value: 'H4', label: 'H-4 (H-1B Dependent)' },
     { value: 'F1', label: 'F-1 (Student)' },
-    { value: 'F2', label: 'F-2 (F-1 Dependent)' }
+    { value: 'F2', label: 'F-2 (F-1 Dependent)' },
 ];
 
 const ProfileEditDialog: React.FC<ProfileEditDialogProps> = ({
@@ -96,7 +96,7 @@ const ProfileEditDialog: React.FC<ProfileEditDialogProps> = ({
         if (formData.isAdmin && formData.relationship !== 'self') {
             setFormData(prev => ({
                 ...prev,
-                relationship: 'self'
+                relationship: 'self',
             }));
         }
     }, [formData.isAdmin]);
@@ -133,7 +133,7 @@ const ProfileEditDialog: React.FC<ProfileEditDialogProps> = ({
     };
 
     const handleSave = async () => {
-        if (!validateForm()) return;
+        if (!validateForm()) {return;}
 
         setIsLoading(true);
         
@@ -221,7 +221,7 @@ const ProfileEditDialog: React.FC<ProfileEditDialogProps> = ({
                                 onValueChange={(value) => handleInputChange('relationship', value)}
                                 disabled={formData.isAdmin}
                             >
-                                <SelectTrigger className={formData.isAdmin ? "opacity-60 cursor-not-allowed" : ""}>
+                                <SelectTrigger className={formData.isAdmin ? 'opacity-60 cursor-not-allowed' : ''}>
                                     <SelectValue placeholder="Select relationship" />
                                 </SelectTrigger>
                                 <SelectContent>
@@ -318,7 +318,6 @@ const ProfileEditDialog: React.FC<ProfileEditDialogProps> = ({
                             </Label>
                         </div>
                     </div>
-
 
 
                 </div>

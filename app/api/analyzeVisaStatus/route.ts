@@ -11,7 +11,7 @@ export async function POST(request: NextRequest) {
     if (!userId || !profileId) {
       return NextResponse.json(
         { error: 'Missing required parameters: userId or profileId' },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -40,7 +40,7 @@ export async function POST(request: NextRequest) {
     
     // Filter for completed documents with extracted data
     const completedDocuments = allDocuments.filter(doc => 
-      doc.status === 'verified' || doc.status === 'completed' && doc.extracted
+      doc.status === 'verified' || doc.status === 'completed' && doc.extracted,
     );
 
     if (completedDocuments.length === 0) {
@@ -50,7 +50,7 @@ export async function POST(request: NextRequest) {
         statusDetails: 'No verified documents found for analysis',
         expirationWarnings: [],
         nextActions: ['Upload and verify immigration documents'],
-        confidence: 1.0
+        confidence: 1.0,
       });
     }
 
@@ -64,8 +64,8 @@ export async function POST(request: NextRequest) {
       profileContext: profileData ? {
         firstEntryDate: profileData.firstEntryDate,
         firstEntryVisaType: profileData.firstEntryVisaType,
-        currentlyEmployed: profileData.currentlyEmployed
-      } : undefined
+        currentlyEmployed: profileData.currentlyEmployed,
+      } : undefined,
     });
 
     // Store the analysis result in Firestore for caching (optional)
@@ -79,8 +79,8 @@ export async function POST(request: NextRequest) {
           lastVisaStatusAnalysis: {
             ...visaStatusAnalysis,
             analyzedAt: new Date(),
-            documentCount: completedDocuments.length
-          }
+            documentCount: completedDocuments.length,
+          },
         });
     } catch (error) {
       console.warn('Failed to store visa status analysis:', error);
@@ -93,9 +93,9 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(
       { 
         error: 'Failed to analyze visa status',
-        details: error instanceof Error ? error.message : 'Unknown error'
+        details: error instanceof Error ? error.message : 'Unknown error',
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

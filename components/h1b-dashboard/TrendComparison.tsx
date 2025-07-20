@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import React, { useState, useEffect } from 'react';
 import { 
@@ -14,7 +14,7 @@ import {
   RefreshCw,
   Download,
   Eye,
-  EyeOff
+  EyeOff,
 } from 'lucide-react';
 import { LineChart as RechartsLineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { TrendData, ComparisonEntity } from '@/lib/types/comparison';
@@ -27,8 +27,8 @@ interface TrendComparisonProps {
 
 export const TrendComparison: React.FC<TrendComparisonProps> = ({
   entities,
-  className = "",
-  onTrendChange
+  className = '',
+  onTrendChange,
 }) => {
   const [trends, setTrends] = useState<TrendData[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -42,12 +42,12 @@ export const TrendComparison: React.FC<TrendComparisonProps> = ({
   const availableMetrics = [
     { id: 'applications', name: 'Applications', icon: BarChart3, color: '#3B82F6' },
     { id: 'avgSalary', name: 'Average Salary', icon: Award, color: '#10B981' },
-    { id: 'approvalRate', name: 'Approval Rate', icon: Target, color: '#F59E0B' }
+    { id: 'approvalRate', name: 'Approval Rate', icon: Target, color: '#F59E0B' },
   ];
 
   // Entity colors for charts
   const entityColors = [
-    '#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#F97316'
+    '#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#F97316',
   ];
 
   useEffect(() => {
@@ -64,7 +64,7 @@ export const TrendComparison: React.FC<TrendComparisonProps> = ({
   }, [trends, selectedMetric, visibleEntities]);
 
   const fetchTrends = async () => {
-    if (entities.length === 0) return;
+    if (entities.length === 0) {return;}
     
     setIsLoading(true);
     try {
@@ -79,9 +79,9 @@ export const TrendComparison: React.FC<TrendComparisonProps> = ({
             includeCorrelations: false,
             includeTrends: true,
             includeMarketAnalysis: false,
-            metrics: [selectedMetric]
-          }
-        })
+            metrics: [selectedMetric],
+          },
+        }),
       });
       
       if (response.ok) {
@@ -339,12 +339,12 @@ export const TrendComparison: React.FC<TrendComparisonProps> = ({
                     backgroundColor: '#fff', 
                     border: '1px solid #e5e7eb',
                     borderRadius: '8px',
-                    boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+                    boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
                   }}
                 />
                 <Legend />
                 {entities.map((entity, index) => {
-                  if (!visibleEntities.has(entity.id)) return null;
+                  if (!visibleEntities.has(entity.id)) {return null;}
                   
                   return (
                     <Line
@@ -381,7 +381,7 @@ export const TrendComparison: React.FC<TrendComparisonProps> = ({
               .filter(t => t.metric === selectedMetric)
               .map((trend) => {
                 const entity = entities.find(e => e.id === trend.entityId);
-                if (!entity) return null;
+                if (!entity) {return null;}
                 
                 return (
                   <div key={trend.entityId} className="p-4 bg-gray-50 rounded-lg">

@@ -27,7 +27,7 @@ export const NewProfileDialog: React.FC<NewProfileDialogProps> = ({
   extractedPersonInfo,
   onConfirm,
   onCancel,
-  isLoading = false
+  isLoading = false,
 }) => {
   const [relationship, setRelationship] = useState<string>('');
   const [email, setEmail] = useState<string>('');

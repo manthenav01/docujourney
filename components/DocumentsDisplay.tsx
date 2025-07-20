@@ -2,7 +2,7 @@ import React from 'react';
 import DocumentStatusBadge from './ui/DocumentStatusBadge';
 import { Card, CardHeader, CardTitle, CardDescription, CardFooter, CardContent } from '@/components/ui/card';
 import Link from 'next/link';
-import { FileIcon, FolderIcon, } from 'lucide-react';
+import { FileIcon, FolderIcon } from 'lucide-react';
 import { DocumentTypeSchemaModel } from '@/lib/documentActions';
 import { Separator } from './ui/separator';
 import { Button } from './ui/Button';
@@ -72,7 +72,7 @@ export default function DocumentsDisplay({
                                     orientation="horizontal"
                                 />
                                 <CardFooter className="flex justify-between">
-                                    <Button variant={"outline"} >
+                                    <Button variant={'outline'} >
                                         <FileIcon className="h-4 w-4 mr-2" />
                                         View
                                     </Button>
