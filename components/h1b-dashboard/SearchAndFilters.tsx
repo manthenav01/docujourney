@@ -115,7 +115,7 @@ export const SearchAndFilters: React.FC<SearchAndFiltersProps> = ({
       );
     };
     
-    // Handle navigation to company or job pages
+    // Handle navigation to company or job pages - no API calls needed
     let finalType = suggestion.type;
     
     // Override type if it looks like a company name but was classified as job_title
@@ -127,10 +127,12 @@ export const SearchAndFilters: React.FC<SearchAndFiltersProps> = ({
     if (finalType === 'employer') {
       const companySlug = suggestion.text.toLowerCase().replace(/[^a-z0-9]+/g, '-');
       console.log('Navigating to company page:', `/h1b-dashboard/company/${encodeURIComponent(companySlug)}?name=${encodeURIComponent(suggestion.text)}`);
+      // Direct navigation - no API calls needed on dashboard
       router.push(`/h1b-dashboard/company/${encodeURIComponent(companySlug)}?name=${encodeURIComponent(suggestion.text)}`);
     } else if (finalType === 'job_title') {
       const jobSlug = suggestion.text.toLowerCase().replace(/[^a-z0-9]+/g, '-');
       console.log('Navigating to job page:', `/h1b-dashboard/job/${encodeURIComponent(jobSlug)}?title=${encodeURIComponent(suggestion.text)}`);
+      // Direct navigation - no API calls needed on dashboard
       router.push(`/h1b-dashboard/job/${encodeURIComponent(jobSlug)}?title=${encodeURIComponent(suggestion.text)}`);
     } else if (finalType === 'location') {
       // Auto-apply location filter

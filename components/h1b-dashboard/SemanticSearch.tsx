@@ -149,6 +149,9 @@ export const SemanticSearch: React.FC<SemanticSearchProps> = ({
   };
 
   const handleSuggestionClick = (suggestion: SearchSuggestion) => {
+    // Clear loading state immediately when suggestion is clicked
+    setIsLoading(false);
+    
     setQuery(suggestion.text);
     setShowSuggestions(false);
     

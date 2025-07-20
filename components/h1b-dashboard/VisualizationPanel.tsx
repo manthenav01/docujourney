@@ -5,7 +5,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { SalaryDistributionChart } from './SalaryDistributionChart';
 import { HighestSalaryByStateChart } from './HighestSalaryByStateChart';
 import { TopJobTitlesCard } from './TopJobTitlesCard';
-import { IndustryDistributionChart } from './IndustryDistributionChart';
+import { CaseStatusByJobCategoryChart } from './CaseStatusByJobCategoryChart';
 
 interface VisualizationPanelProps {
   dashboardData: {
@@ -32,11 +32,11 @@ interface VisualizationPanelProps {
       avgSalary: number;
       percentage: number;
     }>;
-    industryDistribution: Array<{
-      industry: string;
-      applications: number;
+    caseStatusByJobCategory: Array<{
+      jobCategory: string;
+      caseStatus: string;
+      applicationCount: number;
       avgSalary: number;
-      percentage: number;
     }>;
   };
   chartsLoading: boolean;
@@ -78,7 +78,7 @@ export const VisualizationPanel: React.FC<VisualizationPanelProps> = ({
               <div className="h-80 flex items-center justify-center">
                 <div className="text-center">
                   <div className="loading-spinner mx-auto"></div>
-                  <p className="text-gray-500 mt-2">Loading industries...</p>
+                  <p className="text-gray-500 mt-2">Loading case status data...</p>
                 </div>
               </div>
             </CardContent>
@@ -119,13 +119,8 @@ export const VisualizationPanel: React.FC<VisualizationPanelProps> = ({
           })) : []}
           loading={chartsLoading}
         />
-        <IndustryDistributionChart 
-          data={dashboardData.industryDistribution ? dashboardData.industryDistribution.map(item => ({
-            industry: item.industry,
-            applications: item.applications,
-            avgSalary: item.avgSalary,
-            percentage: item.percentage,
-          })) : []}
+        <CaseStatusByJobCategoryChart 
+          data={dashboardData.caseStatusByJobCategory || []}
           loading={chartsLoading}
         />
       </div>

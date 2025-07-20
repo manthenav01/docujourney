@@ -15,9 +15,7 @@ import {
   FileText,
   Building,
   DollarSign,
-  CheckCircle,
   XCircle,
-  AlertCircle,
   Share2,
   Eye,
   Pause,
@@ -71,11 +69,11 @@ interface H1BDashboardData {
     avgSalary: number;
     percentage: number;
   }>;
-  industryDistribution: Array<{
-    industry: string;
-    applications: number;
+  caseStatusByJobCategory: Array<{
+    jobCategory: string;
+    caseStatus: string;
+    applicationCount: number;
     avgSalary: number;
-    percentage: number;
   }>;
 }
 
@@ -118,6 +116,7 @@ export const H1BDashboard: React.FC = () => {
 
   useEffect(() => {
     // Debounce the API call when filters change
+    // Exclude searchQuery from dependencies since it's only used for autocomplete
     const timeoutId = setTimeout(() => {
       if (!loading) {
         fetchH1BData();
@@ -125,7 +124,7 @@ export const H1BDashboard: React.FC = () => {
     }, 500);
 
     return () => clearTimeout(timeoutId);
-  }, [filters]);
+  }, [filters.fiscalYears, filters.salaryRange, filters.states, filters.cities, filters.jobCategories, filters.skillLevels, filters.companySizes, filters.companyTypes, loading]);
 
   useEffect(() => {
     if (dashboardData) {
@@ -224,7 +223,7 @@ export const H1BDashboard: React.FC = () => {
         yearlyTrends: [],
         stateDistribution: [],
         jobTitleDistribution: [],
-        industryDistribution: [],
+        industryDistribution: []
       });
     } finally {
       setLoading(false);
@@ -404,24 +403,6 @@ export const H1BDashboard: React.FC = () => {
           />
         </div>
 
-        {/* Results Summary */}
-        <div className="mb-8">
-          <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
-            <h2 className="text-lg font-semibold text-gray-700 mb-2">
-              Showing results for {dashboardData.totalApplications.toLocaleString()} applications
-            </h2>
-            <p className="text-sm text-gray-500">
-              {filters.searchQuery && `Search: "${filters.searchQuery}" • `}
-              {filters.fiscalYears.length > 0 && `Years: ${filters.fiscalYears.join(', ')} • `}
-              {filters.states.length > 0 && `States: ${filters.states.join(', ')} • `}
-              {filters.salaryRange[0] > 0 || filters.salaryRange[1] < 500000 ? 
-                `Salary: $${filters.salaryRange[0].toLocaleString()} - $${filters.salaryRange[1].toLocaleString()}` : 
-                'All data'
-              }
-            </p>
-          </div>
-        </div>
-
         {/* Overview Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6 mb-8">
           <MetricCard
@@ -450,27 +431,7 @@ export const H1BDashboard: React.FC = () => {
           />
         </div>
 
-        {/* Application Status Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 lg:gap-6 mb-8">
-          <MetricCard
-            title="Certified Applications"
-            value={dashboardData.certifiedApplications.toLocaleString()}
-            icon={<CheckCircle className="w-6 h-6" />}
-            color="green"
-          />
-          <MetricCard
-            title="Denied Applications"
-            value={dashboardData.deniedApplications.toLocaleString()}
-            icon={<XCircle className="w-6 h-6" />}
-            color="red"
-          />
-          <MetricCard
-            title="Withdrawn Applications"
-            value={dashboardData.withdrawnApplications.toLocaleString()}
-            icon={<AlertCircle className="w-6 h-6" />}
-            color="yellow"
-          />
-        </div>
+
 
         {/* Main Content */}
         <div className="space-y-8">

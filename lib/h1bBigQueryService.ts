@@ -59,11 +59,11 @@ export interface H1BAggregatedData {
     avgSalary: number;
     percentage: number;
   }>;
-  industryDistribution: Array<{
-    industry: string;
-    applications: number;
+  caseStatusByJobCategory: Array<{
+    jobCategory: string;
+    caseStatus: string;
+    applicationCount: number;
     avgSalary: number;
-    percentage: number;
   }>;
 }
 
@@ -300,33 +300,18 @@ export class H1BBigQueryService {
       ORDER BY applications DESC
     `;
 
-    const industryDistQuery = `
-      WITH industry_stats AS (
-        SELECT 
-          soc_title as industry,
-          COUNT(*) as applications,
-          AVG(CASE WHEN case_status = 'Certified' THEN wage_rate_of_pay_from END) as avg_salary
-        FROM \`${this.projectId}.${this.datasetId}.lca_applications\`
-        ${whereClause}
-        AND soc_title IS NOT NULL
-        GROUP BY soc_title
-        ORDER BY applications DESC
-        LIMIT 10
-      ),
-      total_count AS (
-        SELECT COUNT(*) as total_applications
-        FROM \`${this.projectId}.${this.datasetId}.lca_applications\`
-        ${whereClause}
-        AND soc_title IS NOT NULL
-      )
+    const caseStatusByJobCategoryQuery = `
       SELECT 
-        industry,
-        applications,
-        avg_salary,
-        ROUND(applications * 100.0 / total_count.total_applications, 2) as percentage
-      FROM industry_stats
-      CROSS JOIN total_count
-      ORDER BY applications DESC
+        soc_title as job_category,
+        case_status,
+        COUNT(*) as application_count,
+        AVG(CASE WHEN case_status = 'Certified' THEN wage_rate_of_pay_from END) as avg_salary
+      FROM \`${this.projectId}.${this.datasetId}.lca_applications\`
+      ${whereClause}
+      AND soc_title IS NOT NULL
+      AND case_status IS NOT NULL
+      GROUP BY soc_title, case_status
+      ORDER BY SUM(COUNT(*)) OVER (PARTITION BY soc_title) DESC, case_status
     `;
 
     try {
@@ -339,7 +324,7 @@ export class H1BBigQueryService {
         [stateDistResults],
         [mostAppliedJobResults],
         [jobTitleDistResults],
-        [industryDistResults],
+        [industryDistResults]
       ] = await Promise.all([
         this.bigquery.query({ query: mainQuery, params }),
         this.bigquery.query({ query: employersQuery, params }),
@@ -348,7 +333,7 @@ export class H1BBigQueryService {
         this.bigquery.query({ query: stateDistQuery, params }),
         this.bigquery.query({ query: mostAppliedJobQuery, params }),
         this.bigquery.query({ query: jobTitleDistQuery, params }),
-        this.bigquery.query({ query: industryDistQuery, params }),
+        this.bigquery.query({ query: industryDistQuery, params })
       ]);
 
       // Process results
@@ -398,7 +383,7 @@ export class H1BBigQueryService {
         industry: row.industry,
         applications: row.applications || 0,
         avgSalary: Math.round(row.avg_salary || 0),
-        percentage: row.percentage || 0,
+        percentage: row.percentage || 0
       }));
 
       return {
@@ -417,7 +402,7 @@ export class H1BBigQueryService {
         yearlyTrends,
         stateDistribution,
         jobTitleDistribution,
-        industryDistribution,
+        industryDistribution
       };
     } catch (error) {
       console.error('BigQuery error:', error);
