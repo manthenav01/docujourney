@@ -1,7 +1,9 @@
 'use client';
 
-import { ResponsiveBar } from '@nivo/bar'
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { useState } from 'react';
+import { ResponsiveBar } from '@nivo/bar';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/Button';
 
 interface StateSalaryData {
   state: string;
@@ -17,7 +19,7 @@ interface HighestSalaryByStateChartProps {
 }
 
 export function HighestSalaryByStateChart({ data, loading }: HighestSalaryByStateChartProps) {
-  const [viewMode, setViewMode] = useState<'top' | 'bottom'>('top')
+  const [viewMode, setViewMode] = useState<'top' | 'bottom'>('top');
   if (loading) {
     return (
       <Card className="w-full">
@@ -48,7 +50,7 @@ export function HighestSalaryByStateChart({ data, loading }: HighestSalaryByStat
     );
   }
 
-  const sortedData = [...data].sort((a, b) => b.highestSalary - a.highestSalary).slice(0, 5)
+  const sortedData = [...data].sort((a, b) => b.highestSalary - a.highestSalary).slice(0, 5);
 
   return (
     <Card className="w-full">

@@ -181,7 +181,7 @@ export function SalaryDistributionChart({ data, loading }: SalaryDistributionCha
             labelSkipWidth={0}
             labelSkipHeight={0}
             labelTextColor="#FFFFFF"
-            labelFormat={(value) => `${(value / 1000).toFixed(0)}K`}
+            labelFormat={(value) => `${(Number(value) / 1000).toFixed(0)}K`}
             tooltip={({ indexValue, value, data }) => (
               <div className="bg-white/95 backdrop-blur-sm p-5 border border-gray-200 rounded-xl shadow-2xl">
                 <div className="text-sm font-bold text-gray-900 mb-3 border-b border-gray-100 pb-2">{indexValue}</div>

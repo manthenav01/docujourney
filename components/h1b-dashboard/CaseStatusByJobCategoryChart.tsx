@@ -1,9 +1,9 @@
-'use client'
+'use client';
 
-import { ResponsivePie } from '@nivo/pie'
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { useState } from 'react'
+import { ResponsivePie } from '@nivo/pie';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/Button';
+import { useState } from 'react';
 
 interface CaseStatusData {
   jobCategory: string
@@ -35,8 +35,8 @@ interface ProcessedJobCategory {
 }
 
 export function CaseStatusByJobCategoryChart({ data, loading }: CaseStatusByJobCategoryChartProps) {
-  const [hoveredCategory, setHoveredCategory] = useState<string | null>(null)
-  const [viewMode, setViewMode] = useState<'top' | 'bottom'>('top')
+  const [hoveredCategory, setHoveredCategory] = useState<string | null>(null);
+  const [viewMode, setViewMode] = useState<'top' | 'bottom'>('top');
 
   if (loading) {
     return (
@@ -55,7 +55,7 @@ export function CaseStatusByJobCategoryChart({ data, loading }: CaseStatusByJobC
           </div>
         </CardContent>
       </Card>
-    )
+    );
   }
 
   if (!data || data.length === 0) {
@@ -72,7 +72,7 @@ export function CaseStatusByJobCategoryChart({ data, loading }: CaseStatusByJobC
           </div>
         </CardContent>
       </Card>
-    )
+    );
   }
 
   const shortenJobCategoryName = (name: string) => {
@@ -86,26 +86,26 @@ export function CaseStatusByJobCategoryChart({ data, loading }: CaseStatusByJobC
       'Healthcare Practitioners and Technical Occupations': 'Healthcare Practitioners',
       'Education, Training, and Library Occupations': 'Education & Training',
       'Legal Occupations': 'Legal',
-      'Arts, Design, Entertainment, Sports, and Media Occupations': 'Arts & Media'
-    }
-    return shortNames[name] || (name.length > 20 ? name.substring(0, 20) + '...' : name)
-  }
+      'Arts, Design, Entertainment, Sports, and Media Occupations': 'Arts & Media',
+    };
+    return shortNames[name] || (name.length > 20 ? name.substring(0, 20) + '...' : name);
+  };
 
   // Color scheme for different case statuses
   const statusColors = {
     Certified: '#059669',          // Green
     Denied: '#DC2626',             // Red
     Withdrawn: '#D97706',          // Orange
-    'Certified-Withdrawn': '#7C3AED' // Purple
-  }
+    'Certified-Withdrawn': '#7C3AED', // Purple
+  };
 
   // Process data to create donut chart data for each job category
   const processedCategories: ProcessedJobCategory[] = (() => {
-    const jobCategoryMap = new Map<string, any>()
+    const jobCategoryMap = new Map<string, any>();
     
     // Group by job category
     data.forEach(item => {
-      const shortName = shortenJobCategoryName(item.jobCategory)
+      const shortName = shortenJobCategoryName(item.jobCategory);
       if (!jobCategoryMap.has(shortName)) {
         jobCategoryMap.set(shortName, {
           jobCategory: shortName,
@@ -114,25 +114,25 @@ export function CaseStatusByJobCategoryChart({ data, loading }: CaseStatusByJobC
           denied: 0,
           withdrawn: 0,
           certifiedWithdrawn: 0,
-          total: 0
-        })
+          total: 0,
+        });
       }
       
-      const category = jobCategoryMap.get(shortName)!
-      const status = item.caseStatus
+      const category = jobCategoryMap.get(shortName)!;
+      const status = item.caseStatus;
       
       if (status === 'Certified') {
-        category.certified += item.applicationCount
+        category.certified += item.applicationCount;
       } else if (status === 'Denied') {
-        category.denied += item.applicationCount
+        category.denied += item.applicationCount;
       } else if (status === 'Withdrawn') {
-        category.withdrawn += item.applicationCount
+        category.withdrawn += item.applicationCount;
       } else if (status === 'Certified-Withdrawn') {
-        category.certifiedWithdrawn += item.applicationCount
+        category.certifiedWithdrawn += item.applicationCount;
       }
       
-      category.total += item.applicationCount
-    })
+      category.total += item.applicationCount;
+    });
 
     // Convert to array and sort by total applications
     const allCategories = Array.from(jobCategoryMap.values())
@@ -145,40 +145,40 @@ export function CaseStatusByJobCategoryChart({ data, loading }: CaseStatusByJobC
             id: 'Certified',
             label: 'Certified',
             value: category.certified,
-            color: statusColors.Certified
+            color: statusColors.Certified,
           },
           {
             id: 'Denied',
             label: 'Denied',
             value: category.denied,
-            color: statusColors.Denied
+            color: statusColors.Denied,
           },
           {
             id: 'Withdrawn',
             label: 'Withdrawn',
             value: category.withdrawn,
-            color: statusColors.Withdrawn
+            color: statusColors.Withdrawn,
           },
           {
             id: 'Certified-Withdrawn',
             label: 'Certified-Withdrawn',
             value: category.certifiedWithdrawn,
-            color: statusColors['Certified-Withdrawn']
-          }
-        ].filter(item => item.value > 0) // Only include non-zero values
-      }))
+            color: statusColors['Certified-Withdrawn'],
+          },
+        ].filter(item => item.value > 0), // Only include non-zero values
+      }));
     
     // Return top 3 or bottom 3 based on view mode
     if (viewMode === 'top') {
-      return allCategories.slice(0, 3)
+      return allCategories.slice(0, 3);
     } else {
-      return allCategories.slice(-3).reverse() // Bottom 3, but keep descending order
+      return allCategories.slice(-3).reverse(); // Bottom 3, but keep descending order
     }
-  })()
+  })();
 
   // Individual donut chart component
   const DonutChart = ({ categoryData }: { categoryData: ProcessedJobCategory }) => {
-    const isHovered = hoveredCategory === categoryData.jobCategory
+    const isHovered = hoveredCategory === categoryData.jobCategory;
     
     return (
       <div 
@@ -265,8 +265,8 @@ export function CaseStatusByJobCategoryChart({ data, loading }: CaseStatusByJobC
           ))}
         </div>
       </div>
-    )
-  }
+    );
+  };
 
   return (
     <Card className="w-full">
@@ -328,5 +328,5 @@ export function CaseStatusByJobCategoryChart({ data, loading }: CaseStatusByJobC
         </div>
       </CardContent>
     </Card>
-  )
+  );
 }

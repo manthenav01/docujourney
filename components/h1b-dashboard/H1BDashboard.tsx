@@ -75,6 +75,12 @@ interface H1BDashboardData {
     applicationCount: number;
     avgSalary: number;
   }>;
+  industryDistribution: Array<{
+    industry: string;
+    applications: number;
+    avgSalary: number;
+    percentage: number;
+  }>;
 }
 
 interface FilterOptions {
@@ -223,7 +229,8 @@ export const H1BDashboard: React.FC = () => {
         yearlyTrends: [],
         stateDistribution: [],
         jobTitleDistribution: [],
-        industryDistribution: []
+        caseStatusByJobCategory: [],
+        industryDistribution: [],
       });
     } finally {
       setLoading(false);
@@ -430,7 +437,6 @@ export const H1BDashboard: React.FC = () => {
             color="green"
           />
         </div>
-
 
 
         {/* Main Content */}

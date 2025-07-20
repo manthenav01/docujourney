@@ -67,7 +67,7 @@ export async function GET(request: NextRequest) {
         totalApplications: data.totalApplications,
         avgSalary: data.avgSalary,
         topEmployersCount: data.topEmployers.length,
-        statesCount: data.stateDistribution.length
+        statesCount: data.stateDistribution.length,
       });
       
       return NextResponse.json(data);

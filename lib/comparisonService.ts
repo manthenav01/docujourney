@@ -1,4 +1,5 @@
 // Comparison service for multi-entity analysis
+import crypto from 'crypto';
 import { BigQuery } from '@google-cloud/bigquery';
 import {
   ComparisonEntity,
@@ -59,8 +60,12 @@ export class ComparisonService {
       trends,
       rankings,
       marketAnalysis,
-      filters: this.extractFiltersFromConfig(config),
-      generatedAt: new Date(),
+      metadata: {
+        comparisonId: crypto.randomUUID(),
+        timestamp: new Date(),
+        filters: this.extractFiltersFromConfig(config),
+        config,
+      },
     };
   }
 
@@ -151,16 +156,22 @@ export class ComparisonService {
       return {
         ...entity,
         metrics,
-        rank: {},
-        percentileRank: {},
+        rankings: {
+          totalApplications: 0,
+          approvalRate: 0,
+          avgSalary: 0,
+        },
       };
     } catch (error) {
       console.error(`Error getting metrics for entity ${entity.id}:`, error);
       return {
         ...entity,
         metrics: this.getEmptyMetrics(),
-        rank: {},
-        percentileRank: {},
+        rankings: {
+          totalApplications: 0,
+          approvalRate: 0,
+          avgSalary: 0,
+        },
       };
     }
   }
@@ -172,14 +183,14 @@ export class ComparisonService {
     const conditions: string[] = [];
     
     switch (entity.type) {
-      case 'company':
-        conditions.push(`LOWER(employer_name) LIKE '%${entity.name.toLowerCase()}%'`);
+      case 'employer':
+        conditions.push(`LOWER(employer_name) LIKE '%${entity.displayName.toLowerCase()}%'`);
         break;
       case 'job_title':
-        conditions.push(`LOWER(job_title) LIKE '%${entity.name.toLowerCase()}%'`);
+        conditions.push(`LOWER(job_title) LIKE '%${entity.displayName.toLowerCase()}%'`);
         break;
       case 'location':
-        conditions.push(`LOWER(worksite_state) = '${entity.name.toLowerCase()}'`);
+        conditions.push(`LOWER(worksite_state) = '${entity.displayName.toLowerCase()}'`);
         break;
       case 'industry':
         // Would need NAICS code mapping for industry
@@ -224,24 +235,32 @@ export class ComparisonService {
       });
       
       // Calculate rankings and percentiles
-      const rankingData: RankingData = {
-        metric,
-        rankings: sortedEntities.map((entity, index) => ({
+      sortedEntities.forEach((entity, index) => {
+        const rankingData: RankingData = {
           entityId: entity.id,
+          metric,
           rank: index + 1,
           value: this.getMetricValue(entity.metrics, metric),
           percentile: Math.round(((entities.length - index) / entities.length) * 100),
-        })),
-      };
-      
-      rankings.push(rankingData);
+        };
+        rankings.push(rankingData);
+      });
       
       // Update entity rank data
       sortedEntities.forEach((entity, index) => {
         const originalEntity = entities.find(e => e.id === entity.id);
-        if (originalEntity) {
-          originalEntity.rank[metric] = index + 1;
-          originalEntity.percentileRank[metric] = rankingData.rankings[index].percentile;
+        if (originalEntity && originalEntity.rankings) {
+          switch (metric) {
+            case 'totalApplications':
+              originalEntity.rankings.totalApplications = index + 1;
+              break;
+            case 'approvalRate':
+              originalEntity.rankings.approvalRate = index + 1;
+              break;
+            case 'avgSalary':
+              originalEntity.rankings.avgSalary = index + 1;
+              break;
+          }
         }
       });
     }
@@ -260,18 +279,14 @@ export class ComparisonService {
     // In a full implementation, this would calculate actual correlations from the data
     return [
       {
-        metric1: 'totalApplications',
-        metric2: 'approvalRate',
-        correlation: 0.23,
-        significance: 0.05,
-        interpretation: 'weak',
-      },
-      {
-        metric1: 'avgSalary',
-        metric2: 'approvalRate',
-        correlation: 0.67,
+        entityPair: [entities[0]?.id || '', entities[1]?.id || ''],
+        metrics: {
+          salary: 0.67,
+          applications: 0.23,
+          approvalRate: 0.45,
+        },
+        strength: 'moderate',
         significance: 0.01,
-        interpretation: 'moderate',
       },
     ];
   }
