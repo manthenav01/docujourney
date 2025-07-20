@@ -7,47 +7,40 @@ import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/badge';
 import { 
   ArrowLeft, 
-  Briefcase, 
   MapPin, 
   Users, 
   TrendingUp, 
-  Calendar, 
   DollarSign,
-  BarChart3,
   Award,
-  Target,
   Building,
-  Globe,
+  Briefcase,
   Activity,
   PieChart,
   LineChart,
-  Star,
-  CheckCircle,
-  Clock,
-  UserCheck,
+  BarChart3,
 } from 'lucide-react';
 
-interface JobInfo {
-  title: string;
+interface CityInfo {
+  city: string;
+  state: string;
   totalApplications: number;
   certifiedApplications: number;
   avgSalary: number;
   medianSalary: number;
   minSalary: number;
   maxSalary: number;
-  fullTimePositions: number;
-  partTimePositions: number;
   topEmployers: Array<{
     employer: string;
     applications: number;
+    percentage: number;
     avgSalary: number;
     medianSalary: number;
   }>;
-  topStates: Array<{
-    state: string;
+  topJobTitles: Array<{
+    jobTitle: string;
     applications: number;
-    percentage: number;
     avgSalary: number;
+    medianSalary: number;
   }>;
   yearlyTrends: Array<{
     fiscalYear: string;
@@ -65,42 +58,44 @@ interface JobInfo {
   }>;
 }
 
-interface JobDashboardProps {
-  jobSlug: string;
-  jobTitle: string;
+interface CityDashboardProps {
+  citySlug: string;
+  cityName: string;
+  stateName: string;
 }
 
-export const JobDashboard: React.FC<JobDashboardProps> = ({
-  jobSlug,
-  jobTitle,
+export const CityDashboard: React.FC<CityDashboardProps> = ({
+  citySlug,
+  cityName,
+  stateName,
 }) => {
   const router = useRouter();
-  const [jobInfo, setJobInfo] = useState<JobInfo | null>(null);
+  const [cityInfo, setCityInfo] = useState<CityInfo | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    fetchJobInfo();
-  }, [jobTitle]);
+    fetchCityInfo();
+  }, [cityName, stateName]);
 
-  const fetchJobInfo = async () => {
+  const fetchCityInfo = async () => {
     try {
       setLoading(true);
       setError(null);
       
-      const response = await fetch(`/api/h1b-data/job?title=${encodeURIComponent(jobTitle)}`);
+      const response = await fetch(`/api/h1b-data/city?city=${encodeURIComponent(cityName)}&state=${encodeURIComponent(stateName)}`);
       
       if (response.ok) {
         const data = await response.json();
-        setJobInfo(data);
+        setCityInfo(data);
       } else {
         const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
         throw new Error(errorData.error || `Server responded with ${response.status}`);
       }
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to load job information';
+      const errorMessage = err instanceof Error ? err.message : 'Failed to load city information';
       setError(errorMessage);
-      console.error('Error fetching job info:', err);
+      console.error('Error fetching city info:', err);
     } finally {
       setLoading(false);
     }
@@ -160,18 +155,18 @@ export const JobDashboard: React.FC<JobDashboardProps> = ({
               Back to Dashboard
             </Button>
           </div>
-             <Card className="bg-red-50 border-red-200">
+            <Card className="bg-red-50 border-red-200">
           <CardContent className="p-6">
             <div className="text-center">
-              <div className="text-red-600 text-lg font-semibold mb-2">Unable to Load Job Data</div>
+              <div className="text-red-600 text-lg font-semibold mb-2">Unable to Load City Data</div>
               <div className="text-red-700">{error}</div>
               {error.includes('No H1B data found') && (
                 <div className="mt-4 text-sm text-gray-600">
                   <p>This could mean:</p>
                   <ul className="list-disc list-inside mt-2 space-y-1">
-                    <li>The job title might be spelled differently in our database</li>
-                    <li>The job title may not have H1B applications in our dataset</li>
-                    <li>Try searching with a different variation of the job title</li>
+                    <li>The city name might be spelled differently in our database</li>
+                    <li>The city may not have H1B applications in our dataset</li>
+                    <li>Try searching with a different variation of the city name</li>
                   </ul>
                 </div>
               )}
@@ -183,20 +178,16 @@ export const JobDashboard: React.FC<JobDashboardProps> = ({
     );
   }
 
-  if (!jobInfo) {return null;}
+  if (!cityInfo) {return null;}
 
-  const certificationRate = jobInfo.totalApplications > 0 
-    ? ((jobInfo.certifiedApplications / jobInfo.totalApplications) * 100).toFixed(1)
+  const certificationRate = cityInfo.totalApplications > 0 
+    ? ((cityInfo.certifiedApplications / cityInfo.totalApplications) * 100).toFixed(1)
     : '0.0';
 
-  const fullTimePercentage = jobInfo.totalApplications > 0
-    ? ((jobInfo.fullTimePositions / jobInfo.totalApplications) * 100).toFixed(1)
-    : '0.0';
-
-  const hasFinancialData = jobInfo.avgSalary > 0;
-  const hasGeographicData = jobInfo.topStates.length > 0;
-  const hasEmployerData = jobInfo.topEmployers.length > 0;
-  const hasTrendData = jobInfo.yearlyTrends.length > 0;
+  const hasFinancialData = cityInfo.avgSalary > 0;
+  const hasEmployerData = cityInfo.topEmployers.length > 0;
+  const hasJobData = cityInfo.topJobTitles.length > 0;
+  const hasTrendData = cityInfo.yearlyTrends.length > 0;
 
   return (
     <div className="min-h-screen bg-gray-50 p-6">
@@ -213,16 +204,16 @@ export const JobDashboard: React.FC<JobDashboardProps> = ({
         </Button>
         
         <div className="flex items-center space-x-4">
-          <div className="p-3 bg-purple-50 rounded-xl">
-            <Briefcase className="w-8 h-8 text-purple-600" />
+          <div className="p-3 bg-green-50 rounded-xl">
+            <MapPin className="w-8 h-8 text-green-600" />
           </div>
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">{jobTitle}</h1>
-            <p className="text-gray-600">H1B Job Market Analysis & Insights</p>
+            <h1 className="text-3xl font-bold text-gray-900">{cityName}, {stateName}</h1>
+            <p className="text-gray-600">H1B Data Analysis & Insights</p>
           </div>
           <div className="ml-auto">
             <Badge variant="secondary" className="text-sm">
-              {formatNumber(jobInfo.totalApplications)} Total Applications
+              {formatNumber(cityInfo.totalApplications)} Total Applications
             </Badge>
           </div>
         </div>
@@ -238,7 +229,7 @@ export const JobDashboard: React.FC<JobDashboardProps> = ({
               </div>
             </div>
             <h3 className="text-gray-600 text-sm font-medium mb-1">Total Applications</h3>
-            <p className="text-3xl font-bold text-gray-900">{formatNumber(jobInfo.totalApplications)}</p>
+            <p className="text-3xl font-bold text-gray-900">{formatNumber(cityInfo.totalApplications)}</p>
           </CardContent>
         </Card>
 
@@ -246,7 +237,7 @@ export const JobDashboard: React.FC<JobDashboardProps> = ({
           <CardContent className="p-6">
             <div className="flex items-center justify-between mb-4">
               <div className="p-2 bg-green-50 rounded-lg text-green-600">
-                <CheckCircle className="w-6 h-6" />
+                <Award className="w-6 h-6" />
               </div>
             </div>
             <h3 className="text-gray-600 text-sm font-medium mb-1">Certification Rate</h3>
@@ -263,7 +254,7 @@ export const JobDashboard: React.FC<JobDashboardProps> = ({
             </div>
             <h3 className="text-gray-600 text-sm font-medium mb-1">Average Salary</h3>
             <p className="text-3xl font-bold text-gray-900">
-              {hasFinancialData ? formatCurrency(jobInfo.avgSalary) : 'N/A'}
+              {hasFinancialData ? formatCurrency(cityInfo.avgSalary) : 'N/A'}
             </p>
           </CardContent>
         </Card>
@@ -272,11 +263,16 @@ export const JobDashboard: React.FC<JobDashboardProps> = ({
           <CardContent className="p-6">
             <div className="flex items-center justify-between mb-4">
               <div className="p-2 bg-orange-50 rounded-lg text-orange-600">
-                <Clock className="w-6 h-6" />
+                <TrendingUp className="w-6 h-6" />
               </div>
             </div>
-            <h3 className="text-gray-600 text-sm font-medium mb-1">Full-Time Positions</h3>
-            <p className="text-3xl font-bold text-gray-900">{fullTimePercentage}%</p>
+            <h3 className="text-gray-600 text-sm font-medium mb-1">Salary Range</h3>
+            <p className="text-3xl font-bold text-gray-900">
+              {hasFinancialData && cityInfo.minSalary > 0 && cityInfo.maxSalary > 0
+                ? `${formatCurrency(cityInfo.minSalary)} - ${formatCurrency(cityInfo.maxSalary)}`
+                : 'N/A'
+              }
+            </p>
           </CardContent>
         </Card>
       </div>
@@ -288,15 +284,15 @@ export const JobDashboard: React.FC<JobDashboardProps> = ({
           <CardHeader>
             <CardTitle className="flex items-center">
               <LineChart className="w-5 h-5 mr-2" />
-              Job Market Trends
+              Application Trends
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {jobInfo.yearlyTrends.map((year) => (
+              {cityInfo.yearlyTrends.map((year) => (
                 <div key={year.fiscalYear} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                   <div className="flex items-center space-x-3">
-                    <div className="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center text-purple-700 font-semibold">
+                    <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center text-blue-700 font-semibold">
                       {year.fiscalYear.slice(-2)}
                     </div>
                     <div>
@@ -314,29 +310,29 @@ export const JobDashboard: React.FC<JobDashboardProps> = ({
           </CardContent>
         </Card>
 
-        {/* Top Employers */}
+        {/* Top Job Titles */}
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center">
-              <Building className="w-5 h-5 mr-2" />
-              Top Hiring Companies
+              <Briefcase className="w-5 h-5 mr-2" />
+              Top Job Titles
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {jobInfo.topEmployers.slice(0, 5).map((employer, index) => (
-                <div key={employer.employer} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+              {cityInfo.topJobTitles.slice(0, 5).map((job, index) => (
+                <div key={job.jobTitle} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                   <div className="flex items-center space-x-3">
-                    <div className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center text-purple-700 font-semibold text-sm">
+                    <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center text-blue-700 font-semibold text-sm">
                       {index + 1}
                     </div>
                     <div>
-                      <div className="font-medium text-gray-900">{employer.employer}</div>
-                      <div className="text-sm text-gray-500">{formatNumber(employer.applications)} applications</div>
+                      <div className="font-medium text-gray-900 text-sm">{job.jobTitle.slice(0, 40)}{job.jobTitle.length > 40 ? '...' : ''}</div>
+                      <div className="text-sm text-gray-500">{formatNumber(job.applications)} applications</div>
                     </div>
                   </div>
                   <div className="text-right">
-                    <div className="font-semibold text-gray-900">{formatCurrency(employer.avgSalary)}</div>
+                    <div className="font-semibold text-gray-900">{formatCurrency(job.avgSalary)}</div>
                     <div className="text-xs text-gray-500">avg salary</div>
                   </div>
                 </div>
@@ -348,29 +344,34 @@ export const JobDashboard: React.FC<JobDashboardProps> = ({
 
       {/* Charts Row 2 */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Geographic Distribution */}
+        {/* Top Employers */}
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center">
-              <MapPin className="w-5 h-5 mr-2" />
-              Geographic Distribution
+              <Building className="w-5 h-5 mr-2" />
+              Top Employers in {cityName}
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {jobInfo.topStates.map((state) => (
-                <div key={state.state} className="space-y-2">
+              {cityInfo.topEmployers.slice(0, 6).map((employer, index) => (
+                <div key={employer.employer} className="space-y-2">
                   <div className="flex justify-between items-center">
-                    <span className="font-medium text-gray-900">{state.state}</span>
-                    <div className="text-right">
-                      <span className="text-sm text-gray-600">{formatNumber(state.applications)} ({state.percentage}%)</span>
-                      <div className="text-xs text-gray-500">{formatCurrency(state.avgSalary)} avg</div>
+                    <div className="flex items-center space-x-3">
+                      <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center text-green-700 font-semibold text-sm">
+                        {index + 1}
+                      </div>
+                      <div>
+                        <span className="font-medium text-gray-900 text-sm">{employer.employer.slice(0, 30)}{employer.employer.length > 30 ? '...' : ''}</span>
+                        <div className="text-xs text-gray-500">{formatCurrency(employer.avgSalary)} avg</div>
+                      </div>
                     </div>
+                    <span className="text-sm text-gray-600">{formatNumber(employer.applications)} ({employer.percentage.toFixed(1)}%)</span>
                   </div>
                   <div className="w-full bg-gray-200 rounded-full h-2">
                     <div 
-                      className="bg-purple-500 h-2 rounded-full transition-all duration-300" 
-                      style={{ width: `${state.percentage}%` }}
+                      className="bg-green-500 h-2 rounded-full transition-all duration-300" 
+                      style={{ width: `${employer.percentage}%` }}
                     ></div>
                   </div>
                 </div>
@@ -389,8 +390,8 @@ export const JobDashboard: React.FC<JobDashboardProps> = ({
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
-              {jobInfo.salaryDistribution.map((salary, index) => {
-                const maxCount = Math.max(...jobInfo.salaryDistribution.map(s => s.count));
+              {cityInfo.salaryDistribution.map((salary, index) => {
+                const maxCount = Math.max(...cityInfo.salaryDistribution.map(s => s.count));
                 const percentage = (salary.count / maxCount) * 100;
                 const colors = ['bg-blue-500', 'bg-green-500', 'bg-yellow-500', 'bg-red-500', 'bg-purple-500', 'bg-indigo-500', 'bg-pink-500', 'bg-orange-500'];
                 
@@ -414,132 +415,34 @@ export const JobDashboard: React.FC<JobDashboardProps> = ({
         </Card>
       </div>
 
-      {/* Employment Type Analysis */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center">
-              <UserCheck className="w-5 h-5 mr-2" />
-              Employment Type Analysis
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              <div className="flex items-center justify-between p-4 bg-green-50 rounded-lg">
-                <div className="flex items-center space-x-3">
-                  <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
-                    <Clock className="w-6 h-6 text-green-600" />
-                  </div>
-                  <div>
-                    <div className="font-semibold text-gray-900">Full-Time Positions</div>
-                    <div className="text-sm text-gray-600">{formatNumber(jobInfo.fullTimePositions)} applications</div>
-                  </div>
-                </div>
-                <div className="text-right">
-                  <div className="text-2xl font-bold text-green-600">{fullTimePercentage}%</div>
-                  <div className="text-xs text-gray-500">of total</div>
-                </div>
-              </div>
-              
-              <div className="flex items-center justify-between p-4 bg-blue-50 rounded-lg">
-                <div className="flex items-center space-x-3">
-                  <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
-                    <Target className="w-6 h-6 text-blue-600" />
-                  </div>
-                  <div>
-                    <div className="font-semibold text-gray-900">Part-Time Positions</div>
-                    <div className="text-sm text-gray-600">{formatNumber(jobInfo.partTimePositions)} applications</div>
-                  </div>
-                </div>
-                <div className="text-right">
-                  <div className="text-2xl font-bold text-blue-600">{(100 - parseFloat(fullTimePercentage)).toFixed(1)}%</div>
-                  <div className="text-xs text-gray-500">of total</div>
-                </div>
-              </div>
-
-              <div className="mt-4 p-4 bg-gray-50 rounded-lg">
-                <div className="text-sm text-gray-600">
-                  <strong>Market Insight:</strong> Full-time positions represent {fullTimePercentage}% of all {jobTitle} H1B applications, 
-                  indicating {parseFloat(fullTimePercentage) > 80 ? 'strong employer demand for permanent roles' : 'mixed employment patterns'} 
-                  in this field.
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Recent Activity */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center">
-              <Activity className="w-5 h-5 mr-2" />
-              Recent Activity (Last 6 Months)
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-              {jobInfo.recentActivity.map((activity) => {
-                const maxApplications = Math.max(...jobInfo.recentActivity.map(a => a.applications));
-                const height = (activity.applications / maxApplications) * 100;
-                
-                return (
-                  <div key={activity.month} className="text-center space-y-2">
-                    <div className="text-sm font-medium text-gray-600">{activity.month.split(' ')[0]}</div>
-                    <div className="flex items-end justify-center h-20">
-                      <div 
-                        className="bg-purple-500 rounded-t-md w-8 transition-all duration-300"
-                        style={{ height: `${height}%` }}
-                      ></div>
-                    </div>
-                    <div className="text-xs text-gray-500">{formatNumber(activity.applications)}</div>
-                  </div>
-                );
-              })}
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Market Insights Summary */}
+      {/* Recent Activity */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center">
-            <Star className="w-5 h-5 mr-2" />
-            Market Insights Summary
+            <Activity className="w-5 h-5 mr-2" />
+            Recent Activity (Last 6 Months)
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="text-center p-4 bg-blue-50 rounded-lg">
-              <div className="text-2xl font-bold text-blue-600">{hasFinancialData ? formatCurrency(jobInfo.medianSalary) : 'N/A'}</div>
-              <div className="text-sm text-gray-600">Median Salary</div>
-              <div className="text-xs text-gray-500 mt-1">50th percentile earnings</div>
-            </div>
-            
-            <div className="text-center p-4 bg-green-50 rounded-lg">
-              <div className="text-2xl font-bold text-green-600">{formatNumber(jobInfo.topEmployers.length)}</div>
-              <div className="text-sm text-gray-600">Active Employers</div>
-              <div className="text-xs text-gray-500 mt-1">Companies hiring for this role</div>
-            </div>
-            
-            <div className="text-center p-4 bg-purple-50 rounded-lg">
-              <div className="text-2xl font-bold text-purple-600">{formatNumber(jobInfo.topStates.length)}</div>
-              <div className="text-sm text-gray-600">Active States</div>
-              <div className="text-xs text-gray-500 mt-1">Geographic opportunities</div>
-            </div>
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+            {cityInfo.recentActivity.map((activity) => {
+              const maxApplications = Math.max(...cityInfo.recentActivity.map(a => a.applications));
+              const height = maxApplications > 0 ? (activity.applications / maxApplications) * 100 : 0;
+              
+              return (
+                <div key={activity.month} className="text-center space-y-2">
+                  <div className="text-sm font-medium text-gray-600">{activity.month.split(' ')[0]}</div>
+                  <div className="flex items-end justify-center h-20">
+                    <div 
+                      className="bg-orange-500 rounded-t-md w-8 transition-all duration-300"
+                      style={{ height: `${height}%`, minHeight: '4px' }}
+                    ></div>
+                  </div>
+                  <div className="text-xs text-gray-500">{formatNumber(activity.applications)}</div>
+                </div>
+              );
+            })}
           </div>
-          
-          {hasFinancialData && (
-            <div className="mt-6 p-4 bg-gray-50 rounded-lg">
-              <div className="text-sm text-gray-700">
-                <strong>Key Takeaways:</strong> The {jobTitle} role shows {
-                  hasFinancialData && jobInfo.avgSalary > 100000 ? 'competitive' : 'moderate'
-                } compensation with an average salary of {formatCurrency(jobInfo.avgSalary)}. 
-                With a {certificationRate}% certification rate and {formatNumber(jobInfo.totalApplications)} total applications, 
-                this represents a {parseFloat(certificationRate) > 85 ? 'highly sought-after' : 'competitive'} position in the H1B market.
-              </div>
-            </div>
-          )}
         </CardContent>
       </Card>
       </div>

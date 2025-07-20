@@ -976,7 +976,7 @@ export class H1BBigQueryService {
         this.bigquery.query({ query: topStatesQuery, params: { jobTitle: `%${jobTitle}%` } }),
         this.bigquery.query({ query: yearlyTrendsQuery, params: { jobTitle: `%${jobTitle}%` } }),
         this.bigquery.query({ query: salaryDistributionQuery, params: { jobTitle: `%${jobTitle}%` } }),
-        this.bigquery.query({ query: requirementsAnalysisQuery, params: { jobTitle: `%${jobTitle}%` } })
+        this.bigquery.query({ query: requirementsAnalysisQuery, params: { jobTitle: `%${jobTitle}%` } }),
       ]);
 
       const stats = basicStats[0][0] || {};
@@ -999,7 +999,7 @@ export class H1BBigQueryService {
         const monthlyApps = Math.floor((totalApplications * 0.15) / 6) + Math.floor(Math.random() * 50);
         recentActivity.push({
           month: `${monthName} ${currentYear}`,
-          applications: monthlyApps
+          applications: monthlyApps,
         });
       }
 
@@ -1017,28 +1017,226 @@ export class H1BBigQueryService {
           employer: row.employer,
           applications: Number(row.applications),
           avgSalary: Math.round(Number(row.avgSalary)),
-          medianSalary: Math.round(Number(row.medianSalary))
+          medianSalary: Math.round(Number(row.medianSalary)),
         })),
         topStates: topStates[0].map((row: any) => ({
           state: row.state,
           applications: Number(row.applications),
           percentage: Number(row.percentage),
-          avgSalary: Math.round(Number(row.avgSalary))
+          avgSalary: Math.round(Number(row.avgSalary)),
         })),
         yearlyTrends: yearlyTrends[0].map((row: any) => ({
           fiscalYear: row.fiscal_year,
           applications: Number(row.applications),
           avgSalary: Math.round(Number(row.avgSalary)),
-          certificationRate: Number(row.certificationRate)
+          certificationRate: Number(row.certificationRate),
         })),
         salaryDistribution: salaryDistribution[0].map((row: any) => ({
           range: row.salary_range,
-          count: Number(row.count)
+          count: Number(row.count),
         })),
-        recentActivity
+        recentActivity,
       };
     } catch (error) {
       console.error('Error getting job analysis:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Get city analysis data
+   */
+  async getCityAnalysis(cityName: string, stateName: string): Promise<any> {
+    try {
+      // Get basic city stats
+      const basicStatsQuery = `
+        SELECT 
+          COUNT(*) as totalApplications,
+          SUM(CASE WHEN UPPER(case_status) = 'CERTIFIED' THEN 1 ELSE 0 END) as certifiedApplications,
+          AVG(CASE WHEN wage_rate_of_pay_from > 0 AND wage_rate_of_pay_from < 1000000 THEN wage_rate_of_pay_from END) as avgSalary,
+          APPROX_QUANTILES(
+            CASE WHEN wage_rate_of_pay_from > 0 AND wage_rate_of_pay_from < 1000000 THEN wage_rate_of_pay_from END, 
+            2
+          )[OFFSET(1)] as medianSalary,
+          MIN(CASE WHEN wage_rate_of_pay_from > 0 AND wage_rate_of_pay_from < 1000000 THEN wage_rate_of_pay_from END) as minSalary,
+          MAX(CASE WHEN wage_rate_of_pay_from > 0 AND wage_rate_of_pay_from < 1000000 THEN wage_rate_of_pay_from END) as maxSalary
+        FROM \`${this.projectId}.${this.datasetId}.lca_applications\`
+        WHERE UPPER(TRIM(worksite_city)) = UPPER(TRIM(@cityName))
+        AND UPPER(TRIM(worksite_state)) = UPPER(TRIM(@stateName))
+      `;
+
+      // Get top employers in this city
+      const topEmployersQuery = `
+        SELECT 
+          UPPER(TRIM(employer_name)) as employer,
+          COUNT(*) as applications,
+          ROUND(COUNT(*) * 100.0 / SUM(COUNT(*)) OVER(), 1) as percentage,
+          AVG(CASE WHEN wage_rate_of_pay_from > 0 AND wage_rate_of_pay_from < 1000000 THEN wage_rate_of_pay_from END) as avgSalary,
+          APPROX_QUANTILES(
+            CASE WHEN wage_rate_of_pay_from > 0 AND wage_rate_of_pay_from < 1000000 THEN wage_rate_of_pay_from END, 
+            2
+          )[OFFSET(1)] as medianSalary
+        FROM \`${this.projectId}.${this.datasetId}.lca_applications\`
+        WHERE UPPER(TRIM(worksite_city)) = UPPER(TRIM(@cityName))
+        AND UPPER(TRIM(worksite_state)) = UPPER(TRIM(@stateName))
+        AND UPPER(case_status) = 'CERTIFIED'
+        AND TRIM(employer_name) != ''
+        GROUP BY UPPER(TRIM(employer_name))
+        ORDER BY applications DESC
+        LIMIT 10
+      `;
+
+      // Get top job titles in this city
+      const topJobTitlesQuery = `
+        SELECT 
+          UPPER(TRIM(job_title)) as jobTitle,
+          COUNT(*) as applications,
+          AVG(CASE WHEN wage_rate_of_pay_from > 0 AND wage_rate_of_pay_from < 1000000 THEN wage_rate_of_pay_from END) as avgSalary,
+          APPROX_QUANTILES(
+            CASE WHEN wage_rate_of_pay_from > 0 AND wage_rate_of_pay_from < 1000000 THEN wage_rate_of_pay_from END, 
+            2
+          )[OFFSET(1)] as medianSalary
+        FROM \`${this.projectId}.${this.datasetId}.lca_applications\`
+        WHERE UPPER(TRIM(worksite_city)) = UPPER(TRIM(@cityName))
+        AND UPPER(TRIM(worksite_state)) = UPPER(TRIM(@stateName))
+        AND UPPER(case_status) = 'CERTIFIED'
+        AND TRIM(job_title) != ''
+        GROUP BY UPPER(TRIM(job_title))
+        ORDER BY applications DESC
+        LIMIT 10
+      `;
+
+      // Get yearly trends for this city
+      const yearlyTrendsQuery = `
+        SELECT
+          CASE 
+            WHEN EXTRACT(MONTH FROM received_date) >= 10 
+            THEN EXTRACT(YEAR FROM received_date) + 1 
+            ELSE EXTRACT(YEAR FROM received_date) 
+          END as fiscal_year,
+          COUNT(*) as applications,
+          AVG(CASE WHEN wage_rate_of_pay_from > 0 AND wage_rate_of_pay_from < 1000000 THEN wage_rate_of_pay_from END) as avgSalary,
+          ROUND(
+            SUM(CASE WHEN UPPER(case_status) = 'CERTIFIED' THEN 1 ELSE 0 END) * 100.0 / COUNT(*), 
+            1
+          ) as certificationRate
+        FROM \`${this.projectId}.${this.datasetId}.lca_applications\`
+        WHERE UPPER(TRIM(worksite_city)) = UPPER(TRIM(@cityName))
+        AND UPPER(TRIM(worksite_state)) = UPPER(TRIM(@stateName))
+        AND received_date IS NOT NULL
+        GROUP BY fiscal_year
+        ORDER BY fiscal_year DESC
+        LIMIT 5
+      `;
+
+      // Get salary distribution for this city
+      const salaryDistributionQuery = `
+        SELECT
+          CASE
+            WHEN wage_rate_of_pay_from < 50000 THEN 'Under $50K'
+            WHEN wage_rate_of_pay_from < 75000 THEN '$50K - $75K'
+            WHEN wage_rate_of_pay_from < 100000 THEN '$75K - $100K'
+            WHEN wage_rate_of_pay_from < 125000 THEN '$100K - $125K'
+            WHEN wage_rate_of_pay_from < 150000 THEN '$125K - $150K'
+            WHEN wage_rate_of_pay_from < 200000 THEN '$150K - $200K'
+            ELSE '$200K+'
+          END as salary_range,
+          COUNT(*) as count
+        FROM \`${this.projectId}.${this.datasetId}.lca_applications\`
+        WHERE UPPER(TRIM(worksite_city)) = UPPER(TRIM(@cityName))
+        AND UPPER(TRIM(worksite_state)) = UPPER(TRIM(@stateName))
+        AND UPPER(case_status) = 'CERTIFIED'
+        AND wage_rate_of_pay_from > 0 
+        AND wage_rate_of_pay_from < 1000000
+        GROUP BY salary_range
+        ORDER BY MIN(wage_rate_of_pay_from)
+      `;
+
+      // Execute all queries concurrently
+      const [basicStats, topEmployers, topJobTitles, yearlyTrends, salaryDistribution] = await Promise.all([
+        this.bigquery.query({
+          query: basicStatsQuery,
+          params: { cityName, stateName },
+        }),
+        this.bigquery.query({
+          query: topEmployersQuery,
+          params: { cityName, stateName },
+        }),
+        this.bigquery.query({
+          query: topJobTitlesQuery,
+          params: { cityName, stateName },
+        }),
+        this.bigquery.query({
+          query: yearlyTrendsQuery,
+          params: { cityName, stateName },
+        }),
+        this.bigquery.query({
+          query: salaryDistributionQuery,
+          params: { cityName, stateName },
+        }),
+      ]);
+
+      const stats = basicStats[0][0];
+      const totalApplications = Number(stats?.totalApplications) || 0;
+
+      // Check if city has any data
+      if (totalApplications === 0) {
+        throw new Error(`No H1B data found for ${cityName}, ${stateName}`);
+      }
+
+      // Generate recent activity data (last 6 months)
+      const recentActivity = [];
+      const currentDate = new Date();
+      for (let i = 5; i >= 0; i--) {
+        const date = new Date(currentDate.getFullYear(), currentDate.getMonth() - i, 1);
+        const monthName = date.toLocaleString('default', { month: 'short' });
+        const currentYear = date.getFullYear();
+        
+        // For demonstration, generate some activity based on yearly trends
+        const monthlyApps = Math.floor((totalApplications / 12) * (0.5 + Math.random()));
+        
+        recentActivity.push({
+          month: `${monthName} ${currentYear}`,
+          applications: monthlyApps,
+        });
+      }
+
+      return {
+        city: cityName,
+        state: stateName,
+        totalApplications,
+        certifiedApplications: Number(stats.certifiedApplications) || 0,
+        avgSalary: Math.round(Number(stats.avgSalary) || 0),
+        medianSalary: Math.round(Number(stats.medianSalary) || 0),
+        minSalary: Math.round(Number(stats.minSalary) || 0),
+        maxSalary: Math.round(Number(stats.maxSalary) || 0),
+        topEmployers: topEmployers[0].map((row: any) => ({
+          employer: row.employer,
+          applications: Number(row.applications),
+          percentage: Number(row.percentage),
+          avgSalary: Math.round(Number(row.avgSalary) || 0),
+          medianSalary: Math.round(Number(row.medianSalary) || 0),
+        })),
+        topJobTitles: topJobTitles[0].map((row: any) => ({
+          jobTitle: row.jobTitle,
+          applications: Number(row.applications),
+          avgSalary: Math.round(Number(row.avgSalary) || 0),
+          medianSalary: Math.round(Number(row.medianSalary) || 0),
+        })),
+        yearlyTrends: yearlyTrends[0].map((row: any) => ({
+          fiscalYear: row.fiscal_year.toString(),
+          applications: Number(row.applications),
+          avgSalary: Math.round(Number(row.avgSalary) || 0),
+          certificationRate: Number(row.certificationRate),
+        })),
+        salaryDistribution: salaryDistribution[0].map((row: any) => ({
+          range: row.salary_range,
+          count: Number(row.count),
+        })),
+        recentActivity,
+      };
+    } catch (error) {
+      console.error('Error getting city analysis:', error);
       throw error;
     }
   }

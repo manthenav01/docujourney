@@ -11,23 +11,24 @@ const bigQueryService = new H1BBigQueryService({
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
-    const jobTitle = searchParams.get('title');
+    const cityName = searchParams.get('city');
+    const stateName = searchParams.get('state');
     
-    if (!jobTitle) {
+    if (!cityName || !stateName) {
       return NextResponse.json(
-        { error: 'Job title parameter is required' },
+        { error: 'City name and state name parameters are required' },
         { status: 400 },
       );
     }
     
-    const jobData = await bigQueryService.getJobAnalysis(jobTitle);
+    const cityData = await bigQueryService.getCityAnalysis(cityName, stateName);
     
-    return NextResponse.json(jobData);
+    return NextResponse.json(cityData);
   } catch (error) {
-    console.error('Job API error:', error);
+    console.error('City API error:', error);
     const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
     return NextResponse.json(
-      { error: 'Failed to fetch job data', details: errorMessage },
+      { error: 'Failed to fetch city data', details: errorMessage },
       { status: 500 },
     );
   }

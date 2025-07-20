@@ -8,7 +8,7 @@ export const metadata: Metadata = generateMetadata({
   title: BASE_METADATA.title,
   description: BASE_METADATA.description,
   keywords: ['immigration', 'H1B visa', 'document management', 'AI-powered', 'visa analytics'],
-  type: 'website'
+  type: 'website',
 });
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
@@ -38,9 +38,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               potentialAction: {
                 '@type': 'SearchAction',
                 target: 'https://docujourney.com/h1b-dashboard?q={search_term_string}',
-                'query-input': 'required name=search_term_string'
-              }
-            })
+                'query-input': 'required name=search_term_string',
+              },
+            }),
           }}
         />
       </head>

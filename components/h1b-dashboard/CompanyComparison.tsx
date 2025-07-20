@@ -295,7 +295,7 @@ export const CompanyComparison: React.FC<CompanyComparisonProps> = ({
               className="flex items-center space-x-2 px-3 py-2 bg-gray-50 rounded-lg"
             >
               <Building className="w-4 h-4 text-gray-600" />
-              <span className="text-sm font-medium text-gray-900">{entity.displayName}</span>
+              <span className="text-sm font-medium text-gray-900">{entity.name}</span>
               <button
                 onClick={() => removeEntity(entity.id)}
                 className="text-gray-400 hover:text-red-500 transition-colors"
@@ -329,13 +329,14 @@ export const CompanyComparison: React.FC<CompanyComparisonProps> = ({
                       key={index}
                       onClick={() => addEntity({
                         id: `company_${suggestion.name.toLowerCase().replace(/\s+/g, '_')}`,
+                        name: suggestion.displayName || suggestion.name,
                         type: 'employer',
-                        displayName: suggestion.displayName,
+                        data: {},
                       })}
                       className="w-full text-left px-4 py-2 hover:bg-gray-50 rounded-lg transition-colors"
                     >
                       <div className="flex items-center justify-between">
-                        <span className="font-medium">{suggestion.displayName}</span>
+                        <span className="font-medium">{suggestion.displayName || suggestion.name}</span>
                         <span className="text-sm text-gray-500">{suggestion.count.toLocaleString()}</span>
                       </div>
                     </button>
@@ -417,14 +418,14 @@ export const CompanyComparison: React.FC<CompanyComparisonProps> = ({
                           <Building className="w-4 h-4 text-blue-600" />
                         </div>
                         <div>
-                          <div className="font-medium text-gray-900">{entity.displayName}</div>
+                          <div className="font-medium text-gray-900">{entity.name}</div>
                           <div className="text-sm text-gray-500">{entity.type}</div>
                         </div>
                       </div>
                     </td>
                     {selectedMetrics.map((metric) => {
                       const value = getMetricValue(entity, metric);
-                      const rank = getRankingValue(entity.rankings, metric) || 0;
+                      const rank = entity.rank || 0;
                       const format = getMetricFormat(metric);
                       
                       return (
@@ -450,23 +451,27 @@ export const CompanyComparison: React.FC<CompanyComparisonProps> = ({
           {comparisonResult.marketAnalysis && (
             <div className="mt-8 p-4 bg-blue-50 rounded-lg">
               <h4 className="font-medium text-blue-900 mb-3">Market Analysis</h4>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-                <div>
-                  <span className="text-blue-600">Top Performer:</span>
-                  <div className="font-medium text-blue-900">{comparisonResult.marketAnalysis.summary.topPerformer}</div>
-                </div>
-                <div>
-                  <span className="text-blue-600">Market Leader:</span>
-                  <div className="font-medium text-blue-900">{comparisonResult.marketAnalysis.summary.marketLeader}</div>
-                </div>
-                <div>
-                  <span className="text-blue-600">Fastest Growing:</span>
-                  <div className="font-medium text-blue-900">{comparisonResult.marketAnalysis.summary.fastestGrowing}</div>
-                </div>
-                <div>
-                  <span className="text-blue-600">Generated:</span>
-                  <div className="font-medium text-blue-900">{new Date(comparisonResult.metadata.timestamp).toLocaleTimeString()}</div>
-                </div>
+              <div className="space-y-4">
+                {comparisonResult.marketAnalysis.insights.length > 0 && (
+                  <div>
+                    <span className="text-blue-600 font-medium">Key Insights:</span>
+                    <ul className="mt-2 space-y-1">
+                      {comparisonResult.marketAnalysis.insights.slice(0, 3).map((insight, index) => (
+                        <li key={index} className="text-sm text-blue-900">• {insight}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+                {comparisonResult.marketAnalysis.recommendations.length > 0 && (
+                  <div>
+                    <span className="text-blue-600 font-medium">Recommendations:</span>
+                    <ul className="mt-2 space-y-1">
+                      {comparisonResult.marketAnalysis.recommendations.slice(0, 2).map((rec, index) => (
+                        <li key={index} className="text-sm text-blue-900">• {rec}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
               </div>
             </div>
           )}
