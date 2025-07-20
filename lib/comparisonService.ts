@@ -11,7 +11,7 @@ import {
   RankingData,
   MarketAnalysis,
   ComparisonFilters,
-  ComparisonConfig,
+  ComparisonConfig
 } from './types/comparison';
 
 export class ComparisonService {
@@ -30,8 +30,8 @@ export class ComparisonService {
   /**
    * Perform comprehensive comparison analysis
    */
-  async performComparison(config: ComparisonConfig): Promise<ComparisonResult> {
-    const { entities, includeCorrelations, includeTrends, includeMarketAnalysis } = config;
+  async performComparison(request: ComparisonRequest): Promise<ComparisonResult> {
+    const { entities, includeCorrelations, includeTrends, includeMarketAnalysis } = request;
     
     // Get metrics for each entity
     const entitiesWithMetrics = await this.getEntitiesWithMetrics(entities, config);

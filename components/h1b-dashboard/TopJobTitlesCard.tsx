@@ -1,6 +1,6 @@
 'use client';
 
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 
 interface JobTitleData {
   jobTitle: string
@@ -15,6 +15,13 @@ interface TopJobTitlesCardProps {
 }
 
 export function TopJobTitlesCard({ data, loading }: TopJobTitlesCardProps) {
+  const router = useRouter()
+
+  const handleJobClick = (jobTitle: string) => {
+    const jobSlug = jobTitle.toLowerCase().replace(/[^a-z0-9]+/g, '-')
+    router.push(`/h1b-dashboard/job/${encodeURIComponent(jobSlug)}?title=${encodeURIComponent(jobTitle)}`)
+  }
+
   if (loading) {
     return (
       <Card className="w-full">
@@ -69,7 +76,8 @@ export function TopJobTitlesCard({ data, loading }: TopJobTitlesCardProps) {
           return (
             <div
               key={item.jobTitle}
-              className="group relative p-3 rounded-lg border border-gray-100 hover:border-blue-200 hover:bg-blue-50/30 transition-all duration-200"
+              className="group relative p-3 rounded-lg border border-gray-100 hover:border-blue-200 hover:bg-blue-50/30 transition-all duration-200 cursor-pointer"
+              onClick={() => handleJobClick(item.jobTitle)}
             >
               {/* Progress bar background */}
               <div 
