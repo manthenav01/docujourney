@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import { useSearchParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
@@ -25,14 +25,14 @@ function JobPageClient({ slug }: { slug: string }) {
     const metaDescription = document.querySelector('meta[name="description"]');
     if (metaDescription) {
       metaDescription.setAttribute('content', 
-        `Comprehensive H1B visa data for ${cleanJobTitle} positions. View salary ranges, top employers, geographic distribution, and job market trends. Latest H1B employment analytics.`
+        `Comprehensive H1B visa data for ${cleanJobTitle} positions. View salary ranges, top employers, geographic distribution, and job market trends. Latest H1B employment analytics.`,
       );
     }
 
     // Add job-specific structured data
     const structuredData = generateStructuredData('job', { 
       title: cleanJobTitle,
-      slug: slug 
+      slug: slug, 
     });
     
     const script = document.createElement('script');
@@ -49,21 +49,21 @@ function JobPageClient({ slug }: { slug: string }) {
           '@type': 'ListItem',
           position: 1,
           name: 'Home',
-          item: 'https://docujourney.com'
+          item: 'https://docujourney.com',
         },
         {
           '@type': 'ListItem',
           position: 2,
           name: 'H1B Dashboard',
-          item: 'https://docujourney.com/h1b-dashboard'
+          item: 'https://docujourney.com/h1b-dashboard',
         },
         {
           '@type': 'ListItem',
           position: 3,
           name: `${cleanJobTitle} H1B Data`,
-          item: `https://docujourney.com/h1b-dashboard/job/${slug}`
-        }
-      ]
+          item: `https://docujourney.com/h1b-dashboard/job/${slug}`,
+        },
+      ],
     };
 
     const breadcrumbScript = document.createElement('script');

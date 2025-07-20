@@ -3,7 +3,7 @@ import { createComparisonService } from '@/lib/comparisonService';
 import { 
   ComparisonConfig, 
   ComparisonEntity, 
-  ComparisonFilters 
+  ComparisonFilters, 
 } from '@/lib/types/comparison';
 import path from 'path';
 
@@ -106,7 +106,7 @@ async function handleComparison(body: any) {
     success: true,
     result,
     config: comparisonConfig,
-    generatedAt: new Date().toISOString()
+    generatedAt: new Date().toISOString(),
   });
 }
 
@@ -160,12 +160,12 @@ async function handleQuickCompare(body: any) {
     entity1: {
       name: result.entities[0].name,
       value: getMetricValue(result.entities[0].metrics, metric),
-      rank: result.entities[0].rank[metric] || 1
+      rank: result.entities[0].rank[metric] || 1,
     },
     entity2: {
       name: result.entities[1].name,
       value: getMetricValue(result.entities[1].metrics, metric),
-      rank: result.entities[1].rank[metric] || 2
+      rank: result.entities[1].rank[metric] || 2,
     },
     winner: result.entities[0].rank[metric] < result.entities[1].rank[metric] ? 'entity1' : 'entity2',
     difference: Math.abs(

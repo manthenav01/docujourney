@@ -37,7 +37,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     'netflix',
     'uber',
     'airbnb',
-    'salesforce'
+    'salesforce',
   ];
 
   const companyPages = sampleCompanies.map(company => ({

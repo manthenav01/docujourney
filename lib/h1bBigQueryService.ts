@@ -976,7 +976,7 @@ export class H1BBigQueryService {
         this.bigquery.query({ query: topStatesQuery, params: { jobTitle: `%${jobTitle}%` } }),
         this.bigquery.query({ query: yearlyTrendsQuery, params: { jobTitle: `%${jobTitle}%` } }),
         this.bigquery.query({ query: salaryDistributionQuery, params: { jobTitle: `%${jobTitle}%` } }),
-        this.bigquery.query({ query: requirementsAnalysisQuery, params: { jobTitle: `%${jobTitle}%` } })
+        this.bigquery.query({ query: requirementsAnalysisQuery, params: { jobTitle: `%${jobTitle}%` } }),
       ]);
 
       const stats = basicStats[0][0] || {};
@@ -999,7 +999,7 @@ export class H1BBigQueryService {
         const monthlyApps = Math.floor((totalApplications * 0.15) / 6) + Math.floor(Math.random() * 50);
         recentActivity.push({
           month: `${monthName} ${currentYear}`,
-          applications: monthlyApps
+          applications: monthlyApps,
         });
       }
 
@@ -1017,25 +1017,25 @@ export class H1BBigQueryService {
           employer: row.employer,
           applications: Number(row.applications),
           avgSalary: Math.round(Number(row.avgSalary)),
-          medianSalary: Math.round(Number(row.medianSalary))
+          medianSalary: Math.round(Number(row.medianSalary)),
         })),
         topStates: topStates[0].map((row: any) => ({
           state: row.state,
           applications: Number(row.applications),
           percentage: Number(row.percentage),
-          avgSalary: Math.round(Number(row.avgSalary))
+          avgSalary: Math.round(Number(row.avgSalary)),
         })),
         yearlyTrends: yearlyTrends[0].map((row: any) => ({
           fiscalYear: row.fiscal_year,
           applications: Number(row.applications),
           avgSalary: Math.round(Number(row.avgSalary)),
-          certificationRate: Number(row.certificationRate)
+          certificationRate: Number(row.certificationRate),
         })),
         salaryDistribution: salaryDistribution[0].map((row: any) => ({
           range: row.salary_range,
-          count: Number(row.count)
+          count: Number(row.count),
         })),
-        recentActivity
+        recentActivity,
       };
     } catch (error) {
       console.error('Error getting job analysis:', error);

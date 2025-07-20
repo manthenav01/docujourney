@@ -11,7 +11,7 @@ import {
   RankingData,
   MarketAnalysis,
   ComparisonFilters,
-  ComparisonConfig
+  ComparisonConfig,
 } from './types/comparison';
 
 export class ComparisonService {

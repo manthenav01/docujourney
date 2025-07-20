@@ -1,6 +1,6 @@
 'use client';
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 interface JobTitleData {
   jobTitle: string
@@ -15,12 +15,12 @@ interface TopJobTitlesCardProps {
 }
 
 export function TopJobTitlesCard({ data, loading }: TopJobTitlesCardProps) {
-  const router = useRouter()
+  const router = useRouter();
 
   const handleJobClick = (jobTitle: string) => {
-    const jobSlug = jobTitle.toLowerCase().replace(/[^a-z0-9]+/g, '-')
-    router.push(`/h1b-dashboard/job/${encodeURIComponent(jobSlug)}?title=${encodeURIComponent(jobTitle)}`)
-  }
+    const jobSlug = jobTitle.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+    router.push(`/h1b-dashboard/job/${encodeURIComponent(jobSlug)}?title=${encodeURIComponent(jobTitle)}`);
+  };
 
   if (loading) {
     return (

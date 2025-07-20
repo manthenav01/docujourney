@@ -24,7 +24,7 @@ import {
   Star,
   CheckCircle,
   Clock,
-  UserCheck
+  UserCheck,
 } from 'lucide-react';
 
 interface JobInfo {
@@ -183,7 +183,7 @@ export const JobDashboard: React.FC<JobDashboardProps> = ({
     );
   }
 
-  if (!jobInfo) return null;
+  if (!jobInfo) {return null;}
 
   const certificationRate = jobInfo.totalApplications > 0 
     ? ((jobInfo.certifiedApplications / jobInfo.totalApplications) * 100).toFixed(1)
@@ -460,7 +460,7 @@ export const JobDashboard: React.FC<JobDashboardProps> = ({
               <div className="mt-4 p-4 bg-gray-50 rounded-lg">
                 <div className="text-sm text-gray-600">
                   <strong>Market Insight:</strong> Full-time positions represent {fullTimePercentage}% of all {jobTitle} H1B applications, 
-                  indicating {parseFloat(fullTimePercentage) > 80 ? "strong employer demand for permanent roles" : "mixed employment patterns"} 
+                  indicating {parseFloat(fullTimePercentage) > 80 ? 'strong employer demand for permanent roles' : 'mixed employment patterns'} 
                   in this field.
                 </div>
               </div>
@@ -533,10 +533,10 @@ export const JobDashboard: React.FC<JobDashboardProps> = ({
             <div className="mt-6 p-4 bg-gray-50 rounded-lg">
               <div className="text-sm text-gray-700">
                 <strong>Key Takeaways:</strong> The {jobTitle} role shows {
-                  hasFinancialData && jobInfo.avgSalary > 100000 ? "competitive" : "moderate"
+                  hasFinancialData && jobInfo.avgSalary > 100000 ? 'competitive' : 'moderate'
                 } compensation with an average salary of {formatCurrency(jobInfo.avgSalary)}. 
                 With a {certificationRate}% certification rate and {formatNumber(jobInfo.totalApplications)} total applications, 
-                this represents a {parseFloat(certificationRate) > 85 ? "highly sought-after" : "competitive"} position in the H1B market.
+                this represents a {parseFloat(certificationRate) > 85 ? 'highly sought-after' : 'competitive'} position in the H1B market.
               </div>
             </div>
           )}

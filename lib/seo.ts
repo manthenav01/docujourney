@@ -12,7 +12,7 @@ export const SEO_KEYWORDS = {
     'H1B wage information',
     'H1B visa statistics',
     'H1B application data',
-    'H1B approval rates'
+    'H1B approval rates',
   ],
   immigration: [
     'immigration document management',
@@ -22,7 +22,7 @@ export const SEO_KEYWORDS = {
     'immigration paperwork',
     'visa document organization',
     'immigration status updates',
-    'visa timeline tracking'
+    'visa timeline tracking',
   ],
   company: [
     'H1B sponsor companies',
@@ -30,8 +30,8 @@ export const SEO_KEYWORDS = {
     'company H1B statistics',
     'H1B job opportunities',
     'visa sponsoring employers',
-    'H1B salary by company'
-  ]
+    'H1B salary by company',
+  ],
 };
 
 // Base metadata for the site
@@ -41,7 +41,7 @@ export const BASE_METADATA = {
   siteName: 'DocuJourney',
   url: 'https://docujourney.com',
   image: '/assets/og-image.png',
-  type: 'website'
+  type: 'website',
 };
 
 // Generate metadata for different page types
@@ -52,7 +52,7 @@ export function generateMetadata({
   path = '',
   type = 'website',
   image,
-  noIndex = false
+  noIndex = false,
 }: {
   title: string;
   description: string;
@@ -85,21 +85,21 @@ export function generateMetadata({
           url: fullImage,
           width: 1200,
           height: 630,
-          alt: title
-        }
-      ]
+          alt: title,
+        },
+      ],
     },
     twitter: {
       card: 'summary_large_image',
       title: fullTitle,
       description,
       images: [fullImage],
-      creator: '@docujourney'
+      creator: '@docujourney',
     },
     canonical: fullUrl,
     alternates: {
-      canonical: fullUrl
-    }
+      canonical: fullUrl,
+    },
   };
 }
 
@@ -108,7 +108,7 @@ export function generateH1BMetadata({
   companyName,
   location,
   jobTitle,
-  salaryRange
+  salaryRange,
 }: {
   companyName?: string;
   location?: string;
@@ -127,7 +127,7 @@ export function generateH1BMetadata({
     ...SEO_KEYWORDS.h1b,
     ...(companyName ? [`${companyName} H1B`, `${companyName} visa sponsorship`] : []),
     ...(location ? [`H1B ${location}`, `visa jobs ${location}`] : []),
-    ...(jobTitle ? [`${jobTitle} H1B`, `${jobTitle} visa`] : [])
+    ...(jobTitle ? [`${jobTitle} H1B`, `${jobTitle} visa`] : []),
   ];
 
   return generateMetadata({
@@ -135,7 +135,7 @@ export function generateH1BMetadata({
     description,
     keywords,
     path: companyName ? `/h1b-dashboard/company/${encodeURIComponent(companyName.toLowerCase().replace(/\s+/g, '-'))}` : '/h1b-dashboard',
-    type: 'article'
+    type: 'article',
   });
 }
 
@@ -150,8 +150,8 @@ export function generateStructuredData(type: 'website' | 'h1b-data' | 'company',
     potentialAction: {
       '@type': 'SearchAction',
       target: `${BASE_METADATA.url}/h1b-dashboard?q={search_term_string}`,
-      'query-input': 'required name=search_term_string'
-    }
+      'query-input': 'required name=search_term_string',
+    },
   };
 
   switch (type) {
@@ -165,13 +165,13 @@ export function generateStructuredData(type: 'website' | 'h1b-data' | 'company',
         keywords: SEO_KEYWORDS.h1b.join(', '),
         creator: {
           '@type': 'Organization',
-          name: 'DocuJourney'
+          name: 'DocuJourney',
         },
         distribution: {
           '@type': 'DataDownload',
           encodingFormat: 'application/json',
-          contentUrl: `${BASE_METADATA.url}/api/h1b-data`
-        }
+          contentUrl: `${BASE_METADATA.url}/api/h1b-data`,
+        },
       };
 
     case 'company':
@@ -181,7 +181,7 @@ export function generateStructuredData(type: 'website' | 'h1b-data' | 'company',
         name: data.name,
         description: `H1B visa sponsorship data for ${data.name}. View salary ranges, job positions, and immigration statistics.`,
         url: `${BASE_METADATA.url}/h1b-dashboard/company/${encodeURIComponent(data.name.toLowerCase().replace(/\s+/g, '-'))}`,
-        ...(data.website && { sameAs: [data.website] })
+        ...(data.website && { sameAs: [data.website] }),
       } : baseStructuredData;
 
     default:
