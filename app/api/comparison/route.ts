@@ -3,7 +3,8 @@ import { createComparisonService } from '@/lib/comparisonService';
 import { 
   ComparisonConfig, 
   ComparisonEntity, 
-  ComparisonFilters 
+  ComparisonFilters,
+  ComparisonRequest
 } from '@/lib/types/comparison';
 import path from 'path';
 
@@ -90,7 +91,7 @@ async function handleComparison(body: any) {
   }
   
   // Validate and set default config
-  const comparisonConfig: ComparisonConfig = {
+  const comparisonRequest: ComparisonRequest = {
     entities: entities.map(validateEntity),
     metrics: config?.metrics || getDefaultMetrics(),
     timeframe: config?.timeframe || 'all',
@@ -99,12 +100,12 @@ async function handleComparison(body: any) {
     includeMarketAnalysis: config?.includeMarketAnalysis ?? true
   };
   
-  const result = await comparisonService.performComparison(comparisonConfig);
+  const result = await comparisonService.performComparison(comparisonRequest);
   
   return NextResponse.json({
     success: true,
     result,
-    config: comparisonConfig,
+    config: comparisonRequest,
     generatedAt: new Date().toISOString()
   });
 }
@@ -142,30 +143,30 @@ async function handleQuickCompare(body: any) {
     );
   }
   
-  const quickConfig: ComparisonConfig = {
+  const quickRequest: ComparisonRequest = {
     entities: [validateEntity(entity1), validateEntity(entity2)],
-    metrics: [{ id: metric, name: metric, description: '', type: 'currency', format: 'currency', higherIsBetter: true, category: 'compensation' }],
+    metrics: [metric],
     timeframe: 'last_2_years',
     includeCorrelations: false,
     includeTrends: false,
     includeMarketAnalysis: false
   };
   
-  const result = await comparisonService.performComparison(quickConfig);
+  const result = await comparisonService.performComparison(quickRequest);
   
   // Simplify result for quick comparison
   const quickResult = {
     entity1: {
-      name: result.entities[0].displayName,
+      name: result.entities[0].name,
       value: getMetricValue(result.entities[0].metrics, metric),
-      rank: result.entities[0].rank[metric] || 1
+      rank: result.entities[0].rank || 1
     },
     entity2: {
-      name: result.entities[1].displayName,
+      name: result.entities[1].name,
       value: getMetricValue(result.entities[1].metrics, metric),
-      rank: result.entities[1].rank[metric] || 2
+      rank: result.entities[1].rank || 2
     },
-    winner: result.entities[0].rank[metric] < result.entities[1].rank[metric] ? 'entity1' : 'entity2',
+    winner: (result.entities[0].rank || 1) < (result.entities[1].rank || 2) ? 'entity1' : 'entity2',
     difference: Math.abs(
       getMetricValue(result.entities[0].metrics, metric) - 
       getMetricValue(result.entities[1].metrics, metric)
