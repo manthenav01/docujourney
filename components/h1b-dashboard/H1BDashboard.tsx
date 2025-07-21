@@ -83,21 +83,11 @@ interface H1BDashboardData {
   }>;
 }
 
-interface FilterOptions {
-  fiscalYears: string[];
-  states: string[];
-  jobCategories: string[];
-}
 
 export const H1BDashboard: React.FC = () => {
   const [dashboardData, setDashboardData] = useState<H1BDashboardData | null>(null);
-  const [filterOptions, setFilterOptions] = useState<FilterOptions>({
-    fiscalYears: [],
-    states: [],
-    jobCategories: [],
-  });
   const [filters, setFilters] = useState<FilterState>({
-    searchQuery: '', // Keep this for now but don't use it
+    searchQuery: '', // Keep this for search functionality
     fiscalYears: [],
     salaryRange: [0, 500000],
     states: [],
@@ -107,30 +97,44 @@ export const H1BDashboard: React.FC = () => {
     companySizes: [],
     companyTypes: [],
   });
-  const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [activeNavItem, setActiveNavItem] = useState('overview');
   const [loading, setLoading] = useState(true);
   const [chartsLoading, setChartsLoading] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [initialLoadComplete, setInitialLoadComplete] = useState(false);
+  const [loadingError, setLoadingError] = useState<string | null>(null);
 
   useEffect(() => {
-    Promise.all([
-      fetchFilterOptions(),
-      fetchH1BData(),
-    ]);
+    // Safety timeout - force loading to end after 45 seconds
+    const safetyTimeout = setTimeout(() => {
+      console.warn('Safety timeout triggered - forcing loading to end');
+      setLoading(false);
+      setInitialLoadComplete(true);
+      if (!dashboardData) {
+        setLoadingError('Loading timed out. Please refresh the page.');
+      }
+    }, 45000);
+
+    fetchH1BData().finally(() => {
+      clearTimeout(safetyTimeout);
+      setInitialLoadComplete(true);
+      setLoading(false); // Ensure loading is always set to false after initial load
+    });
+
+    return () => clearTimeout(safetyTimeout);
   }, []);
 
   useEffect(() => {
+    // Only run when filters change, not on initial load
+    if (!initialLoadComplete) return;
+    
     // Debounce the API call when filters change
-    // Exclude searchQuery from dependencies since it's only used for autocomplete
     const timeoutId = setTimeout(() => {
-      if (!loading) {
-        fetchH1BData();
-      }
+      fetchH1BData();
     }, 500);
 
     return () => clearTimeout(timeoutId);
-  }, [filters.fiscalYears, filters.salaryRange, filters.states, filters.cities, filters.jobCategories, filters.skillLevels, filters.companySizes, filters.companyTypes, loading]);
+  }, [filters.fiscalYears, filters.salaryRange, filters.states, filters.cities, filters.jobCategories, filters.skillLevels, filters.companySizes, filters.companyTypes]);
 
   useEffect(() => {
     if (dashboardData) {
@@ -141,28 +145,16 @@ export const H1BDashboard: React.FC = () => {
     }
   }, [dashboardData]);
 
-  const fetchFilterOptions = async () => {
-    try {
-      const response = await fetch('/api/h1b-data', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'getFilterOptions' }),
-      });
-      
-      if (response.ok) {
-        const options = await response.json();
-        setFilterOptions(options);
-        console.log('Filter options loaded:', options);
-      }
-    } catch (error) {
-      console.error('Error fetching filter options:', error);
-    }
-  };
 
 
   const fetchH1BData = async () => {
     try {
       setChartsLoading(true);
+      setLoadingError(null); // Clear any previous errors
+      
+      // Add timeout protection
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
       
       // Build query parameters
       const params = new URLSearchParams();
@@ -187,7 +179,11 @@ export const H1BDashboard: React.FC = () => {
       
       console.log('Fetching H1B data with params:', params.toString());
       
-      const response = await fetch(`/api/h1b-data?${params.toString()}`);
+      const response = await fetch(`/api/h1b-data?${params.toString()}`, {
+        signal: controller.signal
+      });
+      
+      clearTimeout(timeoutId);
       
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
@@ -209,6 +205,15 @@ export const H1BDashboard: React.FC = () => {
       setDashboardData(data);
     } catch (error) {
       console.error('Error fetching H1B data:', error);
+      
+      // Handle specific error types
+      if (error.name === 'AbortError') {
+        console.error('Request timed out after 30 seconds');
+        setLoadingError('Request timed out. Please try again.');
+      } else {
+        setLoadingError(error instanceof Error ? error.message : 'Unknown error occurred');
+      }
+      
       // Set empty data on error to prevent crashes
       setDashboardData({
         totalApplications: 0,
@@ -245,6 +250,21 @@ export const H1BDashboard: React.FC = () => {
           <div className="loading-spinner mx-auto mb-4"></div>
           <p className="text-gray-500">Loading H1B Dashboard...</p>
           <p className="text-sm text-gray-400 mt-2">Fetching real data from BigQuery...</p>
+          {loadingError && (
+            <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-lg max-w-md mx-auto">
+              <p className="text-red-600 text-sm">{loadingError}</p>
+              <button 
+                onClick={() => {
+                  setLoadingError(null);
+                  setLoading(true);
+                  fetchH1BData();
+                }}
+                className="mt-2 px-4 py-2 bg-red-600 text-white text-sm rounded hover:bg-red-700"
+              >
+                Retry
+              </button>
+            </div>
+          )}
         </div>
       </div>
     );
@@ -397,16 +417,16 @@ export const H1BDashboard: React.FC = () => {
           </div>
         </div>
 
-        {/* Search and Filters */}
+        {/* Search */}
         <div className="mb-8">
           <SearchAndFilters
             filters={filters}
             setFilters={setFilters}
-            isFilterOpen={isFilterOpen}
-            setIsFilterOpen={setIsFilterOpen}
-            filterOptions={filterOptions}
+            isFilterOpen={false}
+            setIsFilterOpen={() => {}} 
+            filterOptions={{fiscalYears: [], states: [], jobCategories: []}}
             enableSemanticSearch={true}
-            showSearchInstructions={true}
+            showSearchInstructions={false}
           />
         </div>
 

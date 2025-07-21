@@ -44,7 +44,7 @@ def clean_data(df):
     """Applies a series of cleaning steps to the DataFrame."""
     df = clean_column_names(df)
     
-    text_cols = ['employer_name', 'employer_city', 'job_title', 'employerpetitionername']
+    text_cols = ['employer_name', 'employer_city', 'job_title', 'employerpetitionername', 'worksite_city', 'worksite_state']
     df = normalize_text_columns(df, text_cols)
 
     # Standardize data types for BigQuery compatibility

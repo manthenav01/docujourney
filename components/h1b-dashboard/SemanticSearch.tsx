@@ -200,6 +200,23 @@ export const SemanticSearch: React.FC<SemanticSearchProps> = ({
       } else if (finalType === 'job_title') {
         const jobSlug = suggestion.text.toLowerCase().replace(/[^a-z0-9]+/g, '-');
         router.push(`/h1b-dashboard/job/${encodeURIComponent(jobSlug)}?title=${encodeURIComponent(suggestion.text)}`);
+      } else if (finalType === 'location') {
+        // Navigate to city page if it's a city, state format
+        if (suggestion.text.includes(',')) {
+          const [cityPart, statePart] = suggestion.text.split(',');
+          const cityName = cityPart.trim();
+          const stateName = statePart.trim();
+          
+          if (cityName && stateName) {
+            const citySlug = cityName.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+            console.log('Navigating to city page:', `/h1b-dashboard/city/${encodeURIComponent(citySlug)}?city=${encodeURIComponent(cityName)}&state=${encodeURIComponent(stateName)}`);
+            router.push(`/h1b-dashboard/city/${encodeURIComponent(citySlug)}?city=${encodeURIComponent(cityName)}&state=${encodeURIComponent(stateName)}`);
+            return;
+          }
+        }
+        
+        // For non-city locations (like states), just log for now
+        console.log('Location selected:', suggestion);
       } else {
         console.log('Selected:', suggestion);
       }

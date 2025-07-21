@@ -3,7 +3,7 @@ from google.cloud import bigquery
 from google.oauth2 import service_account
 import pandas as pd
 
-def upload_dataframe_to_bigquery(df, project_id, dataset_id, table_id, key_file_path, schema=None, unique_id_columns=None):
+def upload_dataframe_to_bigquery(df, project_id, dataset_id, table_id, key_file_path, schema=None, unique_id_columns=None, replace_table=False):
     """Uploads a pandas DataFrame to a BigQuery table, with deduplication based on unique_id_columns."""
     credentials = service_account.Credentials.from_service_account_file(key_file_path)
     client = bigquery.Client(project=project_id, credentials=credentials)
@@ -11,7 +11,11 @@ def upload_dataframe_to_bigquery(df, project_id, dataset_id, table_id, key_file_
 
     df_to_upload = df.copy() # Work on a copy to avoid modifying original DataFrame
 
-    if unique_id_columns and not df.empty:
+    # If replace_table is True, skip deduplication and replace the entire table
+    if replace_table:
+        print(f"Replace mode enabled - will replace entire table {dataset_id}.{table_id}")
+        df_to_upload = df.copy()
+    elif unique_id_columns and not df.empty:
         new_ids = None # Initialize new_ids
         try:
             # Check if table exists before querying
@@ -56,8 +60,21 @@ def upload_dataframe_to_bigquery(df, project_id, dataset_id, table_id, key_file_
 
     job_config = bigquery.LoadJobConfig(
         source_format=bigquery.SourceFormat.CSV, # Assuming CSV-like data from DataFrame
-        write_disposition=bigquery.WriteDisposition.WRITE_APPEND, # Append to existing table
+        write_disposition=bigquery.WriteDisposition.WRITE_TRUNCATE if replace_table else bigquery.WriteDisposition.WRITE_APPEND,
     )
+    
+    # Set table expiration for sandbox mode (60 days max)
+    if replace_table:
+        import datetime
+        try:
+            table = client.get_table(table_ref)
+            expiration_time = datetime.datetime.now() + datetime.timedelta(days=59)
+            table.expires = expiration_time
+            client.update_table(table, ["expires"])
+            print(f"Set table expiration to {expiration_time} for sandbox mode")
+        except Exception as e:
+            print(f"Could not set table expiration: {e}")
+            # Continue anyway - the upload might still work
 
     if schema:
         job_config.schema = schema
