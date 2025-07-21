@@ -42,17 +42,17 @@ export class ComparisonService {
     
     // Get correlations if requested
     const correlations = includeCorrelations 
-      ? await this.calculateCorrelations(entities)
+      ? await this.calculateCorrelations(entities, { projectId: this.projectId, keyFilename: '' })
       : [];
     
     // Get trends if requested
     const trends = includeTrends 
-      ? await this.calculateTrends(entities)
+      ? await this.calculateTrends(entities, { projectId: this.projectId, keyFilename: '' })
       : [];
     
     // Perform market analysis if requested
     const marketAnalysis = includeMarketAnalysis 
-      ? await this.performMarketAnalysis(entitiesWithMetrics)
+      ? await this.performMarketAnalysis(entitiesWithMetrics, { projectId: this.projectId, keyFilename: '' })
       : this.getEmptyMarketAnalysis();
 
     return {
