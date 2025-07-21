@@ -96,7 +96,6 @@ export function generateMetadata({
       images: [fullImage],
       creator: '@docujourney',
     },
-    canonical: fullUrl,
     alternates: {
       canonical: fullUrl,
     },
