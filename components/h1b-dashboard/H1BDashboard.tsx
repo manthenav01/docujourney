@@ -62,6 +62,7 @@ interface H1BDashboardData {
     state: string;
     applications: number;
     avgSalary: number;
+    highestSalary: number;
   }>;
   jobTitleDistribution: Array<{
     jobTitle: string;
