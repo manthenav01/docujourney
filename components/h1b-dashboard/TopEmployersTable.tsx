@@ -1,7 +1,9 @@
 'use client';
 
 import React from 'react';
+import Link from 'next/link';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { createCompanySlug } from '@/lib/utils';
 
 interface TopEmployersTableProps {
   dashboardData: {
@@ -39,14 +41,24 @@ export const TopEmployersTable: React.FC<TopEmployersTableProps> = ({ dashboardD
               </tr>
             </thead>
             <tbody>
-              {dashboardData.topEmployers.map((employer, index) => (
-                <tr key={employer.employer} className={`border-b border-gray-100 hover:bg-gray-50 transition-colors duration-150 ${index === dashboardData.topEmployers.length - 1 ? 'border-b-0' : ''}`}>
-                  <td className="py-3 px-4 font-medium text-gray-900 text-sm">{employer.employer}</td>
-                  <td className="py-3 px-4 text-gray-700 text-sm font-medium">{employer.applications.toLocaleString()}</td>
-                  <td className="py-3 px-4 text-gray-700 text-sm font-medium">${employer.avgSalary.toLocaleString()}</td>
-                  <td className="py-3 px-4 text-gray-600 text-sm">{employer.topState}</td>
-                </tr>
-              ))}
+              {dashboardData.topEmployers.map((employer, index) => {
+                const companySlug = createCompanySlug(employer.employer);
+                return (
+                  <tr key={employer.employer} className={`border-b border-gray-100 hover:bg-gray-50 transition-colors duration-150 ${index === dashboardData.topEmployers.length - 1 ? 'border-b-0' : ''}`}>
+                    <td className="py-3 px-4 text-sm">
+                      <Link 
+                        href={`/h1b-dashboard/company/${companySlug}?name=${encodeURIComponent(employer.employer)}`}
+                        className="font-medium text-blue-600 hover:text-blue-800 hover:underline transition-colors duration-150"
+                      >
+                        {employer.employer}
+                      </Link>
+                    </td>
+                    <td className="py-3 px-4 text-gray-700 text-sm font-medium">{employer.applications.toLocaleString()}</td>
+                    <td className="py-3 px-4 text-gray-700 text-sm font-medium">${employer.avgSalary.toLocaleString()}</td>
+                    <td className="py-3 px-4 text-gray-600 text-sm">{employer.topState}</td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>
