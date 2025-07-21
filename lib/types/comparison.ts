@@ -1,6 +1,6 @@
 export interface ComparisonConfig {
-  projectId: string;
-  keyFilename: string;
+  timeframe?: 'all' | 'last_year' | 'last_2_years' | 'last_5_years';
+  includeTimeframeFilter?: boolean;
 }
 
 export interface ComparisonRequest {

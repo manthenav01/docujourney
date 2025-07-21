@@ -42,17 +42,17 @@ export class ComparisonService {
     
     // Get correlations if requested
     const correlations = includeCorrelations 
-      ? await this.calculateCorrelations(entities, { projectId: this.projectId, keyFilename: '' })
+      ? await this.calculateCorrelations(entities)
       : [];
     
     // Get trends if requested
     const trends = includeTrends 
-      ? await this.calculateTrends(entities, { projectId: this.projectId, keyFilename: '' })
+      ? await this.calculateTrends(entities)
       : [];
     
     // Perform market analysis if requested
     const marketAnalysis = includeMarketAnalysis 
-      ? await this.performMarketAnalysis(entitiesWithMetrics, { projectId: this.projectId, keyFilename: '' })
+      ? await this.performMarketAnalysis(entitiesWithMetrics)
       : this.getEmptyMarketAnalysis();
 
     return {
@@ -89,7 +89,7 @@ export class ComparisonService {
   private async getEntityMetrics(
     entity: ComparisonEntity,
   ): Promise<ComparisonEntityWithMetrics> {
-    const whereClause = this.buildEntityWhereClause(entity, { projectId: this.projectId, keyFilename: '' });
+    const whereClause = this.buildEntityWhereClause(entity);
     
     const metricsQuery = `
       WITH entity_data AS (
@@ -162,7 +162,7 @@ export class ComparisonService {
   /**
    * Build WHERE clause for specific entity
    */
-  private buildEntityWhereClause(entity: ComparisonEntity, config: ComparisonConfig): string {
+  private buildEntityWhereClause(entity: ComparisonEntity): string {
     const conditions: string[] = [];
     
     switch (entity.type) {
@@ -250,8 +250,7 @@ export class ComparisonService {
    * Calculate correlations between metrics
    */
   private async calculateCorrelations(
-    entities: ComparisonEntity[], 
-    config: ComparisonConfig,
+    entities: ComparisonEntity[],
   ): Promise<CorrelationData[]> {
     // For now, return some common correlations
     // In a full implementation, this would calculate actual correlations from the data
@@ -275,13 +274,12 @@ export class ComparisonService {
    * Calculate trends over time
    */
   private async calculateTrends(
-    entities: ComparisonEntity[], 
-    config: ComparisonConfig,
+    entities: ComparisonEntity[],
   ): Promise<TrendData[]> {
     const trends: TrendData[] = [];
     
     for (const entity of entities) {
-      const whereClause = this.buildEntityWhereClause(entity, config);
+      const whereClause = this.buildEntityWhereClause(entity);
       
       const trendsQuery = `
         WITH yearly_data AS (
@@ -343,11 +341,10 @@ export class ComparisonService {
    * Perform market analysis
    */
   private async performMarketAnalysis(
-    entities: ComparisonEntityWithMetrics[], 
-    config: ComparisonConfig,
+    entities: ComparisonEntityWithMetrics[],
   ): Promise<MarketAnalysis> {
     const insights = this.generateMarketInsights(entities);
-    const benchmarks = await this.calculateMarketBenchmarks(config);
+    const benchmarks = await this.calculateMarketBenchmarks();
     
     return {
       insights,
@@ -420,7 +417,7 @@ export class ComparisonService {
     return insights;
   }
 
-  private async calculateMarketBenchmarks(config: ComparisonConfig) {
+  private async calculateMarketBenchmarks() {
     // Would calculate industry benchmarks from broader dataset
     return {
       industryAverage: {
@@ -486,13 +483,6 @@ export class ComparisonService {
       insights: [],
       recommendations: [],
       marketTrends: [],
-    };
-  }
-
-  private extractFiltersFromConfig(config: ComparisonConfig): ComparisonFilters {
-    return {
-      // Extract any filters from config
-      // This would be expanded based on actual filter implementation
     };
   }
 }
