@@ -9,15 +9,17 @@ import {
     DialogFooter,
     DialogHeader,
     DialogTitle,
-import {
     Select,
     SelectContent,
     SelectItem,
     SelectTrigger,
     SelectValue,
+    Button, 
+    Input, 
+    Label,
+} from '@docujourney/ui';
 import { toast } from 'sonner';
 import { Save, X } from 'lucide-react';
-import { Button, Input, Label,} from '@docujourney/ui'; } from '@docujourney/ui';
 
 interface ProfileEditDialogProps {
     profile: Profile | null; // null for new profile

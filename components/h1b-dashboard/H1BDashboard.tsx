@@ -207,7 +207,7 @@ export const H1BDashboard: React.FC = () => {
       console.error('Error fetching H1B data:', error);
       
       // Handle specific error types
-      if (error.name === 'AbortError') {
+      if (error instanceof Error && error.name === 'AbortError') {
         console.error('Request timed out after 30 seconds');
         setLoadingError('Request timed out. Please try again.');
       } else {

@@ -11,8 +11,8 @@ import {
   PopoverTrigger,
   Button,
   Separator,
+} from '@docujourney/ui';
 import { toast } from 'sonner';
-import { } from '@docujourney/ui'; } from '@docujourney/ui';
 
 interface UserInfo {
   displayName: string | null;

@@ -7,9 +7,17 @@ import {
     SelectItem,
     SelectTrigger,
     SelectValue,
+    Button, 
+    Calendar, 
+    Input, 
+    Label, 
+    Popover, 
+    PopoverContent, 
+    PopoverTrigger, 
+    Stepper,
+} from '@docujourney/ui';
 import { CalendarIcon, Plane, AlertCircle } from 'lucide-react';
 import { format, parse, isValid } from 'date-fns';
-import { Button, Calendar, Input, Label, Popover, PopoverContent, PopoverTrigger, Stepper,} from '@docujourney/ui'; } from '@docujourney/ui';
 
 interface FirstEntryDateSelectionProps {
   profileName: string;
