@@ -25,6 +25,7 @@ interface VisualizationPanelProps {
       state: string;
       applications: number;
       avgSalary: number;
+      highestSalary: number;
     }>;
     jobTitleDistribution: Array<{
       jobTitle: string;
@@ -102,7 +103,7 @@ export const VisualizationPanel: React.FC<VisualizationPanelProps> = ({
         <HighestSalaryByStateChart 
           data={dashboardData.stateDistribution ? dashboardData.stateDistribution.map(item => ({
             state: item.state,
-            highestSalary: item.avgSalary,
+            highestSalary: item.highestSalary,
             avgSalary: item.avgSalary,
             applications: item.applications,
           })) : []}
