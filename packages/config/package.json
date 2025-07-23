@@ -1,0 +1,15 @@
+{
+  "name": "@docujourney/config",
+  "version": "0.1.0",
+  "private": true,
+  "exports": {
+    "./tailwind": "./tailwind.config.js",
+    "./typescript": "./tsconfig.json"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4.1.5",
+    "autoprefixer": "^10.4.21",
+    "tailwindcss": "latest",
+    "typescript": "latest"
+  }
+}

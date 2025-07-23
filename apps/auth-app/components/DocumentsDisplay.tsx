@@ -1,0 +1,86 @@
+import React from 'react';
+import Link from 'next/link';
+import { FileIcon, FolderIcon } from 'lucide-react';
+import { DocumentTypeSchemaModel } from '@/lib/documentActions';
+import DocumentCardBody from './DocumentCardBody';
+import { DocumentMetaDataTransformedModel } from '@/lib/types/document.model';
+import { Button, Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle, DocumentStatusBadge, Separator } from '@docujourney/ui';
+
+
+interface DocumentsDisplayProps {
+    userId: string;
+    initialProfileId: string;
+    documentGroups: { documentType: string; docs: DocumentMetaDataTransformedModel[] }[];
+    documentSchemas: Record<string, DocumentTypeSchemaModel>;
+    baseRoute?: string; // Optional base route for navigation, defaults to '/documents'
+}
+
+export default function DocumentsDisplay({
+    userId,
+    initialProfileId,
+    documentGroups,
+    documentSchemas,
+    baseRoute = '/documents', // Default to documents route
+}: DocumentsDisplayProps) {
+    return (
+        <div className="mb-8 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+
+            {documentGroups.length === 0 ? (
+                <p>No documents found for this profile.</p>
+            ) : (
+                documentGroups.map((group) => (
+                    <div key={group.documentType} >
+                        {group.docs.length > 0 ? (
+                            <Card key={group.docs[0].id}>
+                                <CardHeader className="flex items-center gap-4">
+                                    <div className="bg-blue-50 p-3 rounded-lg">
+                                        <FolderIcon className="h-8 w-8 text-blue-600" />
+                                    </div>
+                                    <div className="flex justify-between flex-1 items-start">
+                                        <div>
+                                            <CardTitle className="text-lg font-medium text-slate-800">
+                                                {documentSchemas[group.documentType]?.displayName || group.documentType}
+                                            </CardTitle>
+                                            <CardDescription className="text-sm text-muted-foreground">
+                                                {group.docs?.length || 0} documents
+                                            </CardDescription>
+                                        </div>
+                                        {group.docs[0]?.extracted?.valid_to ? (
+                                            <DocumentStatusBadge
+                                                validTo={group.docs[0]?.extracted?.valid_to}
+                                            />
+                                        ) : null}
+                                    </div>
+
+                                </CardHeader>
+
+                                <Separator
+                                    orientation="horizontal"
+                                />
+                                <CardContent>
+                                    <Link
+                                        href={`${baseRoute}/${group.documentType}?profileId=${initialProfileId}`}
+                                        passHref
+                                    >
+                                        <DocumentCardBody doc={group.docs[0]} documentSchema={documentSchemas[group.documentType]} />
+                                    </Link>
+                                </CardContent>
+                                <Separator
+                                    orientation="horizontal"
+                                />
+                                <CardFooter className="flex justify-between">
+                                    <Button variant={'outline'} >
+                                        <FileIcon className="h-4 w-4 mr-2" />
+                                        View
+                                    </Button>
+                                </CardFooter>
+                            </Card>
+                        ) : (
+                            <p>No documents of this type.</p>
+                        )}
+                    </div>
+                ))
+            )}
+        </div>
+    );
+}

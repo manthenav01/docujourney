@@ -1,0 +1,17 @@
+export { H1BDashboard } from './H1BDashboard';
+export { SearchAndFilters } from './SearchAndFilters';
+export { QuickStats } from './QuickStats';
+export { VisualizationPanel } from './VisualizationPanel';
+export { SalaryDistributionChart } from './SalaryDistributionChart';
+export { HighestSalaryByStateChart } from './HighestSalaryByStateChart';
+export { TopJobTitlesCard } from './TopJobTitlesCard';
+export { IndustryDistributionChart } from './IndustryDistributionChart';
+export { TopEmployersTable } from './TopEmployersTable';
+
+// New Phase 2 components
+export { SemanticSearch } from './SemanticSearch';
+export { CompanyDashboard } from './CompanyDashboard';
+export { JobDashboard } from './JobDashboard';
+export { CityDashboard } from './CityDashboard';
+
+export type { FilterState, H1BData, TabType } from './types';
