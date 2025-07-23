@@ -118,22 +118,20 @@ export const CompanyDashboard: React.FC<CompanyDashboardProps> = ({
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 p-6">
-        <div className="max-w-7xl mx-auto">
-          <div className="mb-6">
-            <Button 
-              onClick={handleBackClick}
-              variant="outline" 
-              className="mb-4"
-            >
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              Back to Dashboard
-            </Button>
-          </div>
-          
-          <div className="flex items-center justify-center min-h-[400px]">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-          </div>
+      <div className="max-w-7xl mx-auto">
+        <div className="mb-6">
+          <Button 
+            onClick={handleBackClick}
+            variant="outline" 
+            className="mb-4"
+          >
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            Back to Dashboard
+          </Button>
+        </div>
+        
+        <div className="flex items-center justify-center min-h-[400px]">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
         </div>
       </div>
     );
@@ -141,37 +139,35 @@ export const CompanyDashboard: React.FC<CompanyDashboardProps> = ({
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gray-50 p-6">
-        <div className="max-w-7xl mx-auto">
-          <div className="mb-6">
-            <Button 
-              onClick={handleBackClick}
-              variant="outline" 
-              className="mb-4"
-            >
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              Back to Dashboard
-            </Button>
-          </div>
-             <Card className="bg-red-50 border-red-200">
-          <CardContent className="p-6">
-            <div className="text-center">
-              <div className="text-red-600 text-lg font-semibold mb-2">Unable to Load Company Data</div>
-              <div className="text-red-700">{error}</div>
-              {error.includes('No H1B data found') && (
-                <div className="mt-4 text-sm text-gray-600">
-                  <p>This could mean:</p>
-                  <ul className="list-disc list-inside mt-2 space-y-1">
-                    <li>The company name might be spelled differently in our database</li>
-                    <li>The company may not have filed H1B applications in our dataset</li>
-                    <li>Try searching with a different variation of the company name</li>
-                  </ul>
-                </div>
-              )}
-            </div>
-          </CardContent>
-        </Card>
+      <div className="max-w-7xl mx-auto">
+        <div className="mb-6">
+          <Button 
+            onClick={handleBackClick}
+            variant="outline" 
+            className="mb-4"
+          >
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            Back to Dashboard
+          </Button>
         </div>
+           <Card className="bg-red-50 border-red-200">
+        <CardContent className="p-6">
+          <div className="text-center">
+            <div className="text-red-600 text-lg font-semibold mb-2">Unable to Load Company Data</div>
+            <div className="text-red-700">{error}</div>
+            {error.includes('No H1B data found') && (
+              <div className="mt-4 text-sm text-gray-600">
+                <p>This could mean:</p>
+                <ul className="list-disc list-inside mt-2 space-y-1">
+                  <li>The company name might be spelled differently in our database</li>
+                  <li>The company may not have filed H1B applications in our dataset</li>
+                  <li>Try searching with a different variation of the company name</li>
+                </ul>
+              </div>
+            )}
+          </div>
+        </CardContent>
+      </Card>
       </div>
     );
   }
@@ -188,16 +184,15 @@ export const CompanyDashboard: React.FC<CompanyDashboardProps> = ({
   const hasTrendData = companyInfo.yearlyTrends.length > 0;
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
-      <div className="max-w-7xl mx-auto space-y-6">
-      {/* Header */}
-      <div className="mb-6">
-        <Button 
-          onClick={handleBackClick}
-          variant="outline" 
-          className="mb-4"
-        >
-          <ArrowLeft className="w-4 h-4 mr-2" />
+    <div className="max-w-7xl mx-auto space-y-6">
+    {/* Header */}
+    <div className="mb-6">
+      <Button 
+        onClick={handleBackClick}
+        variant="outline" 
+        className="mb-4"
+      >
+        <ArrowLeft className="w-4 h-4 mr-2" />
           Back to Dashboard
         </Button>
         
@@ -435,7 +430,6 @@ export const CompanyDashboard: React.FC<CompanyDashboardProps> = ({
           </div>
         </CardContent>
       </Card>
-      </div>
     </div>
   );
 };
