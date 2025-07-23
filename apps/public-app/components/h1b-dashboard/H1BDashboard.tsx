@@ -8,6 +8,8 @@ import { TopEmployersTable } from './TopEmployersTable';
 import { 
   FileText,
   DollarSign,
+  Building,
+  TrendingUp,
   ArrowUp,
   ArrowDown,
 } from 'lucide-react';

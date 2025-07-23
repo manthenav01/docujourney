@@ -19,17 +19,25 @@ interface SidebarProps {
 
 export const DashboardSidebar: React.FC<SidebarProps> = ({ 
   sidebarOpen, 
-  setSidebarOpen 
+  setSidebarOpen,
 }) => {
   const pathname = usePathname();
   const router = useRouter();
 
   // Determine active nav item based on current path
   const getActiveNavItem = () => {
-    if (pathname === '/h1b-dashboard') return 'overview';
-    if (pathname.includes('/company/')) return 'employers';
-    if (pathname.includes('/job/')) return 'analytics';
-    if (pathname.includes('/city/')) return 'trends';
+    if (pathname === '/h1b-dashboard') {
+      return 'overview';
+    }
+    if (pathname.includes('/company/')) {
+      return 'employers';
+    }
+    if (pathname.includes('/job/')) {
+      return 'analytics';
+    }
+    if (pathname.includes('/city/')) {
+      return 'trends';
+    }
     return 'overview';
   };
 
