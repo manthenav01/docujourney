@@ -1,4 +1,6 @@
 export { H1BDashboard } from './H1BDashboard';
+export { DashboardSidebar } from './DashboardSidebar';
+export { DashboardLayout } from './DashboardLayout';
 export { SearchAndFilters } from './SearchAndFilters';
 export { QuickStats } from './QuickStats';
 export { VisualizationPanel } from './VisualizationPanel';

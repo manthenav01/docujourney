@@ -6,20 +6,8 @@ import { SearchAndFilters } from './SearchAndFilters';
 import { VisualizationPanel } from './VisualizationPanel';
 import { TopEmployersTable } from './TopEmployersTable';
 import { 
-  BarChart3, 
-  Home, 
-  Users, 
-  Settings, 
-  Activity,
-  TrendingUp,
   FileText,
-  Building,
   DollarSign,
-  XCircle,
-  Share2,
-  Eye,
-  Pause,
-  Settings2,
   ArrowUp,
   ArrowDown,
 } from 'lucide-react';
@@ -100,7 +88,6 @@ export const H1BDashboard: React.FC = () => {
   const [activeNavItem, setActiveNavItem] = useState('overview');
   const [loading, setLoading] = useState(true);
   const [chartsLoading, setChartsLoading] = useState(false);
-  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [initialLoadComplete, setInitialLoadComplete] = useState(false);
   const [loadingError, setLoadingError] = useState<string | null>(null);
 
@@ -288,14 +275,6 @@ export const H1BDashboard: React.FC = () => {
     );
   }
 
-  const sidebarItems = [
-    { id: 'overview', label: 'Overview', icon: Home },
-    { id: 'analytics', label: 'Analytics', icon: BarChart3 },
-    { id: 'trends', label: 'Trends', icon: TrendingUp },
-    { id: 'employers', label: 'Employers', icon: Building },
-    { id: 'settings', label: 'Settings', icon: Settings },
-  ];
-
   const ActionButton: React.FC<{
     label: string;
     variant: 'primary' | 'secondary';
@@ -346,130 +325,65 @@ export const H1BDashboard: React.FC = () => {
   );
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Mobile overlay */}
-      {sidebarOpen && (
-        <div 
-          className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden"
-          onClick={() => setSidebarOpen(false)}
-        />
-      )}
-      
-      {/* Sidebar */}
-      <div className={`fixed left-0 top-0 h-full w-64 bg-white border-r border-gray-200 shadow-sm z-50 transform transition-transform duration-300 ease-in-out ${
-        sidebarOpen ? 'translate-x-0' : '-translate-x-full'
-      } lg:translate-x-0`}>
-        <div className="p-6">
-          <div className="flex items-center justify-between mb-8">
-            <div className="flex items-center gap-2">
-              <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
-                <BarChart3 className="w-5 h-5 text-white" />
-              </div>
-              <h1 className="text-xl font-bold text-gray-900">H1B Analytics</h1>
-            </div>
-            <button
-              onClick={() => setSidebarOpen(false)}
-              className="lg:hidden p-2 rounded-lg hover:bg-gray-100"
-            >
-              <XCircle className="w-5 h-5 text-gray-500" />
-            </button>
-          </div>
-          
-          <nav className="space-y-2">
-            {sidebarItems.map((item) => {
-              const Icon = item.icon;
-              return (
-                <button
-                  key={item.id}
-                  onClick={() => {
-                    setActiveNavItem(item.id);
-                    setSidebarOpen(false);
-                  }}
-                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-left transition-all duration-200 ${
-                    activeNavItem === item.id
-                      ? 'bg-blue-50 text-blue-700 border-r-2 border-blue-600'
-                      : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
-                  }`}
-                >
-                  <Icon className="w-5 h-5" />
-                  <span className="font-medium">{item.label}</span>
-                </button>
-              );
-            })}
-          </nav>
+    <>
+      {/* Header */}
+      <div className="mb-8">
+        <div>
+          <h1 className="text-2xl lg:text-3xl font-bold text-gray-900">Dashboard Overview</h1>
+          <p className="text-gray-600 text-sm lg:text-base">Real-time insights from BigQuery • Interactive data exploration</p>
         </div>
+      </div>
+
+      {/* Search */}
+      <div className="mb-8">
+        <SearchAndFilters
+          filters={filters}
+          setFilters={setFilters}
+          isFilterOpen={false}
+          setIsFilterOpen={() => {}} 
+          filterOptions={{fiscalYears: [], states: [], jobCategories: []}}
+          enableSemanticSearch={true}
+          showSearchInstructions={false}
+        />
+      </div>
+
+      {/* Overview Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6 mb-8">
+        <MetricCard
+          title="Total Applications"
+          value={dashboardData.totalApplications.toLocaleString()}
+          icon={<FileText className="w-6 h-6" />}
+          color="gray"
+        />
+        <MetricCard
+          title="Average Salary"
+          value={`$${(dashboardData.avgSalary / 1000).toFixed(0)}K`}
+          icon={<DollarSign className="w-6 h-6" />}
+          color="blue"
+        />
+        <MetricCard
+          title="Unique Employers"
+          value={dashboardData.uniqueEmployers.toLocaleString()}
+          icon={<Building className="w-6 h-6" />}
+          color="purple"
+        />
+        <MetricCard
+          title="Approval Rate"
+          value={`${dashboardData.certificationRate.toFixed(1)}%`}
+          icon={<TrendingUp className="w-6 h-6" />}
+          color="green"
+        />
       </div>
 
       {/* Main Content */}
-      <div className="lg:ml-64 p-4 lg:p-8">
-        {/* Header */}
-        <div className="mb-8">
-          <div className="flex items-center gap-4 mb-4">
-            <button
-              onClick={() => setSidebarOpen(true)}
-              className="lg:hidden p-2 rounded-lg hover:bg-gray-100 border border-gray-200"
-            >
-              <BarChart3 className="w-5 h-5 text-gray-700" />
-            </button>
-            <div>
-              <h1 className="text-2xl lg:text-3xl font-bold text-gray-900">Dashboard Overview</h1>
-              <p className="text-gray-600 text-sm lg:text-base">Real-time insights from BigQuery • Interactive data exploration</p>
-            </div>
-          </div>
-        </div>
-
-        {/* Search */}
-        <div className="mb-8">
-          <SearchAndFilters
-            filters={filters}
-            setFilters={setFilters}
-            isFilterOpen={false}
-            setIsFilterOpen={() => {}} 
-            filterOptions={{fiscalYears: [], states: [], jobCategories: []}}
-            enableSemanticSearch={true}
-            showSearchInstructions={false}
-          />
-        </div>
-
-        {/* Overview Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6 mb-8">
-          <MetricCard
-            title="Total Applications"
-            value={dashboardData.totalApplications.toLocaleString()}
-            icon={<FileText className="w-6 h-6" />}
-            color="gray"
-          />
-          <MetricCard
-            title="Average Salary"
-            value={`$${(dashboardData.avgSalary / 1000).toFixed(0)}K`}
-            icon={<DollarSign className="w-6 h-6" />}
-            color="blue"
-          />
-          <MetricCard
-            title="Unique Employers"
-            value={dashboardData.uniqueEmployers.toLocaleString()}
-            icon={<Building className="w-6 h-6" />}
-            color="purple"
-          />
-          <MetricCard
-            title="Approval Rate"
-            value={`${dashboardData.certificationRate.toFixed(1)}%`}
-            icon={<TrendingUp className="w-6 h-6" />}
-            color="green"
-          />
-        </div>
-
-
-        {/* Main Content */}
-        <div className="space-y-8">
-          <VisualizationPanel
-            dashboardData={dashboardData}
-            chartsLoading={chartsLoading}
-          />
-          
-          <TopEmployersTable dashboardData={dashboardData} />
-        </div>
+      <div className="space-y-8">
+        <VisualizationPanel
+          dashboardData={dashboardData}
+          chartsLoading={chartsLoading}
+        />
+        
+        <TopEmployersTable dashboardData={dashboardData} />
       </div>
-    </div>
+    </>
   );
 };
