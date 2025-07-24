@@ -6,7 +6,6 @@ import { Button, Card, CardContent, CardHeader, CardTitle } from '@docujourney/u
 
 interface StateSalaryData {
   state: string;
-  highestSalary: number;
   avgSalary: number;
   applications: number;
   [key: string]: string | number; // Index signature for compatibility with @nivo/bar
@@ -23,7 +22,7 @@ export function HighestSalaryByStateChart({ data, loading }: HighestSalaryByStat
     return (
       <Card className="w-full">
         <CardHeader>
-          <CardTitle>Highest Salary by State</CardTitle>
+          <CardTitle>Average Salary by State</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="h-80 flex items-center justify-center">
@@ -38,7 +37,7 @@ export function HighestSalaryByStateChart({ data, loading }: HighestSalaryByStat
     return (
       <Card className="w-full">
         <CardHeader>
-          <CardTitle>Highest Salary by State</CardTitle>
+          <CardTitle>Average Salary by State</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="h-80 flex items-center justify-center">
@@ -49,14 +48,14 @@ export function HighestSalaryByStateChart({ data, loading }: HighestSalaryByStat
     );
   }
 
-  const sortedData = [...data].sort((a, b) => b.highestSalary - a.highestSalary).slice(0, 5);
+  const sortedData = [...data].sort((a, b) => b.avgSalary - a.avgSalary).slice(0, 5);
 
   return (
     <Card className="w-full">
       <CardHeader>
         <div className="flex justify-between items-start">
           <div>
-            <CardTitle>Highest Salary by State</CardTitle>
+            <CardTitle>Average Salary by State</CardTitle>
           </div>
           <div className="flex gap-1">
             <Button
@@ -94,7 +93,7 @@ export function HighestSalaryByStateChart({ data, loading }: HighestSalaryByStat
         <div style={{ height: '400px', width: '100%' }}>
           <ResponsiveBar
             data={sortedData}
-            keys={['highestSalary']}
+            keys={['avgSalary']}
             indexBy="state"
             margin={{ top: 20, right: 30, bottom: 80, left: 80 }}
             padding={0.4}
@@ -164,7 +163,7 @@ export function HighestSalaryByStateChart({ data, loading }: HighestSalaryByStat
               tickSize: 0,
               tickPadding: 8,
               tickRotation: 0,
-              legend: 'Highest Salary ($)',
+              legend: 'Average Salary ($)',
               legendPosition: 'middle',
               legendOffset: -70,
               format: (value) => `$${(value / 1000).toFixed(0)}K`,
@@ -179,12 +178,8 @@ export function HighestSalaryByStateChart({ data, loading }: HighestSalaryByStat
                 <div className="text-sm font-semibold text-gray-900 mb-3">{indexValue}</div>
                 <div className="space-y-2">
                   <div className="flex justify-between items-center">
-                    <span className="text-xs text-gray-600">Highest Salary:</span>
-                    <span className="text-sm font-medium text-blue-600">${value?.toLocaleString()}</span>
-                  </div>
-                  <div className="flex justify-between items-center">
                     <span className="text-xs text-gray-600">Average Salary:</span>
-                    <span className="text-sm font-medium text-blue-600">${data.avgSalary?.toLocaleString()}</span>
+                    <span className="text-sm font-medium text-blue-600">${value?.toLocaleString()}</span>
                   </div>
                   <div className="flex justify-between items-center">
                     <span className="text-xs text-gray-600">Applications:</span>

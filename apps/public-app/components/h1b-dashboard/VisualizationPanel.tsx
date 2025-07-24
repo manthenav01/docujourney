@@ -103,7 +103,6 @@ export const VisualizationPanel: React.FC<VisualizationPanelProps> = ({
         <HighestSalaryByStateChart 
           data={dashboardData.stateDistribution ? dashboardData.stateDistribution.map(item => ({
             state: item.state,
-            highestSalary: item.highestSalary,
             avgSalary: item.avgSalary,
             applications: item.applications,
           })) : []}

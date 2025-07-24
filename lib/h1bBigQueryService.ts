@@ -52,6 +52,7 @@ export interface H1BAggregatedData {
     state: string;
     applications: number;
     avgSalary: number;
+    highestSalary: number;
   }>;
   jobTitleDistribution: Array<{
     jobTitle: string;
@@ -253,7 +254,8 @@ export class H1BBigQueryService {
       SELECT 
         worksite_state as state,
         COUNT(*) as applications,
-        AVG(CASE WHEN case_status = 'Certified' THEN wage_rate_of_pay_from END) as avg_salary
+        AVG(CASE WHEN case_status = 'Certified' THEN wage_rate_of_pay_from END) as avg_salary,
+        MAX(CASE WHEN case_status = 'Certified' THEN wage_rate_of_pay_from END) as highest_salary
       FROM \`${this.projectId}.${this.datasetId}.lca_applications\`
       ${whereClause}
       AND case_status = 'Certified'
@@ -261,7 +263,7 @@ export class H1BBigQueryService {
       AND wage_rate_of_pay_from > 0
       AND worksite_state IS NOT NULL
       GROUP BY worksite_state
-      ORDER BY applications DESC
+      ORDER BY avg_salary DESC
       LIMIT 10
     `;
 
@@ -401,6 +403,7 @@ export class H1BBigQueryService {
         state: row.state,
         applications: row.applications || 0,
         avgSalary: Math.round(row.avg_salary || 0),
+        highestSalary: Math.round(row.highest_salary || 0),
       }));
 
       const mostAppliedJobData = mostAppliedJobResults[0] || {};
