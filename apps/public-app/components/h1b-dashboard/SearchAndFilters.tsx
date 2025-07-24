@@ -1,14 +1,17 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { 
   Search, 
   Sparkles,
+  Calendar,
+  X,
+  Check,
 } from 'lucide-react';
 import { FilterState } from './types';
 import { SemanticSearch } from './SemanticSearch';
-import { Button, Card, CardContent, Input } from '@docujourney/ui';
+import { Button, Card, CardContent, Input, Badge, Popover, PopoverContent, PopoverTrigger } from '@docujourney/ui';
 
 interface SearchSuggestion {
   text: string;
@@ -44,6 +47,37 @@ export const SearchAndFilters: React.FC<SearchAndFiltersProps> = ({
   showSearchInstructions = false,
 }) => {
   const router = useRouter();
+  const [yearPopoverOpen, setYearPopoverOpen] = useState(false);
+
+  // Generate available years from 2020 to current year
+  const currentYear = new Date().getFullYear();
+  const availableYears = Array.from(
+    { length: currentYear - 2020 + 1 },
+    (_, i) => (2020 + i).toString()
+  ).reverse(); // Show newest years first
+
+  const handleYearToggle = (year: string) => {
+    setFilters(prev => ({
+      ...prev,
+      fiscalYears: prev.fiscalYears.includes(year)
+        ? prev.fiscalYears.filter(y => y !== year)
+        : [...prev.fiscalYears, year]
+    }));
+  };
+
+  const handleYearRemove = (year: string) => {
+    setFilters(prev => ({
+      ...prev,
+      fiscalYears: prev.fiscalYears.filter(y => y !== year)
+    }));
+  };
+
+  const clearAllYears = () => {
+    setFilters(prev => ({
+      ...prev,
+      fiscalYears: []
+    }));
+  };
 
   const handleSemanticSearch = (query: string, options?: any) => {
     // Don't update filters - search is now just for autocomplete
@@ -145,7 +179,87 @@ export const SearchAndFilters: React.FC<SearchAndFiltersProps> = ({
                 </div>
               )}
             </div>
+            
+            {/* Year Filter */}
+            <div className="flex items-center gap-2">
+              <Popover open={yearPopoverOpen} onOpenChange={setYearPopoverOpen}>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className="h-14 px-4 border-gray-200 hover:border-blue-500 hover:bg-blue-50/50 transition-all duration-200 rounded-xl"
+                  >
+                    <Calendar className="w-4 h-4 mr-2" />
+                    Years
+                    {filters.fiscalYears.length > 0 && (
+                      <Badge variant="secondary" className="ml-2 min-w-0">
+                        {filters.fiscalYears.length}
+                      </Badge>
+                    )}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-80 p-0" align="end">
+                  <div className="p-4">
+                    <div className="flex items-center justify-between mb-3">
+                      <h4 className="text-sm font-medium text-gray-900">Filter by Year</h4>
+                      {filters.fiscalYears.length > 0 && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={clearAllYears}
+                          className="h-6 px-2 text-xs text-gray-500 hover:text-gray-700"
+                        >
+                          Clear all
+                        </Button>
+                      )}
+                    </div>
+                    <div className="grid grid-cols-3 gap-2 max-h-48 overflow-y-auto">
+                      {availableYears.map((year) => {
+                        const isSelected = filters.fiscalYears.includes(year);
+                        return (
+                          <button
+                            key={year}
+                            onClick={() => handleYearToggle(year)}
+                            className={`
+                              flex items-center justify-center h-10 rounded-md border text-sm font-medium transition-all duration-200
+                              ${isSelected
+                                ? 'bg-blue-50 border-blue-200 text-blue-700 hover:bg-blue-100'
+                                : 'bg-white border-gray-200 text-gray-700 hover:bg-gray-50 hover:border-gray-300'
+                              }
+                            `}
+                          >
+                            {isSelected && <Check className="w-3 h-3 mr-1" />}
+                            {year}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                </PopoverContent>
+              </Popover>
+            </div>
           </div>
+          
+          {/* Selected Year Badges */}
+          {filters.fiscalYears.length > 0 && (
+            <div className="flex flex-wrap gap-2 mt-4">
+              <span className="text-sm text-gray-600 font-medium">Filtered by years:</span>
+              {filters.fiscalYears.map((year) => (
+                <Badge
+                  key={year}
+                  variant="secondary"
+                  className="flex items-center gap-1 bg-blue-50 text-blue-700 border-blue-200 hover:bg-blue-100"
+                >
+                  {year}
+                  <button
+                    onClick={() => handleYearRemove(year)}
+                    className="ml-1 hover:bg-blue-200 rounded-full p-0.5 transition-colors"
+                  >
+                    <X className="w-3 h-3" />
+                  </button>
+                </Badge>
+              ))}
+            </div>
+          )}
           
           {/* Search Instructions */}
           {showSearchInstructions && (
