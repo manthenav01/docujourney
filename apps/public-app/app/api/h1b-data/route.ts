@@ -52,7 +52,10 @@ export async function GET(request: NextRequest) {
       
       if (cachedData) {
         console.log('Serving H1B data from cache (default dashboard)');
-        return NextResponse.json(cachedData);
+        return NextResponse.json({
+          ...cachedData,
+          isFromCache: true,
+        });
       }
       
       console.log('Cache miss - fetching default H1B data from BigQuery');
@@ -70,7 +73,10 @@ export async function GET(request: NextRequest) {
         statesCount: data.stateDistribution.length,
       });
       
-      return NextResponse.json(data);
+      return NextResponse.json({
+        ...data,
+        isFromCache: false,
+      });
     }
     
     // For filtered requests, fetch directly from BigQuery (no caching)
@@ -85,7 +91,10 @@ export async function GET(request: NextRequest) {
       statesCount: data.stateDistribution.length,
     });
     
-    return NextResponse.json(data);
+    return NextResponse.json({
+      ...data,
+      isFromCache: false,
+    });
     
   } catch (error) {
     console.error('Error fetching H1B data:', error);
