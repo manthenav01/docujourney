@@ -199,7 +199,15 @@ def process_lca_file(file_path):
     
     available_columns = [col for col in lca_columns if col in df.columns]
     df = df[available_columns]
-    print(f"Using {len(available_columns)} columns")
+    
+    # Add missing columns with null values for schema consistency
+    missing_columns = [col for col in lca_columns if col not in df.columns]
+    for col in missing_columns:
+        df[col] = None
+    
+    # Reorder columns to match schema
+    df = df[lca_columns]
+    print(f"Using {len(available_columns)} available columns, added {len(missing_columns)} missing columns with null values")
     
     # Validate and clean
     df = validate_and_clean_dataframe(df, 'case_number', 'LCA')
