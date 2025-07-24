@@ -13,6 +13,9 @@ import {
   ArrowUp,
   ArrowDown,
   Database,
+  BarChart3,
+  Home,
+  Settings,
 } from 'lucide-react';
 import './dashboard.css';
 
@@ -281,6 +284,14 @@ export const H1BDashboard: React.FC = () => {
     );
   }
 
+  const sidebarItems = [
+    { id: 'overview', label: 'Overview', icon: Home },
+    { id: 'analytics', label: 'Analytics', icon: BarChart3 },
+    { id: 'trends', label: 'Trends', icon: TrendingUp },
+    { id: 'employers', label: 'Employers', icon: Building },
+    { id: 'settings', label: 'Settings', icon: Settings },
+  ];
+
   const ActionButton: React.FC<{
     label: string;
     variant: 'primary' | 'secondary';
@@ -332,18 +343,8 @@ export const H1BDashboard: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Mobile overlay */}
-      {sidebarOpen && (
-        <div 
-          className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden"
-          onClick={() => setSidebarOpen(false)}
-        />
-      )}
-      
       {/* Sidebar */}
-      <div className={`fixed left-0 top-0 h-full w-64 bg-white border-r border-gray-200 shadow-sm z-50 transform transition-transform duration-300 ease-in-out ${
-        sidebarOpen ? 'translate-x-0' : '-translate-x-full'
-      } lg:translate-x-0`}>
+      <div className="fixed left-0 top-0 h-full w-64 bg-white border-r border-gray-200 shadow-sm z-50">
         <div className="p-6">
           <div className="flex items-center justify-between mb-8">
             <div className="flex items-center gap-2">
@@ -352,12 +353,6 @@ export const H1BDashboard: React.FC = () => {
               </div>
               <h1 className="text-xl font-bold text-gray-900">H1B Analytics</h1>
             </div>
-            <button
-              onClick={() => setSidebarOpen(false)}
-              className="lg:hidden p-2 rounded-lg hover:bg-gray-100"
-            >
-              <XCircle className="w-5 h-5 text-gray-500" />
-            </button>
           </div>
           
           <nav className="space-y-2">
@@ -366,10 +361,7 @@ export const H1BDashboard: React.FC = () => {
               return (
                 <button
                   key={item.id}
-                  onClick={() => {
-                    setActiveNavItem(item.id);
-                    setSidebarOpen(false);
-                  }}
+                  onClick={() => setActiveNavItem(item.id)}
                   className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-left transition-all duration-200 ${
                     activeNavItem === item.id
                       ? 'bg-blue-50 text-blue-700 border-r-2 border-blue-600'
@@ -386,17 +378,11 @@ export const H1BDashboard: React.FC = () => {
       </div>
 
       {/* Main Content */}
-      <div className="lg:ml-64 p-4 lg:p-8">
+      <div className=" p-4 lg:p-8">
         {/* Header */}
         <div className="mb-8">
           <div className="flex items-center gap-4 mb-4">
-            <button
-              onClick={() => setSidebarOpen(true)}
-              className="lg:hidden p-2 rounded-lg hover:bg-gray-100 border border-gray-200"
-            >
-              <BarChart3 className="w-5 h-5 text-gray-700" />
-            </button>
-<div className="flex-1">
+            <div className="flex-1">
               <div className="flex items-center gap-3 mb-1">
                 <h1 className="text-2xl lg:text-3xl font-bold text-gray-900">Dashboard Overview</h1>
                 {dashboardData?.isFromCache && (
@@ -406,6 +392,8 @@ export const H1BDashboard: React.FC = () => {
                   </div>
                 )}
               </div>
+              <p className="text-gray-600 text-sm lg:text-base">Real-time insights from BigQuery • Interactive data exploration</p>
+            </div>
           </div>
         </div>
 
@@ -450,15 +438,16 @@ export const H1BDashboard: React.FC = () => {
         />
       </div>
 
-      {/* Main Content */}
-      <div className="space-y-8">
-        <VisualizationPanel
-          dashboardData={dashboardData}
-          chartsLoading={chartsLoading}
-        />
-        
-        <TopEmployersTable dashboardData={dashboardData} />
+        {/* Main Content */}
+        <div className="space-y-8">
+          <VisualizationPanel
+            dashboardData={dashboardData}
+            chartsLoading={chartsLoading}
+          />
+          
+          <TopEmployersTable dashboardData={dashboardData} />
+        </div>
       </div>
-    </>
+    </div>
   );
 };
