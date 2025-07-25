@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Badge, Button, Card, CardContent, CardHeader, CardTitle } from '@docujourney/ui';
+import { CHART_COLOR_ARRAYS, getChartColor, getSalaryRangeColor } from '../../lib/chartColors';
 import { 
   ArrowLeft, 
   Building, 
@@ -432,20 +433,26 @@ export const CompanyDashboard: React.FC<CompanyDashboardProps> = ({
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {companyInfo.topStates.map((state) => (
-                <div key={state.state} className="space-y-2">
-                  <div className="flex justify-between items-center">
-                    <span className="font-medium text-foreground">{state.state}</span>
-                    <span className="text-sm text-muted-foreground">{formatNumber(state.applications)} ({state.percentage}%)</span>
+              {companyInfo.topStates.map((state, index) => {
+                const barColor = getChartColor(index, CHART_COLOR_ARRAYS.geographic);
+                return (
+                  <div key={state.state} className="space-y-2">
+                    <div className="flex justify-between items-center">
+                      <span className="font-medium text-foreground">{state.state}</span>
+                      <span className="text-sm text-muted-foreground">{formatNumber(state.applications)} ({state.percentage}%)</span>
+                    </div>
+                    <div className="w-full bg-muted rounded-full h-2">
+                      <div 
+                        className="h-2 rounded-full transition-all duration-300" 
+                        style={{ 
+                          width: `${state.percentage}%`,
+                          backgroundColor: barColor,
+                        }}
+                      ></div>
+                    </div>
                   </div>
-                  <div className="w-full bg-muted rounded-full h-2">
-                    <div 
-                      className="bg-success h-2 rounded-full transition-all duration-300" 
-                      style={{ width: `${state.percentage}%` }}
-                    ></div>
-                  </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </CardContent>
         </Card>
@@ -463,7 +470,7 @@ export const CompanyDashboard: React.FC<CompanyDashboardProps> = ({
               {companyInfo.salaryDistribution.map((salary, index) => {
                 const maxCount = Math.max(...companyInfo.salaryDistribution.map(s => s.count));
                 const percentage = (salary.count / maxCount) * 100;
-                const chartColors = ['bg-chart-1', 'bg-chart-2', 'bg-chart-3', 'bg-chart-4', 'bg-chart-5', 'bg-primary', 'bg-success', 'bg-warning'];
+                const barColor = getSalaryRangeColor(index);
                 
                 return (
                   <div key={salary.range} className="space-y-2">
@@ -473,8 +480,11 @@ export const CompanyDashboard: React.FC<CompanyDashboardProps> = ({
                     </div>
                     <div className="w-full bg-muted rounded-full h-2">
                       <div 
-                        className={`${chartColors[index % chartColors.length]} h-2 rounded-full transition-all duration-300`}
-                        style={{ width: `${percentage}%` }}
+                        className="h-2 rounded-full transition-all duration-300"
+                        style={{ 
+                          width: `${percentage}%`,
+                          backgroundColor: barColor,
+                        }}
                       ></div>
                     </div>
                   </div>
@@ -495,17 +505,21 @@ export const CompanyDashboard: React.FC<CompanyDashboardProps> = ({
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-            {companyInfo.recentActivity.map((activity) => {
+            {companyInfo.recentActivity.map((activity, index) => {
               const maxApplications = Math.max(...companyInfo.recentActivity.map(a => a.applications));
               const height = (activity.applications / maxApplications) * 100;
+              const barColor = getChartColor(index, CHART_COLOR_ARRAYS.standard);
               
               return (
                 <div key={activity.month} className="text-center space-y-2">
                   <div className="text-sm font-medium text-muted-foreground">{activity.month.split(' ')[0]}</div>
                   <div className="flex items-end justify-center h-20">
                     <div 
-                      className="bg-warning rounded-t-md w-8 transition-all duration-300"
-                      style={{ height: `${height}%` }}
+                      className="rounded-t-md w-8 transition-all duration-300"
+                      style={{ 
+                        height: `${height}%`,
+                        backgroundColor: barColor,
+                      }}
                     ></div>
                   </div>
                   <div className="text-xs text-muted-foreground">{formatNumber(activity.applications)}</div>
