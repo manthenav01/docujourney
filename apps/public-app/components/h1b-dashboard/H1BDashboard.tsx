@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { FilterState } from './types';
-import { SearchAndFilters } from './SearchAndFilters';
+import { DashboardHero } from './DashboardHero';
 import { FilterCards } from './FilterCards';
 import { VisualizationPanel } from './VisualizationPanel';
 import { TopEmployersTable } from './TopEmployersTable';
@@ -118,7 +118,25 @@ export const H1BDashboard: React.FC = () => {
     filters.companyTypes,
   ]);
 
-  // Memoize the fetchH1BData function to prevent recreating on every render
+  const handleHeroSearch = useCallback((query: string) => {
+    console.log('Hero search:', query);
+    // Implement search logic here
+  }, []);
+
+  // Memoize the dashboard data object to prevent unnecessary re-renders
+  const memoizedDashboardData = useMemo(() => {
+    if (!dashboardData) {
+      return {
+        salaryDistribution: [],
+        yearlyTrends: [],
+        stateDistribution: [],
+        jobTitleDistribution: [],
+      };
+    }
+    return dashboardData;
+  }, [dashboardData]);
+
+  // Memoize the fetchH1BData function using stable filter dependencies
   const fetchH1BData = useCallback(async () => {
     try {
       setChartsLoading(true);
@@ -199,7 +217,16 @@ export const H1BDashboard: React.FC = () => {
       setLoading(false);
       setChartsLoading(false);
     }
-  }, [filters]); // Add filters as dependency to useCallback
+  }, [
+    filterDependencies.fiscalYears,
+    filterDependencies.salaryRange,
+    filterDependencies.states,
+    filterDependencies.cities,
+    filterDependencies.jobCategories,
+    filterDependencies.skillLevels,
+    filterDependencies.companySizes,
+    filterDependencies.companyTypes,
+  ]); // Use stable filter dependencies instead of the entire filters object
 
   // Initial load effect - runs only once on mount
   useEffect(() => {
@@ -211,14 +238,8 @@ export const H1BDashboard: React.FC = () => {
   }, []);
 
 
-  useEffect(() => {
-    if (dashboardData) {
-      setChartsLoading(true);
-      setTimeout(() => {
-        setChartsLoading(false);
-      }, 100);
-    }
-  }, [dashboardData]);
+  // Remove the problematic useEffect that triggers unnecessary re-renders
+  // The chartsLoading state is already properly managed by the fetchH1BData function
 
   // Show skeleton layout while loading initial data, but not full-page spinner
   const showInitialLoading = loading && !dashboardData;
@@ -240,14 +261,14 @@ export const H1BDashboard: React.FC = () => {
     );
   }
 
-  const MetricCard: React.FC<{
+  const MetricCard = React.memo<{
     title: string;
     value: string;
     change?: number;
     status?: 'up' | 'down' | 'stable';
     icon: React.ReactNode;  
     color?: string;
-  }> = ({ title, value, change, status, icon, color = 'primary' }) => (
+  }>(({ title, value, change, status, icon, color = 'primary' }) => (
     <Card className="hover:shadow-md transition-shadow duration-200">
       <CardContent>
         <div className="flex items-center justify-between mb-4">
@@ -275,58 +296,50 @@ export const H1BDashboard: React.FC = () => {
         <p className="text-3xl font-bold text-foreground">{value}</p>
       </CardContent>
     </Card>
-  );
+  ));
+  
+  MetricCard.displayName = 'MetricCard';
 
-  // Just return the content without sidebar since DashboardLayout handles the sidebar
+  // Just return the content without sidebar since DashboardLayout handles the layout
   return (
     <>
-      {/* Header */}
-      <div className="mb-6">
-        <div className="flex items-center gap-4 mb-3">
-          <div className="flex-1">
-            <div className="flex items-center gap-3 mb-1">
-              <h1 className="text-2xl lg:text-3xl font-bold text-foreground tracking-tight">Dashboard Overview</h1>
-              {showInitialLoading && (
-                <div className="flex items-center gap-1 px-2 py-1 bg-muted/50 border border-border rounded-md text-muted-foreground text-xs font-medium animate-pulse">
-                  <div className="w-3 h-3 bg-muted rounded animate-pulse"></div>
-                  <span>Loading...</span>
-                </div>
-              )}
-              {dashboardData?.isFromCache && !showInitialLoading && (
-                <div className="flex items-center gap-1 px-2 py-1 bg-primary/10 border border-primary/20 rounded-md text-primary text-xs font-medium">
-                  <Database className="w-3 h-3" />
-                  <span>Cached</span>
-                </div>
-              )}
-            </div>
-            <p className="text-muted-foreground text-sm lg:text-base">Real-time insights from BigQuery • Interactive data exploration</p>
+      {/* Hero Section */}
+      <DashboardHero
+        filters={filters}
+        setFilters={setFilters}
+        onSearch={handleHeroSearch}
+      />
+
+      {/* Dashboard Content */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Status Indicator */}
+        <div className="mb-6">
+          <div className="flex items-center gap-3">
+            {showInitialLoading && (
+              <div className="flex items-center gap-1 px-2 py-1 bg-gray-100 border border-gray-200 rounded-md text-gray-600 text-xs font-medium animate-pulse">
+                <div className="w-3 h-3 bg-gray-300 rounded animate-pulse"></div>
+                <span>Loading...</span>
+              </div>
+            )}
+            {dashboardData?.isFromCache && !showInitialLoading && (
+              <div className="flex items-center gap-1 px-2 py-1 bg-blue-50 border border-blue-200 rounded-md text-blue-600 text-xs font-medium">
+                <Database className="w-3 h-3" />
+                <span>Cached</span>
+              </div>
+            )}
           </div>
         </div>
-      </div>
 
-      {/* Search */}
-      <div className="mb-6">
-        <SearchAndFilters
-          filters={filters}
-          setFilters={setFilters}
-          isFilterOpen={false}
-          setIsFilterOpen={() => {}} 
-          filterOptions={{fiscalYears: [], states: [], jobCategories: []}}
-          enableSemanticSearch={true}
-          showSearchInstructions={false}
-        />
-      </div>
+        {/* Filter Cards */}
+        <div className="mb-8">
+          <FilterCards
+            filters={filters}
+            setFilters={setFilters}
+          />
+        </div>
 
-      {/* Filter Cards */}
-      <div className="mb-8">
-        <FilterCards
-          filters={filters}
-          setFilters={setFilters}
-        />
-      </div>
-
-      {/* Overview Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8 mb-8">
+        {/* Overview Cards */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8 mb-8">
         {showInitialLoading ? (
           <>
             <Card className="hover:shadow-md transition-shadow duration-200">
@@ -404,40 +417,36 @@ export const H1BDashboard: React.FC = () => {
         )}
       </div>
 
-      {/* Main Content */}
-      <div className="space-y-6">
-        <VisualizationPanel
-          dashboardData={dashboardData || {
-            salaryDistribution: [],
-            yearlyTrends: [],
-            stateDistribution: [],
-            jobTitleDistribution: [],
-              }}
-          chartsLoading={showInitialLoading || chartsLoading}
-        />
-        
-        {showInitialLoading ? (
-          <Card>
-            <CardContent className="p-6">
-              <div className="mb-4">
-                <div className="h-6 bg-muted rounded w-32 animate-pulse"></div>
-              </div>
-              <div className="space-y-3">
-                {[1,2,3,4,5].map(i => (
-                  <div key={i} className="flex items-center justify-between animate-pulse">
-                    <div className="flex items-center space-x-3">
-                      <div className="w-6 h-6 bg-muted rounded-full"></div>
-                      <div className="h-4 bg-muted rounded w-48"></div>
+        {/* Main Content */}
+        <div className="space-y-6">
+          <VisualizationPanel
+            dashboardData={memoizedDashboardData}
+            chartsLoading={showInitialLoading || chartsLoading}
+          />
+          
+          {showInitialLoading ? (
+            <Card>
+              <CardContent className="p-6">
+                <div className="mb-4">
+                  <div className="h-6 bg-gray-200 rounded w-32 animate-pulse"></div>
+                </div>
+                <div className="space-y-3">
+                  {[1,2,3,4,5].map(i => (
+                    <div key={i} className="flex items-center justify-between animate-pulse">
+                      <div className="flex items-center space-x-3">
+                        <div className="w-6 h-6 bg-gray-200 rounded-full"></div>
+                        <div className="h-4 bg-gray-200 rounded w-48"></div>
+                      </div>
+                      <div className="h-4 bg-gray-200 rounded w-16"></div>
                     </div>
-                    <div className="h-4 bg-muted rounded w-16"></div>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        ) : (
-          <TopEmployersTable dashboardData={dashboardData || { topEmployers: [] }} />
-        )}
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          ) : (
+            <TopEmployersTable dashboardData={dashboardData || { topEmployers: [] }} />
+          )}
+        </div>
       </div>
     </>
   );

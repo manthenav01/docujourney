@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
 import { ResponsiveBar } from '@nivo/bar';
 import { Button, Card, CardContent, CardHeader, CardTitle } from '@docujourney/ui';
 import { CHART_COLOR_ARRAYS, getChartColor, createNivoTheme } from '../../lib/chartColors';
@@ -17,8 +17,51 @@ interface HighestSalaryByStateChartProps {
   loading?: boolean
 }
 
-export function HighestSalaryByStateChart({ data, loading }: HighestSalaryByStateChartProps) {
+const HighestSalaryByStateChartComponent: React.FC<HighestSalaryByStateChartProps> = ({ data, loading }) => {
   const [viewMode, setViewMode] = useState<'top' | 'bottom'>('top');
+  
+  // Always call hooks at the top level
+  const sortedData = useMemo(() => {
+    if (!data || data.length === 0) {
+      return [];
+    }
+    
+    const sorted = [...data].sort((a, b) => 
+      viewMode === 'top' ? b.avgSalary - a.avgSalary : a.avgSalary - b.avgSalary,
+    );
+    return sorted.slice(0, 5);
+  }, [data, viewMode]);
+
+  // Memoize the Nivo theme
+  const nivoTheme = useMemo(() => createNivoTheme(), []);
+
+  // Memoize the color function
+  const getColorForState = useCallback((d: any) => {
+    const index = sortedData.findIndex(item => item.state === d.indexValue);
+    return getChartColor(index, CHART_COLOR_ARRAYS.geographic);
+  }, [sortedData]);
+
+  // Memoize the tooltip component
+  const TooltipComponent = useCallback(({ indexValue, value, data: tooltipData }: any) => (
+    <div className="bg-card/95 backdrop-blur-sm p-4 border border-border rounded-lg shadow-lg">
+      <div className="text-sm font-semibold text-foreground mb-3">{indexValue}</div>
+      <div className="space-y-2">
+        <div className="flex justify-between items-center">
+          <span className="text-xs text-muted-foreground">Average Salary:</span>
+          <span className="text-sm font-medium text-primary">${value?.toLocaleString()}</span>
+        </div>
+        <div className="flex justify-between items-center">
+          <span className="text-xs text-muted-foreground">Applications:</span>
+          <span className="text-sm font-medium text-primary">{tooltipData.applications?.toLocaleString()}</span>
+        </div>
+      </div>
+    </div>
+  ), []);
+
+  // Memoize the button click handlers
+  const handleTopClick = useCallback(() => setViewMode('top'), []);
+  const handleBottomClick = useCallback(() => setViewMode('bottom'), []);
+
   if (loading) {
     return (
       <Card className="w-full">
@@ -49,7 +92,6 @@ export function HighestSalaryByStateChart({ data, loading }: HighestSalaryByStat
     );
   }
 
-  const sortedData = [...data].sort((a, b) => b.avgSalary - a.avgSalary).slice(0, 5);
 
   return (
     <Card className="w-full">
@@ -63,7 +105,7 @@ export function HighestSalaryByStateChart({ data, loading }: HighestSalaryByStat
               type="button"
               variant={viewMode === 'top' ? 'default' : 'outline'}
               size="sm"
-              onClick={() => setViewMode('top')}
+              onClick={handleTopClick}
               className="h-7 text-xs"
               aria-pressed={viewMode === 'top'}
             >
@@ -73,7 +115,7 @@ export function HighestSalaryByStateChart({ data, loading }: HighestSalaryByStat
               type="button"
               variant={viewMode === 'bottom' ? 'default' : 'outline'}
               size="sm"
-              onClick={() => setViewMode('bottom')}
+              onClick={handleBottomClick}
               className="h-7 text-xs"
               aria-pressed={viewMode === 'bottom'}
             >
@@ -92,13 +134,10 @@ export function HighestSalaryByStateChart({ data, loading }: HighestSalaryByStat
             padding={0.4}
             valueScale={{ type: 'linear' }}
             indexScale={{ type: 'band', round: true }}
-            colors={(d) => {
-              const index = sortedData.findIndex(item => item.state === d.indexValue);
-              return getChartColor(index, CHART_COLOR_ARRAYS.geographic);
-            }}
+            colors={getColorForState}
             borderRadius={2}
             borderWidth={0}
-            theme={createNivoTheme()}
+            theme={nivoTheme}
             axisTop={null}
             axisRight={null}
             axisBottom={{
@@ -123,21 +162,7 @@ export function HighestSalaryByStateChart({ data, loading }: HighestSalaryByStat
             labelSkipWidth={12}
             labelSkipHeight={12}
             labelTextColor="#FFFFFF"
-            tooltip={({ indexValue, value, data }) => (
-              <div className="bg-card/95 backdrop-blur-sm p-4 border border-border rounded-lg shadow-lg">
-                <div className="text-sm font-semibold text-foreground mb-3">{indexValue}</div>
-                <div className="space-y-2">
-                  <div className="flex justify-between items-center">
-                    <span className="text-xs text-muted-foreground">Average Salary:</span>
-                    <span className="text-sm font-medium text-primary">${value?.toLocaleString()}</span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-xs text-muted-foreground">Applications:</span>
-                    <span className="text-sm font-medium text-primary">{data.applications?.toLocaleString()}</span>
-                  </div>
-                </div>
-              </div>
-            )}
+            tooltip={TooltipComponent}
             animate={true}
             motionConfig="gentle"
           />
@@ -145,4 +170,8 @@ export function HighestSalaryByStateChart({ data, loading }: HighestSalaryByStat
       </CardContent>
     </Card>
   );
-}
+};
+
+HighestSalaryByStateChartComponent.displayName = 'HighestSalaryByStateChart';
+
+export const HighestSalaryByStateChart = React.memo(HighestSalaryByStateChartComponent);

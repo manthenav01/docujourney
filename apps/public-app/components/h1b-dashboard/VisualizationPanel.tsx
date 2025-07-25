@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useMemo } from 'react';
 import { SalaryDistributionChart } from './SalaryDistributionChart';
 import { HighestSalaryByStateChart } from './HighestSalaryByStateChart';
 import { TopJobTitlesCard } from './TopJobTitlesCard';
@@ -36,10 +36,49 @@ interface VisualizationPanelProps {
   chartsLoading: boolean;
 }
 
-export const VisualizationPanel: React.FC<VisualizationPanelProps> = ({
+const VisualizationPanelComponent: React.FC<VisualizationPanelProps> = ({
   dashboardData,
   chartsLoading,
 }) => {
+  // Always call hooks at the top level
+  const salaryDistributionData = useMemo(() => {
+    if (!dashboardData.salaryDistribution || dashboardData.salaryDistribution.length === 0) {
+      return [];
+    }
+    
+    const totalCount = dashboardData.salaryDistribution.reduce((sum, s) => sum + s.count, 0);
+    return dashboardData.salaryDistribution.map(item => ({
+      range: item.range,
+      count: item.count,
+      percentage: totalCount > 0 ? (item.count / totalCount) * 100 : 0,
+    }));
+  }, [dashboardData.salaryDistribution]);
+
+  const stateDistributionData = useMemo(() => {
+    if (!dashboardData.stateDistribution) {
+      return [];
+    }
+    
+    return dashboardData.stateDistribution.map(item => ({
+      state: item.state,
+      avgSalary: item.avgSalary,
+      applications: item.applications,
+    }));
+  }, [dashboardData.stateDistribution]);
+
+  const jobTitleDistributionData = useMemo(() => {
+    if (!dashboardData.jobTitleDistribution) {
+      return [];
+    }
+    
+    return dashboardData.jobTitleDistribution.map(item => ({
+      jobTitle: item.jobTitle,
+      applications: item.applications,
+      avgSalary: item.avgSalary,
+      percentage: item.percentage,
+    }));
+  }, [dashboardData.jobTitleDistribution]);
+
   if (chartsLoading) {
     return (
       <div className="space-y-6">
@@ -90,33 +129,24 @@ export const VisualizationPanel: React.FC<VisualizationPanelProps> = ({
     <div className="space-y-6">
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <SalaryDistributionChart 
-          data={dashboardData.salaryDistribution ? dashboardData.salaryDistribution.map(item => ({
-            range: item.range,
-            count: item.count,
-            percentage: (item.count / dashboardData.salaryDistribution.reduce((sum, s) => sum + s.count, 0)) * 100,
-          })) : []}
+          data={salaryDistributionData}
           loading={chartsLoading}
         />
         <HighestSalaryByStateChart 
-          data={dashboardData.stateDistribution ? dashboardData.stateDistribution.map(item => ({
-            state: item.state,
-            avgSalary: item.avgSalary,
-            applications: item.applications,
-          })) : []}
+          data={stateDistributionData}
           loading={chartsLoading}
         />
       </div>
       <div className="grid grid-cols-1 gap-6">
         <TopJobTitlesCard 
-          data={dashboardData.jobTitleDistribution ? dashboardData.jobTitleDistribution.map(item => ({
-            jobTitle: item.jobTitle,
-            applications: item.applications,
-            avgSalary: item.avgSalary,
-            percentage: item.percentage,
-          })) : []}
+          data={jobTitleDistributionData}
           loading={chartsLoading}
         />
       </div>
     </div>
   );
 };
+
+VisualizationPanelComponent.displayName = 'VisualizationPanel';
+
+export const VisualizationPanel = React.memo(VisualizationPanelComponent);

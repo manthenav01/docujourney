@@ -1,5 +1,6 @@
 'use client';
 
+import React, { useMemo, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle } from '@docujourney/ui';
 
@@ -15,13 +16,26 @@ interface TopJobTitlesCardProps {
   loading?: boolean
 }
 
-export function TopJobTitlesCard({ data, loading }: TopJobTitlesCardProps) {
+const TopJobTitlesCardComponent: React.FC<TopJobTitlesCardProps> = ({ data, loading }) => {
   const router = useRouter();
 
-  const handleJobClick = (jobTitle: string) => {
+  const handleJobClick = useCallback((jobTitle: string) => {
     const jobSlug = jobTitle.toLowerCase().replace(/[^a-z0-9]+/g, '-');
     router.push(`/h1b-dashboard/job/${encodeURIComponent(jobSlug)}?title=${encodeURIComponent(jobTitle)}`);
-  };
+  }, [router]);
+
+  // Memoize processed data to prevent recalculation on every render
+  const processedData = useMemo(() => {
+    if (!data || data.length === 0) {
+      return { topJobTitles: [], maxApplications: 0, totalApplications: 0 };
+    }
+    
+    const topJobTitles = data.slice(0, 5);
+    const maxApplications = Math.max(...topJobTitles.map(item => item.applications));
+    const totalApplications = topJobTitles.reduce((sum, item) => sum + item.applications, 0);
+    
+    return { topJobTitles, maxApplications, totalApplications };
+  }, [data]);
 
   if (loading) {
     return (
@@ -61,18 +75,14 @@ export function TopJobTitlesCard({ data, loading }: TopJobTitlesCardProps) {
     );
   }
 
-  // Get top 5 job titles
-  const topJobTitles = data.slice(0, 5);
-  const maxApplications = Math.max(...topJobTitles.map(item => item.applications));
-
   return (
     <Card className="w-full">
       <CardHeader>
         <CardTitle className="text-lg font-semibold">Top Job Titles</CardTitle>
       </CardHeader>
       <CardContent className="space-y-3">
-        {topJobTitles.map((item, index) => {
-          const progressWidth = (item.applications / maxApplications) * 100;
+        {processedData.topJobTitles.map((item, index) => {
+          const progressWidth = (item.applications / processedData.maxApplications) * 100;
           
           return (
             <div
@@ -120,11 +130,15 @@ export function TopJobTitlesCard({ data, loading }: TopJobTitlesCardProps) {
           <div className="flex justify-between items-center text-xs text-muted-foreground">
             <span>Showing top 5 job titles</span>
             <span>
-              {topJobTitles.reduce((sum, item) => sum + item.applications, 0).toLocaleString()} total applications
+              {processedData.totalApplications.toLocaleString()} total applications
             </span>
           </div>
         </div>
       </CardContent>
     </Card>
   );
-}
+};
+
+TopJobTitlesCardComponent.displayName = 'TopJobTitlesCard';
+
+export const TopJobTitlesCard = React.memo(TopJobTitlesCardComponent);
