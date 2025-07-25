@@ -212,40 +212,44 @@ export const SalaryChart: React.FC<SalaryChartProps> = ({ salaryData, stateData,
   if (!isActive) {return null;}
 
   return (
-    <div className="h-full w-full p-6 bg-white rounded-lg">
+    <div className="h-full w-full bg-card rounded-2xl border border-border/60">
       {/* Two panels side by side */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 h-full">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 h-full p-6">
         
         {/* Salary Distribution Panel */}
-        <div className="bg-gray-50 rounded-xl p-6">
-          <div className="mb-6">
-            <h3 className="text-lg font-semibold text-gray-900">Salary Distribution</h3>
+        <div className="bg-muted/20 rounded-xl p-6 border border-border/20">
+          <div className="mb-4">
+            <h3 className="text-lg font-semibold text-foreground tracking-tight">Salary Distribution</h3>
           </div>
           
           {/* Stats */}
           <div className="mb-4">
-            <p className="text-sm text-gray-600">
+            <p className="text-sm text-muted-foreground">
               Total Applications: {salaryData.reduce((sum, d) => sum + d.count, 0).toLocaleString()}
             </p>
           </div>
           
-          <SalaryDistributionChart data={distributionData} />
+          <div className="p-4 bg-background rounded-lg">
+            <SalaryDistributionChart data={distributionData} />
+          </div>
         </div>
 
         {/* Salary by State Panel */}
-        <div className="bg-gray-50 rounded-xl p-6">
-          <div className="mb-6">
-            <h3 className="text-lg font-semibold text-gray-900">Salary by State</h3>
+        <div className="bg-muted/20 rounded-xl p-6 border border-border/20">
+          <div className="mb-4">
+            <h3 className="text-lg font-semibold text-foreground tracking-tight">Salary by State</h3>
           </div>
           
           {/* Stats */}
           <div className="mb-4">
-            <p className="text-sm text-gray-600">
+            <p className="text-sm text-muted-foreground">
               Top {stateSalaryData.length} States by Application Volume
             </p>
           </div>
           
-          <StateSalaryChart data={stateSalaryData} />
+          <div className="p-4 bg-background rounded-lg">
+            <StateSalaryChart data={stateSalaryData} />
+          </div>
         </div>
       </div>
     </div>

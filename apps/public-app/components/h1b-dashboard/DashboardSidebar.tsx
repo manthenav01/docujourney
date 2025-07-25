@@ -73,9 +73,9 @@ export const DashboardSidebar: React.FC<SidebarProps> = ({
       )}
       
       {/* Sidebar */}
-      <div className={`fixed left-0 top-0 h-full w-64 bg-sidebar border-r border-sidebar-border shadow-sm z-50 transform transition-transform duration-300 ease-in-out ${
-        sidebarOpen ? 'translate-x-0' : '-translate-x-full'
-      } lg:translate-x-0`}>
+      <div className={`w-64 bg-sidebar border-r border-sidebar-border shadow-sm flex-shrink-0 lg:block ${
+        sidebarOpen ? 'block fixed left-0 top-0 h-full z-50' : 'hidden'
+      }`}>
         <div className="p-6">
           <div className="flex items-center justify-between mb-8">
             <div className="flex items-center gap-3">

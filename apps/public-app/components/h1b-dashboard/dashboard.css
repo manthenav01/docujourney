@@ -7,6 +7,7 @@
   overflow: visible;
   background: transparent;
   min-height: 400px;
+  padding: 1.5rem;
   transition: all 0.2s ease;
 }
 
@@ -81,42 +82,42 @@
 
 /* Chart text styling */
 .chart-container svg text {
-  fill: #6b7280;
+  fill: hsl(var(--muted-foreground));
   font-size: 12px;
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 
 /* Chart grid lines */
 .chart-container svg .recharts-cartesian-grid-horizontal line,
 .chart-container svg .recharts-cartesian-grid-vertical line {
-  stroke: #f3f4f6;
+  stroke: hsl(var(--border));
   stroke-width: 1;
 }
 
 /* Chart axes */
 .chart-container svg .recharts-cartesian-axis-line {
-  stroke: #e5e7eb;
+  stroke: hsl(var(--border));
   stroke-width: 1;
 }
 
 .chart-container svg .recharts-cartesian-axis-tick-line {
-  stroke: #e5e7eb;
+  stroke: hsl(var(--border));
   stroke-width: 1;
 }
 
 /* Chart bars and lines */
 .chart-container svg .recharts-bar {
-  fill: #3b82f6;
+  fill: hsl(var(--chart-1));
 }
 
 .chart-container svg .recharts-line {
-  stroke: #2563eb;
+  stroke: hsl(var(--chart-1));
   stroke-width: 2;
 }
 
 .chart-container svg .recharts-dot {
-  fill: #2563eb;
-  stroke: #2563eb;
+  fill: hsl(var(--chart-1));
+  stroke: hsl(var(--chart-1));
   stroke-width: 2;
 }
 
@@ -126,21 +127,21 @@
 }
 
 .chart-container .recharts-default-tooltip {
-  background: white !important;
-  border: 1px solid #e5e7eb !important;
-  border-radius: 8px !important;
+  background: hsl(var(--card)) !important;
+  border: 1px solid hsl(var(--border)) !important;
+  border-radius: calc(var(--radius) + 2px) !important;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1) !important;
   padding: 12px !important;
 }
 
 .chart-container .recharts-tooltip-label {
-  color: #374151 !important;
+  color: hsl(var(--foreground)) !important;
   font-weight: 600 !important;
   margin-bottom: 4px !important;
 }
 
 .chart-container .recharts-tooltip-item {
-  color: #2563eb !important;
+  color: hsl(var(--primary)) !important;
   font-weight: 500 !important;
 }
 
@@ -300,20 +301,9 @@
   box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
 }
 
-/* Responsive design */
+/* Responsive design - simplified for flexbox layout */
 @media (max-width: 1024px) {
-  .ml-64 {
-    margin-left: 0;
-  }
-  
-  .fixed.w-64 {
-    transform: translateX(-100%);
-    transition: transform 0.3s ease;
-  }
-  
-  .fixed.w-64.open {
-    transform: translateX(0);
-  }
+  /* Mobile styles handled by component classes */
 }
 
 @media (max-width: 768px) {

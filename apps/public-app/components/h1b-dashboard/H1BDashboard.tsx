@@ -17,6 +17,7 @@ import {
   Home,
   Settings,
 } from 'lucide-react';
+import { Card, CardContent } from '@docujourney/ui';
 import './dashboard.css';
 
 // BigQuery data structure
@@ -242,21 +243,21 @@ export const H1BDashboard: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
           <div className="loading-spinner mx-auto mb-4"></div>
-          <p className="text-gray-500">Loading H1B Dashboard...</p>
-          <p className="text-sm text-gray-400 mt-2">Fetching real data from BigQuery...</p>
+          <p className="text-muted-foreground">Loading H1B Dashboard...</p>
+          <p className="text-sm text-muted-foreground/80 mt-2">Fetching real data from BigQuery...</p>
           {loadingError && (
-            <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-lg max-w-md mx-auto">
-              <p className="text-red-600 text-sm">{loadingError}</p>
+            <div className="mt-4 p-4 bg-destructive/10 border border-destructive rounded-lg max-w-md mx-auto">
+              <p className="text-destructive text-sm">{loadingError}</p>
               <button 
                 onClick={() => {
                   setLoadingError(null);
                   setLoading(true);
                   fetchH1BData();
                 }}
-                className="mt-2 px-4 py-2 bg-red-600 text-white text-sm rounded hover:bg-red-700"
+                className="mt-2 px-4 py-2 bg-destructive text-destructive-foreground text-sm rounded hover:bg-destructive/90"
               >
                 Retry
               </button>
@@ -269,13 +270,13 @@ export const H1BDashboard: React.FC = () => {
 
   if (!dashboardData) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
-          <p className="text-red-500 font-medium">Failed to load dashboard data</p>
-          <p className="text-sm text-gray-500 mt-2">Please check the console for more details</p>
+          <p className="text-destructive font-medium">Failed to load dashboard data</p>
+          <p className="text-sm text-muted-foreground mt-2">Please check the console for more details</p>
           <button 
             onClick={() => window.location.reload()} 
-            className="mt-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+            className="mt-4 px-4 py-2 bg-primary text-primary-foreground rounded hover:bg-primary/90"
           >
             Retry
           </button>
@@ -316,89 +317,61 @@ export const H1BDashboard: React.FC = () => {
     value: string;
     change?: number;
     status?: 'up' | 'down' | 'stable';
-    icon: React.ReactNode;
+    icon: React.ReactNode;  
     color?: string;
-  }> = ({ title, value, change, status, icon, color = 'blue' }) => (
-    <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100 hover:shadow-md transition-shadow duration-200">
-      <div className="flex items-center justify-between mb-4">
-        <div className={`p-2 bg-${color}-50 rounded-lg text-${color}-600`}>
-          {icon}
-        </div>
-        {change !== undefined && (
-          <div className={`flex items-center gap-1 text-sm font-medium ${
-            status === 'up' ? 'text-green-600' : 
-            status === 'down' ? 'text-red-600' : 
-            'text-gray-500'
-          }`}>
-            {status === 'up' && <ArrowUp className="w-4 h-4" />}
-            {status === 'down' && <ArrowDown className="w-4 h-4" />}
-            {change}%
+  }> = ({ title, value, change, status, icon, color = 'primary' }) => (
+    <Card className="hover:shadow-md transition-shadow duration-200">
+      <CardContent>
+        <div className="flex items-center justify-between mb-4">
+          <div className={`p-2.5 ${
+            color === 'primary' ? 'bg-primary/10 text-primary' :
+            color === 'success' ? 'bg-success/10 text-success' :
+            color === 'warning' ? 'bg-warning/10 text-warning' :
+            'bg-muted/30 text-foreground'
+          } rounded-lg`}>
+            {icon}
           </div>
-        )}
-      </div>
-      <h3 className="text-gray-600 text-sm font-medium mb-1">{title}</h3>
-      <p className="text-3xl font-bold text-gray-900">{value}</p>
-    </div>
+          {change !== undefined && (
+            <div className={`flex items-center gap-1 text-sm font-medium ${
+              status === 'up' ? 'text-success' : 
+              status === 'down' ? 'text-destructive' : 
+              'text-muted-foreground'
+            }`}>
+              {status === 'up' && <ArrowUp className="w-4 h-4" />}
+              {status === 'down' && <ArrowDown className="w-4 h-4" />}
+              {change}%
+            </div>
+          )}
+        </div>
+        <h3 className="text-muted-foreground text-sm font-medium mb-1">{title}</h3>
+        <p className="text-3xl font-bold text-foreground">{value}</p>
+      </CardContent>
+    </Card>
   );
 
+  // Just return the content without sidebar since DashboardLayout handles the sidebar
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Sidebar */}
-      <div className="fixed left-0 top-0 h-full w-64 bg-white border-r border-gray-200 shadow-sm z-50">
-        <div className="p-6">
-          <div className="flex items-center justify-between mb-8">
-            <div className="flex items-center gap-2">
-              <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
-                <BarChart3 className="w-5 h-5 text-white" />
-              </div>
-              <h1 className="text-xl font-bold text-gray-900">H1B Analytics</h1>
+    <>
+      {/* Header */}
+      <div className="mb-6">
+        <div className="flex items-center gap-4 mb-3">
+          <div className="flex-1">
+            <div className="flex items-center gap-3 mb-1">
+              <h1 className="text-2xl lg:text-3xl font-bold text-foreground tracking-tight">Dashboard Overview</h1>
+              {dashboardData?.isFromCache && (
+                <div className="flex items-center gap-1 px-2 py-1 bg-primary/10 border border-primary/20 rounded-md text-primary text-xs font-medium">
+                  <Database className="w-3 h-3" />
+                  <span>Cached</span>
+                </div>
+              )}
             </div>
+            <p className="text-muted-foreground text-sm lg:text-base">Real-time insights from BigQuery • Interactive data exploration</p>
           </div>
-          
-          <nav className="space-y-2">
-            {sidebarItems.map((item) => {
-              const Icon = item.icon;
-              return (
-                <button
-                  key={item.id}
-                  onClick={() => setActiveNavItem(item.id)}
-                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-left transition-all duration-200 ${
-                    activeNavItem === item.id
-                      ? 'bg-blue-50 text-blue-700 border-r-2 border-blue-600'
-                      : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
-                  }`}
-                >
-                  <Icon className="w-5 h-5" />
-                  <span className="font-medium">{item.label}</span>
-                </button>
-              );
-            })}
-          </nav>
         </div>
       </div>
 
-      {/* Main Content */}
-      <div className=" p-4 lg:p-8">
-        {/* Header */}
-        <div className="mb-8">
-          <div className="flex items-center gap-4 mb-4">
-            <div className="flex-1">
-              <div className="flex items-center gap-3 mb-1">
-                <h1 className="text-2xl lg:text-3xl font-bold text-gray-900">Dashboard Overview</h1>
-                {dashboardData?.isFromCache && (
-                  <div className="flex items-center gap-1 px-2 py-1 bg-blue-50 border border-blue-200 rounded-md text-blue-700 text-xs font-medium">
-                    <Database className="w-3 h-3" />
-                    <span>Cached</span>
-                  </div>
-                )}
-              </div>
-              <p className="text-gray-600 text-sm lg:text-base">Real-time insights from BigQuery • Interactive data exploration</p>
-            </div>
-          </div>
-        </div>
-
       {/* Search */}
-      <div className="mb-8">
+      <div className="mb-6">
         <SearchAndFilters
           filters={filters}
           setFilters={setFilters}
@@ -411,43 +384,42 @@ export const H1BDashboard: React.FC = () => {
       </div>
 
       {/* Overview Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6 mb-8">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8 mb-8">
         <MetricCard
           title="Total Applications"
           value={dashboardData.totalApplications.toLocaleString()}
           icon={<FileText className="w-6 h-6" />}
-          color="gray"
+          color="primary"
         />
         <MetricCard
           title="Average Salary"
           value={`$${(dashboardData.avgSalary / 1000).toFixed(0)}K`}
           icon={<DollarSign className="w-6 h-6" />}
-          color="blue"
+          color="success"
         />
         <MetricCard
           title="Unique Employers"
           value={dashboardData.uniqueEmployers.toLocaleString()}
           icon={<Building className="w-6 h-6" />}
-          color="purple"
+          color="primary"
         />
         <MetricCard
           title="Approval Rate"
           value={`${dashboardData.certificationRate.toFixed(1)}%`}
           icon={<TrendingUp className="w-6 h-6" />}
-          color="green"
+          color="success"
         />
       </div>
 
-        {/* Main Content */}
-        <div className="space-y-8">
-          <VisualizationPanel
-            dashboardData={dashboardData}
-            chartsLoading={chartsLoading}
-          />
-          
-          <TopEmployersTable dashboardData={dashboardData} />
-        </div>
+      {/* Main Content */}
+      <div className="space-y-6">
+        <VisualizationPanel
+          dashboardData={dashboardData}
+          chartsLoading={chartsLoading}
+        />
+        
+        <TopEmployersTable dashboardData={dashboardData} />
       </div>
-    </div>
+    </>
   );
 };

@@ -25,27 +25,27 @@ export const QuickStats: React.FC<QuickStatsProps> = ({ dashboardData }) => {
   // Application Volume & Success Rate Stats
   const volumeStats = [
     {
-      icon: <Users className="h-5 w-5 text-blue-600" />,
+      icon: <Users className="h-5 w-5 text-primary" />,
       label: 'Total Applications',
       value: dashboardData.totalApplications.toLocaleString(),
     },
     {
-      icon: <CheckCircle className="h-5 w-5 text-green-600" />,
+      icon: <CheckCircle className="h-5 w-5 text-success" />,
       label: 'Certified Applications',
       value: dashboardData.certifiedApplications.toLocaleString(),
     },
     {
-      icon: <XCircle className="h-5 w-5 text-red-600" />,
+      icon: <XCircle className="h-5 w-5 text-destructive" />,
       label: 'Denied Applications',
       value: dashboardData.deniedApplications.toLocaleString(),
     },
     {
-      icon: <FileX className="h-5 w-5 text-orange-600" />,
+      icon: <FileX className="h-5 w-5 text-warning" />,
       label: 'Withdrawn Applications',
       value: dashboardData.withdrawnApplications.toLocaleString(),
     },
     {
-      icon: <TrendingUp className="h-5 w-5 text-purple-600" />,
+      icon: <TrendingUp className="h-5 w-5 text-primary" />,
       label: 'Certification Rate',
       value: `${dashboardData.certificationRate.toFixed(2)}%`,
     },
@@ -54,22 +54,22 @@ export const QuickStats: React.FC<QuickStatsProps> = ({ dashboardData }) => {
   // Overview Stats
   const overviewStats = [
     {
-      icon: <DollarSign className="h-5 w-5 text-green-600" />,
+      icon: <DollarSign className="h-5 w-5 text-success" />,
       label: 'Avg Salary (Certified)',
       value: `$${dashboardData.avgSalary.toLocaleString()}`,
     },
     {
-      icon: <Building2 className="h-5 w-5 text-purple-600" />,
+      icon: <Building2 className="h-5 w-5 text-primary" />,
       label: 'Unique Employers',
       value: dashboardData.uniqueEmployers.toLocaleString(),
     },
     {
-      icon: <MapPin className="h-5 w-5 text-orange-600" />,
+      icon: <MapPin className="h-5 w-5 text-warning" />,
       label: 'Unique Locations',
       value: dashboardData.uniqueStates.toLocaleString(),
     },
     {
-      icon: <Users className="h-5 w-5 text-blue-600" />,
+      icon: <Users className="h-5 w-5 text-primary" />,
       label: 'Most Applied Job',
       value: dashboardData.mostAppliedJob.title || 'N/A',
       subValue: `${dashboardData.mostAppliedJob.applications.toLocaleString()} applications`,
@@ -79,13 +79,13 @@ export const QuickStats: React.FC<QuickStatsProps> = ({ dashboardData }) => {
   return (
     <div className="space-y-6">
       {/* Application Volume & Success Rates Section */}
-      <Card className="bg-white/80 backdrop-blur-sm shadow-lg border-0 hover:shadow-xl transition-all duration-300">
-        <CardHeader className="pb-4">
-          <CardTitle className="text-xl font-bold flex items-center space-x-3">
-            <div className="p-2 bg-blue-100 rounded-xl">
-              <Users className="h-6 w-6 text-blue-600" />
+      <Card className="group hover:shadow-lg transition-all duration-300">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-3">
+            <div className="p-2.5 bg-primary/10 rounded-xl">
+              <Users className="h-5 w-5 text-primary" />
             </div>
-            <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+            <span className="text-foreground/90">
               Application Volume & Success Rates
             </span>
           </CardTitle>
@@ -93,14 +93,14 @@ export const QuickStats: React.FC<QuickStatsProps> = ({ dashboardData }) => {
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
             {volumeStats.map((stat, index) => (
-              <div key={index} className="text-center p-4 bg-gradient-to-br from-gray-50 to-white rounded-2xl border border-gray-100 hover:shadow-md transition-all duration-200">
+              <div key={index} className="text-center p-4 bg-muted/20 rounded-lg border border-border/30 hover:bg-muted/40 hover:border-border/50 transition-all duration-200">
                 <div className="flex justify-center mb-3">
-                  <div className="p-2 bg-white rounded-xl shadow-sm">
+                  <div className="p-2 bg-background rounded-lg shadow-sm border border-border/20">
                     {stat.icon}
                   </div>
                 </div>
-                <p className="text-sm text-gray-600 mb-2 font-medium">{stat.label}</p>
-                <p className="text-xl font-bold text-gray-900">{stat.value}</p>
+                <p className="text-xs text-muted-foreground mb-2 font-medium">{stat.label}</p>
+                <p className="text-lg font-bold text-foreground">{stat.value}</p>
               </div>
             ))}
           </div>
@@ -108,13 +108,13 @@ export const QuickStats: React.FC<QuickStatsProps> = ({ dashboardData }) => {
       </Card>
 
       {/* Overview Stats Section */}
-      <Card className="bg-white/80 backdrop-blur-sm shadow-lg border-0 hover:shadow-xl transition-all duration-300">
-        <CardHeader className="pb-4">
-          <CardTitle className="text-xl font-bold flex items-center space-x-3">
-            <div className="p-2 bg-green-100 rounded-xl">
-              <DollarSign className="h-6 w-6 text-green-600" />
+      <Card className="group hover:shadow-lg transition-all duration-300">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-3">
+            <div className="p-2.5 bg-success/10 rounded-xl">
+              <DollarSign className="h-5 w-5 text-success" />
             </div>
-            <span className="bg-gradient-to-r from-green-600 to-blue-600 bg-clip-text text-transparent">
+            <span className="text-foreground/90">
               Overview Statistics
             </span>
           </CardTitle>
@@ -122,16 +122,16 @@ export const QuickStats: React.FC<QuickStatsProps> = ({ dashboardData }) => {
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             {overviewStats.map((stat, index) => (
-              <div key={index} className="text-center p-5 bg-gradient-to-br from-gray-50 to-white rounded-2xl border border-gray-100 hover:shadow-md transition-all duration-200">
+              <div key={index} className="text-center p-4 bg-muted/20 rounded-lg border border-border/30 hover:bg-muted/40 hover:border-border/50 transition-all duration-200">
                 <div className="flex justify-center mb-3">
-                  <div className="p-2 bg-white rounded-xl shadow-sm">
+                  <div className="p-2 bg-background rounded-lg shadow-sm border border-border/20">
                     {stat.icon}
                   </div>
                 </div>
-                <p className="text-sm text-gray-600 mb-2 font-medium">{stat.label}</p>
-                <p className="text-2xl font-bold text-gray-900">{stat.value}</p>
+                <p className="text-xs text-muted-foreground mb-2 font-medium">{stat.label}</p>
+                <p className="text-lg font-bold text-foreground">{stat.value}</p>
                 {stat.subValue && (
-                  <p className="text-xs text-gray-500 mt-1">{stat.subValue}</p>
+                  <p className="text-xs text-muted-foreground/80 mt-1">{stat.subValue}</p>
                 )}
               </div>
             ))}
