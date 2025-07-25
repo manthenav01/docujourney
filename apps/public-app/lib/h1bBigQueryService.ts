@@ -60,12 +60,6 @@ export interface H1BAggregatedData {
     avgSalary: number;
     percentage: number;
   }>;
-  caseStatusByJobCategory: Array<{
-    jobCategory: string;
-    caseStatus: string;
-    applicationCount: number;
-    avgSalary: number;
-  }>;
   industryDistribution: Array<{
     industry: string;
     applications: number;
@@ -337,19 +331,6 @@ export class H1BBigQueryService {
       ORDER BY applications DESC
     `;
 
-    const caseStatusByJobCategoryQuery = `
-      SELECT 
-        soc_title as job_category,
-        case_status,
-        COUNT(*) as application_count,
-        AVG(CASE WHEN case_status = 'Certified' THEN wage_rate_of_pay_from END) as avg_salary
-      FROM \`${this.projectId}.${this.datasetId}.lca_applications\`
-      ${whereClause}
-      AND soc_title IS NOT NULL
-      AND case_status IS NOT NULL
-      GROUP BY soc_title, case_status
-      ORDER BY SUM(COUNT(*)) OVER (PARTITION BY soc_title) DESC, case_status
-    `;
 
     try {
       // Execute all queries in parallel
@@ -362,7 +343,6 @@ export class H1BBigQueryService {
         [mostAppliedJobResults],
         [jobTitleDistResults],
         [industryDistResults],
-        [caseStatusByJobCategoryResults],
       ] = await Promise.all([
         this.bigquery.query({ query: mainQuery, params }),
         this.bigquery.query({ query: employersQuery, params }),
@@ -372,7 +352,6 @@ export class H1BBigQueryService {
         this.bigquery.query({ query: mostAppliedJobQuery, params }),
         this.bigquery.query({ query: jobTitleDistQuery, params }),
         this.bigquery.query({ query: industryDistQuery, params }),
-        this.bigquery.query({ query: caseStatusByJobCategoryQuery, params }),
       ]);
 
       // Process results
@@ -426,12 +405,6 @@ export class H1BBigQueryService {
         percentage: row.percentage || 0,
       }));
 
-      const caseStatusByJobCategory = caseStatusByJobCategoryResults.map((row: any) => ({
-        jobCategory: row.job_category || 'Unknown',
-        caseStatus: row.case_status || 'Unknown',
-        applicationCount: row.application_count || 0,
-        avgSalary: Math.round(row.avg_salary || 0),
-      }));
 
       return {
         totalApplications: mainData.total_applications || 0,
@@ -449,7 +422,6 @@ export class H1BBigQueryService {
         yearlyTrends,
         stateDistribution,
         jobTitleDistribution,
-        caseStatusByJobCategory,
         industryDistribution,
       };
     } catch (error) {

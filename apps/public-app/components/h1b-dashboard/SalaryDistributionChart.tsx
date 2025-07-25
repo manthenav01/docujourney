@@ -2,6 +2,7 @@
 
 import { ResponsiveBar } from '@nivo/bar';
 import { Card, CardContent, CardHeader, CardTitle } from '@docujourney/ui';
+import { CHART_COLOR_ARRAYS, getSalaryRangeColor, createNivoTheme } from '../../lib/chartColors';
 
 interface SalaryDistributionData {
   range: string;
@@ -113,59 +114,10 @@ export function SalaryDistributionChart({ data, loading }: SalaryDistributionCha
             padding={0.3}
             valueScale={{ type: 'linear' }}
             indexScale={{ type: 'band', round: true }}
-            colors={({ index }) => {
-              const gradientColors = [
-                'hsl(var(--chart-1))', 'hsl(var(--chart-2))', 'hsl(var(--chart-3))', 
-                'hsl(var(--chart-4))', 'hsl(var(--chart-5))', 'hsl(var(--primary))',
-              ];
-              return gradientColors[index] || 'hsl(var(--primary))';
-            }}
+            colors={({ index }) => getSalaryRangeColor(index)}
             borderRadius={6}
             borderWidth={0}
-            theme={{
-              background: 'transparent',
-              text: {
-                fontSize: 13,
-                fill: 'hsl(var(--foreground))',
-                fontFamily: 'Inter, system-ui, sans-serif',
-                fontWeight: 500,
-              },
-              axis: {
-                domain: {
-                  line: {
-                    stroke: 'hsl(var(--border))',
-                    strokeWidth: 1,
-                  },
-                },
-                legend: {
-                  text: {
-                    fontSize: 14,
-                    fill: 'hsl(var(--foreground))',
-                    fontWeight: 600,
-                    fontFamily: 'Inter, system-ui, sans-serif',
-                  },
-                },
-                ticks: {
-                  line: {
-                    stroke: 'hsl(var(--border))',
-                    strokeWidth: 1,
-                  },
-                  text: {
-                    fontSize: 12,
-                    fill: 'hsl(var(--muted-foreground))',
-                    fontFamily: 'Inter, system-ui, sans-serif',
-                    fontWeight: 500,
-                  },
-                },
-              },
-              grid: {
-                line: {
-                  stroke: 'hsl(var(--border) / 0.5)',
-                  strokeWidth: 1,
-                  strokeDasharray: '2 4',
-                },
-              },
-            }}
+            theme={createNivoTheme()}
             axisTop={null}
             axisRight={null}
             axisBottom={{

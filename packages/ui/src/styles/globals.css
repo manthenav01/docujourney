@@ -128,12 +128,19 @@ button {
    --input: oklch(0.96 0.006 260);
    --ring: oklch(0.55 0.18 260);
    
-   /* Professional chart colors */
-   --chart-1: oklch(0.55 0.18 260);
-   --chart-2: oklch(0.58 0.15 200);
-   --chart-3: oklch(0.52 0.12 300);
-   --chart-4: oklch(0.60 0.16 150);
-   --chart-5: oklch(0.65 0.14 50);
+   /* Professional chart colors - HSL format for compatibility */
+   --chart-1: 252 56% 57%;  /* Professional indigo */
+   --chart-2: 195 55% 65%;  /* Clean cyan blue */
+   --chart-3: 274 44% 52%;  /* Rich purple */
+   --chart-4: 142 52% 58%;  /* Professional green */
+   --chart-5: 43 89% 55%;   /* Vibrant orange */
+   
+   /* OKLCH versions for future use */
+   --chart-1-oklch: oklch(0.55 0.18 260);
+   --chart-2-oklch: oklch(0.58 0.15 200);
+   --chart-3-oklch: oklch(0.52 0.12 300);
+   --chart-4-oklch: oklch(0.60 0.16 150);
+   --chart-5-oklch: oklch(0.65 0.14 50);
    
    /* Clean sidebar design */
    --sidebar: oklch(0.985 0.003 260);
