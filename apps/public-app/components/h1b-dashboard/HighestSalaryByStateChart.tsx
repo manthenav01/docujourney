@@ -48,7 +48,9 @@ export function HighestSalaryByStateChart({ data, loading }: HighestSalaryByStat
     );
   }
 
-  const sortedData = [...data].sort((a, b) => b.avgSalary - a.avgSalary).slice(0, 5);
+  const sortedData = viewMode === 'top' 
+    ? [...data].sort((a, b) => b.avgSalary - a.avgSalary).slice(0, 5)
+    : [...data].sort((a, b) => a.avgSalary - b.avgSalary).slice(0, 5);
 
   return (
     <Card className="w-full">
