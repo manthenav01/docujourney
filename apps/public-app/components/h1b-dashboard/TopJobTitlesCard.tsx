@@ -34,10 +34,10 @@ export function TopJobTitlesCard({ data, loading }: TopJobTitlesCardProps) {
             {[...Array(5)].map((_, index) => (
               <div key={index} className="flex items-center justify-between animate-pulse">
                 <div className="flex items-center space-x-3">
-                  <div className="w-6 h-6 bg-gray-200 rounded-full"></div>
-                  <div className="h-4 bg-gray-200 rounded w-48"></div>
+                  <div className="w-6 h-6 bg-muted rounded-full"></div>
+                  <div className="h-4 bg-muted rounded w-48"></div>
                 </div>
-                <div className="h-4 bg-gray-200 rounded w-16"></div>
+                <div className="h-4 bg-muted rounded w-16"></div>
               </div>
             ))}
           </div>
@@ -68,7 +68,7 @@ export function TopJobTitlesCard({ data, loading }: TopJobTitlesCardProps) {
   return (
     <Card className="w-full">
       <CardHeader>
-        <CardTitle className="text-lg font-semibold text-gray-900">Top Job Titles</CardTitle>
+        <CardTitle className="text-lg font-semibold">Top Job Titles</CardTitle>
       </CardHeader>
       <CardContent className="space-y-3">
         {topJobTitles.map((item, index) => {
@@ -77,26 +77,26 @@ export function TopJobTitlesCard({ data, loading }: TopJobTitlesCardProps) {
           return (
             <div
               key={item.jobTitle}
-              className="group p-4 rounded-lg border border-gray-200 hover:border-blue-300 hover:bg-gray-50 transition-all duration-200 cursor-pointer"
+              className="group p-4 rounded-lg border border-border hover:border-primary/50 hover:bg-muted/50 transition-all duration-200 cursor-pointer"
               onClick={() => handleJobClick(item.jobTitle)}
             >
               {/* Content */}
               <div className="flex items-center justify-between">
                 {/* Left side: Rank and job title */}
                 <div className="flex items-start space-x-3 flex-1 min-w-0">
-                  <div className="flex-shrink-0 w-6 h-6 bg-blue-600 text-white text-xs font-semibold rounded-full flex items-center justify-center">
+                  <div className="flex-shrink-0 w-6 h-6 bg-primary text-primary-foreground text-xs font-semibold rounded-full flex items-center justify-center">
                     {index + 1}
                   </div>
                   <div className="min-w-0 flex-1">
-                    <h3 className="text-sm font-medium text-gray-900 truncate group-hover:text-blue-700 transition-colors">
+                    <h3 className="text-sm font-medium text-foreground truncate group-hover:text-primary transition-colors">
                       {item.jobTitle}
                     </h3>
                     <div className="flex items-center space-x-4 mt-1">
-                      <span className="text-xs text-gray-500">
+                      <span className="text-xs text-muted-foreground">
                         {item.applications.toLocaleString()} applications
                       </span>
-                      <span className="text-xs text-gray-400">•</span>
-                      <span className="text-xs text-gray-500">
+                      <span className="text-xs text-muted-foreground/60">•</span>
+                      <span className="text-xs text-muted-foreground">
                         {item.percentage.toFixed(1)}%
                       </span>
                     </div>
@@ -105,10 +105,10 @@ export function TopJobTitlesCard({ data, loading }: TopJobTitlesCardProps) {
                 
                 {/* Right side: Salary */}
                 <div className="flex-shrink-0 text-right">
-                  <div className="text-sm font-semibold text-blue-600">
+                  <div className="text-sm font-semibold text-primary">
                     ${(item.avgSalary / 1000).toFixed(0)}K
                   </div>
-                  <div className="text-xs text-gray-400">avg salary</div>
+                  <div className="text-xs text-muted-foreground">avg salary</div>
                 </div>
               </div>
             </div>
@@ -116,8 +116,8 @@ export function TopJobTitlesCard({ data, loading }: TopJobTitlesCardProps) {
         })}
         
         {/* Summary footer */}
-        <div className="pt-2 border-t border-gray-100">
-          <div className="flex justify-between items-center text-xs text-gray-500">
+        <div className="pt-2 border-t border-border">
+          <div className="flex justify-between items-center text-xs text-muted-foreground">
             <span>Showing top 5 job titles</span>
             <span>
               {topJobTitles.reduce((sum, item) => sum + item.applications, 0).toLocaleString()} total applications

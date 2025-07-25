@@ -88,7 +88,7 @@ export const theme = {
       xl: '20px',
       '2xl': '24px',
       '3xl': '30px',
-      '4xl': '36px'
+      '4xl': '36px',
     },
     fontWeights: {
       normal: '400',

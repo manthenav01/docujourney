@@ -1,8 +1,9 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { FilterState } from './types';
 import { SearchAndFilters } from './SearchAndFilters';
+import { FilterCards } from './FilterCards';
 import { VisualizationPanel } from './VisualizationPanel';
 import { TopEmployersTable } from './TopEmployersTable';
 import { 
@@ -100,58 +101,34 @@ export const H1BDashboard: React.FC = () => {
   const [initialLoadComplete, setInitialLoadComplete] = useState(false);
   const [loadingError, setLoadingError] = useState<string | null>(null);
 
-  useEffect(() => {
-    // Safety timeout - force loading to end after 45 seconds
-    const safetyTimeout = setTimeout(() => {
-      console.warn('Safety timeout triggered - forcing loading to end');
-      setLoading(false);
-      setInitialLoadComplete(true);
-      if (!dashboardData) {
-        setLoadingError('Loading timed out. Please refresh the page.');
-      }
-    }, 45000);
+  // Create stable filter dependencies to prevent unnecessary re-renders
+  const filterDependencies = useMemo(() => {
+    return {
+      fiscalYears: JSON.stringify(filters.fiscalYears.sort()),
+      salaryRange: `${filters.salaryRange[0]}-${filters.salaryRange[1]}`,
+      states: JSON.stringify(filters.states.sort()),
+      cities: JSON.stringify(filters.cities.sort()),
+      jobCategories: JSON.stringify(filters.jobCategories.sort()),
+      skillLevels: JSON.stringify(filters.skillLevels.sort()),
+      companySizes: JSON.stringify(filters.companySizes.sort()),
+      companyTypes: JSON.stringify(filters.companyTypes.sort()),
+    };
+  }, [
+    filters.fiscalYears,
+    filters.salaryRange,
+    filters.states,
+    filters.cities,
+    filters.jobCategories,
+    filters.skillLevels,
+    filters.companySizes,
+    filters.companyTypes,
+  ]);
 
-    fetchH1BData().finally(() => {
-      clearTimeout(safetyTimeout);
-      setInitialLoadComplete(true);
-      setLoading(false); // Ensure loading is always set to false after initial load
-    });
-
-    return () => clearTimeout(safetyTimeout);
-  }, []);
-
-  useEffect(() => {
-    // Only run when filters change, not on initial load
-    if (!initialLoadComplete) {
-      return;
-    }
-    
-    // Debounce the API call when filters change
-    const timeoutId = setTimeout(() => {
-      fetchH1BData();
-    }, 500);
-
-    return () => clearTimeout(timeoutId);
-  }, [filters.fiscalYears, filters.salaryRange, filters.states, filters.cities, filters.jobCategories, filters.skillLevels, filters.companySizes, filters.companyTypes]);
-
-  useEffect(() => {
-    if (dashboardData) {
-      setChartsLoading(true);
-      setTimeout(() => {
-        setChartsLoading(false);
-      }, 100);
-    }
-  }, [dashboardData]);
-
-
-  const fetchH1BData = async () => {
+  // Memoize the fetchH1BData function to prevent recreating on every render
+  const fetchH1BData = useCallback(async () => {
     try {
       setChartsLoading(true);
       setLoadingError(null); // Clear any previous errors
-      
-      // Add timeout protection
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
       
       // Build query parameters
       const params = new URLSearchParams();
@@ -176,11 +153,7 @@ export const H1BDashboard: React.FC = () => {
       
       console.log('Fetching H1B data with params:', params.toString());
       
-      const response = await fetch(`/api/h1b-data?${params.toString()}`, {
-        signal: controller.signal,
-      });
-      
-      clearTimeout(timeoutId);
+      const response = await fetch(`/api/h1b-data?${params.toString()}`);
       
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
@@ -203,13 +176,7 @@ export const H1BDashboard: React.FC = () => {
     } catch (error) {
       console.error('Error fetching H1B data:', error);
       
-      // Handle specific error types
-      if (error instanceof Error && error.name === 'AbortError') {
-        console.error('Request timed out after 30 seconds');
-        setLoadingError('Request timed out. Please try again.');
-      } else {
-        setLoadingError(error instanceof Error ? error.message : 'Unknown error occurred');
-      }
+      setLoadingError(error instanceof Error ? error.message : 'Unknown error occurred');
       
       // Set empty data on error to prevent crashes
       setDashboardData({
@@ -239,36 +206,31 @@ export const H1BDashboard: React.FC = () => {
       setLoading(false);
       setChartsLoading(false);
     }
-  };
+  }, [filters]); // Add filters as dependency to useCallback
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-center">
-          <div className="loading-spinner mx-auto mb-4"></div>
-          <p className="text-muted-foreground">Loading H1B Dashboard...</p>
-          <p className="text-sm text-muted-foreground/80 mt-2">Fetching real data from BigQuery...</p>
-          {loadingError && (
-            <div className="mt-4 p-4 bg-destructive/10 border border-destructive rounded-lg max-w-md mx-auto">
-              <p className="text-destructive text-sm">{loadingError}</p>
-              <button 
-                onClick={() => {
-                  setLoadingError(null);
-                  setLoading(true);
-                  fetchH1BData();
-                }}
-                className="mt-2 px-4 py-2 bg-destructive text-destructive-foreground text-sm rounded hover:bg-destructive/90"
-              >
-                Retry
-              </button>
-            </div>
-          )}
-        </div>
-      </div>
-    );
-  }
+  // Initial load effect - runs only once on mount
+  useEffect(() => {
+    console.log('H1BDashboard: Initial load effect triggered');
+    fetchH1BData().finally(() => {
+      setInitialLoadComplete(true);
+      setLoading(false);
+    });
+  }, []);
 
-  if (!dashboardData) {
+
+  useEffect(() => {
+    if (dashboardData) {
+      setChartsLoading(true);
+      setTimeout(() => {
+        setChartsLoading(false);
+      }, 100);
+    }
+  }, [dashboardData]);
+
+  // Show skeleton layout while loading initial data, but not full-page spinner
+  const showInitialLoading = loading && !dashboardData;
+
+  if (!dashboardData && !loading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
@@ -284,33 +246,6 @@ export const H1BDashboard: React.FC = () => {
       </div>
     );
   }
-
-  const sidebarItems = [
-    { id: 'overview', label: 'Overview', icon: Home },
-    { id: 'analytics', label: 'Analytics', icon: BarChart3 },
-    { id: 'trends', label: 'Trends', icon: TrendingUp },
-    { id: 'employers', label: 'Employers', icon: Building },
-    { id: 'settings', label: 'Settings', icon: Settings },
-  ];
-
-  const ActionButton: React.FC<{
-    label: string;
-    variant: 'primary' | 'secondary';
-    icon?: React.ReactNode;
-    onClick?: () => void;
-  }> = ({ label, variant, icon, onClick }) => (
-    <button
-      onClick={onClick}
-      className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium text-sm transition-all duration-200 ${
-        variant === 'primary'
-          ? 'bg-blue-600 text-white hover:bg-blue-700 active:bg-blue-800'
-          : 'bg-gray-100 text-gray-700 hover:bg-gray-200 active:bg-gray-300'
-      }`}
-    >
-      {icon}
-      {label}
-    </button>
-  );
 
   const MetricCard: React.FC<{
     title: string;
@@ -358,7 +293,13 @@ export const H1BDashboard: React.FC = () => {
           <div className="flex-1">
             <div className="flex items-center gap-3 mb-1">
               <h1 className="text-2xl lg:text-3xl font-bold text-foreground tracking-tight">Dashboard Overview</h1>
-              {dashboardData?.isFromCache && (
+              {showInitialLoading && (
+                <div className="flex items-center gap-1 px-2 py-1 bg-muted/50 border border-border rounded-md text-muted-foreground text-xs font-medium animate-pulse">
+                  <div className="w-3 h-3 bg-muted rounded animate-pulse"></div>
+                  <span>Loading...</span>
+                </div>
+              )}
+              {dashboardData?.isFromCache && !showInitialLoading && (
                 <div className="flex items-center gap-1 px-2 py-1 bg-primary/10 border border-primary/20 rounded-md text-primary text-xs font-medium">
                   <Database className="w-3 h-3" />
                   <span>Cached</span>
@@ -383,42 +324,128 @@ export const H1BDashboard: React.FC = () => {
         />
       </div>
 
+      {/* Filter Cards */}
+      <div className="mb-8">
+        <FilterCards
+          filters={filters}
+          setFilters={setFilters}
+        />
+      </div>
+
       {/* Overview Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8 mb-8">
-        <MetricCard
-          title="Total Applications"
-          value={dashboardData.totalApplications.toLocaleString()}
-          icon={<FileText className="w-6 h-6" />}
-          color="primary"
-        />
-        <MetricCard
-          title="Average Salary"
-          value={`$${(dashboardData.avgSalary / 1000).toFixed(0)}K`}
-          icon={<DollarSign className="w-6 h-6" />}
-          color="success"
-        />
-        <MetricCard
-          title="Unique Employers"
-          value={dashboardData.uniqueEmployers.toLocaleString()}
-          icon={<Building className="w-6 h-6" />}
-          color="primary"
-        />
-        <MetricCard
-          title="Approval Rate"
-          value={`${dashboardData.certificationRate.toFixed(1)}%`}
-          icon={<TrendingUp className="w-6 h-6" />}
-          color="success"
-        />
+        {showInitialLoading ? (
+          <>
+            <Card className="hover:shadow-md transition-shadow duration-200">
+              <CardContent>
+                <div className="flex items-center justify-between mb-4">
+                  <div className="p-2.5 bg-muted/30 rounded-lg animate-pulse">
+                    <div className="w-6 h-6 bg-muted rounded animate-pulse"></div>
+                  </div>
+                </div>
+                <div className="h-4 bg-muted rounded w-28 animate-pulse mb-1"></div>
+                <div className="h-8 bg-muted rounded w-20 animate-pulse"></div>
+              </CardContent>
+            </Card>
+            <Card className="hover:shadow-md transition-shadow duration-200">
+              <CardContent>
+                <div className="flex items-center justify-between mb-4">
+                  <div className="p-2.5 bg-muted/30 rounded-lg animate-pulse">
+                    <div className="w-6 h-6 bg-muted rounded animate-pulse"></div>
+                  </div>
+                </div>
+                <div className="h-4 bg-muted rounded w-24 animate-pulse mb-1"></div>
+                <div className="h-8 bg-muted rounded w-16 animate-pulse"></div>
+              </CardContent>
+            </Card>
+            <Card className="hover:shadow-md transition-shadow duration-200">
+              <CardContent>
+                <div className="flex items-center justify-between mb-4">
+                  <div className="p-2.5 bg-muted/30 rounded-lg animate-pulse">
+                    <div className="w-6 h-6 bg-muted rounded animate-pulse"></div>
+                  </div>
+                </div>
+                <div className="h-4 bg-muted rounded w-32 animate-pulse mb-1"></div>
+                <div className="h-8 bg-muted rounded w-18 animate-pulse"></div>
+              </CardContent>
+            </Card>
+            <Card className="hover:shadow-md transition-shadow duration-200">
+              <CardContent>
+                <div className="flex items-center justify-between mb-4">
+                  <div className="p-2.5 bg-muted/30 rounded-lg animate-pulse">
+                    <div className="w-6 h-6 bg-muted rounded animate-pulse"></div>
+                  </div>
+                </div>
+                <div className="h-4 bg-muted rounded w-26 animate-pulse mb-1"></div>
+                <div className="h-8 bg-muted rounded w-14 animate-pulse"></div>
+              </CardContent>
+            </Card>
+          </>
+        ) : (
+          <>
+            <MetricCard
+              title="Total Applications"
+              value={dashboardData?.totalApplications.toLocaleString() || '0'}
+              icon={<FileText className="w-6 h-6" />}
+              color="primary"
+            />
+            <MetricCard
+              title="Average Salary"
+              value={`$${((dashboardData?.avgSalary || 0) / 1000).toFixed(0)}K`}
+              icon={<DollarSign className="w-6 h-6" />}
+              color="success"
+            />
+            <MetricCard
+              title="Unique Employers"
+              value={dashboardData?.uniqueEmployers.toLocaleString() || '0'}
+              icon={<Building className="w-6 h-6" />}
+              color="primary"
+            />
+            <MetricCard
+              title="Approval Rate"
+              value={`${(dashboardData?.certificationRate || 0).toFixed(1)}%`}
+              icon={<TrendingUp className="w-6 h-6" />}
+              color="success"
+            />
+          </>
+        )}
       </div>
 
       {/* Main Content */}
       <div className="space-y-6">
         <VisualizationPanel
-          dashboardData={dashboardData}
-          chartsLoading={chartsLoading}
+          dashboardData={dashboardData || {
+            salaryDistribution: [],
+            yearlyTrends: [],
+            stateDistribution: [],
+            jobTitleDistribution: [],
+            caseStatusByJobCategory: [],
+          }}
+          chartsLoading={showInitialLoading || chartsLoading}
         />
         
-        <TopEmployersTable dashboardData={dashboardData} />
+        {showInitialLoading ? (
+          <Card>
+            <CardContent className="p-6">
+              <div className="mb-4">
+                <div className="h-6 bg-muted rounded w-32 animate-pulse"></div>
+              </div>
+              <div className="space-y-3">
+                {[1,2,3,4,5].map(i => (
+                  <div key={i} className="flex items-center justify-between animate-pulse">
+                    <div className="flex items-center space-x-3">
+                      <div className="w-6 h-6 bg-muted rounded-full"></div>
+                      <div className="h-4 bg-muted rounded w-48"></div>
+                    </div>
+                    <div className="h-4 bg-muted rounded w-16"></div>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        ) : (
+          <TopEmployersTable dashboardData={dashboardData || { topEmployers: [] }} />
+        )}
       </div>
     </>
   );

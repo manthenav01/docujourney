@@ -7,7 +7,7 @@ import { Metadata } from 'next';
 export const metadata: Metadata = generateMetadata({
   title: BASE_METADATA.title,
   description: BASE_METADATA.description,
-  keywords: ['immigration', 'H1B visa', 'document management', 'AI-powered', 'visa analytics'],
+  keywords: ['immigration', 'H1B visa', 'AI-powered', 'visa analytics', 'H1B Employer', 'H1B Sponsor'],
   type: 'website',
 });
 

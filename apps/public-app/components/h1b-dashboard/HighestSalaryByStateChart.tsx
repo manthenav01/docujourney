@@ -60,28 +60,20 @@ export function HighestSalaryByStateChart({ data, loading }: HighestSalaryByStat
           <div className="flex gap-1">
             <Button
               type="button"
-              variant="ghost"
+              variant={viewMode === 'top' ? 'default' : 'outline'}
               size="sm"
               onClick={() => setViewMode('top')}
-              className={`px-2 py-1 h-7 text-xs rounded transition-colors ${
-                viewMode === 'top' 
-                  ? 'bg-gray-900 text-white font-medium' 
-                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-              }`}
+              className="h-7 text-xs"
               aria-pressed={viewMode === 'top'}
             >
               Top 5
             </Button>
             <Button
               type="button"
-              variant="ghost"
+              variant={viewMode === 'bottom' ? 'default' : 'outline'}
               size="sm"
               onClick={() => setViewMode('bottom')}
-              className={`px-2 py-1 h-7 text-xs rounded transition-colors ${
-                viewMode === 'bottom' 
-                  ? 'bg-gray-900 text-white font-medium' 
-                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-              }`}
+              className="h-7 text-xs"
               aria-pressed={viewMode === 'bottom'}
             >
               Bottom 5
@@ -102,7 +94,8 @@ export function HighestSalaryByStateChart({ data, loading }: HighestSalaryByStat
             colors={(d) => {
               const index = sortedData.findIndex(item => item.state === d.indexValue);
               const colorMap = [
-                '#1E40AF', '#2563EB', '#3B82F6', '#60A5FA', '#93C5FD',
+                'hsl(var(--chart-1))', 'hsl(var(--chart-2))', 'hsl(var(--chart-3))', 
+                'hsl(var(--chart-4))', 'hsl(var(--chart-5))',
               ];
               return colorMap[index % colorMap.length];
             }}
@@ -112,39 +105,39 @@ export function HighestSalaryByStateChart({ data, loading }: HighestSalaryByStat
               background: 'transparent',
               text: {
                 fontSize: 12,
-                fill: '#64748B',
+                fill: 'hsl(var(--muted-foreground))',
                 fontFamily: 'Inter, system-ui, sans-serif',
               },
               axis: {
                 domain: {
                   line: {
-                    stroke: '#E2E8F0',
+                    stroke: 'hsl(var(--border))',
                     strokeWidth: 1,
                   },
                 },
                 legend: {
                   text: {
                     fontSize: 13,
-                    fill: '#475569',
+                    fill: 'hsl(var(--foreground))',
                     fontWeight: 500,
                     fontFamily: 'Inter, system-ui, sans-serif',
                   },
                 },
                 ticks: {
                   line: {
-                    stroke: '#E2E8F0',
+                    stroke: 'hsl(var(--border))',
                     strokeWidth: 1,
                   },
                   text: {
                     fontSize: 11,
-                    fill: '#64748B',
+                    fill: 'hsl(var(--muted-foreground))',
                     fontFamily: 'Inter, system-ui, sans-serif',
                   },
                 },
               },
               grid: {
                 line: {
-                  stroke: '#F1F5F9',
+                  stroke: 'hsl(var(--border) / 0.5)',
                   strokeWidth: 1,
                 },
               },
@@ -155,17 +148,17 @@ export function HighestSalaryByStateChart({ data, loading }: HighestSalaryByStat
               tickSize: 0,
               tickPadding: 8,
               tickRotation: -45,
-              legend: 'State',
+              legend: null,
               legendPosition: 'middle',
-              legendOffset: 65,
+              legendOffset: 0,
             }}
             axisLeft={{
               tickSize: 0,
               tickPadding: 8,
               tickRotation: 0,
-              legend: 'Average Salary ($)',
+              legend: null,
               legendPosition: 'middle',
-              legendOffset: -70,
+              legendOffset: 0,
               format: (value) => `$${(value / 1000).toFixed(0)}K`,
             }}
             enableGridX={false}
@@ -174,16 +167,16 @@ export function HighestSalaryByStateChart({ data, loading }: HighestSalaryByStat
             labelSkipHeight={12}
             labelTextColor="#FFFFFF"
             tooltip={({ indexValue, value, data }) => (
-              <div className="bg-white/95 backdrop-blur-sm p-4 border border-gray-200 rounded-xl shadow-xl">
-                <div className="text-sm font-semibold text-gray-900 mb-3">{indexValue}</div>
+              <div className="bg-card/95 backdrop-blur-sm p-4 border border-border rounded-lg shadow-lg">
+                <div className="text-sm font-semibold text-foreground mb-3">{indexValue}</div>
                 <div className="space-y-2">
                   <div className="flex justify-between items-center">
-                    <span className="text-xs text-gray-600">Average Salary:</span>
-                    <span className="text-sm font-medium text-blue-600">${value?.toLocaleString()}</span>
+                    <span className="text-xs text-muted-foreground">Average Salary:</span>
+                    <span className="text-sm font-medium text-primary">${value?.toLocaleString()}</span>
                   </div>
                   <div className="flex justify-between items-center">
-                    <span className="text-xs text-gray-600">Applications:</span>
-                    <span className="text-sm font-medium text-blue-600">{data.applications?.toLocaleString()}</span>
+                    <span className="text-xs text-muted-foreground">Applications:</span>
+                    <span className="text-sm font-medium text-primary">{data.applications?.toLocaleString()}</span>
                   </div>
                 </div>
               </div>

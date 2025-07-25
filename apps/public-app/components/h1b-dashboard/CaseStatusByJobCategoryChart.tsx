@@ -48,7 +48,7 @@ export function CaseStatusByJobCategoryChart({ data, loading }: CaseStatusByJobC
             <div className="h-full flex items-center justify-center">
               <div className="text-center">
                 <div className="loading-spinner mx-auto"></div>
-                <p className="text-gray-500 mt-2">Loading case status data...</p>
+                <p className="text-muted-foreground mt-2">Loading case status data...</p>
               </div>
             </div>
           </div>
@@ -92,10 +92,10 @@ export function CaseStatusByJobCategoryChart({ data, loading }: CaseStatusByJobC
 
   // Color scheme for different case statuses
   const statusColors = {
-    Certified: '#059669',          // Green
-    Denied: '#DC2626',             // Red
-    Withdrawn: '#D97706',          // Orange
-    'Certified-Withdrawn': '#7C3AED', // Purple
+    Certified: 'hsl(var(--success))',          // Green
+    Denied: 'hsl(var(--destructive))',         // Red
+    Withdrawn: 'hsl(var(--warning))',          // Orange
+    'Certified-Withdrawn': 'hsl(var(--chart-5))', // Purple
   };
 
   // Process data to create donut chart data for each job category
@@ -186,7 +186,7 @@ export function CaseStatusByJobCategoryChart({ data, loading }: CaseStatusByJobC
         onMouseLeave={() => setHoveredCategory(null)}
       >
         <div className="text-center mb-2">
-          <h3 className="text-sm font-semibold text-gray-800 mb-1">
+          <h3 className="text-sm font-semibold text-foreground mb-1">
             {categoryData.jobCategory}
           </h3>
         </div>
@@ -207,24 +207,24 @@ export function CaseStatusByJobCategoryChart({ data, loading }: CaseStatusByJobC
             animate={true}
             motionConfig="gentle"
             tooltip={({ datum }) => (
-              <div className="bg-white/95 backdrop-blur-sm p-3 border border-gray-200 rounded-lg shadow-lg">
-                <div className="text-sm font-semibold text-gray-900 mb-2">
+              <div className="bg-card/95 backdrop-blur-sm p-3 border border-border rounded-lg shadow-lg">
+                <div className="text-sm font-semibold text-foreground mb-2">
                   {categoryData.fullName}
                 </div>
                 <div className="space-y-1">
                   <div className="flex justify-between items-center">
-                    <span className="text-xs text-gray-600">Status:</span>
+                    <span className="text-xs text-muted-foreground">Status:</span>
                     <span className="text-sm font-semibold" style={{ color: datum.color }}>
                       {datum.label}
                     </span>
                   </div>
                   <div className="flex justify-between items-center">
-                    <span className="text-xs text-gray-600">Applications:</span>
-                    <span className="text-sm font-semibold text-blue-600">{datum.value.toLocaleString()}</span>
+                    <span className="text-xs text-muted-foreground">Applications:</span>
+                    <span className="text-sm font-semibold text-primary">{datum.value.toLocaleString()}</span>
                   </div>
                   <div className="flex justify-between items-center">
-                    <span className="text-xs text-gray-600">Percentage:</span>
-                    <span className="text-sm font-semibold text-blue-600">
+                    <span className="text-xs text-muted-foreground">Percentage:</span>
+                    <span className="text-sm font-semibold text-primary">
                       {((datum.value / categoryData.total) * 100).toFixed(1)}%
                     </span>
                   </div>
@@ -236,10 +236,10 @@ export function CaseStatusByJobCategoryChart({ data, loading }: CaseStatusByJobC
           {/* Center content showing success rate */}
           <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
             <div className="text-center">
-              <div className="text-lg font-bold text-gray-900">
+              <div className="text-lg font-bold text-foreground">
                 {categoryData.certificationRate.toFixed(1)}%
               </div>
-              <div className="text-xs text-gray-500">
+              <div className="text-xs text-muted-foreground">
                 Success Rate
               </div>
             </div>
@@ -255,9 +255,9 @@ export function CaseStatusByJobCategoryChart({ data, loading }: CaseStatusByJobC
                   className="w-2 h-2 rounded-full"
                   style={{ backgroundColor: item.color }}
                 />
-                <span className="text-gray-600">{item.label}</span>
+                <span className="text-muted-foreground">{item.label}</span>
               </div>
-              <span className="font-medium text-gray-800">
+              <span className="font-medium text-foreground">
                 {item.value.toLocaleString()}
               </span>
             </div>
@@ -277,28 +277,20 @@ export function CaseStatusByJobCategoryChart({ data, loading }: CaseStatusByJobC
           <div className="flex gap-1">
             <Button
               type="button"
-              variant="ghost"
+              variant={viewMode === 'top' ? 'default' : 'outline'}
               size="sm"
               onClick={() => setViewMode('top')}
-              className={`px-2 py-1 h-7 text-xs rounded transition-colors ${
-                viewMode === 'top' 
-                  ? 'bg-gray-900 text-white font-medium' 
-                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-              }`}
+              className="h-7 text-xs"
               aria-pressed={viewMode === 'top'}
             >
               Top 3
             </Button>
             <Button
               type="button"
-              variant="ghost"
+              variant={viewMode === 'bottom' ? 'default' : 'outline'}
               size="sm"
               onClick={() => setViewMode('bottom')}
-              className={`px-2 py-1 h-7 text-xs rounded transition-colors ${
-                viewMode === 'bottom' 
-                  ? 'bg-gray-900 text-white font-medium' 
-                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-              }`}
+              className="h-7 text-xs"
               aria-pressed={viewMode === 'bottom'}
             >
               Bottom 3
@@ -321,7 +313,7 @@ export function CaseStatusByJobCategoryChart({ data, loading }: CaseStatusByJobC
                 className="w-3 h-3 rounded-full"
                 style={{ backgroundColor: color }}
               />
-              <span className="text-sm text-gray-600">{status}</span>
+              <span className="text-sm text-muted-foreground">{status}</span>
             </div>
           ))}
         </div>

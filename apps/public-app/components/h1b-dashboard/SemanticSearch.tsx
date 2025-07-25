@@ -270,11 +270,11 @@ export const SemanticSearch: React.FC<SemanticSearchProps> = ({
 
   const getTypeColor = (type: string) => {
     switch (type) {
-      case 'job_title': return 'text-blue-600 bg-blue-50 border-blue-200';
-      case 'employer': return 'text-green-600 bg-green-50 border-green-200';
-      case 'location': return 'text-purple-600 bg-purple-50 border-purple-200';
-      case 'skill': return 'text-orange-600 bg-orange-50 border-orange-200';
-      default: return 'text-gray-600 bg-gray-50 border-gray-200';
+      case 'job_title': return 'text-primary bg-primary/10 border-primary/20';
+      case 'employer': return 'text-success bg-success/10 border-success/20';
+      case 'location': return 'text-chart-3 bg-chart-3/10 border-chart-3/20';
+      case 'skill': return 'text-warning bg-warning/10 border-warning/20';
+      default: return 'text-muted-foreground bg-muted/10 border-border';
     }
   };
 

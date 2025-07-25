@@ -51,22 +51,36 @@ export const VisualizationPanel: React.FC<VisualizationPanelProps> = ({
     return (
       <div className="space-y-6">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <Card className="bg-white/80 backdrop-blur-sm shadow-lg border-0">
+          <Card>
             <CardContent className="p-6">
-              <div className="h-80 flex items-center justify-center">
-                <div className="text-center">
-                  <div className="loading-spinner mx-auto"></div>
-                  <p className="text-gray-500 mt-2">Loading salary distribution...</p>
+              <div className="mb-4">
+                <div className="h-5 bg-muted rounded w-48 animate-pulse"></div>
+              </div>
+              <div className="h-80 bg-muted/30 rounded-lg animate-pulse flex items-center justify-center">
+                <div className="space-y-3 text-center">
+                  <div className="flex justify-center space-x-1">
+                    {[1,2,3,4,5,6,7,8].map(i => (
+                      <div key={i} className="h-16 w-8 bg-muted rounded animate-pulse" style={{animationDelay: `${i * 0.1}s`}}></div>
+                    ))}
+                  </div>
+                  <p className="text-muted-foreground text-sm">Loading salary distribution chart...</p>
                 </div>
               </div>
             </CardContent>
           </Card>
-          <Card className="bg-white/80 backdrop-blur-sm shadow-lg border-0">
+          <Card>
             <CardContent className="p-6">
-              <div className="h-80 flex items-center justify-center">
-                <div className="text-center">
-                  <div className="loading-spinner mx-auto"></div>
-                  <p className="text-gray-500 mt-2">Loading state salary data...</p>
+              <div className="mb-4">
+                <div className="h-5 bg-muted rounded w-40 animate-pulse"></div>
+              </div>
+              <div className="h-80 bg-muted/30 rounded-lg animate-pulse flex items-center justify-center">
+                <div className="space-y-3 text-center">
+                  <div className="flex justify-center space-x-1">
+                    {[1,2,3,4,5].map(i => (
+                      <div key={i} className="h-20 w-12 bg-muted rounded animate-pulse" style={{animationDelay: `${i * 0.1}s`}}></div>
+                    ))}
+                  </div>
+                  <p className="text-muted-foreground text-sm">Loading state salary data...</p>
                 </div>
               </div>
             </CardContent>
@@ -74,12 +88,19 @@ export const VisualizationPanel: React.FC<VisualizationPanelProps> = ({
         </div>
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <TopJobTitlesCard data={[]} loading={true} />
-          <Card className="bg-white/80 backdrop-blur-sm shadow-lg border-0">
+          <Card>
             <CardContent className="p-6">
-              <div className="h-80 flex items-center justify-center">
-                <div className="text-center">
-                  <div className="loading-spinner mx-auto"></div>
-                  <p className="text-gray-500 mt-2">Loading case status data...</p>
+              <div className="mb-4">
+                <div className="h-5 bg-muted rounded w-44 animate-pulse"></div>
+              </div>
+              <div className="h-80 bg-muted/30 rounded-lg animate-pulse flex items-center justify-center">
+                <div className="space-y-3 text-center">
+                  <div className="flex justify-center space-x-6">
+                    {[1,2,3].map(i => (
+                      <div key={i} className="w-20 h-20 bg-muted rounded-full animate-pulse" style={{animationDelay: `${i * 0.2}s`}}></div>
+                    ))}
+                  </div>
+                  <p className="text-muted-foreground text-sm">Loading case status breakdown...</p>
                 </div>
               </div>
             </CardContent>

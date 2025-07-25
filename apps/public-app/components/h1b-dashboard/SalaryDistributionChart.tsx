@@ -23,8 +23,15 @@ export function SalaryDistributionChart({ data, loading }: SalaryDistributionCha
           <CardTitle>Salary Distribution</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="h-80 flex items-center justify-center">
-            <div className="text-muted-foreground">Loading...</div>
+          <div className="h-80 bg-muted/20 rounded-lg animate-pulse flex items-center justify-center">
+            <div className="space-y-3 text-center">
+              <div className="flex justify-center space-x-1">
+                {[1,2,3,4,5,6].map(i => (
+                  <div key={i} className="h-16 w-10 bg-muted rounded animate-pulse" style={{animationDelay: `${i * 0.1}s`}}></div>
+                ))}
+              </div>
+              <p className="text-muted-foreground text-sm">Loading salary distribution...</p>
+            </div>
           </div>
         </CardContent>
       </Card>
@@ -108,9 +115,10 @@ export function SalaryDistributionChart({ data, loading }: SalaryDistributionCha
             indexScale={{ type: 'band', round: true }}
             colors={({ index }) => {
               const gradientColors = [
-                '#1E3A8A', '#1E40AF', '#2563EB', '#3B82F6', '#60A5FA', '#93C5FD',
+                'hsl(var(--chart-1))', 'hsl(var(--chart-2))', 'hsl(var(--chart-3))', 
+                'hsl(var(--chart-4))', 'hsl(var(--chart-5))', 'hsl(var(--primary))',
               ];
-              return gradientColors[index] || '#3B82F6';
+              return gradientColors[index] || 'hsl(var(--primary))';
             }}
             borderRadius={6}
             borderWidth={0}
@@ -118,33 +126,33 @@ export function SalaryDistributionChart({ data, loading }: SalaryDistributionCha
               background: 'transparent',
               text: {
                 fontSize: 13,
-                fill: '#374151',
+                fill: 'hsl(var(--foreground))',
                 fontFamily: 'Inter, system-ui, sans-serif',
                 fontWeight: 500,
               },
               axis: {
                 domain: {
                   line: {
-                    stroke: '#E5E7EB',
+                    stroke: 'hsl(var(--border))',
                     strokeWidth: 1,
                   },
                 },
                 legend: {
                   text: {
                     fontSize: 14,
-                    fill: '#1F2937',
+                    fill: 'hsl(var(--foreground))',
                     fontWeight: 600,
                     fontFamily: 'Inter, system-ui, sans-serif',
                   },
                 },
                 ticks: {
                   line: {
-                    stroke: '#E5E7EB',
+                    stroke: 'hsl(var(--border))',
                     strokeWidth: 1,
                   },
                   text: {
                     fontSize: 12,
-                    fill: '#6B7280',
+                    fill: 'hsl(var(--muted-foreground))',
                     fontFamily: 'Inter, system-ui, sans-serif',
                     fontWeight: 500,
                   },
@@ -152,7 +160,7 @@ export function SalaryDistributionChart({ data, loading }: SalaryDistributionCha
               },
               grid: {
                 line: {
-                  stroke: '#F3F4F6',
+                  stroke: 'hsl(var(--border) / 0.5)',
                   strokeWidth: 1,
                   strokeDasharray: '2 4',
                 },
@@ -183,21 +191,21 @@ export function SalaryDistributionChart({ data, loading }: SalaryDistributionCha
             labelTextColor="#FFFFFF"
             labelFormat={(value) => `${(Number(value) / 1000).toFixed(0)}K`}
             tooltip={({ indexValue, value, data }) => (
-              <div className="bg-white/95 backdrop-blur-sm p-5 border border-gray-200 rounded-xl shadow-2xl">
-                <div className="text-sm font-bold text-gray-900 mb-3 border-b border-gray-100 pb-2">{indexValue}</div>
+              <div className="bg-card/95 backdrop-blur-sm p-5 border border-border rounded-xl shadow-2xl">
+                <div className="text-sm font-bold text-foreground mb-3 border-b border-border pb-2">{indexValue}</div>
                 <div className="space-y-3">
                   <div className="flex justify-between items-center">
-                    <span className="text-xs text-gray-600 font-medium">Applications:</span>
-                    <span className="text-sm font-bold text-blue-600">{value?.toLocaleString()}</span>
+                    <span className="text-xs text-muted-foreground font-medium">Applications:</span>
+                    <span className="text-sm font-bold text-primary">{value?.toLocaleString()}</span>
                   </div>
                   <div className="flex justify-between items-center">
-                    <span className="text-xs text-gray-600 font-medium">Share:</span>
-                    <span className="text-sm font-bold text-emerald-600">{data.percentage?.toFixed(1)}%</span>
+                    <span className="text-xs text-muted-foreground font-medium">Share:</span>
+                    <span className="text-sm font-bold text-success">{data.percentage?.toFixed(1)}%</span>
                   </div>
-                  <div className="flex justify-between items-center pt-2 border-t border-gray-100">
-                    <span className="text-xs text-gray-500">vs Average:</span>
+                  <div className="flex justify-between items-center pt-2 border-t border-border">
+                    <span className="text-xs text-muted-foreground">vs Average:</span>
                     <span className={`text-sm font-semibold ${
-                      (value || 0) > averageApplications ? 'text-emerald-600' : 'text-orange-600'
+                      (value || 0) > averageApplications ? 'text-success' : 'text-warning'
                     }`}>
                       {((((value || 0) - averageApplications) / averageApplications) * 100).toFixed(0)}%
                     </span>
@@ -210,16 +218,16 @@ export function SalaryDistributionChart({ data, loading }: SalaryDistributionCha
           />
           
           {/* Statistical Overlay Lines */}
-          <div className="absolute top-12 right-12 bg-white/90 backdrop-blur-sm p-3 rounded-lg border border-gray-200 shadow-sm">
-            <div className="text-xs font-semibold text-gray-700 mb-2">Statistics</div>
+          <div className="absolute top-12 right-12 bg-card/90 backdrop-blur-sm p-3 rounded-lg border border-border shadow-sm">
+            <div className="text-xs font-semibold text-foreground mb-2">Statistics</div>
             <div className="space-y-1">
               <div className="flex items-center space-x-2">
-                <div className="w-3 h-0.5 bg-blue-500"></div>
-                <span className="text-xs text-gray-600">Avg: {averageApplications.toLocaleString()}</span>
+                <div className="w-3 h-0.5 bg-primary"></div>
+                <span className="text-xs text-muted-foreground">Avg: {averageApplications.toLocaleString()}</span>
               </div>
               <div className="flex items-center space-x-2">
-                <div className="w-3 h-0.5 bg-emerald-500"></div>
-                <span className="text-xs text-gray-600">Total: {totalApplications.toLocaleString()}</span>
+                <div className="w-3 h-0.5 bg-success"></div>
+                <span className="text-xs text-muted-foreground">Total: {totalApplications.toLocaleString()}</span>
               </div>
             </div>
           </div>

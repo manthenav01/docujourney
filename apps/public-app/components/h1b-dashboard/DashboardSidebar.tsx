@@ -82,7 +82,7 @@ export const DashboardSidebar: React.FC<SidebarProps> = ({
               <div className="w-8 h-8 bg-primary/10 rounded-xl flex items-center justify-center">
                 <BarChart3 className="w-5 h-5 text-primary" />
               </div>
-              <h1 className="text-xl font-bold text-sidebar-foreground tracking-tight">H1B Analytics</h1>
+              <h1 className="text-lg font-bold text-sidebar-foreground tracking-tight">Immigrant Central</h1>
             </div>
             <button
               onClick={() => setSidebarOpen(false)}

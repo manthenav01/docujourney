@@ -123,7 +123,7 @@ export const JobDashboard: React.FC<JobDashboardProps> = ({
 
   if (loading) {
     return (
-      <div className="max-w-7xl mx-auto">
+      <div className="max-w-7xl mx-auto space-y-6">
         <div className="mb-6">
           <Button 
             onClick={handleBackClick}
@@ -133,10 +133,91 @@ export const JobDashboard: React.FC<JobDashboardProps> = ({
             <ArrowLeft className="w-4 h-4 mr-2" />
             Back to Dashboard
           </Button>
+          
+          {/* Header Skeleton */}
+          <div className="flex items-center space-x-4">
+            <div className="p-3 bg-muted/30 rounded-xl animate-pulse">
+              <div className="w-8 h-8 bg-muted rounded animate-pulse"></div>
+            </div>
+            <div className="space-y-2">
+              <div className="h-8 bg-muted rounded w-72 animate-pulse"></div>
+              <div className="h-4 bg-muted rounded w-56 animate-pulse"></div>
+            </div>
+            <div className="ml-auto">
+              <div className="h-6 bg-muted rounded w-36 animate-pulse"></div>
+            </div>
+          </div>
         </div>
-        
-        <div className="flex items-center justify-center min-h-[400px]">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+
+        {/* Key Metrics Cards Skeleton */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
+          {[1,2,3,4,5].map(i => (
+            <Card key={i}>
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="p-2 bg-muted/30 rounded-lg animate-pulse">
+                    <div className="w-6 h-6 bg-muted rounded animate-pulse"></div>
+                  </div>
+                </div>
+                <div className="h-4 bg-muted rounded w-20 animate-pulse mb-1"></div>
+                <div className="h-8 bg-muted rounded w-16 animate-pulse"></div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+
+        {/* Charts Skeleton */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <Card>
+            <CardHeader>
+              <div className="h-6 bg-muted rounded w-44 animate-pulse"></div>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {[1,2,3,4].map(i => (
+                  <div key={i} className="flex items-center justify-between p-3 bg-muted/20 rounded-lg animate-pulse">
+                    <div className="flex items-center space-x-3">
+                      <div className="w-8 h-8 bg-muted rounded-full animate-pulse"></div>
+                      <div className="space-y-1">
+                        <div className="h-4 bg-muted rounded w-40 animate-pulse"></div>
+                        <div className="h-3 bg-muted rounded w-28 animate-pulse"></div>
+                      </div>
+                    </div>
+                    <div className="space-y-1">
+                      <div className="h-4 bg-muted rounded w-18 animate-pulse"></div>
+                      <div className="h-3 bg-muted rounded w-14 animate-pulse"></div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardHeader>
+              <div className="h-6 bg-muted rounded w-38 animate-pulse"></div>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {[1,2,3,4,5].map(i => (
+                  <div key={i} className="space-y-2">
+                    <div className="flex justify-between items-center">
+                      <div className="h-4 bg-muted rounded w-20 animate-pulse"></div>
+                      <div className="h-3 bg-muted rounded w-16 animate-pulse"></div>
+                    </div>
+                    <div className="w-full bg-muted/30 rounded-full h-2">
+                      <div className="bg-muted h-2 rounded-full w-3/4 animate-pulse"></div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Loading indicator */}
+        <div className="text-center py-8">
+          <p className="text-muted-foreground text-sm">Loading job data...</p>
         </div>
       </div>
     );
@@ -155,13 +236,13 @@ export const JobDashboard: React.FC<JobDashboardProps> = ({
             Back to Dashboard
           </Button>
         </div>
-           <Card className="bg-red-50 border-red-200">
+           <Card className="bg-destructive/10 border border-destructive/20">
         <CardContent className="p-6">
           <div className="text-center">
-            <div className="text-red-600 text-lg font-semibold mb-2">Unable to Load Job Data</div>
-            <div className="text-red-700">{error}</div>
+            <div className="text-destructive text-lg font-semibold mb-2">Unable to Load Job Data</div>
+            <div className="text-destructive">{error}</div>
             {error.includes('No H1B data found') && (
-              <div className="mt-4 text-sm text-gray-600">
+              <div className="mt-4 text-sm text-muted-foreground">
                 <p>This could mean:</p>
                 <ul className="list-disc list-inside mt-2 space-y-1">
                   <li>The job title might be spelled differently in our database</li>
@@ -206,12 +287,12 @@ export const JobDashboard: React.FC<JobDashboardProps> = ({
         </Button>
         
         <div className="flex items-center space-x-4">
-          <div className="p-3 bg-purple-50 rounded-xl">
-            <Briefcase className="w-8 h-8 text-purple-600" />
+          <div className="p-3 bg-primary/10 rounded-xl">
+            <Briefcase className="w-8 h-8 text-primary" />
           </div>
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">{jobTitle}</h1>
-            <p className="text-gray-600">H1B Job Market Analysis & Insights</p>
+            <h1 className="text-3xl font-bold text-foreground">{jobTitle}</h1>
+            <p className="text-muted-foreground">H1B Job Market Analysis & Insights</p>
           </div>
           <div className="ml-auto">
             <Badge variant="secondary" className="text-sm">
@@ -223,53 +304,53 @@ export const JobDashboard: React.FC<JobDashboardProps> = ({
 
       {/* Key Metrics Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <Card className="bg-white rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow duration-200">
+        <Card className="hover:shadow-md transition-shadow duration-200">
           <CardContent className="p-6">
             <div className="flex items-center justify-between mb-4">
-              <div className="p-2 bg-blue-50 rounded-lg text-blue-600">
+              <div className="p-2 bg-primary/10 rounded-lg text-primary">
                 <Users className="w-6 h-6" />
               </div>
             </div>
-            <h3 className="text-gray-600 text-sm font-medium mb-1">Total Applications</h3>
-            <p className="text-3xl font-bold text-gray-900">{formatNumber(jobInfo.totalApplications)}</p>
+            <h3 className="text-muted-foreground text-sm font-medium mb-1">Total Applications</h3>
+            <p className="text-3xl font-bold text-foreground">{formatNumber(jobInfo.totalApplications)}</p>
           </CardContent>
         </Card>
 
-        <Card className="bg-white rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow duration-200">
+        <Card className="hover:shadow-md transition-shadow duration-200">
           <CardContent className="p-6">
             <div className="flex items-center justify-between mb-4">
-              <div className="p-2 bg-green-50 rounded-lg text-green-600">
+              <div className="p-2 bg-success/10 rounded-lg text-success">
                 <CheckCircle className="w-6 h-6" />
               </div>
             </div>
-            <h3 className="text-gray-600 text-sm font-medium mb-1">Certification Rate</h3>
-            <p className="text-3xl font-bold text-gray-900">{certificationRate}%</p>
+            <h3 className="text-muted-foreground text-sm font-medium mb-1">Certification Rate</h3>
+            <p className="text-3xl font-bold text-foreground">{certificationRate}%</p>
           </CardContent>
         </Card>
 
-        <Card className="bg-white rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow duration-200">
+        <Card className="hover:shadow-md transition-shadow duration-200">
           <CardContent className="p-6">
             <div className="flex items-center justify-between mb-4">
-              <div className="p-2 bg-purple-50 rounded-lg text-purple-600">
+              <div className="p-2 bg-chart-3/10 rounded-lg text-chart-3">
                 <DollarSign className="w-6 h-6" />
               </div>
             </div>
-            <h3 className="text-gray-600 text-sm font-medium mb-1">Average Salary</h3>
-            <p className="text-3xl font-bold text-gray-900">
+            <h3 className="text-muted-foreground text-sm font-medium mb-1">Average Salary</h3>
+            <p className="text-3xl font-bold text-foreground">
               {hasFinancialData ? formatCurrency(jobInfo.avgSalary) : 'N/A'}
             </p>
           </CardContent>
         </Card>
 
-        <Card className="bg-white rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow duration-200">
+        <Card className="hover:shadow-md transition-shadow duration-200">
           <CardContent className="p-6">
             <div className="flex items-center justify-between mb-4">
-              <div className="p-2 bg-orange-50 rounded-lg text-orange-600">
+              <div className="p-2 bg-warning/10 rounded-lg text-warning">
                 <Clock className="w-6 h-6" />
               </div>
             </div>
-            <h3 className="text-gray-600 text-sm font-medium mb-1">Full-Time Positions</h3>
-            <p className="text-3xl font-bold text-gray-900">{fullTimePercentage}%</p>
+            <h3 className="text-muted-foreground text-sm font-medium mb-1">Full-Time Positions</h3>
+            <p className="text-3xl font-bold text-foreground">{fullTimePercentage}%</p>
           </CardContent>
         </Card>
       </div>
@@ -287,19 +368,19 @@ export const JobDashboard: React.FC<JobDashboardProps> = ({
           <CardContent>
             <div className="space-y-4">
               {jobInfo.yearlyTrends.map((year) => (
-                <div key={year.fiscalYear} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                <div key={year.fiscalYear} className="flex items-center justify-between p-3 bg-muted/20 rounded-lg">
                   <div className="flex items-center space-x-3">
-                    <div className="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center text-purple-700 font-semibold">
+                    <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center text-primary font-semibold">
                       {year.fiscalYear.slice(-2)}
                     </div>
                     <div>
-                      <div className="font-medium text-gray-900">FY {year.fiscalYear}</div>
-                      <div className="text-sm text-gray-500">{formatNumber(year.applications)} applications</div>
+                      <div className="font-medium text-foreground">FY {year.fiscalYear}</div>
+                      <div className="text-sm text-muted-foreground">{formatNumber(year.applications)} applications</div>
                     </div>
                   </div>
                   <div className="text-right">
-                    <div className="font-semibold text-gray-900">{formatCurrency(year.avgSalary)}</div>
-                    <div className="text-xs text-gray-500">{year.certificationRate.toFixed(1)}% certified</div>
+                    <div className="font-semibold text-foreground">{formatCurrency(year.avgSalary)}</div>
+                    <div className="text-xs text-muted-foreground">{year.certificationRate.toFixed(1)}% certified</div>
                   </div>
                 </div>
               ))}
@@ -318,19 +399,19 @@ export const JobDashboard: React.FC<JobDashboardProps> = ({
           <CardContent>
             <div className="space-y-4">
               {jobInfo.topEmployers.slice(0, 5).map((employer, index) => (
-                <div key={employer.employer} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                <div key={employer.employer} className="flex items-center justify-between p-3 bg-muted/20 rounded-lg">
                   <div className="flex items-center space-x-3">
-                    <div className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center text-purple-700 font-semibold text-sm">
+                    <div className="w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center text-primary font-semibold text-sm">
                       {index + 1}
                     </div>
                     <div>
-                      <div className="font-medium text-gray-900">{employer.employer}</div>
-                      <div className="text-sm text-gray-500">{formatNumber(employer.applications)} applications</div>
+                      <div className="font-medium text-foreground">{employer.employer}</div>
+                      <div className="text-sm text-muted-foreground">{formatNumber(employer.applications)} applications</div>
                     </div>
                   </div>
                   <div className="text-right">
-                    <div className="font-semibold text-gray-900">{formatCurrency(employer.avgSalary)}</div>
-                    <div className="text-xs text-gray-500">avg salary</div>
+                    <div className="font-semibold text-foreground">{formatCurrency(employer.avgSalary)}</div>
+                    <div className="text-xs text-muted-foreground">avg salary</div>
                   </div>
                 </div>
               ))}
@@ -354,15 +435,15 @@ export const JobDashboard: React.FC<JobDashboardProps> = ({
               {jobInfo.topStates.map((state) => (
                 <div key={state.state} className="space-y-2">
                   <div className="flex justify-between items-center">
-                    <span className="font-medium text-gray-900">{state.state}</span>
+                    <span className="font-medium text-foreground">{state.state}</span>
                     <div className="text-right">
-                      <span className="text-sm text-gray-600">{formatNumber(state.applications)} ({state.percentage}%)</span>
-                      <div className="text-xs text-gray-500">{formatCurrency(state.avgSalary)} avg</div>
+                      <span className="text-sm text-muted-foreground">{formatNumber(state.applications)} ({state.percentage}%)</span>
+                      <div className="text-xs text-muted-foreground">{formatCurrency(state.avgSalary)} avg</div>
                     </div>
                   </div>
-                  <div className="w-full bg-gray-200 rounded-full h-2">
+                  <div className="w-full bg-muted rounded-full h-2">
                     <div 
-                      className="bg-purple-500 h-2 rounded-full transition-all duration-300" 
+                      className="bg-primary h-2 rounded-full transition-all duration-300" 
                       style={{ width: `${state.percentage}%` }}
                     ></div>
                   </div>
@@ -385,17 +466,17 @@ export const JobDashboard: React.FC<JobDashboardProps> = ({
               {jobInfo.salaryDistribution.map((salary, index) => {
                 const maxCount = Math.max(...jobInfo.salaryDistribution.map(s => s.count));
                 const percentage = (salary.count / maxCount) * 100;
-                const colors = ['bg-blue-500', 'bg-green-500', 'bg-yellow-500', 'bg-red-500', 'bg-purple-500', 'bg-indigo-500', 'bg-pink-500', 'bg-orange-500'];
+                const chartColors = ['bg-chart-1', 'bg-chart-2', 'bg-chart-3', 'bg-chart-4', 'bg-chart-5', 'bg-primary', 'bg-success', 'bg-warning'];
                 
                 return (
                   <div key={salary.range} className="space-y-2">
                     <div className="flex justify-between items-center">
-                      <span className="font-medium text-gray-900">{salary.range}</span>
-                      <span className="text-sm text-gray-600">{formatNumber(salary.count)}</span>
+                      <span className="font-medium text-foreground">{salary.range}</span>
+                      <span className="text-sm text-muted-foreground">{formatNumber(salary.count)}</span>
                     </div>
-                    <div className="w-full bg-gray-200 rounded-full h-2">
+                    <div className="w-full bg-muted rounded-full h-2">
                       <div 
-                        className={`${colors[index % colors.length]} h-2 rounded-full transition-all duration-300`}
+                        className={`${chartColors[index % chartColors.length]} h-2 rounded-full transition-all duration-300`}
                         style={{ width: `${percentage}%` }}
                       ></div>
                     </div>
@@ -418,40 +499,40 @@ export const JobDashboard: React.FC<JobDashboardProps> = ({
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              <div className="flex items-center justify-between p-4 bg-green-50 rounded-lg">
+              <div className="flex items-center justify-between p-4 bg-success/10 rounded-lg">
                 <div className="flex items-center space-x-3">
-                  <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
-                    <Clock className="w-6 h-6 text-green-600" />
+                  <div className="w-12 h-12 bg-success/20 rounded-full flex items-center justify-center">
+                    <Clock className="w-6 h-6 text-success" />
                   </div>
                   <div>
-                    <div className="font-semibold text-gray-900">Full-Time Positions</div>
-                    <div className="text-sm text-gray-600">{formatNumber(jobInfo.fullTimePositions)} applications</div>
+                    <div className="font-semibold text-foreground">Full-Time Positions</div>
+                    <div className="text-sm text-muted-foreground">{formatNumber(jobInfo.fullTimePositions)} applications</div>
                   </div>
                 </div>
                 <div className="text-right">
-                  <div className="text-2xl font-bold text-green-600">{fullTimePercentage}%</div>
-                  <div className="text-xs text-gray-500">of total</div>
+                  <div className="text-2xl font-bold text-success">{fullTimePercentage}%</div>
+                  <div className="text-xs text-muted-foreground">of total</div>
                 </div>
               </div>
               
-              <div className="flex items-center justify-between p-4 bg-blue-50 rounded-lg">
+              <div className="flex items-center justify-between p-4 bg-primary/10 rounded-lg">
                 <div className="flex items-center space-x-3">
-                  <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
-                    <Target className="w-6 h-6 text-blue-600" />
+                  <div className="w-12 h-12 bg-primary/20 rounded-full flex items-center justify-center">
+                    <Target className="w-6 h-6 text-primary" />
                   </div>
                   <div>
-                    <div className="font-semibold text-gray-900">Part-Time Positions</div>
-                    <div className="text-sm text-gray-600">{formatNumber(jobInfo.partTimePositions)} applications</div>
+                    <div className="font-semibold text-foreground">Part-Time Positions</div>
+                    <div className="text-sm text-muted-foreground">{formatNumber(jobInfo.partTimePositions)} applications</div>
                   </div>
                 </div>
                 <div className="text-right">
-                  <div className="text-2xl font-bold text-blue-600">{(100 - parseFloat(fullTimePercentage)).toFixed(1)}%</div>
-                  <div className="text-xs text-gray-500">of total</div>
+                  <div className="text-2xl font-bold text-primary">{(100 - parseFloat(fullTimePercentage)).toFixed(1)}%</div>
+                  <div className="text-xs text-muted-foreground">of total</div>
                 </div>
               </div>
 
-              <div className="mt-4 p-4 bg-gray-50 rounded-lg">
-                <div className="text-sm text-gray-600">
+              <div className="mt-4 p-4 bg-muted/20 rounded-lg">
+                <div className="text-sm text-muted-foreground">
                   <strong>Market Insight:</strong> Full-time positions represent {fullTimePercentage}% of all {jobTitle} H1B applications, 
                   indicating {parseFloat(fullTimePercentage) > 80 ? 'strong employer demand for permanent roles' : 'mixed employment patterns'} 
                   in this field.
@@ -477,14 +558,14 @@ export const JobDashboard: React.FC<JobDashboardProps> = ({
                 
                 return (
                   <div key={activity.month} className="text-center space-y-2">
-                    <div className="text-sm font-medium text-gray-600">{activity.month.split(' ')[0]}</div>
+                    <div className="text-sm font-medium text-muted-foreground">{activity.month.split(' ')[0]}</div>
                     <div className="flex items-end justify-center h-20">
                       <div 
-                        className="bg-purple-500 rounded-t-md w-8 transition-all duration-300"
+                        className="bg-primary rounded-t-md w-8 transition-all duration-300"
                         style={{ height: `${height}%` }}
                       ></div>
                     </div>
-                    <div className="text-xs text-gray-500">{formatNumber(activity.applications)}</div>
+                    <div className="text-xs text-muted-foreground">{formatNumber(activity.applications)}</div>
                   </div>
                 );
               })}
@@ -503,28 +584,28 @@ export const JobDashboard: React.FC<JobDashboardProps> = ({
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="text-center p-4 bg-blue-50 rounded-lg">
+            <div className="text-center p-4 bg-primary/10 rounded-lg">
               <div className="text-2xl font-bold text-blue-600">{hasFinancialData ? formatCurrency(jobInfo.medianSalary) : 'N/A'}</div>
-              <div className="text-sm text-gray-600">Median Salary</div>
-              <div className="text-xs text-gray-500 mt-1">50th percentile earnings</div>
+              <div className="text-sm text-muted-foreground">Median Salary</div>
+              <div className="text-xs text-muted-foreground mt-1">50th percentile earnings</div>
             </div>
             
-            <div className="text-center p-4 bg-green-50 rounded-lg">
+            <div className="text-center p-4 bg-success/10 rounded-lg">
               <div className="text-2xl font-bold text-green-600">{formatNumber(jobInfo.topEmployers.length)}</div>
-              <div className="text-sm text-gray-600">Active Employers</div>
-              <div className="text-xs text-gray-500 mt-1">Companies hiring for this role</div>
+              <div className="text-sm text-muted-foreground">Active Employers</div>
+              <div className="text-xs text-muted-foreground mt-1">Companies hiring for this role</div>
             </div>
             
-            <div className="text-center p-4 bg-purple-50 rounded-lg">
+            <div className="text-center p-4 bg-chart-3/10 rounded-lg">
               <div className="text-2xl font-bold text-purple-600">{formatNumber(jobInfo.topStates.length)}</div>
-              <div className="text-sm text-gray-600">Active States</div>
-              <div className="text-xs text-gray-500 mt-1">Geographic opportunities</div>
+              <div className="text-sm text-muted-foreground">Active States</div>
+              <div className="text-xs text-muted-foreground mt-1">Geographic opportunities</div>
             </div>
           </div>
           
           {hasFinancialData && (
-            <div className="mt-6 p-4 bg-gray-50 rounded-lg">
-              <div className="text-sm text-gray-700">
+            <div className="mt-6 p-4 bg-muted/20 rounded-lg">
+              <div className="text-sm text-muted-foreground">
                 <strong>Key Takeaways:</strong> The {jobTitle} role shows {
                   hasFinancialData && jobInfo.avgSalary > 100000 ? 'competitive' : 'moderate'
                 } compensation with an average salary of {formatCurrency(jobInfo.avgSalary)}. 
