@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
+import Image from 'next/image';
 import { User, Settings, LogOut, ChevronUp } from 'lucide-react';
 import { onAuthStateChanged, signOut } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
@@ -88,9 +89,11 @@ export function UserDropdown() {
           <div className="flex items-center gap-3 w-full">
             <div className="flex-shrink-0">
               {user.photoURL ? (
-                <img
+                <Image
                   src={user.photoURL}
                   alt="User avatar"
+                  width={32}
+                  height={32}
                   className="w-8 h-8 rounded-full object-cover"
                 />
               ) : (

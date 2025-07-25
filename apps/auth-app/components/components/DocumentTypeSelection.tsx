@@ -53,7 +53,7 @@ export const DocumentTypeSelection: React.FC<DocumentTypeSelectionProps> = ({
         <div>
           <h3 className="text-lg font-semibold text-gray-900">Select Document Type</h3>
           <p className="text-sm text-gray-600">
-            We couldn't automatically detect the document type. Please select the correct type below.
+            We couldn&apos;t automatically detect the document type. Please select the correct type below.
           </p>
         </div>
       </div>

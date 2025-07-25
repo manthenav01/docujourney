@@ -50,7 +50,7 @@ export const NewProfileDialog: React.FC<NewProfileDialogProps> = ({
         <h3 className="text-lg font-medium text-gray-900">New Person Detected</h3>
         <p className="text-sm text-gray-600">
           The document contains information for <strong>{firstName} {lastName}</strong>, 
-          who doesn't match the current profile. We'll create a new profile for them.
+          who doesn&apos;t match the current profile. We&apos;ll create a new profile for them.
         </p>
       </div>
       

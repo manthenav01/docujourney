@@ -53,7 +53,7 @@ export const SearchAndFilters: React.FC<SearchAndFiltersProps> = ({
   const currentYear = new Date().getFullYear();
   const availableYears = Array.from(
     { length: currentYear - 2020 + 1 },
-    (_, i) => (2020 + i).toString()
+    (_, i) => (2020 + i).toString(),
   ).reverse(); // Show newest years first
 
   const handleYearToggle = (year: string) => {
@@ -61,21 +61,21 @@ export const SearchAndFilters: React.FC<SearchAndFiltersProps> = ({
       ...prev,
       fiscalYears: prev.fiscalYears.includes(year)
         ? prev.fiscalYears.filter(y => y !== year)
-        : [...prev.fiscalYears, year]
+        : [...prev.fiscalYears, year],
     }));
   };
 
   const handleYearRemove = (year: string) => {
     setFilters(prev => ({
       ...prev,
-      fiscalYears: prev.fiscalYears.filter(y => y !== year)
+      fiscalYears: prev.fiscalYears.filter(y => y !== year),
     }));
   };
 
   const clearAllYears = () => {
     setFilters(prev => ({
       ...prev,
-      fiscalYears: []
+      fiscalYears: [],
     }));
   };
 
@@ -272,7 +272,7 @@ export const SearchAndFilters: React.FC<SearchAndFiltersProps> = ({
                     Search for companies or job titles to view detailed H1B data analysis.
                   </p>
                   <div className="text-xs text-blue-600">
-                    <span className="font-medium">Try:</span> "Google", "Microsoft", "Senior Software Engineer", "Data Scientist"
+                    <span className="font-medium">Try:</span> &quot;Google&quot;, &quot;Microsoft&quot;, &quot;Senior Software Engineer&quot;, &quot;Data Scientist&quot;
                   </div>
                 </div>
               </div>

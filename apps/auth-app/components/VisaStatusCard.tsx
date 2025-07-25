@@ -103,7 +103,7 @@ const VisaStatusCard: React.FC<VisaStatusCardProps> = ({
           <div className="text-center py-6 text-gray-500">
             <FileText className="w-12 h-12 mx-auto mb-3 text-gray-400" />
             <p className="mb-2">No visa status analysis available</p>
-            <p className="text-sm">Click "Analyze" to generate a status report</p>
+            <p className="text-sm">Click &quot;Analyze&quot; to generate a status report</p>
           </div>
         )}
 
