@@ -79,28 +79,28 @@ export const QuickStats: React.FC<QuickStatsProps> = ({ dashboardData }) => {
   return (
     <div className="space-y-6">
       {/* Application Volume & Success Rates Section */}
-      <Card className="bg-white/80 backdrop-blur-sm shadow-lg border-0 hover:shadow-xl transition-all duration-300">
-        <CardHeader className="pb-4">
-          <CardTitle className="text-xl font-bold flex items-center space-x-3">
-            <div className="p-2 bg-blue-100 rounded-xl">
-              <Users className="h-6 w-6 text-blue-600" />
+      <Card className="group hover:shadow-lg transition-all duration-300">
+        <CardHeader className="pb-6">
+          <CardTitle className="flex items-center gap-3">
+            <div className="p-2.5 bg-primary/10 rounded-xl">
+              <Users className="h-5 w-5 text-primary" />
             </div>
-            <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+            <span className="text-foreground/90">
               Application Volume & Success Rates
             </span>
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-6">
             {volumeStats.map((stat, index) => (
-              <div key={index} className="text-center p-4 bg-gradient-to-br from-gray-50 to-white rounded-2xl border border-gray-100 hover:shadow-md transition-all duration-200">
-                <div className="flex justify-center mb-3">
-                  <div className="p-2 bg-white rounded-xl shadow-sm">
+              <div key={index} className="text-center p-5 bg-muted/30 rounded-xl border border-border/40 hover:bg-muted/50 hover:border-border/60 transition-all duration-200">
+                <div className="flex justify-center mb-4">
+                  <div className="p-2.5 bg-background rounded-lg shadow-sm border border-border/20">
                     {stat.icon}
                   </div>
                 </div>
-                <p className="text-sm text-gray-600 mb-2 font-medium">{stat.label}</p>
-                <p className="text-xl font-bold text-gray-900">{stat.value}</p>
+                <p className="text-sm text-muted-foreground mb-2 font-medium">{stat.label}</p>
+                <p className="text-2xl font-bold text-foreground">{stat.value}</p>
               </div>
             ))}
           </div>
@@ -108,30 +108,30 @@ export const QuickStats: React.FC<QuickStatsProps> = ({ dashboardData }) => {
       </Card>
 
       {/* Overview Stats Section */}
-      <Card className="bg-white/80 backdrop-blur-sm shadow-lg border-0 hover:shadow-xl transition-all duration-300">
-        <CardHeader className="pb-4">
-          <CardTitle className="text-xl font-bold flex items-center space-x-3">
-            <div className="p-2 bg-green-100 rounded-xl">
-              <DollarSign className="h-6 w-6 text-green-600" />
+      <Card className="group hover:shadow-lg transition-all duration-300">
+        <CardHeader className="pb-6">
+          <CardTitle className="flex items-center gap-3">
+            <div className="p-2.5 bg-success/10 rounded-xl">
+              <DollarSign className="h-5 w-5 text-success" />
             </div>
-            <span className="bg-gradient-to-r from-green-600 to-blue-600 bg-clip-text text-transparent">
+            <span className="text-foreground/90">
               Overview Statistics
             </span>
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {overviewStats.map((stat, index) => (
-              <div key={index} className="text-center p-5 bg-gradient-to-br from-gray-50 to-white rounded-2xl border border-gray-100 hover:shadow-md transition-all duration-200">
-                <div className="flex justify-center mb-3">
-                  <div className="p-2 bg-white rounded-xl shadow-sm">
+              <div key={index} className="text-center p-5 bg-muted/30 rounded-xl border border-border/40 hover:bg-muted/50 hover:border-border/60 transition-all duration-200">
+                <div className="flex justify-center mb-4">
+                  <div className="p-2.5 bg-background rounded-lg shadow-sm border border-border/20">
                     {stat.icon}
                   </div>
                 </div>
-                <p className="text-sm text-gray-600 mb-2 font-medium">{stat.label}</p>
-                <p className="text-2xl font-bold text-gray-900">{stat.value}</p>
+                <p className="text-sm text-muted-foreground mb-2 font-medium">{stat.label}</p>
+                <p className="text-2xl font-bold text-foreground">{stat.value}</p>
                 {stat.subValue && (
-                  <p className="text-xs text-gray-500 mt-1">{stat.subValue}</p>
+                  <p className="text-xs text-muted-foreground/80 mt-1">{stat.subValue}</p>
                 )}
               </div>
             ))}

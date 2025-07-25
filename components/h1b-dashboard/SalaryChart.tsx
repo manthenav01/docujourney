@@ -75,9 +75,9 @@ export const SalaryChart: React.FC<SalaryChartProps> = ({ salaryData, stateData,
               y={y}
               width={barWidth}
               height={barHeight}
-              fill="#3b82f6"
-              rx="2"
-              style={{ filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.1))' }}
+              fill="hsl(var(--chart-1))"
+              rx="3"
+              style={{ filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.08))' }}
             />
           );
         })}
@@ -156,9 +156,9 @@ export const SalaryChart: React.FC<SalaryChartProps> = ({ salaryData, stateData,
               y={y}
               width={barWidth}
               height={barHeight}
-              fill="#1e40af"
-              rx="2"
-              style={{ filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.1))' }}
+              fill="hsl(var(--chart-2))"
+              rx="3"
+              style={{ filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.08))' }}
             />
           );
         })}
@@ -212,19 +212,19 @@ export const SalaryChart: React.FC<SalaryChartProps> = ({ salaryData, stateData,
   if (!isActive) {return null;}
 
   return (
-    <div className="h-full w-full p-6 bg-white rounded-lg">
+    <div className="h-full w-full p-8 bg-card rounded-2xl border border-border/60">
       {/* Two panels side by side */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 h-full">
         
         {/* Salary Distribution Panel */}
-        <div className="bg-gray-50 rounded-xl p-6">
+        <div className="bg-muted/30 rounded-xl p-6 border border-border/40">
           <div className="mb-6">
-            <h3 className="text-lg font-semibold text-gray-900">Salary Distribution</h3>
+            <h3 className="text-lg font-semibold text-foreground tracking-tight">Salary Distribution</h3>
           </div>
           
           {/* Stats */}
           <div className="mb-4">
-            <p className="text-sm text-gray-600">
+            <p className="text-sm text-muted-foreground">
               Total Applications: {salaryData.reduce((sum, d) => sum + d.count, 0).toLocaleString()}
             </p>
           </div>
@@ -233,14 +233,14 @@ export const SalaryChart: React.FC<SalaryChartProps> = ({ salaryData, stateData,
         </div>
 
         {/* Salary by State Panel */}
-        <div className="bg-gray-50 rounded-xl p-6">
+        <div className="bg-muted/30 rounded-xl p-6 border border-border/40">
           <div className="mb-6">
-            <h3 className="text-lg font-semibold text-gray-900">Salary by State</h3>
+            <h3 className="text-lg font-semibold text-foreground tracking-tight">Salary by State</h3>
           </div>
           
           {/* Stats */}
           <div className="mb-4">
-            <p className="text-sm text-gray-600">
+            <p className="text-sm text-muted-foreground">
               Top {stateSalaryData.length} States by Application Volume
             </p>
           </div>
