@@ -383,8 +383,9 @@ export const CityDashboard: React.FC<CityDashboardProps> = ({
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
-              {cityInfo.salaryDistribution.map((salary, index) => {
-                const maxCount = Math.max(...cityInfo.salaryDistribution.map(s => s.count));
+              {cityInfo.salaryDistribution.slice(0, 7).map((salary, index) => {
+                const limitedData = cityInfo.salaryDistribution.slice(0, 7);
+                const maxCount = Math.max(...limitedData.map(s => s.count));
                 const percentage = (salary.count / maxCount) * 100;
                 const colors = ['bg-blue-500', 'bg-green-500', 'bg-yellow-500', 'bg-red-500', 'bg-purple-500', 'bg-indigo-500', 'bg-pink-500', 'bg-orange-500'];
                 

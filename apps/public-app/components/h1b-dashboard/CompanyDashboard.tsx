@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Badge, Button, Card, CardContent, CardHeader, CardTitle } from '@docujourney/ui';
 import { CHART_COLOR_ARRAYS, getChartColor, getSalaryRangeColor } from '../../lib/chartColors';
+import { ReusableProgressChart, ReusableActivityChart, type ProgressChartData, type ActivityChartData } from './charts';
 import { 
   ArrowLeft, 
   Building, 
@@ -424,111 +425,102 @@ export const CompanyDashboard: React.FC<CompanyDashboardProps> = ({
       {/* Charts Row 2 */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Geographic Distribution */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center">
-              <MapPin className="w-5 h-5 mr-2" />
-              Geographic Distribution
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {companyInfo.topStates.map((state, index) => {
-                const barColor = getChartColor(index, CHART_COLOR_ARRAYS.geographic);
-                return (
-                  <div key={state.state} className="space-y-2">
-                    <div className="flex justify-between items-center">
-                      <span className="font-medium text-foreground">{state.state}</span>
-                      <span className="text-sm text-muted-foreground">{formatNumber(state.applications)} ({state.percentage}%)</span>
-                    </div>
-                    <div className="w-full bg-muted rounded-full h-2">
-                      <div 
-                        className="h-2 rounded-full transition-all duration-300" 
-                        style={{ 
-                          width: `${state.percentage}%`,
-                          backgroundColor: barColor,
-                        }}
-                      ></div>
-                    </div>
-                  </div>
-                );
-              })}
+        <ReusableProgressChart
+          data={companyInfo.topStates.slice(0, 7).map((state, index) => ({
+            label: state.state,
+            value: state.applications,
+            percentage: state.percentage,
+            color: getChartColor(index, CHART_COLOR_ARRAYS.geographic),
+          }))}
+          title="Geographic Distribution"
+          height={400}
+          showPercentage={true}
+          showValues={true}
+          formatValue={formatNumber}
+          customTooltip={({ indexValue, value, data }) => (
+            <div className="bg-card/95 backdrop-blur-sm p-4 border border-border rounded-lg shadow-lg">
+              <div className="text-sm font-semibold text-foreground mb-3 flex items-center">
+                <MapPin className="w-4 h-4 mr-2" />
+                {indexValue}
+              </div>
+              <div className="space-y-2">
+                <div className="flex justify-between items-center">
+                  <span className="text-xs text-muted-foreground">Applications:</span>
+                  <span className="text-sm font-medium text-primary">{formatNumber(data?.displayValue || 0)}</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-xs text-muted-foreground">Share:</span>
+                  <span className="text-sm font-medium text-success">{(data?.percentage || 0).toFixed(1)}%</span>
+                </div>
+              </div>
             </div>
-          </CardContent>
-        </Card>
+          )}
+        />
 
         {/* Salary Distribution */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center">
-              <PieChart className="w-5 h-5 mr-2" />
-              Salary Distribution
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              {companyInfo.salaryDistribution.map((salary, index) => {
-                const maxCount = Math.max(...companyInfo.salaryDistribution.map(s => s.count));
-                const percentage = (salary.count / maxCount) * 100;
-                const barColor = getSalaryRangeColor(index);
-                
-                return (
-                  <div key={salary.range} className="space-y-2">
-                    <div className="flex justify-between items-center">
-                      <span className="font-medium text-foreground">{salary.range}</span>
-                      <span className="text-sm text-muted-foreground">{formatNumber(salary.count)}</span>
-                    </div>
-                    <div className="w-full bg-muted rounded-full h-2">
-                      <div 
-                        className="h-2 rounded-full transition-all duration-300"
-                        style={{ 
-                          width: `${percentage}%`,
-                          backgroundColor: barColor,
-                        }}
-                      ></div>
-                    </div>
-                  </div>
-                );
-              })}
+        <ReusableProgressChart
+          data={companyInfo.salaryDistribution.slice(0, 7).map((salary, index) => {
+            const limitedData = companyInfo.salaryDistribution.slice(0, 7);
+            const maxCount = Math.max(...limitedData.map(s => s.count));
+            const percentage = (salary.count / maxCount) * 100;
+            return {
+              label: salary.range,
+              value: salary.count,
+              percentage,
+              color: getSalaryRangeColor(index),
+            };
+          })}
+          title="Salary Distribution"
+          height={400}
+          showPercentage={false}
+          showValues={true}
+          formatValue={formatNumber}
+          customTooltip={({ indexValue, value, data }) => (
+            <div className="bg-card/95 backdrop-blur-sm p-4 border border-border rounded-lg shadow-lg">
+              <div className="text-sm font-semibold text-foreground mb-3 flex items-center">
+                <PieChart className="w-4 h-4 mr-2" />
+                {indexValue}
+              </div>
+              <div className="space-y-2">
+                <div className="flex justify-between items-center">
+                  <span className="text-xs text-muted-foreground">Applications:</span>
+                  <span className="text-sm font-medium text-primary">{formatNumber(data?.displayValue || 0)}</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-xs text-muted-foreground">Relative Share:</span>
+                  <span className="text-sm font-medium text-success">{(data?.percentage || 0).toFixed(1)}%</span>
+                </div>
+              </div>
             </div>
-          </CardContent>
-        </Card>
+          )}
+        />
       </div>
 
       {/* Recent Activity */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center">
-            <Activity className="w-5 h-5 mr-2" />
-            Recent Activity (Last 6 Months)
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-            {companyInfo.recentActivity.map((activity, index) => {
-              const maxApplications = Math.max(...companyInfo.recentActivity.map(a => a.applications));
-              const height = (activity.applications / maxApplications) * 100;
-              const barColor = getChartColor(index, CHART_COLOR_ARRAYS.standard);
-              
-              return (
-                <div key={activity.month} className="text-center space-y-2">
-                  <div className="text-sm font-medium text-muted-foreground">{activity.month.split(' ')[0]}</div>
-                  <div className="flex items-end justify-center h-20">
-                    <div 
-                      className="rounded-t-md w-8 transition-all duration-300"
-                      style={{ 
-                        height: `${height}%`,
-                        backgroundColor: barColor,
-                      }}
-                    ></div>
-                  </div>
-                  <div className="text-xs text-muted-foreground">{formatNumber(activity.applications)}</div>
-                </div>
-              );
-            })}
+      <ReusableActivityChart
+        data={companyInfo.recentActivity.map(activity => ({
+          period: activity.month,
+          value: activity.applications,
+        }))}
+        title="Recent Activity (Last 6 Months)"
+        height={250}
+        compact={true}
+        formatValue={formatNumber}
+        formatPeriod={(period) => period.split(' ')[0]}
+        colors={CHART_COLOR_ARRAYS.standard}
+        customTooltip={({ indexValue, value }) => (
+          <div className="bg-card/95 backdrop-blur-sm p-4 border border-border rounded-lg shadow-lg">
+            <div className="text-sm font-semibold text-foreground mb-3 flex items-center">
+              <Activity className="w-4 h-4 mr-2" />
+              {indexValue}
+            </div>
+            <div className="flex justify-between items-center">
+              <span className="text-xs text-muted-foreground">Applications:</span>
+              <span className="text-sm font-medium text-primary">{formatNumber(value)}</span>
+            </div>
           </div>
-        </CardContent>
-      </Card>
+        )}
+      />
     </div>
   );
 };

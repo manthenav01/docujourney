@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Badge, Button, Card, CardContent, CardHeader, CardTitle } from '@docujourney/ui';
+import { getSalaryRangeColor, getChartColor, CHART_COLOR_ARRAYS } from '../../lib/chartColors';
 import { 
   ArrowLeft, 
   Briefcase, 
@@ -432,7 +433,7 @@ export const JobDashboard: React.FC<JobDashboardProps> = ({
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {jobInfo.topStates.map((state) => (
+              {jobInfo.topStates.slice(0, 7).map((state, index) => (
                 <div key={state.state} className="space-y-2">
                   <div className="flex justify-between items-center">
                     <span className="font-medium text-foreground">{state.state}</span>
@@ -443,8 +444,11 @@ export const JobDashboard: React.FC<JobDashboardProps> = ({
                   </div>
                   <div className="w-full bg-muted rounded-full h-2">
                     <div 
-                      className="bg-primary h-2 rounded-full transition-all duration-300" 
-                      style={{ width: `${state.percentage}%` }}
+                      className="h-2 rounded-full transition-all duration-300" 
+                      style={{ 
+                        width: `${state.percentage}%`,
+                        backgroundColor: getChartColor(index, CHART_COLOR_ARRAYS.geographic),
+                      }}
                     ></div>
                   </div>
                 </div>
@@ -463,10 +467,10 @@ export const JobDashboard: React.FC<JobDashboardProps> = ({
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
-              {jobInfo.salaryDistribution.map((salary, index) => {
-                const maxCount = Math.max(...jobInfo.salaryDistribution.map(s => s.count));
+              {jobInfo.salaryDistribution.slice(0, 7).map((salary, index) => {
+                const limitedData = jobInfo.salaryDistribution.slice(0, 7);
+                const maxCount = Math.max(...limitedData.map(s => s.count));
                 const percentage = (salary.count / maxCount) * 100;
-                const chartColors = ['bg-chart-1', 'bg-chart-2', 'bg-chart-3', 'bg-chart-4', 'bg-chart-5', 'bg-primary', 'bg-success', 'bg-warning'];
                 
                 return (
                   <div key={salary.range} className="space-y-2">
@@ -476,8 +480,11 @@ export const JobDashboard: React.FC<JobDashboardProps> = ({
                     </div>
                     <div className="w-full bg-muted rounded-full h-2">
                       <div 
-                        className={`${chartColors[index % chartColors.length]} h-2 rounded-full transition-all duration-300`}
-                        style={{ width: `${percentage}%` }}
+                        className="h-2 rounded-full transition-all duration-300"
+                        style={{ 
+                          width: `${percentage}%`,
+                          backgroundColor: getSalaryRangeColor(index),
+                        }}
                       ></div>
                     </div>
                   </div>

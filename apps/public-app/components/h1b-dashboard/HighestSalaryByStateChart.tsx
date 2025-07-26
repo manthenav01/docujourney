@@ -1,9 +1,9 @@
 'use client';
 
 import React, { useState, useMemo, useCallback } from 'react';
-import { ResponsiveBar } from '@nivo/bar';
 import { Button, Card, CardContent, CardHeader, CardTitle } from '@docujourney/ui';
-import { CHART_COLOR_ARRAYS, getChartColor, createNivoTheme } from '../../lib/chartColors';
+import { CHART_COLOR_ARRAYS, getChartColor } from '../../lib/chartColors';
+import { ReusableBarChart, type BarChartData } from './charts';
 
 interface StateSalaryData {
   state: string;
@@ -20,8 +20,8 @@ interface HighestSalaryByStateChartProps {
 const HighestSalaryByStateChartComponent: React.FC<HighestSalaryByStateChartProps> = ({ data, loading }) => {
   const [viewMode, setViewMode] = useState<'top' | 'bottom'>('top');
   
-  // Always call hooks at the top level
-  const sortedData = useMemo(() => {
+  // Process data for the reusable bar chart
+  const chartData = useMemo(() => {
     if (!data || data.length === 0) {
       return [];
     }
@@ -29,20 +29,21 @@ const HighestSalaryByStateChartComponent: React.FC<HighestSalaryByStateChartProp
     const sorted = [...data].sort((a, b) => 
       viewMode === 'top' ? b.avgSalary - a.avgSalary : a.avgSalary - b.avgSalary,
     );
-    return sorted.slice(0, 5);
+    
+    return sorted.slice(0, 7).map((item): BarChartData => ({
+      state: item.state,
+      avgSalary: item.avgSalary,
+      applications: item.applications,
+    }));
   }, [data, viewMode]);
 
-  // Memoize the Nivo theme
-  const nivoTheme = useMemo(() => createNivoTheme(), []);
+  // Geographic colors for states
+  const stateColors = useMemo(() => {
+    return CHART_COLOR_ARRAYS.geographic;
+  }, []);
 
-  // Memoize the color function
-  const getColorForState = useCallback((d: any) => {
-    const index = sortedData.findIndex(item => item.state === d.indexValue);
-    return getChartColor(index, CHART_COLOR_ARRAYS.geographic);
-  }, [sortedData]);
-
-  // Memoize the tooltip component
-  const TooltipComponent = useCallback(({ indexValue, value, data: tooltipData }: any) => (
+  // Custom tooltip for state salary data
+  const stateTooltip = useCallback(({ indexValue, value, data: tooltipData }: any) => (
     <div className="bg-card/95 backdrop-blur-sm p-4 border border-border rounded-lg shadow-lg">
       <div className="text-sm font-semibold text-foreground mb-3">{indexValue}</div>
       <div className="space-y-2">
@@ -62,31 +63,46 @@ const HighestSalaryByStateChartComponent: React.FC<HighestSalaryByStateChartProp
   const handleTopClick = useCallback(() => setViewMode('top'), []);
   const handleBottomClick = useCallback(() => setViewMode('bottom'), []);
 
-  if (loading) {
+  if (loading || !data || data.length === 0) {
     return (
       <Card className="w-full">
         <CardHeader>
-          <CardTitle>Average Salary by State</CardTitle>
+          <div className="flex justify-between items-start">
+            <div>
+              <CardTitle>Average Salary by State</CardTitle>
+            </div>
+            <div className="flex gap-1">
+              <Button
+                type="button"
+                variant={viewMode === 'top' ? 'default' : 'outline'}
+                size="sm"
+                disabled={loading}
+                className="h-7 text-xs"
+              >
+                Top 7
+              </Button>
+              <Button
+                type="button"
+                variant={viewMode === 'bottom' ? 'default' : 'outline'}
+                size="sm"
+                disabled={loading}
+                className="h-7 text-xs"
+              >
+                Bottom 7
+              </Button>
+            </div>
+          </div>
         </CardHeader>
         <CardContent>
-          <div className="h-80 flex items-center justify-center">
-            <div className="text-muted-foreground">Loading...</div>
-          </div>
-        </CardContent>
-      </Card>
-    );
-  }
-
-  if (!data || data.length === 0) {
-    return (
-      <Card className="w-full">
-        <CardHeader>
-          <CardTitle>Average Salary by State</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="h-80 flex items-center justify-center">
-            <div className="text-muted-foreground">No data available</div>
-          </div>
+          <ReusableBarChart
+            data={[]}
+            keys={['avgSalary']}
+            indexBy="state"
+            loading={loading}
+            height={400}
+            colors={stateColors}
+            formatValue={(value) => `$${(value / 1000).toFixed(0)}K`}
+          />
         </CardContent>
       </Card>
     );
@@ -109,7 +125,7 @@ const HighestSalaryByStateChartComponent: React.FC<HighestSalaryByStateChartProp
               className="h-7 text-xs"
               aria-pressed={viewMode === 'top'}
             >
-              Top 5
+              Top 7
             </Button>
             <Button
               type="button"
@@ -119,54 +135,24 @@ const HighestSalaryByStateChartComponent: React.FC<HighestSalaryByStateChartProp
               className="h-7 text-xs"
               aria-pressed={viewMode === 'bottom'}
             >
-              Bottom 5
+              Bottom 7
             </Button>
           </div>
         </div>
       </CardHeader>
       <CardContent>
-        <div style={{ height: '400px', width: '100%' }}>
-          <ResponsiveBar
-            data={sortedData}
-            keys={['avgSalary']}
-            indexBy="state"
-            margin={{ top: 20, right: 30, bottom: 80, left: 80 }}
-            padding={0.4}
-            valueScale={{ type: 'linear' }}
-            indexScale={{ type: 'band', round: true }}
-            colors={getColorForState}
-            borderRadius={2}
-            borderWidth={0}
-            theme={nivoTheme}
-            axisTop={null}
-            axisRight={null}
-            axisBottom={{
-              tickSize: 0,
-              tickPadding: 8,
-              tickRotation: -45,
-              legend: null,
-              legendPosition: 'middle',
-              legendOffset: 0,
-            }}
-            axisLeft={{
-              tickSize: 0,
-              tickPadding: 8,
-              tickRotation: 0,
-              legend: null,
-              legendPosition: 'middle',
-              legendOffset: 0,
-              format: (value) => `$${(value / 1000).toFixed(0)}K`,
-            }}
-            enableGridX={false}
-            enableGridY={true}
-            labelSkipWidth={12}
-            labelSkipHeight={12}
-            labelTextColor="#FFFFFF"
-            tooltip={TooltipComponent}
-            animate={true}
-            motionConfig="gentle"
-          />
-        </div>
+        <ReusableBarChart
+          data={chartData}
+          keys={['avgSalary']}
+          indexBy="state"
+          height={400}
+          colors={stateColors}
+          margin={{ top: 20, right: 30, bottom: 80, left: 80 }}
+          innerPadding={0.4}
+          borderRadius={2}
+          formatValue={(value) => `$${(value / 1000).toFixed(0)}K`}
+          customTooltip={stateTooltip}
+        />
       </CardContent>
     </Card>
   );

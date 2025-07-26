@@ -4,6 +4,7 @@ import React, { useMemo, useCallback } from 'react';
 import { ResponsiveBar } from '@nivo/bar';
 import { Card, CardContent, CardHeader, CardTitle } from '@docujourney/ui';
 import { CHART_COLOR_ARRAYS, getSalaryRangeColor, createNivoTheme } from '../../lib/chartColors';
+import { ReusableBarChart, type BarChartData } from './charts';
 
 interface SalaryDistributionData {
   range: string;
@@ -18,30 +19,28 @@ interface SalaryDistributionChartProps {
 }
 
 const SalaryDistributionChartComponent: React.FC<SalaryDistributionChartProps> = ({ data, loading }) => {
-  // Always call hooks at the top level
+  // Process data for the reusable bar chart
   const processedData = useMemo(() => {
     if (!data || data.length === 0) {
-      return { groupedData: [], statistics: { total: 0, average: 0, median: 0 } };
+      return { chartData: [], statistics: { total: 0, average: 0, median: 0 } };
     }
 
-    // Group salary ranges into 6 meaningful brackets for better clarity
+    // Group salary ranges into 5 meaningful brackets for better clarity
     const groupedData = data.reduce((acc, item) => {
       let broadRange = '';
       const range = item.range.toLowerCase();
       
       if (range.includes('under') || range.includes('below') || range.includes('< ') || 
-          range.includes('60') || range.includes('70')) {
-        broadRange = 'Under $80K';
-      } else if (range.includes('80') || range.includes('90') || range.includes('100') || range.includes('110')) {
-        broadRange = '$80K - $120K';
-      } else if (range.includes('120') || range.includes('130') || range.includes('140') || range.includes('150')) {
-        broadRange = '$120K - $160K';
-      } else if (range.includes('160') || range.includes('170') || range.includes('180') || range.includes('190')) {
-        broadRange = '$160K - $200K';
-      } else if (range.includes('200') || range.includes('210') || range.includes('220') || range.includes('230') || range.includes('240')) {
-        broadRange = '$200K - $250K';
+          range.includes('60') || range.includes('70') || range.includes('80')) {
+        broadRange = 'Under $90K';
+      } else if (range.includes('90') || range.includes('100') || range.includes('110') || range.includes('120')) {
+        broadRange = '$90K - $130K';
+      } else if (range.includes('130') || range.includes('140') || range.includes('150') || range.includes('160')) {
+        broadRange = '$130K - $170K';
+      } else if (range.includes('170') || range.includes('180') || range.includes('190') || range.includes('200') || range.includes('210')) {
+        broadRange = '$170K - $220K';
       } else {
-        broadRange = '$250K+';
+        broadRange = '$220K+';
       }
       
       const existing = acc.find(item => item.range === broadRange);
@@ -60,8 +59,15 @@ const SalaryDistributionChartComponent: React.FC<SalaryDistributionChartProps> =
     }, [] as SalaryDistributionData[]);
 
     // Sort by salary range order
-    const sortOrder = ['Under $80K', '$80K - $120K', '$120K - $160K', '$160K - $200K', '$200K - $250K', '$250K+'];
+    const sortOrder = ['Under $90K', '$90K - $130K', '$130K - $170K', '$170K - $220K', '$220K+'];
     const sortedData = groupedData.sort((a, b) => sortOrder.indexOf(a.range) - sortOrder.indexOf(b.range));
+
+    // Convert to chart data format
+    const chartData: BarChartData[] = sortedData.map(item => ({
+      range: item.range,
+      count: item.count,
+      percentage: item.percentage,
+    }));
 
     // Calculate statistics
     const totalApplications = sortedData.reduce((sum, item) => sum + item.count, 0);
@@ -70,7 +76,7 @@ const SalaryDistributionChartComponent: React.FC<SalaryDistributionChartProps> =
     const medianApplications = sortedData[medianIndex]?.count || 0;
 
     return {
-      groupedData: sortedData,
+      chartData,
       statistics: {
         total: totalApplications,
         average: averageApplications,
@@ -79,14 +85,8 @@ const SalaryDistributionChartComponent: React.FC<SalaryDistributionChartProps> =
     };
   }, [data]);
 
-  // Memoize the Nivo theme to prevent recreation
-  const nivoTheme = useMemo(() => createNivoTheme(), []);
-
-  // Memoize the color function to ensure stable references
-  const getColor = useCallback(({ index }: { index: number }) => getSalaryRangeColor(index), []);
-
-  // Memoize the tooltip component to prevent recreation
-  const TooltipComponent = useCallback(({ indexValue, value, data: tooltipData }: any) => (
+  // Custom tooltip for salary distribution
+  const salaryTooltip = useCallback(({ indexValue, value, data: tooltipData }: any) => (
     <div className="bg-card/95 backdrop-blur-sm p-5 border border-border rounded-xl shadow-2xl">
       <div className="text-sm font-bold text-foreground mb-3 border-b border-border pb-2">{indexValue}</div>
       <div className="space-y-3">
@@ -113,112 +113,66 @@ const SalaryDistributionChartComponent: React.FC<SalaryDistributionChartProps> =
     </div>
   ), [processedData.statistics.average]);
 
-  if (loading) {
-    return (
-      <Card className="w-full">
-        <CardHeader>
-          <CardTitle>Salary Distribution</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="h-80 bg-muted/20 rounded-lg animate-pulse flex items-center justify-center">
-            <div className="space-y-3 text-center">
-              <div className="flex justify-center space-x-1">
-                {[1,2,3,4,5,6].map(i => (
-                  <div key={i} className="h-16 w-10 bg-muted rounded animate-pulse" style={{animationDelay: `${i * 0.1}s`}}></div>
-                ))}
-              </div>
-              <p className="text-muted-foreground text-sm">Loading salary distribution...</p>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-    );
-  }
+  // Salary range colors
+  const salaryColors = useMemo(() => {
+    return Array.from({ length: 5 }, (_, index) => getSalaryRangeColor(index));
+  }, []);
 
-  if (!data || data.length === 0) {
+  if (loading || !data || data.length === 0) {
     return (
-      <Card className="w-full">
-        <CardHeader>
-          <CardTitle>Salary Distribution</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="h-80 flex items-center justify-center">
-            <div className="text-muted-foreground">No data available</div>
-          </div>
-        </CardContent>
-      </Card>
+      <ReusableBarChart
+        data={[]}
+        keys={['count']}
+        indexBy="range"
+        title="Salary Distribution"
+        loading={loading}
+        height={450}
+        colors={salaryColors}
+        axisBottomLegend="Salary Range"
+        axisLeftLegend="Number of Applications"
+        formatValue={(value) => `${(value / 1000).toFixed(0)}K`}
+        innerPadding={0.2}
+      />
     );
   }
 
   return (
-    <Card className="w-full">
-      <CardHeader>
-        <CardTitle>Salary Distribution</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <div style={{ height: '450px', width: '100%', position: 'relative' }}>
-          <ResponsiveBar
-            data={processedData.groupedData}
-            keys={['count']}
-            indexBy="range"
-            margin={{ top: 40, right: 40, bottom: 80, left: 80 }}
-            padding={0.3}
-            valueScale={{ type: 'linear' }}
-            indexScale={{ type: 'band', round: true }}
-            colors={getColor}
-            borderRadius={6}
-            borderWidth={0}
-            theme={nivoTheme}
-            axisTop={null}
-            axisRight={null}
-            axisBottom={{
-              tickSize: 0,
-              tickPadding: 12,
-              tickRotation: -35,
-              legend: 'Salary Range',
-              legendPosition: 'middle',
-              legendOffset: 65,
-            }}
-            axisLeft={{
-              tickSize: 0,
-              tickPadding: 12,
-              tickRotation: 0,
-              legend: 'Number of Applications',
-              legendPosition: 'middle',
-              legendOffset: -65,
-            }}
-            enableGridX={false}
-            enableGridY={true}
-            labelSkipWidth={0}
-            labelSkipHeight={0}
-            labelTextColor="#FFFFFF"
-            labelFormat={(value) => `${(Number(value) / 1000).toFixed(0)}K`}
-            tooltip={TooltipComponent}
-            animate={true}
-            motionConfig="gentle"
-          />
-          
-          {/* Statistical Overlay Lines */}
-          <div className="absolute top-12 right-12 bg-card/90 backdrop-blur-sm p-3 rounded-lg border border-border shadow-sm">
-            <div className="text-xs font-semibold text-foreground mb-2">Statistics</div>
-            <div className="space-y-1">
-              <div className="flex items-center space-x-2">
-                <div className="w-3 h-0.5 bg-primary"></div>
-                <span className="text-xs text-muted-foreground">
-                  Avg: {Math.round(processedData.statistics.average).toLocaleString()}
-                </span>
-              </div>
-              <div className="flex items-center space-x-2">
-                <div className="w-3 h-0.5 bg-success"></div>
-                <span className="text-xs text-muted-foreground">
-                  Total: {processedData.statistics.total.toLocaleString()}
-                </span>
-              </div>
-            </div>
+    <div className="relative">
+      <ReusableBarChart
+        data={processedData.chartData}
+        keys={['count']}
+        indexBy="range"
+        title="Salary Distribution"
+        height={450}
+        colors={salaryColors}
+        axisBottomLegend="Salary Range"
+        axisLeftLegend="Number of Applications"
+        formatValue={(value) => `${(value / 1000).toFixed(0)}K`}
+        customTooltip={salaryTooltip}
+        margin={{ top: 40, right: 40, bottom: 80, left: 80 }}
+        borderRadius={6}
+        innerPadding={0.2}
+      />
+      
+      {/* Statistical Overlay */}
+      <div className="absolute top-16 right-12 bg-card/90 backdrop-blur-sm p-3 rounded-lg border border-border shadow-sm z-10">
+        <div className="text-xs font-semibold text-foreground mb-2">Statistics</div>
+        <div className="space-y-1">
+          <div className="flex items-center space-x-2">
+            <div className="w-3 h-0.5 bg-primary"></div>
+            <span className="text-xs text-muted-foreground">
+              Avg: {Math.round(processedData.statistics.average).toLocaleString()}
+            </span>
+          </div>
+          <div className="flex items-center space-x-2">
+            <div className="w-3 h-0.5 bg-success"></div>
+            <span className="text-xs text-muted-foreground">
+              Total: {processedData.statistics.total.toLocaleString()}
+            </span>
           </div>
         </div>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 };
 
