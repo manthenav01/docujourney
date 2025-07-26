@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Badge, Button, Card, CardContent, CardHeader, CardTitle } from '@docujourney/ui';
 import { getSalaryRangeColor, getChartColor, CHART_COLOR_ARRAYS } from '../../lib/chartColors';
+import { H1BJobAnalysis } from '../../lib/types';
 import { 
   ArrowLeft, 
   Briefcase, 
@@ -26,43 +27,8 @@ import {
   UserCheck,
 } from 'lucide-react';
 
-interface JobInfo {
-  title: string;
-  totalApplications: number;
-  certifiedApplications: number;
-  avgSalary: number;
-  medianSalary: number;
-  minSalary: number;
-  maxSalary: number;
-  fullTimePositions: number;
-  partTimePositions: number;
-  topEmployers: Array<{
-    employer: string;
-    applications: number;
-    avgSalary: number;
-    medianSalary: number;
-  }>;
-  topStates: Array<{
-    state: string;
-    applications: number;
-    percentage: number;
-    avgSalary: number;
-  }>;
-  yearlyTrends: Array<{
-    fiscalYear: string;
-    applications: number;
-    avgSalary: number;
-    certificationRate: number;
-  }>;
-  salaryDistribution: Array<{
-    range: string;
-    count: number;
-  }>;
-  recentActivity: Array<{
-    month: string;
-    applications: number;
-  }>;
-}
+// Use the standardized H1BJobAnalysis type
+type JobInfo = H1BJobAnalysis;
 
 interface JobDashboardProps {
   jobSlug: string;

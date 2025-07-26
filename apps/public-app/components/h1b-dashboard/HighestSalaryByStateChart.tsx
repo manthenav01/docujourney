@@ -147,10 +147,11 @@ const HighestSalaryByStateChartComponent: React.FC<HighestSalaryByStateChartProp
           indexBy="state"
           height={400}
           colors={stateColors}
-          margin={{ top: 20, right: 30, bottom: 80, left: 80 }}
+          margin={{ top: 20, right: 20, bottom: 60, left: 80 }}
           innerPadding={0.4}
           borderRadius={2}
           formatValue={(value) => `$${(value / 1000).toFixed(0)}K`}
+          formatTooltipValue={(value) => `$${value.toLocaleString()}`}
           customTooltip={stateTooltip}
         />
       </CardContent>

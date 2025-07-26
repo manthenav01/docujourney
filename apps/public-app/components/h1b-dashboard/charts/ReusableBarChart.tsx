@@ -56,8 +56,8 @@ const ReusableBarChartComponent: React.FC<ReusableBarChartProps> = ({
   animate = true,
   motionConfig = 'gentle',
 }) => {
-  // Memoize the Nivo theme to prevent recreation
-  const nivoTheme = useMemo(() => createNivoTheme(), []);
+  // Memoize the Nivo theme to prevent recreation - always use light theme for consistency
+  const nivoTheme = useMemo(() => createNivoTheme(false), []);
 
   // Memoize the color function
   const getColorForBar = useCallback((bar: any) => {
@@ -146,11 +146,11 @@ const ReusableBarChartComponent: React.FC<ReusableBarChartProps> = ({
         axisRight={null}
         axisBottom={orientation === 'horizontal' ? null : {
           tickSize: 0,
-          tickPadding: 12,
-          tickRotation: -35,
+          tickPadding: 16,
+          tickRotation: -20,
           legend: axisBottomLegend,
           legendPosition: 'middle',
-          legendOffset: axisBottomLegend ? 65 : 0,
+          legendOffset: axisBottomLegend ? 70 : 0,
         }}
         axisLeft={orientation === 'horizontal' ? {
           tickSize: 0,
@@ -165,8 +165,12 @@ const ReusableBarChartComponent: React.FC<ReusableBarChartProps> = ({
           tickRotation: 0,
           legend: axisLeftLegend,
           legendPosition: 'middle',
-          legendOffset: axisLeftLegend ? -65 : 0,
-          format: formatValue,
+          legendOffset: axisLeftLegend ? -75 : 0,
+          format: formatValue || ((value) => {
+            if (value >= 1000000) return `$${(value / 1000000).toFixed(1)}M`;
+            if (value >= 1000) return `$${(value / 1000).toFixed(0)}K`;
+            return `$${value}`;
+          }),
         }}
         enableGridX={enableGridX}
         enableGridY={enableGridY}
@@ -174,6 +178,14 @@ const ReusableBarChartComponent: React.FC<ReusableBarChartProps> = ({
         labelSkipWidth={12}
         labelSkipHeight={12}
         labelTextColor="#FFFFFF"
+        enableLabel={true}
+        label={(d) => {
+          const value = d.value as number;
+          if (formatValue) return formatValue(value);
+          if (value >= 1000000) return `$${(value / 1000000).toFixed(1)}M`;
+          if (value >= 1000) return `$${(value / 1000).toFixed(0)}K`;
+          return `$${value}`;
+        }}
         tooltip={tooltipComponent}
         animate={animate}
         motionConfig={motionConfig}

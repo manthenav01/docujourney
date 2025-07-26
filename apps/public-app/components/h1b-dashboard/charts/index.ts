@@ -1,29 +1,12 @@
-// Reusable Chart Components for H1B Dashboard
-export { ReusableBarChart } from './ReusableBarChart';
-export type { ReusableBarChartProps, BarChartData } from './ReusableBarChart';
+/**
+ * Chart Components Export
+ * Centralized exports for all dashboard chart components
+ */
 
-export { ReusableProgressChart } from './ReusableProgressChart';
-export type { ReusableProgressChartProps, ProgressChartData } from './ReusableProgressChart';
+export { default as ReusableAreaChart } from './ReusableAreaChart';
+export { ReusablePieChart, type PieChartData } from './ReusablePieChart';
+export { ReusableBarChart, type BarChartData } from './ReusableBarChart';
 
-export { ReusableActivityChart } from './ReusableActivityChart';
-export type { ReusableActivityChartProps, ActivityChartData } from './ReusableActivityChart';
-
-export { ReusablePieChart } from './ReusablePieChart';
-export type { ReusablePieChartProps, PieChartData } from './ReusablePieChart';
-
-// Common chart utilities and types
-export interface BaseChartProps {
-  title?: string;
-  loading?: boolean;
-  height?: number;
-  colors?: string[];
-  animate?: boolean;
-  customTooltip?: (props: any) => React.ReactNode;
-}
-
-// Standard chart data format
-export interface StandardChartData {
-  label: string;
-  value: number;
-  [key: string]: string | number;
-}
+// Additional chart types can be exported here as they're created
+// export { default as LineChart } from './LineChart';
+// export { default as BarChart } from './BarChart';

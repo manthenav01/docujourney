@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { Badge, Button, Card, CardContent, CardHeader, CardTitle } from '@docujourney/ui';
 import { CHART_COLOR_ARRAYS, getChartColor, getSalaryRangeColor } from '../../lib/chartColors';
 import { ReusableProgressChart, ReusableActivityChart, type ProgressChartData, type ActivityChartData } from './charts';
+import { H1BCompanyAnalysis } from '../../lib/types';
 import { 
   ArrowLeft, 
   Building, 
@@ -25,40 +26,8 @@ import {
   CheckCircle,
 } from 'lucide-react';
 
-interface CompanyInfo {
-  name: string;
-  totalApplications: number;
-  certifiedApplications: number;
-  avgSalary: number;
-  medianSalary: number;
-  minSalary: number;
-  maxSalary: number;
-  topStates: Array<{
-    state: string;
-    applications: number;
-    percentage: number;
-  }>;
-  topJobTitles: Array<{
-    jobTitle: string;
-    applications: number;
-    avgSalary: number;
-    medianSalary: number;
-  }>;
-  yearlyTrends: Array<{
-    fiscalYear: string;
-    applications: number;
-    avgSalary: number;
-    certificationRate: number;
-  }>;
-  salaryDistribution: Array<{
-    range: string;
-    count: number;
-  }>;
-  recentActivity: Array<{
-    month: string;
-    applications: number;
-  }>;
-}
+// Use the standardized H1BCompanyAnalysis type
+type CompanyInfo = H1BCompanyAnalysis;
 
 interface CompanyDashboardProps {
   companySlug: string;

@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Badge, Button, Card, CardContent, CardHeader, CardTitle } from '@docujourney/ui';
+import { H1BCityAnalysis } from '../../lib/types';
 import { 
   ArrowLeft, 
   MapPin, 
@@ -18,43 +19,8 @@ import {
   BarChart3,
 } from 'lucide-react';
 
-interface CityInfo {
-  city: string;
-  state: string;
-  totalApplications: number;
-  certifiedApplications: number;
-  avgSalary: number;
-  medianSalary: number;
-  minSalary: number;
-  maxSalary: number;
-  topEmployers: Array<{
-    employer: string;
-    applications: number;
-    percentage: number;
-    avgSalary: number;
-    medianSalary: number;
-  }>;
-  topJobTitles: Array<{
-    jobTitle: string;
-    applications: number;
-    avgSalary: number;
-    medianSalary: number;
-  }>;
-  yearlyTrends: Array<{
-    fiscalYear: string;
-    applications: number;
-    avgSalary: number;
-    certificationRate: number;
-  }>;
-  salaryDistribution: Array<{
-    range: string;
-    count: number;
-  }>;
-  recentActivity: Array<{
-    month: string;
-    applications: number;
-  }>;
-}
+// Use the standardized H1BCityAnalysis type
+type CityInfo = H1BCityAnalysis;
 
 interface CityDashboardProps {
   citySlug: string;

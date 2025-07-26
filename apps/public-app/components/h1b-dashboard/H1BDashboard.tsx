@@ -6,6 +6,7 @@ import { DashboardHero } from './DashboardHero';
 import { FilterCards } from './FilterCards';
 import { VisualizationPanel } from './VisualizationPanel';
 import { TopEmployersTable } from './TopEmployersTable';
+import { H1BAggregatedData } from '../../lib/types';
 import { 
   FileText,
   DollarSign,
@@ -21,57 +22,8 @@ import {
 import { Card, CardContent } from '@docujourney/ui';
 import './dashboard.css';
 
-// BigQuery data structure
-interface H1BDashboardData {
-  totalApplications: number;
-  certifiedApplications: number;
-  deniedApplications: number;
-  withdrawnApplications: number;
-  certificationRate: number;
-  avgSalary: number;
-  medianSalary: number;
-  uniqueEmployers: number;
-  uniqueStates: number;
-  mostAppliedJob: {
-    title: string;
-    applications: number;
-  };
-  topEmployers: Array<{
-    employer: string;
-    applications: number;
-    avgSalary: number;
-    topState: string;
-  }>;
-  salaryDistribution: Array<{
-    range: string;
-    count: number;
-    minSalary: number;
-    maxSalary: number;
-  }>;
-  yearlyTrends: Array<{
-    fiscalYear: string;
-    applications: number;
-    avgSalary: number;
-    medianSalary: number;
-  }>;
-  stateDistribution: Array<{
-    state: string;
-    applications: number;
-    avgSalary: number;
-    highestSalary: number;
-  }>;
-  jobTitleDistribution: Array<{
-    jobTitle: string;
-    applications: number;
-    avgSalary: number;
-    percentage: number;
-  }>;
-  industryDistribution: Array<{
-    industry: string;
-    applications: number;
-    avgSalary: number;
-    percentage: number;
-  }>;
+// Extend the H1BAggregatedData type to include cache information
+interface H1BDashboardData extends H1BAggregatedData {
   isFromCache?: boolean;
 }
 
@@ -206,6 +158,7 @@ export const H1BDashboard: React.FC = () => {
           applications: 0,
         },
         topEmployers: [],
+        topAttorneys: [],
         salaryDistribution: [],
         yearlyTrends: [],
         stateDistribution: [],

@@ -1,0 +1,277 @@
+
+> docujourney-monorepo@1.0.0 dev
+> npm run dev --workspace=apps/public-app
+
+
+> @docujourney/public-app@0.1.0 dev
+> next dev -p 3000
+
+   ▲ Next.js 15.3.2
+   - Local:        http://localhost:3000
+   - Network:      http://192.168.5.236:3000
+   - Experiments (use with caution):
+     ✓ optimizeCss
+
+ ✓ Starting...
+ ✓ Ready in 1421ms
+ ○ Compiling /api/h1b-data ...
+ ✓ Compiled /api/h1b-data in 1105ms (611 modules)
+Cache miss - fetching default H1B data from BigQuery
+BigQuery error: [Error: An aggregate function that has both DISTINCT and ORDER BY arguments can only ORDER BY expressions that are arguments to the function at [17:71]] {
+  code: 400,
+  errors: [Array],
+  response: [Gunzip]
+}
+Error fetching H1B data: Error: Failed to fetch H1B data: An aggregate function that has both DISTINCT and ORDER BY arguments can only ORDER BY expressions that are arguments to the function at [17:71]
+    at H1BBigQueryService.getH1BDashboardData (lib/h1bBigQueryService.ts:502:12)
+    at async GET (app/api/h1b-data/route.ts:64:19)
+  500 |       console.error('BigQuery error:', error);
+  501 |       const errorMessage = error instanceof Error ? error.message : 'Unknown BigQuery error';
+> 502 |       throw new Error(`Failed to fetch H1B data: ${errorMessage}`);
+      |            ^
+  503 |     }
+  504 |   }
+  505 |
+ GET /api/h1b-data 500 in 1931ms
+Cache miss - fetching default H1B data from BigQuery
+BigQuery error: [Error: An aggregate function that has both DISTINCT and ORDER BY arguments can only ORDER BY expressions that are arguments to the function at [17:71]] {
+  code: 400,
+  errors: [Array],
+  response: [Gunzip]
+}
+Error fetching H1B data: Error: Failed to fetch H1B data: An aggregate function that has both DISTINCT and ORDER BY arguments can only ORDER BY expressions that are arguments to the function at [17:71]
+    at H1BBigQueryService.getH1BDashboardData (lib/h1bBigQueryService.ts:502:12)
+    at async GET (app/api/h1b-data/route.ts:64:19)
+  500 |       console.error('BigQuery error:', error);
+  501 |       const errorMessage = error instanceof Error ? error.message : 'Unknown BigQuery error';
+> 502 |       throw new Error(`Failed to fetch H1B data: ${errorMessage}`);
+      |            ^
+  503 |     }
+  504 |   }
+  505 |
+ GET /api/h1b-data 500 in 408ms
+Cache miss - fetching default H1B data from BigQuery
+BigQuery error: [Error: An aggregate function that has both DISTINCT and ORDER BY arguments can only ORDER BY expressions that are arguments to the function at [17:71]] {
+  code: 400,
+  errors: [Array],
+  response: [Gunzip]
+}
+Error fetching H1B data: Error: Failed to fetch H1B data: An aggregate function that has both DISTINCT and ORDER BY arguments can only ORDER BY expressions that are arguments to the function at [17:71]
+    at H1BBigQueryService.getH1BDashboardData (lib/h1bBigQueryService.ts:502:12)
+    at async GET (app/api/h1b-data/route.ts:64:19)
+  500 |       console.error('BigQuery error:', error);
+  501 |       const errorMessage = error instanceof Error ? error.message : 'Unknown BigQuery error';
+> 502 |       throw new Error(`Failed to fetch H1B data: ${errorMessage}`);
+      |            ^
+  503 |     }
+  504 |   }
+  505 |
+ GET /api/h1b-data 500 in 638ms
+Cache miss - fetching default H1B data from BigQuery
+BigQuery error: [Error: An aggregate function that has both DISTINCT and ORDER BY arguments can only ORDER BY expressions that are arguments to the function at [17:71]] {
+  code: 400,
+  errors: [Array],
+  response: [Gunzip]
+}
+Error fetching H1B data: Error: Failed to fetch H1B data: An aggregate function that has both DISTINCT and ORDER BY arguments can only ORDER BY expressions that are arguments to the function at [17:71]
+    at H1BBigQueryService.getH1BDashboardData (lib/h1bBigQueryService.ts:502:12)
+    at async GET (app/api/h1b-data/route.ts:64:19)
+  500 |       console.error('BigQuery error:', error);
+  501 |       const errorMessage = error instanceof Error ? error.message : 'Unknown BigQuery error';
+> 502 |       throw new Error(`Failed to fetch H1B data: ${errorMessage}`);
+      |            ^
+  503 |     }
+  504 |   }
+  505 |
+ GET /api/h1b-data 500 in 409ms
+Cache miss - fetching default H1B data from BigQuery
+BigQuery error: [Error: An aggregate function that has both DISTINCT and ORDER BY arguments can only ORDER BY expressions that are arguments to the function at [17:71]] {
+  code: 400,
+  errors: [Array],
+  response: [Gunzip]
+}
+Error fetching H1B data: Error: Failed to fetch H1B data: An aggregate function that has both DISTINCT and ORDER BY arguments can only ORDER BY expressions that are arguments to the function at [17:71]
+    at H1BBigQueryService.getH1BDashboardData (lib/h1bBigQueryService.ts:502:12)
+    at async GET (app/api/h1b-data/route.ts:64:19)
+  500 |       console.error('BigQuery error:', error);
+  501 |       const errorMessage = error instanceof Error ? error.message : 'Unknown BigQuery error';
+> 502 |       throw new Error(`Failed to fetch H1B data: ${errorMessage}`);
+      |            ^
+  503 |     }
+  504 |   }
+  505 |
+ GET /api/h1b-data 500 in 452ms
+ ○ Compiling /h1b-dashboard ...
+ ✓ Compiled /h1b-dashboard in 3.5s (3272 modules)
+ ⚠ metadataBase property in metadata export is not set for resolving social open graph or twitter images, using "http://localhost:3000". See https://nextjs.org/docs/app/api-reference/functions/generate-metadata#metadatabase
+ GET /h1b-dashboard 200 in 3936ms
+ ○ Compiling /_not-found ...
+Cache miss - fetching default H1B data from BigQuery
+ ✓ Compiled /_not-found in 1526ms (3262 modules)
+ ⚠ metadataBase property in metadata export is not set for resolving social open graph or twitter images, using "http://localhost:3000". See https://nextjs.org/docs/app/api-reference/functions/generate-metadata#metadatabase
+BigQuery error: [Error: An aggregate function that has both DISTINCT and ORDER BY arguments can only ORDER BY expressions that are arguments to the function at [17:71]] {
+  code: 400,
+  errors: [Array],
+  response: [Gunzip]
+}
+Error fetching H1B data: Error: Failed to fetch H1B data: An aggregate function that has both DISTINCT and ORDER BY arguments can only ORDER BY expressions that are arguments to the function at [17:71]
+    at H1BBigQueryService.getH1BDashboardData (lib/h1bBigQueryService.ts:502:12)
+    at async GET (app/api/h1b-data/route.ts:64:19)
+  500 |       console.error('BigQuery error:', error);
+  501 |       const errorMessage = error instanceof Error ? error.message : 'Unknown BigQuery error';
+> 502 |       throw new Error(`Failed to fetch H1B data: ${errorMessage}`);
+      |            ^
+  503 |     }
+  504 |   }
+  505 |
+ GET /api/h1b-data? 500 in 1712ms
+ GET /assets/icon-192.png 404 in 1909ms
+Cache miss - fetching default H1B data from BigQuery
+BigQuery error: [Error: An aggregate function that has both DISTINCT and ORDER BY arguments can only ORDER BY expressions that are arguments to the function at [17:71]] {
+  code: 400,
+  errors: [Array],
+  response: [Gunzip]
+}
+Error fetching H1B data: Error: Failed to fetch H1B data: An aggregate function that has both DISTINCT and ORDER BY arguments can only ORDER BY expressions that are arguments to the function at [17:71]
+    at H1BBigQueryService.getH1BDashboardData (lib/h1bBigQueryService.ts:502:12)
+    at async GET (app/api/h1b-data/route.ts:64:19)
+  500 |       console.error('BigQuery error:', error);
+  501 |       const errorMessage = error instanceof Error ? error.message : 'Unknown BigQuery error';
+> 502 |       throw new Error(`Failed to fetch H1B data: ${errorMessage}`);
+      |            ^
+  503 |     }
+  504 |   }
+  505 |
+ GET /api/h1b-data 500 in 757ms
+Cache miss - fetching default H1B data from BigQuery
+BigQuery error: [Error: An aggregate function that has both DISTINCT and ORDER BY arguments can only ORDER BY expressions that are arguments to the function at [17:71]] {
+  code: 400,
+  errors: [Array],
+  response: [Gunzip]
+}
+Error fetching H1B data: Error: Failed to fetch H1B data: An aggregate function that has both DISTINCT and ORDER BY arguments can only ORDER BY expressions that are arguments to the function at [17:71]
+    at H1BBigQueryService.getH1BDashboardData (lib/h1bBigQueryService.ts:502:12)
+    at async GET (app/api/h1b-data/route.ts:64:19)
+  500 |       console.error('BigQuery error:', error);
+  501 |       const errorMessage = error instanceof Error ? error.message : 'Unknown BigQuery error';
+> 502 |       throw new Error(`Failed to fetch H1B data: ${errorMessage}`);
+      |            ^
+  503 |     }
+  504 |   }
+  505 |
+ GET /api/h1b-data 500 in 569ms
+Cache miss - fetching default H1B data from BigQuery
+BigQuery error: [Error: An aggregate function that has both DISTINCT and ORDER BY arguments can only ORDER BY expressions that are arguments to the function at [17:71]] {
+  code: 400,
+  errors: [Array],
+  response: [Gunzip]
+}
+Error fetching H1B data: Error: Failed to fetch H1B data: An aggregate function that has both DISTINCT and ORDER BY arguments can only ORDER BY expressions that are arguments to the function at [17:71]
+    at H1BBigQueryService.getH1BDashboardData (lib/h1bBigQueryService.ts:502:12)
+    at async GET (app/api/h1b-data/route.ts:64:19)
+  500 |       console.error('BigQuery error:', error);
+  501 |       const errorMessage = error instanceof Error ? error.message : 'Unknown BigQuery error';
+> 502 |       throw new Error(`Failed to fetch H1B data: ${errorMessage}`);
+      |            ^
+  503 |     }
+  504 |   }
+  505 |
+ GET /api/h1b-data 500 in 474ms
+Cache miss - fetching default H1B data from BigQuery
+BigQuery error: [Error: An aggregate function that has both DISTINCT and ORDER BY arguments can only ORDER BY expressions that are arguments to the function at [17:71]] {
+  code: 400,
+  errors: [Array],
+  response: [Gunzip]
+}
+Error fetching H1B data: Error: Failed to fetch H1B data: An aggregate function that has both DISTINCT and ORDER BY arguments can only ORDER BY expressions that are arguments to the function at [17:71]
+    at H1BBigQueryService.getH1BDashboardData (lib/h1bBigQueryService.ts:502:12)
+    at async GET (app/api/h1b-data/route.ts:64:19)
+  500 |       console.error('BigQuery error:', error);
+  501 |       const errorMessage = error instanceof Error ? error.message : 'Unknown BigQuery error';
+> 502 |       throw new Error(`Failed to fetch H1B data: ${errorMessage}`);
+      |            ^
+  503 |     }
+  504 |   }
+  505 |
+ GET /api/h1b-data 500 in 343ms
+Cache miss - fetching default H1B data from BigQuery
+BigQuery error: [Error: An aggregate function that has both DISTINCT and ORDER BY arguments can only ORDER BY expressions that are arguments to the function at [17:71]] {
+  code: 400,
+  errors: [Array],
+  response: [Gunzip]
+}
+Error fetching H1B data: Error: Failed to fetch H1B data: An aggregate function that has both DISTINCT and ORDER BY arguments can only ORDER BY expressions that are arguments to the function at [17:71]
+    at H1BBigQueryService.getH1BDashboardData (lib/h1bBigQueryService.ts:502:12)
+    at async GET (app/api/h1b-data/route.ts:64:19)
+  500 |       console.error('BigQuery error:', error);
+  501 |       const errorMessage = error instanceof Error ? error.message : 'Unknown BigQuery error';
+> 502 |       throw new Error(`Failed to fetch H1B data: ${errorMessage}`);
+      |            ^
+  503 |     }
+  504 |   }
+  505 |
+ GET /api/h1b-data 500 in 494ms
+Cache miss - fetching default H1B data from BigQuery
+BigQuery error: [Error: An aggregate function that has both DISTINCT and ORDER BY arguments can only ORDER BY expressions that are arguments to the function at [17:71]] {
+  code: 400,
+  errors: [Array],
+  response: [Gunzip]
+}
+Error fetching H1B data: Error: Failed to fetch H1B data: An aggregate function that has both DISTINCT and ORDER BY arguments can only ORDER BY expressions that are arguments to the function at [17:71]
+    at H1BBigQueryService.getH1BDashboardData (lib/h1bBigQueryService.ts:502:12)
+    at async GET (app/api/h1b-data/route.ts:64:19)
+  500 |       console.error('BigQuery error:', error);
+  501 |       const errorMessage = error instanceof Error ? error.message : 'Unknown BigQuery error';
+> 502 |       throw new Error(`Failed to fetch H1B data: ${errorMessage}`);
+      |            ^
+  503 |     }
+  504 |   }
+  505 |
+ GET /api/h1b-data 500 in 409ms
+ ✓ Compiled in 1039ms (3272 modules)
+ ⚠ metadataBase property in metadata export is not set for resolving social open graph or twitter images, using "http://localhost:3000". See https://nextjs.org/docs/app/api-reference/functions/generate-metadata#metadatabase
+ GET /h1b-dashboard 200 in 149ms
+Cache miss - fetching default H1B data from BigQuery
+⚠️ Using mock data due to BigQuery aggregate function error
+Cache set: dashboard_default (TTL: 21600s, Expires: 2025-07-26T06:44:37.815Z)
+Default H1B data cached successfully: {
+  totalApplications: 125000,
+  avgSalary: 95000,
+  topEmployersCount: 5,
+  statesCount: 4
+}
+ GET /api/h1b-data 200 in 81ms
+ GET /h1b-dashboard 200 in 385ms
+ ✓ Compiled in 962ms (3055 modules)
+ ⚠ metadataBase property in metadata export is not set for resolving social open graph or twitter images, using "http://localhost:3000". See https://nextjs.org/docs/app/api-reference/functions/generate-metadata#metadatabase
+ GET /h1b-dashboard 200 in 177ms
+ ✓ Compiled in 299ms (1444 modules)
+ GET /h1b-dashboard 200 in 14ms
+ ✓ Compiled in 369ms (1444 modules)
+ GET /h1b-dashboard 200 in 40ms
+ ✓ Compiled in 306ms (1444 modules)
+ GET /h1b-dashboard 200 in 13ms
+ ✓ Compiled in 280ms (1444 modules)
+ GET /h1b-dashboard 200 in 21ms
+ ✓ Compiled in 277ms (1444 modules)
+ GET /h1b-dashboard 200 in 22ms
+ ✓ Compiled in 466ms (1444 modules)
+ GET /h1b-dashboard 200 in 38ms
+ ✓ Compiled /api/h1b-data in 456ms (1828 modules)
+Cache miss - fetching default H1B data from BigQuery
+ ⚠ metadataBase property in metadata export is not set for resolving social open graph or twitter images, using "http://localhost:3000". See https://nextjs.org/docs/app/api-reference/functions/generate-metadata#metadatabase
+ GET /h1b-dashboard 200 in 114ms
+Cache set: dashboard_default (TTL: 21600s, Expires: 2025-07-26T06:50:54.726Z)
+Default H1B data cached successfully: {
+  totalApplications: 221793,
+  avgSalary: 131722,
+  topEmployersCount: 20,
+  statesCount: 10
+}
+ GET /api/h1b-data 200 in 2720ms
+Serving H1B data from cache (default dashboard)
+ GET /api/h1b-data 200 in 7ms
+ ✓ Compiled /_not-found in 428ms (3262 modules)
+ ⚠ metadataBase property in metadata export is not set for resolving social open graph or twitter images, using "http://localhost:3000". See https://nextjs.org/docs/app/api-reference/functions/generate-metadata#metadatabase
+ GET /api/h1b-data/search-suggestions?query=google 404 in 545ms
+ GET /h1b-dashboard 200 in 401ms

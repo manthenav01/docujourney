@@ -4,35 +4,12 @@ import React, { useMemo } from 'react';
 import { SalaryDistributionChart } from './SalaryDistributionChart';
 import { HighestSalaryByStateChart } from './HighestSalaryByStateChart';
 import { TopJobTitlesCard } from './TopJobTitlesCard';
+import { TopAttorneysCard } from './TopAttorneysCard';
 import { Card, CardContent } from '@docujourney/ui';
+import { H1BAggregatedData } from '../../lib/types';
 
 interface VisualizationPanelProps {
-  dashboardData: {
-    salaryDistribution: Array<{
-      range: string;
-      count: number;
-      minSalary: number;
-      maxSalary: number;
-    }>;
-    yearlyTrends: Array<{
-      fiscalYear: string;
-      applications: number;
-      avgSalary: number;
-      medianSalary: number;
-    }>;
-    stateDistribution: Array<{
-      state: string;
-      applications: number;
-      avgSalary: number;
-      highestSalary: number;
-    }>;
-    jobTitleDistribution: Array<{
-      jobTitle: string;
-      applications: number;
-      avgSalary: number;
-      percentage: number;
-    }>;
-  };
+  dashboardData: H1BAggregatedData;
   chartsLoading: boolean;
 }
 
@@ -118,8 +95,9 @@ const VisualizationPanelComponent: React.FC<VisualizationPanelProps> = ({
             </CardContent>
           </Card>
         </div>
-        <div className="grid grid-cols-1 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <TopJobTitlesCard data={[]} loading={true} />
+          <TopAttorneysCard data={[]} loading={true} />
         </div>
       </div>
     );
@@ -137,9 +115,13 @@ const VisualizationPanelComponent: React.FC<VisualizationPanelProps> = ({
           loading={chartsLoading}
         />
       </div>
-      <div className="grid grid-cols-1 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <TopJobTitlesCard 
           data={jobTitleDistributionData}
+          loading={chartsLoading}
+        />
+        <TopAttorneysCard 
+          data={dashboardData.topAttorneys || []}
           loading={chartsLoading}
         />
       </div>
