@@ -240,6 +240,71 @@ export interface H1BCityAnalysis {
   recentActivity: H1BCityRecentActivity[];
 }
 
+// Attorney-specific analysis types
+export interface H1BAttorneyTopEmployer {
+  employer: string;
+  applications: number;
+  percentage: number;
+  avgSalary: number;
+  certificationRate: number;
+}
+
+export interface H1BAttorneyTopState {
+  state: string;
+  applications: number;
+  percentage: number;
+  avgSalary: number;
+}
+
+export interface H1BAttorneyTopJobCategory {
+  jobCategory: string;
+  applications: number;
+  percentage: number;
+  avgSalary: number;
+  certificationRate: number;
+}
+
+export interface H1BAttorneyYearlyTrend {
+  fiscalYear: string;
+  applications: number;
+  certifiedApplications: number;
+  certificationRate: number;
+  avgSalary: number;
+}
+
+export interface H1BAttorneySalaryDistribution {
+  range: string;
+  count: number;
+}
+
+export interface H1BAttorneyRecentActivity {
+  month: string;
+  applications: number;
+  certificationRate: number;
+}
+
+export interface H1BAttorneyAnalysis {
+  attorneyName: string;
+  lawFirm: string;
+  city: string;
+  state: string;
+  totalApplications: number;
+  certifiedApplications: number;
+  deniedApplications: number;
+  withdrawnApplications: number;
+  certificationRate: number;
+  avgSalary: number;
+  medianSalary: number;
+  minSalary: number;
+  maxSalary: number;
+  topEmployers: H1BAttorneyTopEmployer[];
+  topStates: H1BAttorneyTopState[];
+  topJobCategories: H1BAttorneyTopJobCategory[];
+  yearlyTrends: H1BAttorneyYearlyTrend[];
+  salaryDistribution: H1BAttorneySalaryDistribution[];
+  recentActivity: H1BAttorneyRecentActivity[];
+}
+
 // Filter options types
 export interface H1BFilterOptions {
   fiscalYears: string[];
