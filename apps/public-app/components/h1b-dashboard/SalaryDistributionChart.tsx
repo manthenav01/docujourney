@@ -1,7 +1,10 @@
 'use client';
 
-import { ResponsiveBar } from '@nivo/bar';
+import React, { useMemo, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@docujourney/ui';
+import { ReusableAreaChart } from './charts';
+import { salaryDistributionColors } from '../../lib/chartColors';
+import { DollarSign } from 'lucide-react';
 
 interface SalaryDistributionData {
   range: string;
@@ -15,216 +18,146 @@ interface SalaryDistributionChartProps {
   loading?: boolean
 }
 
-export function SalaryDistributionChart({ data, loading }: SalaryDistributionChartProps) {
-  if (loading) {
+const SalaryDistributionChartComponent: React.FC<SalaryDistributionChartProps> = ({ data, loading }) => {
+  // Process data for the reusable area chart
+  const processedData = useMemo(() => {
+    if (!data || data.length === 0) {
+      return { chartData: [] };
+    }
+
+    // Group salary ranges into 5 meaningful brackets for better clarity
+    const groupedData = data.reduce((acc, item) => {
+      let broadRange = '';
+      let sortOrder = 0;
+      const range = item.range.toLowerCase();
+      
+      if (range.includes('under') || range.includes('below') || range.includes('< ') || 
+          range.includes('60') || range.includes('70') || range.includes('80')) {
+        broadRange = 'Under $90K';
+        sortOrder = 1;
+      } else if (range.includes('90') || range.includes('100') || range.includes('110') || range.includes('120')) {
+        broadRange = '$90K - $130K';
+        sortOrder = 2;
+      } else if (range.includes('130') || range.includes('140') || range.includes('150') || range.includes('160')) {
+        broadRange = '$130K - $170K';
+        sortOrder = 3;
+      } else if (range.includes('170') || range.includes('180') || range.includes('190') || range.includes('200') || range.includes('210')) {
+        broadRange = '$170K - $220K';
+        sortOrder = 4;
+      } else {
+        broadRange = '$220K+';
+        sortOrder = 5;
+      }
+      
+      const existing = acc.find(item => item.range === broadRange);
+      if (existing) {
+        existing.count += item.count;
+        existing.percentage += item.percentage;
+      } else {
+        acc.push({
+          range: broadRange,
+          count: item.count,
+          percentage: item.percentage,
+          sortOrder,
+        });
+      }
+      
+      return acc;
+    }, [] as (SalaryDistributionData & { sortOrder: number })[]);
+
+    // Sort by salary range order
+    const sortedData = groupedData.sort((a, b) => a.sortOrder - b.sortOrder);
+
+    // Convert to area chart data format compatible with ReusableAreaChart
+    const chartData = sortedData.map((item, index) => {
+      // Extract min and max salary from range string for tooltip
+      let minSalary = 0;
+      let maxSalary = 0;
+      
+      switch (item.range) {
+        case 'Under $90K':
+          minSalary = 0;
+          maxSalary = 90000;
+          break;
+        case '$90K - $130K':
+          minSalary = 90000;
+          maxSalary = 130000;
+          break;
+        case '$130K - $170K':
+          minSalary = 130000;
+          maxSalary = 170000;
+          break;
+        case '$170K - $220K':
+          minSalary = 170000;
+          maxSalary = 220000;
+          break;
+        case '$220K+':
+          minSalary = 220000;
+          maxSalary = 500000; // Cap for display purposes
+          break;
+      }
+      
+      return {
+        name: item.range,
+        value: item.count,
+        originalData: {
+          percentage: item.percentage,
+          sortOrder: index + 1,
+          total: sortedData.reduce((sum, curr) => sum + curr.count, 0),
+          minSalary,
+          maxSalary,
+        },
+      };
+    });
+
+    return {
+      chartData,
+    };
+  }, [data]);
+
+  // The ReusableAreaChart already has a custom tooltip, so we don't need this
+
+  // Loading state component
+  if (loading || !data || data.length === 0) {
     return (
-      <Card className="w-full">
+      <Card className="h-[500px]">
         <CardHeader>
-          <CardTitle>Salary Distribution</CardTitle>
+          <CardTitle className="text-lg font-semibold flex items-center">
+            <DollarSign className="w-5 h-5 mr-2" />
+            Salary Distribution
+          </CardTitle>
         </CardHeader>
-        <CardContent>
-          <div className="h-80 flex items-center justify-center">
-            <div className="text-muted-foreground">Loading...</div>
-          </div>
+        <CardContent className="h-[400px]">
+          <ReusableAreaChart
+            data={[]}
+            height={400}
+            loading={loading}
+          />
         </CardContent>
       </Card>
     );
   }
-
-  if (!data || data.length === 0) {
-    return (
-      <Card className="w-full">
-        <CardHeader>
-          <CardTitle>Salary Distribution</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="h-80 flex items-center justify-center">
-            <div className="text-muted-foreground">No data available</div>
-          </div>
-        </CardContent>
-      </Card>
-    );
-  }
-
-  // Group salary ranges into 6 meaningful brackets for better clarity
-  const groupedData = data.reduce((acc, item) => {
-    let broadRange = '';
-    const range = item.range.toLowerCase();
-    
-    if (range.includes('under') || range.includes('below') || range.includes('< ') || 
-        range.includes('60') || range.includes('70')) {
-      broadRange = 'Under $80K';
-    } else if (range.includes('80') || range.includes('90') || range.includes('100') || range.includes('110')) {
-      broadRange = '$80K - $120K';
-    } else if (range.includes('120') || range.includes('130') || range.includes('140') || range.includes('150')) {
-      broadRange = '$120K - $160K';
-    } else if (range.includes('160') || range.includes('170') || range.includes('180') || range.includes('190')) {
-      broadRange = '$160K - $200K';
-    } else if (range.includes('200') || range.includes('210') || range.includes('220') || range.includes('230') || range.includes('240')) {
-      broadRange = '$200K - $250K';
-    } else {
-      broadRange = '$250K+';
-    }
-    
-    const existing = acc.find(item => item.range === broadRange);
-    if (existing) {
-      existing.count += item.count;
-      existing.percentage += item.percentage;
-    } else {
-      acc.push({
-        range: broadRange,
-        count: item.count,
-        percentage: item.percentage,
-      });
-    }
-    
-    return acc;
-  }, [] as SalaryDistributionData[]);
-
-  // Sort by salary range order
-  const sortOrder = ['Under $80K', '$80K - $120K', '$120K - $160K', '$160K - $200K', '$200K - $250K', '$250K+'];
-  const sortedData = groupedData.sort((a, b) => sortOrder.indexOf(a.range) - sortOrder.indexOf(b.range));
-
-  // Calculate statistics for overlays
-  const totalApplications = sortedData.reduce((sum, item) => sum + item.count, 0);
-  const averageApplications = totalApplications / sortedData.length;
-  const medianIndex = Math.floor(sortedData.length / 2);
-  const medianApplications = sortedData[medianIndex]?.count || 0;
 
   return (
-    <Card className="w-full">
+    <Card className="h-[500px]">
       <CardHeader>
-        <CardTitle>Salary Distribution</CardTitle>
+        <CardTitle className="text-lg font-semibold flex items-center">
+          <DollarSign className="w-5 h-5 mr-2" />
+          Salary Distribution
+        </CardTitle>
       </CardHeader>
-      <CardContent>
-        <div style={{ height: '450px', width: '100%', position: 'relative' }}>
-          <ResponsiveBar
-            data={sortedData}
-            keys={['count']}
-            indexBy="range"
-            margin={{ top: 40, right: 40, bottom: 80, left: 80 }}
-            padding={0.3}
-            valueScale={{ type: 'linear' }}
-            indexScale={{ type: 'band', round: true }}
-            colors={({ index }) => {
-              const gradientColors = [
-                '#1E3A8A', '#1E40AF', '#2563EB', '#3B82F6', '#60A5FA', '#93C5FD',
-              ];
-              return gradientColors[index] || '#3B82F6';
-            }}
-            borderRadius={6}
-            borderWidth={0}
-            theme={{
-              background: 'transparent',
-              text: {
-                fontSize: 13,
-                fill: '#374151',
-                fontFamily: 'Inter, system-ui, sans-serif',
-                fontWeight: 500,
-              },
-              axis: {
-                domain: {
-                  line: {
-                    stroke: '#E5E7EB',
-                    strokeWidth: 1,
-                  },
-                },
-                legend: {
-                  text: {
-                    fontSize: 14,
-                    fill: '#1F2937',
-                    fontWeight: 600,
-                    fontFamily: 'Inter, system-ui, sans-serif',
-                  },
-                },
-                ticks: {
-                  line: {
-                    stroke: '#E5E7EB',
-                    strokeWidth: 1,
-                  },
-                  text: {
-                    fontSize: 12,
-                    fill: '#6B7280',
-                    fontFamily: 'Inter, system-ui, sans-serif',
-                    fontWeight: 500,
-                  },
-                },
-              },
-              grid: {
-                line: {
-                  stroke: '#F3F4F6',
-                  strokeWidth: 1,
-                  strokeDasharray: '2 4',
-                },
-              },
-            }}
-            axisTop={null}
-            axisRight={null}
-            axisBottom={{
-              tickSize: 0,
-              tickPadding: 12,
-              tickRotation: -35,
-              legend: 'Salary Range',
-              legendPosition: 'middle',
-              legendOffset: 65,
-            }}
-            axisLeft={{
-              tickSize: 0,
-              tickPadding: 12,
-              tickRotation: 0,
-              legend: 'Number of Applications',
-              legendPosition: 'middle',
-              legendOffset: -65,
-            }}
-            enableGridX={false}
-            enableGridY={true}
-            labelSkipWidth={0}
-            labelSkipHeight={0}
-            labelTextColor="#FFFFFF"
-            labelFormat={(value) => `${(Number(value) / 1000).toFixed(0)}K`}
-            tooltip={({ indexValue, value, data }) => (
-              <div className="bg-white/95 backdrop-blur-sm p-5 border border-gray-200 rounded-xl shadow-2xl">
-                <div className="text-sm font-bold text-gray-900 mb-3 border-b border-gray-100 pb-2">{indexValue}</div>
-                <div className="space-y-3">
-                  <div className="flex justify-between items-center">
-                    <span className="text-xs text-gray-600 font-medium">Applications:</span>
-                    <span className="text-sm font-bold text-blue-600">{value?.toLocaleString()}</span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-xs text-gray-600 font-medium">Share:</span>
-                    <span className="text-sm font-bold text-emerald-600">{data.percentage?.toFixed(1)}%</span>
-                  </div>
-                  <div className="flex justify-between items-center pt-2 border-t border-gray-100">
-                    <span className="text-xs text-gray-500">vs Average:</span>
-                    <span className={`text-sm font-semibold ${
-                      (value || 0) > averageApplications ? 'text-emerald-600' : 'text-orange-600'
-                    }`}>
-                      {((((value || 0) - averageApplications) / averageApplications) * 100).toFixed(0)}%
-                    </span>
-                  </div>
-                </div>
-              </div>
-            )}
-            animate={true}
-            motionConfig="gentle"
-          />
-          
-          {/* Statistical Overlay Lines */}
-          <div className="absolute top-12 right-12 bg-white/90 backdrop-blur-sm p-3 rounded-lg border border-gray-200 shadow-sm">
-            <div className="text-xs font-semibold text-gray-700 mb-2">Statistics</div>
-            <div className="space-y-1">
-              <div className="flex items-center space-x-2">
-                <div className="w-3 h-0.5 bg-blue-500"></div>
-                <span className="text-xs text-gray-600">Avg: {averageApplications.toLocaleString()}</span>
-              </div>
-              <div className="flex items-center space-x-2">
-                <div className="w-3 h-0.5 bg-emerald-500"></div>
-                <span className="text-xs text-gray-600">Total: {totalApplications.toLocaleString()}</span>
-              </div>
-            </div>
-          </div>
-        </div>
+      <CardContent className="h-[400px]">
+        <ReusableAreaChart
+          data={processedData.chartData}
+          height={400}
+          curve="monotoneX"
+          gradientId="salaryGradient"
+        />
       </CardContent>
     </Card>
   );
-}
+};
+
+SalaryDistributionChartComponent.displayName = 'SalaryDistributionChart';
+
+export const SalaryDistributionChart = React.memo(SalaryDistributionChartComponent);

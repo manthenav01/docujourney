@@ -73,36 +73,36 @@ export const DashboardSidebar: React.FC<SidebarProps> = ({
       )}
       
       {/* Sidebar */}
-      <div className={`fixed left-0 top-0 h-full w-64 bg-white border-r border-gray-200 shadow-sm z-50 transform transition-transform duration-300 ease-in-out ${
-        sidebarOpen ? 'translate-x-0' : '-translate-x-full'
-      } lg:translate-x-0`}>
+      <div className={`w-64 bg-sidebar border-r border-sidebar-border shadow-sm flex-shrink-0 lg:block ${
+        sidebarOpen ? 'block fixed left-0 top-0 h-full z-50' : 'hidden'
+      }`}>
         <div className="p-6">
           <div className="flex items-center justify-between mb-8">
-            <div className="flex items-center gap-2">
-              <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
-                <BarChart3 className="w-5 h-5 text-white" />
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 bg-primary/10 rounded-xl flex items-center justify-center">
+                <BarChart3 className="w-5 h-5 text-primary" />
               </div>
-              <h1 className="text-xl font-bold text-gray-900">H1B Analytics</h1>
+              <h1 className="text-lg font-bold text-sidebar-foreground tracking-tight">Immigrant Central</h1>
             </div>
             <button
               onClick={() => setSidebarOpen(false)}
-              className="lg:hidden p-2 rounded-lg hover:bg-gray-100"
+              className="lg:hidden p-2 rounded-lg hover:bg-sidebar-accent transition-colors"
             >
-              <XCircle className="w-5 h-5 text-gray-500" />
+              <XCircle className="w-5 h-5 text-sidebar-foreground/70" />
             </button>
           </div>
           
-          <nav className="space-y-2">
+          <nav className="space-y-1">
             {sidebarItems.map((item) => {
               const Icon = item.icon;
               return (
                 <button
                   key={item.id}
                   onClick={() => handleNavigation(item)}
-                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-left transition-all duration-200 ${
+                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left transition-all duration-200 ${
                     activeNavItem === item.id
-                      ? 'bg-blue-50 text-blue-700 border-r-2 border-blue-600'
-                      : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                      ? 'bg-sidebar-primary text-sidebar-primary-foreground shadow-sm'
+                      : 'text-sidebar-foreground/80 hover:bg-sidebar-accent hover:text-sidebar-foreground'
                   }`}
                 >
                   <Icon className="w-5 h-5" />

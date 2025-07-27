@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { H1BBigQueryService, H1BQueryFilters } from '@/lib/h1bBigQueryService';
+import { H1BBigQueryService } from '@/lib/h1bBigQueryService';
+import { H1BQueryFilters } from '@/lib/types';
 import { cacheService } from '@/lib/cacheService';
 import path from 'path';
 

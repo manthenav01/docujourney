@@ -1,8 +1,10 @@
 'use client';
 
-import { useState } from 'react';
-import { ResponsiveBar } from '@nivo/bar';
+import React, { useState, useMemo, useCallback } from 'react';
 import { Button, Card, CardContent, CardHeader, CardTitle } from '@docujourney/ui';
+import { CHART_COLOR_ARRAYS, getChartColor } from '../../lib/chartColors';
+import { ReusableBarChart, type BarChartData } from './charts';
+import { MapPin, BarChart3 } from 'lucide-react';
 
 interface StateSalaryData {
   state: string;
@@ -16,183 +18,157 @@ interface HighestSalaryByStateChartProps {
   loading?: boolean
 }
 
-export function HighestSalaryByStateChart({ data, loading }: HighestSalaryByStateChartProps) {
+const HighestSalaryByStateChartComponent: React.FC<HighestSalaryByStateChartProps> = ({ data, loading }) => {
   const [viewMode, setViewMode] = useState<'top' | 'bottom'>('top');
-  if (loading) {
+  
+  // Process data for the reusable bar chart
+  const chartData = useMemo(() => {
+    if (!data || data.length === 0) {
+      return [];
+    }
+    
+    const sorted = [...data].sort((a, b) => 
+      viewMode === 'top' ? b.avgSalary - a.avgSalary : a.avgSalary - b.avgSalary,
+    );
+    
+    return sorted.slice(0, 7).map((item): BarChartData => ({
+      state: item.state,
+      avgSalary: item.avgSalary,
+      applications: item.applications,
+    }));
+  }, [data, viewMode]);
+
+
+  // Geographic colors for states
+  const stateColors = useMemo(() => {
+    return CHART_COLOR_ARRAYS.geographic;
+  }, []);
+
+  // Custom tooltip for state salary data
+  const stateTooltip = useCallback(({ indexValue, value, data: tooltipData }: any) => (
+    <div className="bg-card/95 backdrop-blur-sm p-4 border border-border rounded-lg shadow-lg">
+      <div className="text-sm font-semibold text-foreground mb-3">{indexValue}</div>
+      <div className="space-y-2">
+        <div className="flex justify-between items-center">
+          <span className="text-xs text-muted-foreground">Average Salary:</span>
+          <span className="text-sm font-medium text-primary">${value?.toLocaleString()}</span>
+        </div>
+        <div className="flex justify-between items-center">
+          <span className="text-xs text-muted-foreground">Applications:</span>
+          <span className="text-sm font-medium text-primary">{tooltipData.applications?.toLocaleString()}</span>
+        </div>
+      </div>
+    </div>
+  ), []);
+
+  // Memoize the button click handlers
+  const handleTopClick = useCallback(() => setViewMode('top'), []);
+  const handleBottomClick = useCallback(() => setViewMode('bottom'), []);
+
+  if (loading || !data || data.length === 0) {
     return (
       <Card className="w-full">
         <CardHeader>
-          <CardTitle>Average Salary by State</CardTitle>
+          <div className="flex justify-between items-start">
+            <div>
+              <CardTitle className="flex items-center">
+                <MapPin className="w-5 h-5 mr-2" />
+                Average Salary by State
+              </CardTitle>
+            </div>
+            <div className="flex gap-1">
+              <Button
+                type="button"
+                variant={viewMode === 'top' ? 'default' : 'outline'}
+                size="sm"
+                disabled={loading}
+                onClick={handleTopClick}
+                className="h-7 text-xs"
+              >
+                Top 7
+              </Button>
+              <Button
+                type="button"
+                variant={viewMode === 'bottom' ? 'default' : 'outline'}
+                size="sm"
+                disabled={loading}
+                onClick={handleBottomClick}
+                className="h-7 text-xs"
+              >
+                Bottom 7
+              </Button>
+            </div>
+          </div>
         </CardHeader>
         <CardContent>
-          <div className="h-80 flex items-center justify-center">
-            <div className="text-muted-foreground">Loading...</div>
-          </div>
+          <ReusableBarChart
+            data={[]}
+            keys={['avgSalary']}
+            indexBy="state"
+            loading={loading}
+            height={400}
+            colors={stateColors}
+            formatValue={(value) => `$${(value / 1000).toFixed(0)}K`}
+          />
         </CardContent>
       </Card>
     );
   }
 
-  if (!data || data.length === 0) {
-    return (
-      <Card className="w-full">
-        <CardHeader>
-          <CardTitle>Average Salary by State</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="h-80 flex items-center justify-center">
-            <div className="text-muted-foreground">No data available</div>
-          </div>
-        </CardContent>
-      </Card>
-    );
-  }
-
-  const sortedData = [...data].sort((a, b) => b.avgSalary - a.avgSalary).slice(0, 5);
 
   return (
     <Card className="w-full">
       <CardHeader>
         <div className="flex justify-between items-start">
           <div>
-            <CardTitle>Average Salary by State</CardTitle>
+            <CardTitle className="flex items-center">
+              <MapPin className="w-5 h-5 mr-2" />
+              Average Salary by State
+            </CardTitle>
           </div>
           <div className="flex gap-1">
             <Button
               type="button"
-              variant="ghost"
+              variant={viewMode === 'top' ? 'default' : 'outline'}
               size="sm"
-              onClick={() => setViewMode('top')}
-              className={`px-2 py-1 h-7 text-xs rounded transition-colors ${
-                viewMode === 'top' 
-                  ? 'bg-gray-900 text-white font-medium' 
-                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-              }`}
+              onClick={handleTopClick}
+              className="h-7 text-xs"
               aria-pressed={viewMode === 'top'}
             >
-              Top 5
+              Top 7
             </Button>
             <Button
               type="button"
-              variant="ghost"
+              variant={viewMode === 'bottom' ? 'default' : 'outline'}
               size="sm"
-              onClick={() => setViewMode('bottom')}
-              className={`px-2 py-1 h-7 text-xs rounded transition-colors ${
-                viewMode === 'bottom' 
-                  ? 'bg-gray-900 text-white font-medium' 
-                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-              }`}
+              onClick={handleBottomClick}
+              className="h-7 text-xs"
               aria-pressed={viewMode === 'bottom'}
             >
-              Bottom 5
+              Bottom 7
             </Button>
           </div>
         </div>
       </CardHeader>
       <CardContent>
-        <div style={{ height: '400px', width: '100%' }}>
-          <ResponsiveBar
-            data={sortedData}
-            keys={['avgSalary']}
-            indexBy="state"
-            margin={{ top: 20, right: 30, bottom: 80, left: 80 }}
-            padding={0.4}
-            valueScale={{ type: 'linear' }}
-            indexScale={{ type: 'band', round: true }}
-            colors={(d) => {
-              const index = sortedData.findIndex(item => item.state === d.indexValue);
-              const colorMap = [
-                '#1E40AF', '#2563EB', '#3B82F6', '#60A5FA', '#93C5FD',
-              ];
-              return colorMap[index % colorMap.length];
-            }}
-            borderRadius={2}
-            borderWidth={0}
-            theme={{
-              background: 'transparent',
-              text: {
-                fontSize: 12,
-                fill: '#64748B',
-                fontFamily: 'Inter, system-ui, sans-serif',
-              },
-              axis: {
-                domain: {
-                  line: {
-                    stroke: '#E2E8F0',
-                    strokeWidth: 1,
-                  },
-                },
-                legend: {
-                  text: {
-                    fontSize: 13,
-                    fill: '#475569',
-                    fontWeight: 500,
-                    fontFamily: 'Inter, system-ui, sans-serif',
-                  },
-                },
-                ticks: {
-                  line: {
-                    stroke: '#E2E8F0',
-                    strokeWidth: 1,
-                  },
-                  text: {
-                    fontSize: 11,
-                    fill: '#64748B',
-                    fontFamily: 'Inter, system-ui, sans-serif',
-                  },
-                },
-              },
-              grid: {
-                line: {
-                  stroke: '#F1F5F9',
-                  strokeWidth: 1,
-                },
-              },
-            }}
-            axisTop={null}
-            axisRight={null}
-            axisBottom={{
-              tickSize: 0,
-              tickPadding: 8,
-              tickRotation: -45,
-              legend: 'State',
-              legendPosition: 'middle',
-              legendOffset: 65,
-            }}
-            axisLeft={{
-              tickSize: 0,
-              tickPadding: 8,
-              tickRotation: 0,
-              legend: 'Average Salary ($)',
-              legendPosition: 'middle',
-              legendOffset: -70,
-              format: (value) => `$${(value / 1000).toFixed(0)}K`,
-            }}
-            enableGridX={false}
-            enableGridY={true}
-            labelSkipWidth={12}
-            labelSkipHeight={12}
-            labelTextColor="#FFFFFF"
-            tooltip={({ indexValue, value, data }) => (
-              <div className="bg-white/95 backdrop-blur-sm p-4 border border-gray-200 rounded-xl shadow-xl">
-                <div className="text-sm font-semibold text-gray-900 mb-3">{indexValue}</div>
-                <div className="space-y-2">
-                  <div className="flex justify-between items-center">
-                    <span className="text-xs text-gray-600">Average Salary:</span>
-                    <span className="text-sm font-medium text-blue-600">${value?.toLocaleString()}</span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-xs text-gray-600">Applications:</span>
-                    <span className="text-sm font-medium text-blue-600">{data.applications?.toLocaleString()}</span>
-                  </div>
-                </div>
-              </div>
-            )}
-            animate={true}
-            motionConfig="gentle"
-          />
-        </div>
+        <ReusableBarChart
+          data={chartData}
+          keys={['avgSalary']}
+          indexBy="state"
+          height={400}
+          colors={stateColors}
+          margin={{ top: 20, right: 20, bottom: 60, left: 80 }}
+          innerPadding={0.4}
+          borderRadius={2}
+          formatValue={(value) => `$${(value / 1000).toFixed(0)}K`}
+          formatTooltipValue={(value) => `$${value.toLocaleString()}`}
+          customTooltip={stateTooltip}
+        />
       </CardContent>
     </Card>
   );
-}
+};
+
+HighestSalaryByStateChartComponent.displayName = 'HighestSalaryByStateChart';
+
+export const HighestSalaryByStateChart = React.memo(HighestSalaryByStateChartComponent);

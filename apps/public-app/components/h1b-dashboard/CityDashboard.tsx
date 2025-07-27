@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Badge, Button, Card, CardContent, CardHeader, CardTitle } from '@docujourney/ui';
+import { H1BCityAnalysis } from '../../lib/types';
 import { 
   ArrowLeft, 
   MapPin, 
@@ -18,43 +19,8 @@ import {
   BarChart3,
 } from 'lucide-react';
 
-interface CityInfo {
-  city: string;
-  state: string;
-  totalApplications: number;
-  certifiedApplications: number;
-  avgSalary: number;
-  medianSalary: number;
-  minSalary: number;
-  maxSalary: number;
-  topEmployers: Array<{
-    employer: string;
-    applications: number;
-    percentage: number;
-    avgSalary: number;
-    medianSalary: number;
-  }>;
-  topJobTitles: Array<{
-    jobTitle: string;
-    applications: number;
-    avgSalary: number;
-    medianSalary: number;
-  }>;
-  yearlyTrends: Array<{
-    fiscalYear: string;
-    applications: number;
-    avgSalary: number;
-    certificationRate: number;
-  }>;
-  salaryDistribution: Array<{
-    range: string;
-    count: number;
-  }>;
-  recentActivity: Array<{
-    month: string;
-    applications: number;
-  }>;
-}
+// Use the standardized H1BCityAnalysis type
+type CityInfo = H1BCityAnalysis;
 
 interface CityDashboardProps {
   citySlug: string;
@@ -341,7 +307,7 @@ export const CityDashboard: React.FC<CityDashboardProps> = ({
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center">
-              <Building className="w-5 h-5 mr-2" />
+              <Building2 className="w-5 h-5 mr-2" />
               Top Employers in {cityName}
             </CardTitle>
           </CardHeader>
@@ -377,14 +343,15 @@ export const CityDashboard: React.FC<CityDashboardProps> = ({
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center">
-              <PieChart className="w-5 h-5 mr-2" />
+              <DollarSign className="w-5 h-5 mr-2" />
               Salary Distribution
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
-              {cityInfo.salaryDistribution.map((salary, index) => {
-                const maxCount = Math.max(...cityInfo.salaryDistribution.map(s => s.count));
+              {cityInfo.salaryDistribution.slice(0, 7).map((salary, index) => {
+                const limitedData = cityInfo.salaryDistribution.slice(0, 7);
+                const maxCount = Math.max(...limitedData.map(s => s.count));
                 const percentage = (salary.count / maxCount) * 100;
                 const colors = ['bg-blue-500', 'bg-green-500', 'bg-yellow-500', 'bg-red-500', 'bg-purple-500', 'bg-indigo-500', 'bg-pink-500', 'bg-orange-500'];
                 

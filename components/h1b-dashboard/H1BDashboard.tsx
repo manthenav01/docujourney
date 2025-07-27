@@ -70,12 +70,6 @@ interface H1BDashboardData {
     avgSalary: number;
     percentage: number;
   }>;
-  caseStatusByJobCategory: Array<{
-    jobCategory: string;
-    caseStatus: string;
-    applicationCount: number;
-    avgSalary: number;
-  }>;
   industryDistribution: Array<{
     industry: string;
     applications: number;
@@ -106,23 +100,10 @@ export const H1BDashboard: React.FC = () => {
   const [loadingError, setLoadingError] = useState<string | null>(null);
 
   useEffect(() => {
-    // Safety timeout - force loading to end after 45 seconds
-    const safetyTimeout = setTimeout(() => {
-      console.warn('Safety timeout triggered - forcing loading to end');
-      setLoading(false);
-      setInitialLoadComplete(true);
-      if (!dashboardData) {
-        setLoadingError('Loading timed out. Please refresh the page.');
-      }
-    }, 45000);
-
     fetchH1BData().finally(() => {
-      clearTimeout(safetyTimeout);
       setInitialLoadComplete(true);
-      setLoading(false); // Ensure loading is always set to false after initial load
+      setLoading(false);
     });
-
-    return () => clearTimeout(safetyTimeout);
   }, []);
 
   useEffect(() => {
@@ -153,10 +134,6 @@ export const H1BDashboard: React.FC = () => {
       setChartsLoading(true);
       setLoadingError(null); // Clear any previous errors
       
-      // Add timeout protection
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
-      
       // Build query parameters
       const params = new URLSearchParams();
       
@@ -180,11 +157,7 @@ export const H1BDashboard: React.FC = () => {
       
       console.log('Fetching H1B data with params:', params.toString());
       
-      const response = await fetch(`/api/h1b-data?${params.toString()}`, {
-        signal: controller.signal
-      });
-      
-      clearTimeout(timeoutId);
+      const response = await fetch(`/api/h1b-data?${params.toString()}`);
       
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
@@ -207,13 +180,7 @@ export const H1BDashboard: React.FC = () => {
     } catch (error) {
       console.error('Error fetching H1B data:', error);
       
-      // Handle specific error types
-      if (error instanceof Error && error.name === 'AbortError') {
-        console.error('Request timed out after 30 seconds');
-        setLoadingError('Request timed out. Please try again.');
-      } else {
-        setLoadingError(error instanceof Error ? error.message : 'Unknown error occurred');
-      }
+      setLoadingError(error instanceof Error ? error.message : 'Unknown error occurred');
       
       // Set empty data on error to prevent crashes
       setDashboardData({
@@ -235,7 +202,6 @@ export const H1BDashboard: React.FC = () => {
         yearlyTrends: [],
         stateDistribution: [],
         jobTitleDistribution: [],
-        caseStatusByJobCategory: [],
         industryDistribution: [],
       });
     } finally {

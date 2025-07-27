@@ -7,7 +7,7 @@ import { Metadata } from 'next';
 export const metadata: Metadata = generateMetadata({
   title: BASE_METADATA.title,
   description: BASE_METADATA.description,
-  keywords: ['immigration', 'H1B visa', 'document management', 'AI-powered', 'visa analytics'],
+  keywords: ['immigration', 'H1B visa', 'AI-powered', 'visa analytics', 'H1B Employer', 'H1B Sponsor'],
   type: 'website',
 });
 
@@ -24,6 +24,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         {/* Preconnect to external domains for performance */}
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        
+        {/* Inter font for modern typography */}
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
         
         {/* JSON-LD Structured Data */}
         <script

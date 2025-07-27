@@ -53,8 +53,10 @@ export function AppSidebar() {
     <Sidebar>
       <SidebarHeader>
         <div className="flex h-16 items-center px-6">
-          <span className="text-teal-500 text-2xl mr-2">&#10048;</span>
-          <span className="font-bold text-xl">DocuJourney</span>
+          <div className="p-2 bg-primary/10 rounded-lg mr-3">
+            <span className="text-primary text-xl">&#10048;</span>
+          </div>
+          <span className="font-bold text-xl text-foreground tracking-tight">DocuJourney</span>
         </div>
       </SidebarHeader>
       <SidebarContent>

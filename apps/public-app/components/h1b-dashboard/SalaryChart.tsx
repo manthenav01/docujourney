@@ -1,6 +1,9 @@
 'use client';
 
-import React from 'react';
+import React, { useMemo } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@docujourney/ui';
+import { ReusableBarChart, type BarChartData } from './charts';
+import { DollarSign } from 'lucide-react';
 
 interface SalaryChartProps {
   salaryData: Array<{
@@ -18,235 +21,106 @@ interface SalaryChartProps {
 }
 
 export const SalaryChart: React.FC<SalaryChartProps> = ({ salaryData, stateData, isActive }) => {
-
-  // Transform salary data for visualization - use real data
-  const getSalaryDistributionData = () => {
-    return salaryData.map((item) => ({
+  // Transform salary data for bar chart
+  const distributionData = useMemo(() => {
+    if (!salaryData || salaryData.length === 0) {
+      return [];
+    }
+    
+    return salaryData.map((item): BarChartData => ({
       range: item.range,
       count: item.count,
       percentage: (item.count / salaryData.reduce((sum, d) => sum + d.count, 0)) * 100,
     }));
-  };
+  }, [salaryData]);
 
   // Transform state data for salary by state visualization
-  const getStateSalaryData = () => {
-    // Get top 8 states by application count for better visualization
+  const stateSalaryData = useMemo(() => {
+    if (!stateData || stateData.length === 0) {
+      return [];
+    }
+    
     return stateData
       .sort((a, b) => b.applications - a.applications)
       .slice(0, 8)
-      .map((item) => ({
+      .map((item): BarChartData => ({
         state: item.state,
         avgSalary: item.avgSalary,
         applications: item.applications,
       }));
-  };
+  }, [stateData]);
+  
+  if (!isActive) {
+    return null;
+  }
+  
+  if (!salaryData || !stateData || salaryData.length === 0 || stateData.length === 0) {
+    return (
+      <div className="h-full w-full bg-card rounded-2xl border border-border/60">
+        <div className="flex items-center justify-center h-full">
+          <div className="text-muted-foreground">No salary data available</div>
+        </div>
+      </div>
+    );
+  }
 
-  const distributionData = getSalaryDistributionData();
-  const stateSalaryData = getStateSalaryData();
-
-  const SalaryDistributionChart = ({ data }: any) => (
-    <div className="relative h-48 w-full">
-      <svg viewBox="0 0 500 250" className="w-full h-full">
-        {/* Grid lines */}
-        {[40, 80, 120, 160, 200].map(y => (
-          <line
-            key={y}
-            x1="60"
-            y1={y}
-            x2="460"
-            y2={y}
-            stroke="#f1f5f9"
-            strokeWidth="1"
-          />
-        ))}
-        
-        {/* Render bars for salary distribution */}
-        {data.map((d: any, idx: number) => {
-          const barWidth = Math.min(35, (400 / data.length) * 0.8);
-          const x = 60 + (idx * (400 / data.length)) + ((400 / data.length) - barWidth) / 2;
-          const maxPercentage = Math.max(...data.map((item: any) => item.percentage));
-          const barHeight = (d.percentage / maxPercentage) * 120;
-          const y = 180 - barHeight;
-          
-          return (
-            <rect
-              key={idx}
-              x={x}
-              y={y}
-              width={barWidth}
-              height={barHeight}
-              fill="#3b82f6"
-              rx="2"
-              style={{ filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.1))' }}
-            />
-          );
-        })}
-        
-        {/* X-axis labels */}
-        {data.map((d: any, i: number) => {
-          const x = 60 + (i * (400 / data.length)) + (400 / data.length) / 2;
-          const label = d.range.replace('$', '').replace(' - ', '-');
-          return (
-            <text
-              key={i}
-              x={x}
-              y="200"
-              textAnchor="middle"
-              fontSize="11"
-              fill="#64748b"
-              transform={`rotate(-45, ${x}, 200)`}
-            >
-              {label.length > 12 ? label.substring(0, 10) + '...' : label}
-            </text>
-          );
-        })}
-        
-        {/* Y-axis labels */}
-        {[0, 25, 50].map((value, i) => (
-          <text
-            key={value}
-            x="50"
-            y={180 - (i * 60)}
-            textAnchor="end"
-            fontSize="12"
-            fill="#64748b"
-          >
-            {value}%
-          </text>
-        ))}
-        
-        {/* Y-axis line */}
-        <line x1="60" y1="40" x2="60" y2="180" stroke="#e2e8f0" strokeWidth="1"/>
-        {/* X-axis line */}
-        <line x1="60" y1="180" x2="460" y2="180" stroke="#e2e8f0" strokeWidth="1"/>
-      </svg>
-    </div>
-  );
-
-  const StateSalaryChart = ({ data }: any) => (
-    <div className="relative h-48 w-full">
-      <svg viewBox="0 0 500 250" className="w-full h-full">
-        {/* Grid lines */}
-        {[40, 80, 120, 160, 200].map(y => (
-          <line
-            key={y}
-            x1="60"
-            y1={y}
-            x2="460"
-            y2={y}
-            stroke="#f1f5f9"
-            strokeWidth="1"
-          />
-        ))}
-        
-        {/* Render bars for state salaries */}
-        {data.map((d: any, idx: number) => {
-          const barWidth = Math.min(40, (400 / data.length) * 0.7);
-          const x = 60 + (idx * (400 / data.length)) + ((400 / data.length) - barWidth) / 2;
-          const minSalary = Math.min(...data.map((item: any) => item.avgSalary));
-          const maxSalary = Math.max(...data.map((item: any) => item.avgSalary));
-          const normalizedSalary = (d.avgSalary - minSalary) / (maxSalary - minSalary);
-          const barHeight = normalizedSalary * 120 + 20; // Add minimum height
-          const y = 180 - barHeight;
-          
-          return (
-            <rect
-              key={idx}
-              x={x}
-              y={y}
-              width={barWidth}
-              height={barHeight}
-              fill="#1e40af"
-              rx="2"
-              style={{ filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.1))' }}
-            />
-          );
-        })}
-        
-        {/* X-axis labels */}
-        {data.map((d: any, i: number) => {
-          const x = 60 + (i * (400 / data.length)) + (400 / data.length) / 2;
-          return (
-            <text
-              key={i}
-              x={x}
-              y="200"
-              textAnchor="middle"
-              fontSize="12"
-              fill="#64748b"
-            >
-              {d.state}
-            </text>
-          );
-        })}
-        
-        {/* Y-axis labels */}
-        {data.length > 0 && (
-          <>
-            {[
-              Math.min(...data.map((item: any) => item.avgSalary)),
-              Math.max(...data.map((item: any) => item.avgSalary)),
-            ].map((value, i) => (
-              <text
-                key={value}
-                x="50"
-                y={180 - (i * 120)}
-                textAnchor="end"
-                fontSize="12"
-                fill="#64748b"
-              >
-                ${Math.round(value/1000)}K
-              </text>
-            ))}
-          </>
-        )}
-        
-        {/* Y-axis line */}
-        <line x1="60" y1="40" x2="60" y2="180" stroke="#e2e8f0" strokeWidth="1"/>
-        {/* X-axis line */}
-        <line x1="60" y1="180" x2="460" y2="180" stroke="#e2e8f0" strokeWidth="1"/>
-      </svg>
-    </div>
-  );
-
-  if (!isActive) {return null;}
 
   return (
-    <div className="h-full w-full p-6 bg-white rounded-lg">
+    <div className="h-full w-full bg-card rounded-2xl border border-border/60">
       {/* Two panels side by side */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 h-full">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 h-full p-6">
         
         {/* Salary Distribution Panel */}
-        <div className="bg-gray-50 rounded-xl p-6">
-          <div className="mb-6">
-            <h3 className="text-lg font-semibold text-gray-900">Salary Distribution</h3>
-          </div>
-          
-          {/* Stats */}
-          <div className="mb-4">
-            <p className="text-sm text-gray-600">
+        <Card className="bg-muted/20 border border-border/20">
+          <CardHeader>
+            <CardTitle className="text-lg font-semibold text-foreground tracking-tight flex items-center">
+              <DollarSign className="w-5 h-5 mr-2" />
+              Salary Distribution
+            </CardTitle>
+            <p className="text-sm text-muted-foreground">
               Total Applications: {salaryData.reduce((sum, d) => sum + d.count, 0).toLocaleString()}
             </p>
-          </div>
-          
-          <SalaryDistributionChart data={distributionData} />
-        </div>
+          </CardHeader>
+          <CardContent>
+            <ReusableBarChart
+              data={distributionData}
+              keys={['count']}
+              indexBy="range"
+              height={300}
+              colors={['#3b82f6']}
+              axisBottomLegend="Salary Range"
+              axisLeftLegend="Count"
+              formatValue={(value) => value.toLocaleString()}
+              margin={{ top: 20, right: 30, bottom: 80, left: 60 }}
+            />
+          </CardContent>
+        </Card>
 
         {/* Salary by State Panel */}
-        <div className="bg-gray-50 rounded-xl p-6">
-          <div className="mb-6">
-            <h3 className="text-lg font-semibold text-gray-900">Salary by State</h3>
-          </div>
-          
-          {/* Stats */}
-          <div className="mb-4">
-            <p className="text-sm text-gray-600">
+        <Card className="bg-muted/20 border border-border/20">
+          <CardHeader>
+            <CardTitle className="text-lg font-semibold text-foreground tracking-tight flex items-center">
+              <DollarSign className="w-5 h-5 mr-2" />
+              Salary by State
+            </CardTitle>
+            <p className="text-sm text-muted-foreground">
               Top {stateSalaryData.length} States by Application Volume
             </p>
-          </div>
-          
-          <StateSalaryChart data={stateSalaryData} />
-        </div>
+          </CardHeader>
+          <CardContent>
+            <ReusableBarChart
+              data={stateSalaryData}
+              keys={['avgSalary']}
+              indexBy="state"
+              height={300}
+              colors={['#1e40af']}
+              axisBottomLegend="State"
+              axisLeftLegend="Average Salary"
+              formatValue={(value) => `$${(value / 1000).toFixed(0)}K`}
+              margin={{ top: 20, right: 30, bottom: 60, left: 70 }}
+            />
+          </CardContent>
+        </Card>
       </div>
     </div>
   );
