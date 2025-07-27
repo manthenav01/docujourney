@@ -6,6 +6,8 @@ import path from 'path';
 const bigQueryService = new H1BBigQueryService({
   projectId: 'doctracker-b4528',
   keyFilename: path.join(process.cwd(), '../../serviceAccountKey.json'),
+  datasetId: 'h1b_data',
+  tableId: 'lca_applications',
 });
 
 

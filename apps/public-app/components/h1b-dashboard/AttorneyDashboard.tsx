@@ -5,7 +5,8 @@ import { useRouter } from 'next/navigation';
 import { Badge, Button, Card, CardContent, CardHeader, CardTitle } from '@docujourney/ui';
 import { CHART_COLOR_ARRAYS, getChartColor, getSalaryRangeColor } from '../../lib/chartColors';
 import { ReusableProgressChart, ReusableActivityChart, type ProgressChartData, type ActivityChartData } from './charts';
-import { H1BAttorneyAnalysis } from '../../lib/types';
+import { H1BAttorneyAnalysis, H1BApiResponse } from '../../lib/types';
+import { BigQueryErrorBoundary } from './ErrorBoundary';
 import { 
   ArrowLeft, 
   Scale, 
@@ -63,18 +64,26 @@ export const AttorneyDashboard: React.FC<AttorneyDashboardProps> = ({
       }
       
       const response = await fetch(`/api/h1b-data/attorney?${params.toString()}`);
+      const apiResponse: H1BApiResponse<H1BAttorneyAnalysis> = await response.json();
       
-      if (response.ok) {
-        const data = await response.json();
-        setAttorneyInfo(data);
+      if (response.ok && apiResponse.data) {
+        setAttorneyInfo(apiResponse.data);
+        console.log('Attorney data loaded successfully:', {
+          queryTime: apiResponse.metadata?.queryTime,
+          source: apiResponse.metadata?.source,
+        });
       } else {
-        const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
-        throw new Error(errorData.error || `Server responded with ${response.status}`);
+        const errorMessage = apiResponse.error?.message || `Server responded with ${response.status}`;
+        throw new Error(errorMessage);
       }
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to load attorney information';
       setError(errorMessage);
-      console.error('Error fetching attorney info:', err);
+      console.error('Error fetching attorney info:', {
+        error: err,
+        attorneyName,
+        lawFirm,
+      });
     } finally {
       setLoading(false);
     }
@@ -254,7 +263,8 @@ export const AttorneyDashboard: React.FC<AttorneyDashboardProps> = ({
   const hasTrendData = attorneyInfo.yearlyTrends.length > 0;
 
   return (
-    <div className="max-w-7xl mx-auto space-y-6">
+    <BigQueryErrorBoundary context="Attorney Dashboard">
+      <div className="max-w-7xl mx-auto space-y-6">
     {/* Header */}
     <div className="mb-6">
       <Button 
@@ -492,6 +502,7 @@ export const AttorneyDashboard: React.FC<AttorneyDashboardProps> = ({
           </CardContent>
         </Card>
       )}
-    </div>
+      </div>
+    </BigQueryErrorBoundary>
   );
 };

@@ -163,10 +163,15 @@ export const H1BDashboard: React.FC = () => {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
       
-      const data = await response.json();
+      const apiResponse = await response.json();
       
-      if (data.error) {
-        throw new Error(data.error);
+      if (apiResponse.error) {
+        throw new Error(apiResponse.error.message || 'Failed to fetch H1B data');
+      }
+      
+      const data = apiResponse.data;
+      if (!data) {
+        throw new Error('No data received from API');
       }
       
       console.log('H1B data loaded:', {
@@ -174,6 +179,7 @@ export const H1BDashboard: React.FC = () => {
         avgSalary: data.avgSalary,
         topEmployersCount: data.topEmployers?.length || 0,
         statesCount: data.stateDistribution?.length || 0,
+        queryTime: apiResponse.metadata?.queryTime || 0,
       });
       
       setDashboardData(data);
@@ -401,25 +407,25 @@ export const H1BDashboard: React.FC = () => {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6 mb-8">
           <MetricCard
             title="Total Applications"
-            value={dashboardData.totalApplications.toLocaleString()}
+            value={dashboardData?.totalApplications?.toLocaleString() || '0'}
             icon={<FileText className="w-6 h-6" />}
             color="gray"
           />
           <MetricCard
             title="Average Salary"
-            value={`$${(dashboardData.avgSalary / 1000).toFixed(0)}K`}
+            value={dashboardData?.avgSalary ? `$${(dashboardData.avgSalary / 1000).toFixed(0)}K` : '$0K'}
             icon={<DollarSign className="w-6 h-6" />}
             color="blue"
           />
           <MetricCard
             title="Unique Employers"
-            value={dashboardData.uniqueEmployers.toLocaleString()}
+            value={dashboardData?.uniqueEmployers?.toLocaleString() || '0'}
             icon={<Building className="w-6 h-6" />}
             color="purple"
           />
           <MetricCard
             title="Approval Rate"
-            value={`${dashboardData.certificationRate.toFixed(1)}%`}
+            value={dashboardData?.certificationRate ? `${dashboardData.certificationRate.toFixed(1)}%` : '0.0%'}
             icon={<TrendingUp className="w-6 h-6" />}
             color="green"
           />
@@ -428,12 +434,16 @@ export const H1BDashboard: React.FC = () => {
 
         {/* Main Content */}
         <div className="space-y-8">
-          <VisualizationPanel
-            dashboardData={dashboardData}
-            chartsLoading={chartsLoading}
-          />
-          
-          <TopEmployersTable dashboardData={dashboardData} />
+          {dashboardData && (
+            <>
+              <VisualizationPanel
+                dashboardData={dashboardData}
+                chartsLoading={chartsLoading}
+              />
+              
+              <TopEmployersTable dashboardData={dashboardData} />
+            </>
+          )}
         </div>
       </div>
     </div>
