@@ -1,7 +1,7 @@
 // H1B Dashboard Types
 export interface FilterState {
   searchQuery: string;
-  fiscalYears: string[];
+  fiscalYear: string;
   salaryRange: [number, number];
   states: string[];
   cities: string[];

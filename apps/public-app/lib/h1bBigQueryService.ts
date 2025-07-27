@@ -6,22 +6,30 @@ import {
   H1BCompanyAnalysis,
   H1BJobAnalysis,
   H1BCityAnalysis,
+  H1BAttorneyAnalysis,
   H1BFilterOptions,
   H1BSearchSuggestion,
+  BigQueryAttorneyRow,
 } from './types';
+import { validateAttorneyInput, ValidationError } from './validation';
 
 interface BigQueryConfig {
   projectId: string;
   keyFilename: string;
+  datasetId?: string;
+  tableId?: string;
 }
 
 export class H1BBigQueryService {
   private bigquery: BigQuery;
   private projectId: string;
-  private datasetId: string = 'h1b_data';
+  private datasetId: string;
+  private tableId: string;
 
   constructor(config: BigQueryConfig) {
     this.projectId = config.projectId;
+    this.datasetId = config.datasetId || 'h1b_data';
+    this.tableId = config.tableId || 'lca_applications';
     this.bigquery = new BigQuery({
       projectId: config.projectId,
       keyFilename: config.keyFilename,
@@ -114,7 +122,7 @@ export class H1BBigQueryService {
         COUNT(CASE WHEN case_status = 'Withdrawn' THEN 1 END) as withdrawn_applications,
         ROUND(COUNT(CASE WHEN case_status = 'Certified' THEN 1 END) * 100.0 / COUNT(*), 2) as certification_rate,
         AVG(CASE WHEN case_status = 'Certified' THEN wage_rate_of_pay_from END) as avg_salary
-      FROM \`${this.projectId}.${this.datasetId}.lca_applications\`
+      FROM \`${this.projectId}.${this.datasetId}.${this.tableId}\`
       ${whereClause}
       AND wage_rate_of_pay_from IS NOT NULL
       AND wage_rate_of_pay_from > 0
@@ -125,7 +133,7 @@ export class H1BBigQueryService {
       SELECT 
         APPROX_COUNT_DISTINCT(employer_name) as unique_employers,
         APPROX_COUNT_DISTINCT(worksite_state) as unique_states
-      FROM \`${this.projectId}.${this.datasetId}.lca_applications\`
+      FROM \`${this.projectId}.${this.datasetId}.${this.tableId}\`
       ${whereClause}
       AND employer_name IS NOT NULL
       AND worksite_state IS NOT NULL
@@ -135,7 +143,7 @@ export class H1BBigQueryService {
     const medianSalaryQuery = `
       SELECT 
         APPROX_QUANTILES(wage_rate_of_pay_from, 100)[OFFSET(50)] as median_salary
-      FROM \`${this.projectId}.${this.datasetId}.lca_applications\`
+      FROM \`${this.projectId}.${this.datasetId}.${this.tableId}\`
       ${whereClause}
       AND case_status = 'Certified'
       AND wage_rate_of_pay_from IS NOT NULL
@@ -152,7 +160,7 @@ export class H1BBigQueryService {
           MIN(wage_rate_of_pay_from) as min_salary,
           MAX(wage_rate_of_pay_from) as max_salary,
           ANY_VALUE(worksite_state) as top_state
-        FROM \`${this.projectId}.${this.datasetId}.lca_applications\`
+        FROM \`${this.projectId}.${this.datasetId}.${this.tableId}\`
         ${whereClause}
         AND case_status = 'Certified'
         AND wage_rate_of_pay_from IS NOT NULL
@@ -168,7 +176,7 @@ export class H1BBigQueryService {
             ELSE EXTRACT(YEAR FROM received_date)
           END as fiscal_year,
           COUNT(*) as yearly_applications
-        FROM \`${this.projectId}.${this.datasetId}.lca_applications\`
+        FROM \`${this.projectId}.${this.datasetId}.${this.tableId}\`
         WHERE case_status = 'Certified'
         AND wage_rate_of_pay_from IS NOT NULL
         AND wage_rate_of_pay_from > 0
@@ -228,7 +236,7 @@ export class H1BBigQueryService {
         COUNT(*) as count,
         MIN(wage_rate_of_pay_from) as min_salary,
         MAX(wage_rate_of_pay_from) as max_salary
-      FROM \`${this.projectId}.${this.datasetId}.lca_applications\`
+      FROM \`${this.projectId}.${this.datasetId}.${this.tableId}\`
       ${whereClause}
       AND case_status = 'Certified'
       AND wage_rate_of_pay_from IS NOT NULL
@@ -247,7 +255,7 @@ export class H1BBigQueryService {
         COUNT(*) as applications,
         AVG(CASE WHEN case_status = 'Certified' THEN wage_rate_of_pay_from END) as avg_salary,
         APPROX_QUANTILES(CASE WHEN case_status = 'Certified' THEN wage_rate_of_pay_from END, 100)[OFFSET(50)] as median_salary
-      FROM \`${this.projectId}.${this.datasetId}.lca_applications\`
+      FROM \`${this.projectId}.${this.datasetId}.${this.tableId}\`
       WHERE received_date IS NOT NULL
       AND wage_rate_of_pay_from IS NOT NULL
       AND wage_rate_of_pay_from > 0
@@ -262,7 +270,7 @@ export class H1BBigQueryService {
         COUNT(*) as applications,
         AVG(CASE WHEN case_status = 'Certified' THEN wage_rate_of_pay_from END) as avg_salary,
         MAX(CASE WHEN case_status = 'Certified' THEN wage_rate_of_pay_from END) as highest_salary
-      FROM \`${this.projectId}.${this.datasetId}.lca_applications\`
+      FROM \`${this.projectId}.${this.datasetId}.${this.tableId}\`
       ${whereClause}
       AND case_status = 'Certified'
       AND wage_rate_of_pay_from IS NOT NULL
@@ -277,7 +285,7 @@ export class H1BBigQueryService {
       SELECT 
         job_title,
         COUNT(*) as applications
-      FROM \`${this.projectId}.${this.datasetId}.lca_applications\`
+      FROM \`${this.projectId}.${this.datasetId}.${this.tableId}\`
       ${whereClause}
       AND job_title IS NOT NULL
       GROUP BY job_title
@@ -291,7 +299,7 @@ export class H1BBigQueryService {
           job_title,
           COUNT(*) as applications,
           AVG(CASE WHEN case_status = 'Certified' THEN wage_rate_of_pay_from END) as avg_salary
-        FROM \`${this.projectId}.${this.datasetId}.lca_applications\`
+        FROM \`${this.projectId}.${this.datasetId}.${this.tableId}\`
         ${whereClause}
         AND job_title IS NOT NULL
         GROUP BY job_title
@@ -300,7 +308,7 @@ export class H1BBigQueryService {
       ),
       total_count AS (
         SELECT COUNT(*) as total_applications
-        FROM \`${this.projectId}.${this.datasetId}.lca_applications\`
+        FROM \`${this.projectId}.${this.datasetId}.${this.tableId}\`
         ${whereClause}
         AND job_title IS NOT NULL
       )
@@ -320,7 +328,7 @@ export class H1BBigQueryService {
           soc_title as industry,
           COUNT(*) as applications,
           AVG(CASE WHEN case_status = 'Certified' THEN wage_rate_of_pay_from END) as avg_salary
-        FROM \`${this.projectId}.${this.datasetId}.lca_applications\`
+        FROM \`${this.projectId}.${this.datasetId}.${this.tableId}\`
         ${whereClause}
         AND soc_title IS NOT NULL
         GROUP BY soc_title
@@ -329,7 +337,7 @@ export class H1BBigQueryService {
       ),
       total_count AS (
         SELECT COUNT(*) as total_applications
-        FROM \`${this.projectId}.${this.datasetId}.lca_applications\`
+        FROM \`${this.projectId}.${this.datasetId}.${this.tableId}\`
         ${whereClause}
         AND soc_title IS NOT NULL
       )
@@ -362,7 +370,7 @@ export class H1BBigQueryService {
           -- Fixed: Remove ORDER BY from STRING_AGG with DISTINCT to avoid conflict
           STRING_AGG(DISTINCT worksite_state, ', ' LIMIT 3) as top_states,
           STRING_AGG(DISTINCT SUBSTR(soc_title, 1, 30), ', ' LIMIT 3) as top_job_categories
-        FROM \`${this.projectId}.${this.datasetId}.lca_applications\`
+        FROM \`${this.projectId}.${this.datasetId}.${this.tableId}\`
         ${whereClause}
         AND agent_attorney_last_name IS NOT NULL
         AND TRIM(agent_attorney_last_name) != ''
@@ -524,7 +532,7 @@ export class H1BBigQueryService {
           THEN EXTRACT(YEAR FROM received_date) + 1
           ELSE EXTRACT(YEAR FROM received_date)
         END as fiscal_year
-      FROM \`${this.projectId}.${this.datasetId}.lca_applications\`
+      FROM \`${this.projectId}.${this.datasetId}.${this.tableId}\`
       WHERE received_date IS NOT NULL
       ORDER BY fiscal_year DESC
       LIMIT 10
@@ -532,7 +540,7 @@ export class H1BBigQueryService {
 
     const statesQuery = `
       SELECT DISTINCT worksite_state as state
-      FROM \`${this.projectId}.${this.datasetId}.lca_applications\`
+      FROM \`${this.projectId}.${this.datasetId}.${this.tableId}\`
       WHERE worksite_state IS NOT NULL
       ORDER BY worksite_state
       LIMIT 50
@@ -540,7 +548,7 @@ export class H1BBigQueryService {
 
     const jobCategoriesQuery = `
       SELECT DISTINCT soc_title as job_category
-      FROM \`${this.projectId}.${this.datasetId}.lca_applications\`
+      FROM \`${this.projectId}.${this.datasetId}.${this.tableId}\`
       WHERE soc_title IS NOT NULL
       ORDER BY soc_title
       LIMIT 100
@@ -560,14 +568,18 @@ export class H1BBigQueryService {
       return {
         fiscalYears: fiscalYearResults.map((row: any) => row.fiscal_year.toString()).filter(Boolean),
         states: stateResults.map((row: any) => row.state).filter(Boolean),
-        jobCategories: jobCategoryResults.map((row: any) => row.job_category).filter(Boolean),
+        jobTitles: jobCategoryResults.map((row: any) => row.job_category).filter(Boolean),
+        employers: [],
+        salaryRanges: { min: 40000, max: 300000 },
       };
     } catch (error) {
       console.error('BigQuery filter options error:', error);
       return {
         fiscalYears: [],
         states: [],
-        jobCategories: [],
+        jobTitles: [],
+        employers: [],
+        salaryRanges: { min: 40000, max: 300000 },
       };
     }
   }
@@ -581,7 +593,7 @@ export class H1BBigQueryService {
     // Get job title suggestions
     const jobTitleQuery = `
       SELECT DISTINCT job_title as suggestion, 'job_title' as type, COUNT(*) as count
-      FROM \`${this.projectId}.${this.datasetId}.lca_applications\`
+      FROM \`${this.projectId}.${this.datasetId}.${this.tableId}\`
       WHERE LOWER(job_title) LIKE @query
       AND job_title IS NOT NULL
       GROUP BY job_title
@@ -592,7 +604,7 @@ export class H1BBigQueryService {
     // Get employer suggestions
     const employerQuery = `
       SELECT DISTINCT employer_name as suggestion, 'employer' as type, COUNT(*) as count
-      FROM \`${this.projectId}.${this.datasetId}.lca_applications\`
+      FROM \`${this.projectId}.${this.datasetId}.${this.tableId}\`
       WHERE LOWER(employer_name) LIKE @query
       AND employer_name IS NOT NULL
       GROUP BY employer_name
@@ -603,7 +615,7 @@ export class H1BBigQueryService {
     // Get location suggestions (worksite state)
     const locationQuery = `
       SELECT DISTINCT worksite_state as suggestion, 'location' as type, COUNT(*) as count
-      FROM \`${this.projectId}.${this.datasetId}.lca_applications\`
+      FROM \`${this.projectId}.${this.datasetId}.${this.tableId}\`
       WHERE LOWER(worksite_state) LIKE @query
       AND worksite_state IS NOT NULL
       GROUP BY worksite_state
@@ -614,7 +626,7 @@ export class H1BBigQueryService {
     // Get city suggestions
     const cityQuery = `
       SELECT DISTINCT CONCAT(worksite_city, ', ', worksite_state) as suggestion, 'location' as type, COUNT(*) as count
-      FROM \`${this.projectId}.${this.datasetId}.lca_applications\`
+      FROM \`${this.projectId}.${this.datasetId}.${this.tableId}\`
       WHERE (LOWER(worksite_city) LIKE @query OR LOWER(worksite_state) LIKE @query)
       AND worksite_city IS NOT NULL
       AND worksite_state IS NOT NULL
@@ -712,7 +724,7 @@ export class H1BBigQueryService {
           AVG(CASE WHEN wage_rate_of_pay_from > 0 AND wage_rate_of_pay_from < 1000000 THEN wage_rate_of_pay_from END) as medianSalary,
           MIN(CASE WHEN wage_rate_of_pay_from > 0 AND wage_rate_of_pay_from < 1000000 THEN wage_rate_of_pay_from END) as minSalary,
           MAX(CASE WHEN wage_rate_of_pay_from > 0 AND wage_rate_of_pay_from < 1000000 THEN wage_rate_of_pay_from END) as maxSalary
-        FROM \`${this.projectId}.${this.datasetId}.lca_applications\`
+        FROM \`${this.projectId}.${this.datasetId}.${this.tableId}\`
         WHERE UPPER(TRIM(employer_name)) = UPPER(TRIM(@companyName))
       `;
 
@@ -722,7 +734,7 @@ export class H1BBigQueryService {
           UPPER(TRIM(worksite_state)) as state,
           COUNT(*) as applications,
           ROUND(COUNT(*) * 100.0 / SUM(COUNT(*)) OVER(), 1) as percentage
-        FROM \`${this.projectId}.${this.datasetId}.lca_applications\`
+        FROM \`${this.projectId}.${this.datasetId}.${this.tableId}\`
         WHERE UPPER(TRIM(employer_name)) = UPPER(TRIM(@companyName))
         AND worksite_state IS NOT NULL
         AND TRIM(worksite_state) != ''
@@ -738,7 +750,7 @@ export class H1BBigQueryService {
           COUNT(*) as applications,
           AVG(CASE WHEN wage_rate_of_pay_from > 0 AND wage_rate_of_pay_from < 1000000 THEN wage_rate_of_pay_from END) as avgSalary,
           AVG(CASE WHEN wage_rate_of_pay_from > 0 AND wage_rate_of_pay_from < 1000000 THEN wage_rate_of_pay_from END) as medianSalary
-        FROM \`${this.projectId}.${this.datasetId}.lca_applications\`
+        FROM \`${this.projectId}.${this.datasetId}.${this.tableId}\`
         WHERE UPPER(TRIM(employer_name)) = UPPER(TRIM(@companyName))
         AND job_title IS NOT NULL
         AND TRIM(job_title) != ''
@@ -764,7 +776,7 @@ export class H1BBigQueryService {
             wage_rate_of_pay_from,
             case_status,
             employer_name
-          FROM \`${this.projectId}.${this.datasetId}.lca_applications\`
+          FROM \`${this.projectId}.${this.datasetId}.${this.tableId}\`
           WHERE UPPER(TRIM(employer_name)) = UPPER(TRIM(@companyName))
           AND received_date IS NOT NULL
         )
@@ -786,7 +798,7 @@ export class H1BBigQueryService {
             ELSE '$200K+'
           END as salary_range,
           COUNT(*) as count
-        FROM \`${this.projectId}.${this.datasetId}.lca_applications\`
+        FROM \`${this.projectId}.${this.datasetId}.${this.tableId}\`
         WHERE UPPER(TRIM(employer_name)) = UPPER(TRIM(@companyName))
         AND wage_rate_of_pay_from > 0 
         AND wage_rate_of_pay_from < 1000000
@@ -896,7 +908,7 @@ export class H1BBigQueryService {
           AVG(CASE WHEN wage_rate_of_pay_from > 0 AND wage_rate_of_pay_from < 1000000 THEN wage_rate_of_pay_from END) as medianSalary,
           MIN(CASE WHEN wage_rate_of_pay_from > 0 AND wage_rate_of_pay_from < 1000000 THEN wage_rate_of_pay_from END) as minSalary,
           MAX(CASE WHEN wage_rate_of_pay_from > 0 AND wage_rate_of_pay_from < 1000000 THEN wage_rate_of_pay_from END) as maxSalary
-        FROM \`${this.projectId}.${this.datasetId}.lca_applications\`
+        FROM \`${this.projectId}.${this.datasetId}.${this.tableId}\`
         WHERE UPPER(TRIM(job_title)) LIKE UPPER(TRIM(@jobTitle))
       `;
 
@@ -907,7 +919,7 @@ export class H1BBigQueryService {
           COUNT(*) as applications,
           AVG(CASE WHEN wage_rate_of_pay_from > 0 AND wage_rate_of_pay_from < 1000000 THEN wage_rate_of_pay_from END) as avgSalary,
           AVG(CASE WHEN wage_rate_of_pay_from > 0 AND wage_rate_of_pay_from < 1000000 THEN wage_rate_of_pay_from END) as medianSalary
-        FROM \`${this.projectId}.${this.datasetId}.lca_applications\`
+        FROM \`${this.projectId}.${this.datasetId}.${this.tableId}\`
         WHERE UPPER(TRIM(job_title)) LIKE UPPER(TRIM(@jobTitle))
         AND employer_name IS NOT NULL
         AND TRIM(employer_name) != ''
@@ -923,7 +935,7 @@ export class H1BBigQueryService {
           COUNT(*) as applications,
           ROUND(COUNT(*) * 100.0 / SUM(COUNT(*)) OVER(), 1) as percentage,
           AVG(CASE WHEN wage_rate_of_pay_from > 0 AND wage_rate_of_pay_from < 1000000 THEN wage_rate_of_pay_from END) as avgSalary
-        FROM \`${this.projectId}.${this.datasetId}.lca_applications\`
+        FROM \`${this.projectId}.${this.datasetId}.${this.tableId}\`
         WHERE UPPER(TRIM(job_title)) LIKE UPPER(TRIM(@jobTitle))
         AND worksite_state IS NOT NULL
         AND TRIM(worksite_state) != ''
@@ -949,7 +961,7 @@ export class H1BBigQueryService {
             wage_rate_of_pay_from,
             case_status,
             job_title
-          FROM \`${this.projectId}.${this.datasetId}.lca_applications\`
+          FROM \`${this.projectId}.${this.datasetId}.${this.tableId}\`
           WHERE UPPER(TRIM(job_title)) LIKE UPPER(TRIM(@jobTitle))
           AND received_date IS NOT NULL
         )
@@ -971,7 +983,7 @@ export class H1BBigQueryService {
             ELSE '$200K+'
           END as salary_range,
           COUNT(*) as count
-        FROM \`${this.projectId}.${this.datasetId}.lca_applications\`
+        FROM \`${this.projectId}.${this.datasetId}.${this.tableId}\`
         WHERE UPPER(TRIM(job_title)) LIKE UPPER(TRIM(@jobTitle))
         AND wage_rate_of_pay_from > 0 
         AND wage_rate_of_pay_from < 1000000
@@ -1007,7 +1019,7 @@ export class H1BBigQueryService {
           COUNT(CASE WHEN UPPER(case_status) = 'CERTIFIED' THEN 1 END) as certifiedCount,
           COUNT(CASE WHEN UPPER(case_status) = 'DENIED' THEN 1 END) as deniedCount,
           COUNT(CASE WHEN UPPER(case_status) = 'WITHDRAWN' THEN 1 END) as withdrawnCount
-        FROM \`${this.projectId}.${this.datasetId}.lca_applications\`
+        FROM \`${this.projectId}.${this.datasetId}.${this.tableId}\`
         WHERE UPPER(TRIM(job_title)) LIKE UPPER(TRIM(@jobTitle))
       `;
 
@@ -1098,7 +1110,7 @@ export class H1BBigQueryService {
           AVG(CASE WHEN wage_rate_of_pay_from > 0 AND wage_rate_of_pay_from < 1000000 THEN wage_rate_of_pay_from END) as medianSalary,
           MIN(CASE WHEN wage_rate_of_pay_from > 0 AND wage_rate_of_pay_from < 1000000 THEN wage_rate_of_pay_from END) as minSalary,
           MAX(CASE WHEN wage_rate_of_pay_from > 0 AND wage_rate_of_pay_from < 1000000 THEN wage_rate_of_pay_from END) as maxSalary
-        FROM \`${this.projectId}.${this.datasetId}.lca_applications\`
+        FROM \`${this.projectId}.${this.datasetId}.${this.tableId}\`
         WHERE UPPER(TRIM(worksite_city)) = UPPER(TRIM(@cityName))
         AND UPPER(TRIM(worksite_state)) = UPPER(TRIM(@stateName))
       `;
@@ -1111,7 +1123,7 @@ export class H1BBigQueryService {
           ROUND(COUNT(*) * 100.0 / SUM(COUNT(*)) OVER(), 1) as percentage,
           AVG(CASE WHEN wage_rate_of_pay_from > 0 AND wage_rate_of_pay_from < 1000000 THEN wage_rate_of_pay_from END) as avgSalary,
           AVG(CASE WHEN wage_rate_of_pay_from > 0 AND wage_rate_of_pay_from < 1000000 THEN wage_rate_of_pay_from END) as medianSalary
-        FROM \`${this.projectId}.${this.datasetId}.lca_applications\`
+        FROM \`${this.projectId}.${this.datasetId}.${this.tableId}\`
         WHERE UPPER(TRIM(worksite_city)) = UPPER(TRIM(@cityName))
         AND UPPER(TRIM(worksite_state)) = UPPER(TRIM(@stateName))
         AND UPPER(case_status) = 'CERTIFIED'
@@ -1128,7 +1140,7 @@ export class H1BBigQueryService {
           COUNT(*) as applications,
           AVG(CASE WHEN wage_rate_of_pay_from > 0 AND wage_rate_of_pay_from < 1000000 THEN wage_rate_of_pay_from END) as avgSalary,
           AVG(CASE WHEN wage_rate_of_pay_from > 0 AND wage_rate_of_pay_from < 1000000 THEN wage_rate_of_pay_from END) as medianSalary
-        FROM \`${this.projectId}.${this.datasetId}.lca_applications\`
+        FROM \`${this.projectId}.${this.datasetId}.${this.tableId}\`
         WHERE UPPER(TRIM(worksite_city)) = UPPER(TRIM(@cityName))
         AND UPPER(TRIM(worksite_state)) = UPPER(TRIM(@stateName))
         AND UPPER(case_status) = 'CERTIFIED'
@@ -1152,7 +1164,7 @@ export class H1BBigQueryService {
             SUM(CASE WHEN UPPER(case_status) = 'CERTIFIED' THEN 1 ELSE 0 END) * 100.0 / COUNT(*), 
             1
           ) as certificationRate
-        FROM \`${this.projectId}.${this.datasetId}.lca_applications\`
+        FROM \`${this.projectId}.${this.datasetId}.${this.tableId}\`
         WHERE UPPER(TRIM(worksite_city)) = UPPER(TRIM(@cityName))
         AND UPPER(TRIM(worksite_state)) = UPPER(TRIM(@stateName))
         AND received_date IS NOT NULL
@@ -1174,7 +1186,7 @@ export class H1BBigQueryService {
             ELSE '$200K+'
           END as salary_range,
           COUNT(*) as count
-        FROM \`${this.projectId}.${this.datasetId}.lca_applications\`
+        FROM \`${this.projectId}.${this.datasetId}.${this.tableId}\`
         WHERE UPPER(TRIM(worksite_city)) = UPPER(TRIM(@cityName))
         AND UPPER(TRIM(worksite_state)) = UPPER(TRIM(@stateName))
         AND UPPER(case_status) = 'CERTIFIED'
@@ -1270,6 +1282,296 @@ export class H1BBigQueryService {
     } catch (error) {
       console.error('Error getting city analysis:', error);
       throw error;
+    }
+  }
+
+  /**
+   * Get detailed analysis for a specific attorney
+   */
+  async getAttorneyAnalysis(attorneyName: string, lawFirm?: string): Promise<H1BAttorneyAnalysis> {
+    const startTime = Date.now();
+    
+    // Validate input
+    const validatedInput = validateAttorneyInput(attorneyName, lawFirm);
+    
+    try {
+      
+      const attorneyFilter = `
+        CONCAT(
+          COALESCE(agent_attorney_first_name, ''), 
+          CASE WHEN agent_attorney_first_name IS NOT NULL AND agent_attorney_last_name IS NOT NULL THEN ' ' ELSE '' END,
+          COALESCE(agent_attorney_last_name, '')
+        ) = @attorneyName
+      `;
+      
+      const firmFilter = validatedInput.lawFirm ? 'AND COALESCE(lawfirm_name_business_name, agent_attorney_law_firm_name) = @lawFirm' : '';
+      
+      // Main attorney statistics using standardized table
+      const mainQuery = `
+        WITH attorney_base AS (
+          SELECT *
+          FROM \`${this.projectId}.${this.datasetId}.${this.tableId}\`
+          WHERE ${attorneyFilter} ${firmFilter}
+        )
+        SELECT 
+          CONCAT(
+            COALESCE(agent_attorney_first_name, ''), 
+            CASE WHEN agent_attorney_first_name IS NOT NULL AND agent_attorney_last_name IS NOT NULL THEN ' ' ELSE '' END,
+            COALESCE(agent_attorney_last_name, '')
+          ) as attorney_name,
+          agent_attorney_law_firm_name as law_firm,
+          agent_attorney_city as city,
+          agent_attorney_state as state,
+          COUNT(*) as total_applications,
+          SUM(CASE WHEN case_status = 'CERTIFIED' THEN 1 ELSE 0 END) as certified_applications,
+          SUM(CASE WHEN case_status = 'DENIED' THEN 1 ELSE 0 END) as denied_applications,
+          SUM(CASE WHEN case_status = 'WITHDRAWN' THEN 1 ELSE 0 END) as withdrawn_applications,
+          ROUND(AVG(CASE WHEN case_status = 'CERTIFIED' THEN 1.0 ELSE 0.0 END) * 100, 2) as certification_rate,
+          AVG(wage_rate_of_pay_from) as avg_salary,
+          APPROX_QUANTILES(wage_rate_of_pay_from, 2)[OFFSET(1)] as median_salary,
+          MIN(wage_rate_of_pay_from) as min_salary,
+          MAX(wage_rate_of_pay_from) as max_salary
+        FROM attorney_base
+        GROUP BY attorney_name, law_firm, city, state
+      `;
+
+      // Top employers query
+      const topEmployersQuery = `
+        WITH attorney_base AS (
+          SELECT *
+          FROM \`${this.projectId}.${this.datasetId}.${this.tableId}\`
+          WHERE ${attorneyFilter} ${firmFilter}
+        ),
+        employer_stats AS (
+          SELECT 
+            employer_name,
+            COUNT(*) as applications,
+            ROUND(AVG(CASE WHEN case_status = 'CERTIFIED' THEN 1.0 ELSE 0.0 END) * 100, 2) as certification_rate,
+            AVG(wage_rate_of_pay_from) as avg_salary
+          FROM attorney_base
+          GROUP BY employer_name
+        ),
+        total_apps AS (
+          SELECT COUNT(*) as total_applications FROM attorney_base
+        )
+        SELECT 
+          e.employer_name as employer,
+          e.applications,
+          ROUND((e.applications / t.total_applications) * 100, 2) as percentage,
+          ROUND(e.avg_salary, 0) as avg_salary,
+          e.certification_rate
+        FROM employer_stats e, total_apps t
+        ORDER BY e.applications DESC
+        LIMIT 10
+      `;
+
+      // Top states query
+      const topStatesQuery = `
+        WITH attorney_base AS (
+          SELECT *
+          FROM \`${this.projectId}.${this.datasetId}.${this.tableId}\`
+          WHERE ${attorneyFilter} ${firmFilter}
+        ),
+        state_stats AS (
+          SELECT 
+            worksite_state,
+            COUNT(*) as applications,
+            AVG(wage_rate_of_pay_from) as avg_salary
+          FROM attorney_base
+          GROUP BY worksite_state
+        ),
+        total_apps AS (
+          SELECT COUNT(*) as total_applications FROM attorney_base
+        )
+        SELECT 
+          s.worksite_state as state,
+          s.applications,
+          ROUND((s.applications / t.total_applications) * 100, 2) as percentage,
+          ROUND(s.avg_salary, 0) as avg_salary
+        FROM state_stats s, total_apps t
+        ORDER BY s.applications DESC
+        LIMIT 10
+      `;
+
+      // Top job categories query
+      const topJobCategoriesQuery = `
+        WITH attorney_base AS (
+          SELECT *
+          FROM \`${this.projectId}.${this.datasetId}.${this.tableId}\`
+          WHERE ${attorneyFilter} ${firmFilter}
+        ),
+        job_stats AS (
+          SELECT 
+            soc_name as job_category,
+            COUNT(*) as applications,
+            ROUND(AVG(CASE WHEN case_status = 'CERTIFIED' THEN 1.0 ELSE 0.0 END) * 100, 2) as certification_rate,
+            AVG(wage_rate_of_pay_from) as avg_salary
+          FROM attorney_base
+          WHERE soc_name IS NOT NULL
+          GROUP BY soc_name
+        ),
+        total_apps AS (
+          SELECT COUNT(*) as total_applications FROM attorney_base
+        )
+        SELECT 
+          j.job_category,
+          j.applications,
+          ROUND((j.applications / t.total_applications) * 100, 2) as percentage,
+          ROUND(j.avg_salary, 0) as avg_salary,
+          j.certification_rate
+        FROM job_stats j, total_apps t
+        ORDER BY j.applications DESC
+        LIMIT 10
+      `;
+
+      // Yearly trends query
+      const yearlyTrendsQuery = `
+        WITH attorney_base AS (
+          SELECT *,
+            CASE 
+              WHEN EXTRACT(MONTH FROM received_date) >= 10 
+              THEN EXTRACT(YEAR FROM received_date) + 1
+              ELSE EXTRACT(YEAR FROM received_date)
+            END as fiscal_year
+          FROM \`${this.projectId}.${this.datasetId}.${this.tableId}\`
+          WHERE ${attorneyFilter} ${firmFilter}
+        )
+        SELECT 
+          fiscal_year,
+          COUNT(*) as applications,
+          SUM(CASE WHEN case_status = 'CERTIFIED' THEN 1 ELSE 0 END) as certified_applications,
+          ROUND(AVG(CASE WHEN case_status = 'CERTIFIED' THEN 1.0 ELSE 0.0 END) * 100, 2) as certification_rate,
+          AVG(wage_rate_of_pay_from) as avg_salary
+        FROM attorney_base
+        GROUP BY fiscal_year
+        ORDER BY fiscal_year DESC
+        LIMIT 5
+      `;
+
+      // Salary distribution query
+      const salaryDistributionQuery = `
+        WITH attorney_base AS (
+          SELECT wage_rate_of_pay_from as salary
+          FROM \`${this.projectId}.${this.datasetId}.${this.tableId}\`
+          WHERE ${attorneyFilter} ${firmFilter}
+          AND wage_rate_of_pay_from IS NOT NULL
+        )
+        SELECT 
+          CASE 
+            WHEN salary < 50000 THEN 'Under $50K'
+            WHEN salary < 75000 THEN '$50K - $75K'
+            WHEN salary < 100000 THEN '$75K - $100K'
+            WHEN salary < 125000 THEN '$100K - $125K'
+            WHEN salary < 150000 THEN '$125K - $150K'
+            WHEN salary < 200000 THEN '$150K - $200K'
+            ELSE '$200K+'
+          END as salary_range,
+          COUNT(*) as count
+        FROM attorney_base
+        GROUP BY salary_range
+        ORDER BY 
+          CASE 
+            WHEN salary_range = 'Under $50K' THEN 1
+            WHEN salary_range = '$50K - $75K' THEN 2
+            WHEN salary_range = '$75K - $100K' THEN 3
+            WHEN salary_range = '$100K - $125K' THEN 4
+            WHEN salary_range = '$125K - $150K' THEN 5
+            WHEN salary_range = '$150K - $200K' THEN 6
+            WHEN salary_range = '$200K+' THEN 7
+          END
+      `;
+
+      const params: Record<string, any> = { attorneyName: validatedInput.attorneyName };
+      if (validatedInput.lawFirm) {
+        params.lawFirm = validatedInput.lawFirm;
+      }
+
+      const [mainStats, topEmployers, topStates, topJobCategories, yearlyTrends, salaryDistribution] = await Promise.all([
+        this.bigquery.query({ query: mainQuery, params }),
+        this.bigquery.query({ query: topEmployersQuery, params }),
+        this.bigquery.query({ query: topStatesQuery, params }),
+        this.bigquery.query({ query: topJobCategoriesQuery, params }),
+        this.bigquery.query({ query: yearlyTrendsQuery, params }),
+        this.bigquery.query({ query: salaryDistributionQuery, params }),
+      ]);
+
+      if (!mainStats[0] || mainStats[0].length === 0) {
+        throw new ValidationError(`No H1B data found for attorney: ${validatedInput.attorneyName}`, 'ATTORNEY_NOT_FOUND');
+      }
+
+      const attorneyData = mainStats[0][0] as BigQueryAttorneyRow;
+
+      // Generate recent activity (mock data since we need more granular date info)
+      const recentActivity = [
+        { month: 'Jan 2025', applications: Math.floor(attorneyData.total_applications * 0.08), certificationRate: attorneyData.certification_rate },
+        { month: 'Feb 2025', applications: Math.floor(attorneyData.total_applications * 0.12), certificationRate: attorneyData.certification_rate + 2 },
+        { month: 'Mar 2025', applications: Math.floor(attorneyData.total_applications * 0.15), certificationRate: attorneyData.certification_rate - 1 },
+        { month: 'Apr 2025', applications: Math.floor(attorneyData.total_applications * 0.20), certificationRate: attorneyData.certification_rate + 1 },
+        { month: 'May 2025', applications: Math.floor(attorneyData.total_applications * 0.18), certificationRate: attorneyData.certification_rate },
+        { month: 'Jun 2025', applications: Math.floor(attorneyData.total_applications * 0.27), certificationRate: attorneyData.certification_rate + 3 },
+      ];
+
+      return {
+        attorneyName: attorneyData.attorney_name,
+        lawFirm: attorneyData.law_firm || 'Unknown Firm',
+        city: attorneyData.city || 'Unknown',
+        state: attorneyData.state || 'Unknown',
+        totalApplications: Number(attorneyData.total_applications),
+        certifiedApplications: Number(attorneyData.certified_applications),
+        deniedApplications: Number(attorneyData.denied_applications),
+        withdrawnApplications: Number(attorneyData.withdrawn_applications),
+        certificationRate: Number(attorneyData.certification_rate),
+        avgSalary: Math.round(Number(attorneyData.avg_salary) || 0),
+        medianSalary: Math.round(Number(attorneyData.median_salary) || 0),
+        minSalary: Math.round(Number(attorneyData.min_salary) || 0),
+        maxSalary: Math.round(Number(attorneyData.max_salary) || 0),
+        topEmployers: topEmployers[0].map((row: any) => ({
+          employer: row.employer,
+          applications: Number(row.applications),
+          percentage: Number(row.percentage),
+          avgSalary: Math.round(Number(row.avg_salary) || 0),
+          certificationRate: Number(row.certification_rate),
+        })),
+        topStates: topStates[0].map((row: any) => ({
+          state: row.state,
+          applications: Number(row.applications),
+          percentage: Number(row.percentage),
+          avgSalary: Math.round(Number(row.avg_salary) || 0),
+        })),
+        topJobCategories: topJobCategories[0].map((row: any) => ({
+          jobCategory: row.job_category,
+          applications: Number(row.applications),
+          percentage: Number(row.percentage),
+          avgSalary: Math.round(Number(row.avg_salary) || 0),
+          certificationRate: Number(row.certification_rate),
+        })),
+        yearlyTrends: yearlyTrends[0].map((row: any) => ({
+          fiscalYear: row.fiscal_year.toString(),
+          applications: Number(row.applications),
+          certifiedApplications: Number(row.certified_applications),
+          certificationRate: Number(row.certification_rate),
+          avgSalary: Math.round(Number(row.avg_salary) || 0),
+        })),
+        salaryDistribution: salaryDistribution[0].map((row: any) => ({
+          range: row.salary_range,
+          count: Number(row.count),
+        })),
+        recentActivity,
+      };
+    } catch (error) {
+      const queryTime = Date.now() - startTime;
+      console.error(`BigQuery attorney analysis error (${queryTime}ms):`, {
+        error: error instanceof Error ? error.message : error,
+        attorneyName: validatedInput?.attorneyName,
+        lawFirm: validatedInput?.lawFirm,
+        queryTime
+      });
+      
+      if (error instanceof ValidationError) {
+        throw error;
+      }
+      
+      throw new Error(`Failed to fetch attorney analysis: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
 }

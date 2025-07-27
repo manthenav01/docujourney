@@ -1,7 +1,9 @@
 'use client';
 
 import React, { useMemo } from 'react';
+import Link from 'next/link';
 import { Card, CardContent, CardHeader, CardTitle } from '@docujourney/ui';
+import { createAttorneySlug } from '@docujourney/utils';
 import { 
   Scale, 
 } from 'lucide-react';
@@ -107,10 +109,12 @@ const TopAttorneysCardComponent: React.FC<TopAttorneysCardProps> = ({
       </CardHeader>
       <CardContent className="space-y-3">
         {processedData.topAttorneys.map((attorney, index) => {
+          const attorneySlug = createAttorneySlug(attorney.attorneyName);
           return (
-            <div 
+            <Link
               key={`${attorney.attorneyName}-${attorney.lawFirm}`}
-              className="group p-4 rounded-lg border border-border hover:border-primary/50 hover:bg-muted/50 transition-all duration-200"
+              href={`/h1b-dashboard/attorney/${attorneySlug}?name=${encodeURIComponent(attorney.attorneyName)}&firm=${encodeURIComponent(attorney.lawFirm)}`}
+              className="block group p-4 rounded-lg border border-border hover:border-primary/50 hover:bg-muted/50 transition-all duration-200 cursor-pointer"
             >
               {/* Content */}
               <div className="flex items-center justify-between">
@@ -120,7 +124,7 @@ const TopAttorneysCardComponent: React.FC<TopAttorneysCardProps> = ({
                     {index + 1}
                   </div>
                   <div className="min-w-0 flex-1">
-                    <h3 className="text-sm font-medium text-foreground truncate">
+                    <h3 className="text-sm font-medium text-foreground truncate group-hover:text-primary transition-colors">
                       {attorney.attorneyName}
                     </h3>
                     <div className="flex items-center space-x-4 mt-1">
@@ -137,13 +141,13 @@ const TopAttorneysCardComponent: React.FC<TopAttorneysCardProps> = ({
                 
                 {/* Right side: Success rate */}
                 <div className="flex-shrink-0 text-right">
-                  <div className="text-sm font-semibold text-primary">
+                  <div className="text-sm font-semibold text-primary group-hover:text-primary/80 transition-colors">
                     {attorney.certificationRate.toFixed(1)}%
                   </div>
                   <div className="text-xs text-muted-foreground">success rate</div>
                 </div>
               </div>
-            </div>
+            </Link>
           );
         })}
         

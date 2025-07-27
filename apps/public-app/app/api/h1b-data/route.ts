@@ -1,109 +1,120 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { H1BBigQueryService } from '@/lib/h1bBigQueryService';
-import { H1BQueryFilters } from '@/lib/types';
+import { H1BQueryFilters, H1BApiResponse, H1BAggregatedData, H1BFilterOptions } from '@/lib/types';
+import { ValidationError, createServiceError } from '@/lib/validation';
 import { cacheService } from '@/lib/cacheService';
 import path from 'path';
 
-// Initialize BigQuery service
+// Initialize BigQuery service with secure configuration
 const bigQueryService = new H1BBigQueryService({
   projectId: 'doctracker-b4528',
   keyFilename: path.join(process.cwd(), '../../serviceAccountKey.json'),
+  datasetId: 'h1b_data',
+  tableId: 'lca_applications',
 });
 
-export async function GET(request: NextRequest) {
+export async function GET(
+  request: NextRequest
+): Promise<NextResponse<H1BApiResponse<H1BAggregatedData | H1BFilterOptions>>> {
+  const startTime = Date.now();
+  
   try {
     const { searchParams } = new URL(request.url);
     
     // Check if this is a filter options request
     if (searchParams.get('type') === 'filterOptions') {
-      const options = await bigQueryService.getFilterOptions();
-      return NextResponse.json(options);
+      console.log('Fetching H1B filter options');
+      const filterOptions = await bigQueryService.getFilterOptions();
+      
+      const queryTime = Date.now() - startTime;
+      const response: H1BApiResponse<H1BFilterOptions> = {
+        data: filterOptions,
+        metadata: {
+          queryTime,
+          source: 'BigQuery',
+        },
+      };
+      return NextResponse.json(response);
     }
     
     // Parse filters from query parameters
     const filters: H1BQueryFilters = {};
     
-    if (searchParams.get('fiscalYears')) {
-      filters.fiscalYears = searchParams.get('fiscalYears')!.split(',');
+    if (searchParams.has('fiscalYears')) {
+      filters.fiscalYears = searchParams.get('fiscalYears')?.split(',') || [];
     }
     
-    if (searchParams.get('states')) {
-      filters.states = searchParams.get('states')!.split(',');
+    if (searchParams.has('states')) {
+      filters.states = searchParams.get('states')?.split(',') || [];
     }
     
-    if (searchParams.get('minSalary') || searchParams.get('maxSalary')) {
-      const minSalary = parseInt(searchParams.get('minSalary') || '0');
-      const maxSalary = parseInt(searchParams.get('maxSalary') || '500000');
-      filters.salaryRange = [minSalary, maxSalary];
+    if (searchParams.has('searchQuery')) {
+      filters.searchQuery = searchParams.get('searchQuery') || '';
     }
     
-    if (searchParams.get('searchQuery')) {
-      filters.searchQuery = searchParams.get('searchQuery')!;
-    }
-    
-    // Check if this is a request for default dashboard data (no filters)
-    const isDefaultRequest = Object.keys(filters).length === 0 || 
-      (Object.keys(filters).length === 1 && filters.salaryRange && 
-       filters.salaryRange[0] === 0 && filters.salaryRange[1] === 500000);
-    
-    if (isDefaultRequest) {
-      // Try to get data from cache first
-      const cacheKey = 'dashboard_default';
-      const cachedData = cacheService.get(cacheKey);
-      
-      if (cachedData) {
-        console.log('Serving H1B data from cache (default dashboard)');
-        return NextResponse.json({
-          ...cachedData,
-          isFromCache: true,
-        });
+    if (searchParams.has('salaryRange')) {
+      const salaryRange = searchParams.get('salaryRange')?.split(',');
+      if (salaryRange && salaryRange.length === 2) {
+        filters.salaryRange = [Number(salaryRange[0]), Number(salaryRange[1])];
       }
-      
-      console.log('Cache miss - fetching default H1B data from BigQuery');
-      
-      // Fetch from BigQuery and cache the result
-      const data = await bigQueryService.getH1BDashboardData({});
-      
-      // Cache for 6 hours (H1B data doesn't change frequently)
-      cacheService.set(cacheKey, data, 6 * 60 * 60);
-      
-      console.log('Default H1B data cached successfully:', {
-        totalApplications: data.totalApplications,
-        avgSalary: data.avgSalary,
-        topEmployersCount: data.topEmployers.length,
-        statesCount: data.stateDistribution.length,
-      });
-      
-      return NextResponse.json({
-        ...data,
-        isFromCache: false,
-      });
     }
+
+    console.log('Fetching H1B dashboard data with filters:', filters);
     
-    // For filtered requests, fetch directly from BigQuery (no caching)
-    console.log('Fetching filtered H1B data from BigQuery:', filters);
+    // Get real data from BigQuery
+    const dashboardData = await bigQueryService.getH1BDashboardData(filters);
     
-    const data = await bigQueryService.getH1BDashboardData(filters);
-    
-    console.log('Filtered BigQuery data fetched successfully:', {
-      totalApplications: data.totalApplications,
-      avgSalary: data.avgSalary,
-      topEmployersCount: data.topEmployers.length,
-      statesCount: data.stateDistribution.length,
+    const queryTime = Date.now() - startTime;
+    console.log('H1B dashboard data fetched successfully:', {
+      totalApplications: dashboardData.totalApplications,
+      certificationRate: dashboardData.certificationRate,
+      queryTime
     });
     
-    return NextResponse.json({
-      ...data,
-      isFromCache: false,
-    });
+    const response: H1BApiResponse<H1BAggregatedData> = {
+      data: dashboardData,
+      metadata: {
+        queryTime,
+        source: 'BigQuery',
+      },
+    };
+    
+    return NextResponse.json(response);
     
   } catch (error) {
-    console.error('Error fetching H1B data:', error);
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
-    return NextResponse.json(
-      { error: 'Failed to fetch H1B data', details: errorMessage },
-      { status: 500 },
-    );
+    const queryTime = Date.now() - startTime;
+    console.error('H1B data API error:', {
+      error: error instanceof Error ? error.message : error,
+      requestType: new URL(request.url).searchParams.get('type') || 'dashboard',
+      queryTime
+    });
+    
+    // Handle validation errors with specific status codes
+    if (error instanceof ValidationError) {
+      const errorResponse: H1BApiResponse<H1BAggregatedData | H1BFilterOptions> = {
+        error: createServiceError(error),
+        metadata: {
+          queryTime,
+          source: 'validation',
+        },
+      };
+      return NextResponse.json(errorResponse, { status: 400 });
+    }
+    
+    // Handle other errors as internal server errors
+    const errorResponse: H1BApiResponse<H1BAggregatedData | H1BFilterOptions> = {
+      error: {
+        code: 'INTERNAL_ERROR',
+        message: 'Failed to fetch H1B data. Please try again later.',
+        timestamp: new Date().toISOString(),
+      },
+      metadata: {
+        queryTime,
+        source: 'BigQuery',
+      },
+    };
+    
+    return NextResponse.json(errorResponse, { status: 500 });
   }
 }
 

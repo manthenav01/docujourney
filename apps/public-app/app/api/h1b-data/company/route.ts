@@ -1,34 +1,87 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { H1BBigQueryService } from '@/lib/h1bBigQueryService';
+import { ValidationError, createServiceError } from '@/lib/validation';
+import { H1BApiResponse, H1BCompanyAnalysis } from '@/lib/types';
 import path from 'path';
 
-// Initialize services
+// Initialize BigQuery service with secure configuration
 const bigQueryService = new H1BBigQueryService({
   projectId: 'doctracker-b4528',
   keyFilename: path.join(process.cwd(), '../../serviceAccountKey.json'),
+  datasetId: 'h1b_data',
+  tableId: 'lca_applications',
 });
 
-export async function GET(request: NextRequest) {
+export async function GET(request: NextRequest): Promise<NextResponse<H1BApiResponse<H1BCompanyAnalysis>>> {
+  const startTime = Date.now();
+  
   try {
     const { searchParams } = new URL(request.url);
     const companyName = searchParams.get('name');
     
     if (!companyName) {
-      return NextResponse.json(
-        { error: 'Company name parameter is required' },
-        { status: 400 },
-      );
+      const errorResponse: H1BApiResponse<H1BCompanyAnalysis> = {
+        error: {
+          code: 'COMPANY_NAME_REQUIRED',
+          message: 'Company name parameter is required',
+          timestamp: new Date().toISOString(),
+        },
+      };
+      return NextResponse.json(errorResponse, { status: 400 });
     }
     
+    console.log('Fetching company data for:', { companyName });
     const companyData = await bigQueryService.getCompanyAnalysis(companyName);
     
-    return NextResponse.json(companyData);
+    const queryTime = Date.now() - startTime;
+    console.log('Company data fetched successfully:', {
+      companyName: companyData.name,
+      totalApplications: companyData.totalApplications,
+      queryTime
+    });
+    
+    const response: H1BApiResponse<H1BCompanyAnalysis> = {
+      data: companyData,
+      metadata: {
+        queryTime,
+        source: 'BigQuery',
+      },
+    };
+    
+    return NextResponse.json(response);
   } catch (error) {
-    console.error('Company API error:', error);
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
-    return NextResponse.json(
-      { error: 'Failed to fetch company data', details: errorMessage },
-      { status: 500 },
-    );
+    const queryTime = Date.now() - startTime;
+    console.error('Company API error:', {
+      error: error instanceof Error ? error.message : error,
+      companyName: new URL(request.url).searchParams.get('name'),
+      queryTime
+    });
+    
+    // Handle validation errors with specific status codes
+    if (error instanceof ValidationError) {
+      const errorResponse: H1BApiResponse<H1BCompanyAnalysis> = {
+        error: createServiceError(error),
+        metadata: {
+          queryTime,
+          source: 'validation',
+        },
+      };
+      return NextResponse.json(errorResponse, { status: 400 });
+    }
+    
+    // Handle other errors as internal server errors
+    const errorResponse: H1BApiResponse<H1BCompanyAnalysis> = {
+      error: {
+        code: 'INTERNAL_ERROR',
+        message: 'Failed to fetch company data. Please try again later.',
+        timestamp: new Date().toISOString(),
+      },
+      metadata: {
+        queryTime,
+        source: 'BigQuery',
+      },
+    };
+    
+    return NextResponse.json(errorResponse, { status: 500 });
   }
 }

@@ -240,6 +240,71 @@ export interface H1BCityAnalysis {
   recentActivity: H1BCityRecentActivity[];
 }
 
+// Attorney-specific analysis types
+export interface H1BAttorneyTopEmployer {
+  employer: string;
+  applications: number;
+  percentage: number;
+  avgSalary: number;
+  certificationRate: number;
+}
+
+export interface H1BAttorneyTopState {
+  state: string;
+  applications: number;
+  percentage: number;
+  avgSalary: number;
+}
+
+export interface H1BAttorneyTopJobCategory {
+  jobCategory: string;
+  applications: number;
+  percentage: number;
+  avgSalary: number;
+  certificationRate: number;
+}
+
+export interface H1BAttorneyYearlyTrend {
+  fiscalYear: string;
+  applications: number;
+  certifiedApplications: number;
+  certificationRate: number;
+  avgSalary: number;
+}
+
+export interface H1BAttorneySalaryDistribution {
+  range: string;
+  count: number;
+}
+
+export interface H1BAttorneyRecentActivity {
+  month: string;
+  applications: number;
+  certificationRate: number;
+}
+
+export interface H1BAttorneyAnalysis {
+  attorneyName: string;
+  lawFirm: string;
+  city: string;
+  state: string;
+  totalApplications: number;
+  certifiedApplications: number;
+  deniedApplications: number;
+  withdrawnApplications: number;
+  certificationRate: number;
+  avgSalary: number;
+  medianSalary: number;
+  minSalary: number;
+  maxSalary: number;
+  topEmployers: H1BAttorneyTopEmployer[];
+  topStates: H1BAttorneyTopState[];
+  topJobCategories: H1BAttorneyTopJobCategory[];
+  yearlyTrends: H1BAttorneyYearlyTrend[];
+  salaryDistribution: H1BAttorneySalaryDistribution[];
+  recentActivity: H1BAttorneyRecentActivity[];
+}
+
 // Filter options types
 export interface H1BFilterOptions {
   fiscalYears: string[];
@@ -256,5 +321,95 @@ export interface H1BFilterOptions {
 export interface H1BSearchSuggestion {
   suggestion: string;
   type: 'employer' | 'job' | 'state' | 'city';
+  count: number;
+}
+
+// Error handling types
+export interface H1BServiceError {
+  code: string;
+  message: string;
+  details?: any;
+  timestamp: string;
+}
+
+export interface H1BApiResponse<T> {
+  data?: T;
+  error?: H1BServiceError;
+  metadata?: {
+    queryTime: number;
+    cacheHit?: boolean;
+    source: string;
+  };
+}
+
+// Input validation types
+export interface ValidatedAttorneyInput {
+  attorneyName: string;
+  lawFirm?: string;
+}
+
+export interface ValidatedCompanyInput {
+  companyName: string;
+}
+
+export interface ValidatedJobInput {
+  jobTitle: string;
+}
+
+export interface ValidatedCityInput {
+  cityName: string;
+  stateName: string;
+}
+
+// BigQuery row types for better type safety
+export interface BigQueryAttorneyRow {
+  attorney_name: string;
+  law_firm: string | null;
+  city: string | null;
+  state: string | null;
+  total_applications: number;
+  certified_applications: number;
+  denied_applications: number;
+  withdrawn_applications: number;
+  certification_rate: number;
+  avg_salary: number;
+  median_salary: number;
+  min_salary: number;
+  max_salary: number;
+}
+
+export interface BigQueryEmployerRow {
+  employer: string;
+  applications: number;
+  percentage: number;
+  avg_salary: number;
+  certification_rate: number;
+}
+
+export interface BigQueryStateRow {
+  state: string;
+  applications: number;
+  percentage: number;
+  avg_salary: number;
+}
+
+export interface BigQueryJobCategoryRow {
+  job_category: string;
+  applications: number;
+  percentage: number;
+  avg_salary: number;
+  certification_rate: number;
+}
+
+export interface BigQueryYearlyTrendRow {
+  fiscal_year: string;
+  applications: number;
+  certified_applications: number;
+  certification_rate: number;
+  avg_salary: number;
+}
+
+export interface BigQuerySalaryDistributionRow {
+  salary_range: string;
   count: number;
 }

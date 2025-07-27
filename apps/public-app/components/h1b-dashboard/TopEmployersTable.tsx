@@ -21,12 +21,15 @@ interface TopEmployersTableProps {
 }
 
 // Helper component for salary range display
-const SalaryRange: React.FC<{ minSalary: number; maxSalary: number; avgSalary: number }> = ({ 
+const SalaryRange: React.FC<{ minSalary: number | undefined; maxSalary: number | undefined; avgSalary: number | undefined }> = ({ 
   minSalary, 
   maxSalary, 
   avgSalary,
 }) => {
-  const formatSalary = (salary: number) => {
+  const formatSalary = (salary: number | undefined) => {
+    if (!salary || salary === 0) {
+      return '$0';
+    }
     if (salary >= 1000000) {
       return `$${(salary / 1000000).toFixed(1)}M`;
     } else if (salary >= 1000) {
@@ -37,8 +40,8 @@ const SalaryRange: React.FC<{ minSalary: number; maxSalary: number; avgSalary: n
   };
 
   // Calculate progress percentage, handling edge cases
-  const salaryRange = maxSalary - minSalary;
-  const progressPercent = salaryRange > 0 
+  const salaryRange = (maxSalary || 0) - (minSalary || 0);
+  const progressPercent = salaryRange > 0 && avgSalary && minSalary
     ? Math.min(100, Math.max(0, ((avgSalary - minSalary) / salaryRange) * 100))
     : 50; // Default to middle if no range
 

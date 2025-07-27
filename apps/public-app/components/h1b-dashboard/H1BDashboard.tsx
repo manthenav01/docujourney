@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { FilterState } from './types';
 import { DashboardHero } from './DashboardHero';
-import { FilterCards } from './FilterCards';
+import { YearsFilter } from './YearsFilter';
 import { VisualizationPanel } from './VisualizationPanel';
 import { TopEmployersTable } from './TopEmployersTable';
 import { H1BAggregatedData } from '../../lib/types';
@@ -32,7 +32,7 @@ export const H1BDashboard: React.FC = () => {
   const [dashboardData, setDashboardData] = useState<H1BDashboardData | null>(null);
   const [filters, setFilters] = useState<FilterState>({
     searchQuery: '', // Keep this for search functionality
-    fiscalYears: [],
+    fiscalYear: '2024', // Default to current year
     salaryRange: [0, 500000],
     states: [],
     cities: [],
@@ -50,7 +50,7 @@ export const H1BDashboard: React.FC = () => {
   // Create stable filter dependencies to prevent unnecessary re-renders
   const filterDependencies = useMemo(() => {
     return {
-      fiscalYears: JSON.stringify(filters.fiscalYears.sort()),
+      fiscalYear: filters.fiscalYear,
       salaryRange: `${filters.salaryRange[0]}-${filters.salaryRange[1]}`,
       states: JSON.stringify(filters.states.sort()),
       cities: JSON.stringify(filters.cities.sort()),
@@ -60,7 +60,7 @@ export const H1BDashboard: React.FC = () => {
       companyTypes: JSON.stringify(filters.companyTypes.sort()),
     };
   }, [
-    filters.fiscalYears,
+    filters.fiscalYear,
     filters.salaryRange,
     filters.states,
     filters.cities,
@@ -79,10 +79,26 @@ export const H1BDashboard: React.FC = () => {
   const memoizedDashboardData = useMemo(() => {
     if (!dashboardData) {
       return {
+        totalApplications: 0,
+        certifiedApplications: 0,
+        deniedApplications: 0,
+        withdrawnApplications: 0,
+        certificationRate: 0,
+        avgSalary: 0,
+        medianSalary: 0,
+        uniqueEmployers: 0,
+        uniqueStates: 0,
+        mostAppliedJob: {
+          title: 'N/A',
+          applications: 0,
+        },
+        topEmployers: [],
+        topAttorneys: [],
         salaryDistribution: [],
         yearlyTrends: [],
         stateDistribution: [],
         jobTitleDistribution: [],
+        industryDistribution: [],
       };
     }
     return dashboardData;
@@ -97,8 +113,8 @@ export const H1BDashboard: React.FC = () => {
       // Build query parameters
       const params = new URLSearchParams();
       
-      if (filters.fiscalYears.length > 0) {
-        params.append('fiscalYears', filters.fiscalYears.join(','));
+      if (filters.fiscalYear) {
+        params.append('fiscalYears', filters.fiscalYear);
       }
       
       if (filters.states.length > 0) {
@@ -123,10 +139,17 @@ export const H1BDashboard: React.FC = () => {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
       
-      const data = await response.json();
+      const apiResponse = await response.json();
       
-      if (data.error) {
-        throw new Error(data.error);
+      if (apiResponse.error) {
+        throw new Error(apiResponse.error.message || 'API error occurred');
+      }
+      
+      // Extract the actual data from the API response structure
+      const data = apiResponse.data;
+      
+      if (!data) {
+        throw new Error('No data received from API');
       }
       
       console.log('H1B data loaded:', {
@@ -171,7 +194,7 @@ export const H1BDashboard: React.FC = () => {
       setChartsLoading(false);
     }
   }, [
-    filterDependencies.fiscalYears,
+    filterDependencies.fiscalYear,
     filterDependencies.salaryRange,
     filterDependencies.states,
     filterDependencies.cities,
@@ -263,6 +286,13 @@ export const H1BDashboard: React.FC = () => {
         onSearch={handleHeroSearch}
       />
 
+      {/* Years Filter */}
+      <YearsFilter
+        filters={filters}
+        setFilters={setFilters}
+        onFetchData={fetchH1BData}
+      />
+
       {/* Dashboard Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Status Indicator */}
@@ -283,13 +313,6 @@ export const H1BDashboard: React.FC = () => {
           </div>
         </div>
 
-        {/* Filter Cards */}
-        <div className="mb-8">
-          <FilterCards
-            filters={filters}
-            setFilters={setFilters}
-          />
-        </div>
 
         {/* Overview Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8 mb-8">
