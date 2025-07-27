@@ -16,6 +16,7 @@ import {
   Settings,
 } from 'lucide-react';
 import { FilterState } from './types';
+import { YearsFilter } from './YearsFilter';
 import { 
   Button, 
   Card, 
@@ -36,7 +37,6 @@ export const FilterCards: React.FC<FilterCardsProps> = ({
   filters,
   setFilters,
 }) => {
-  const [yearPopoverOpen, setYearPopoverOpen] = useState(false);
   const [salaryPopoverOpen, setSalaryPopoverOpen] = useState(false);
   const [categoryPopoverOpen, setCategoryPopoverOpen] = useState(false);
   const [companyTypePopoverOpen, setCompanyTypePopoverOpen] = useState(false);
@@ -98,15 +98,6 @@ export const FilterCards: React.FC<FilterCardsProps> = ({
   ];
 
   // Handler functions
-  const handleYearToggle = (year: string) => {
-    setFilters(prev => ({
-      ...prev,
-      fiscalYears: prev.fiscalYears.includes(year)
-        ? prev.fiscalYears.filter(y => y !== year)
-        : [...prev.fiscalYears, year],
-    }));
-  };
-
   const handleSalaryChange = (values: number[]) => {
     setFilters(prev => ({
       ...prev,
@@ -206,56 +197,26 @@ export const FilterCards: React.FC<FilterCardsProps> = ({
       {/* Filter Cards Grid */}
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
         
-        {/* Year Filter */}
-        <Popover open={yearPopoverOpen} onOpenChange={setYearPopoverOpen}>
-          <PopoverTrigger asChild>
-            <Card className="cursor-pointer hover:shadow-md transition-shadow border-2 hover:border-blue-200">
-              <CardContent className="p-4">
-                <div className="flex items-center justify-between mb-2">
-                  <Calendar className="w-5 h-5 text-primary" />
-                  <ChevronDown className="w-4 h-4 text-muted-foreground" />
-                </div>
-                <div className="text-sm font-medium text-foreground mb-1">Years</div>
-                <div className="text-xs text-muted-foreground">
-                  {filters.fiscalYears.length > 0 
-                    ? `${filters.fiscalYears.length} selected`
-                    : 'All years'}
-                </div>
-                {filters.fiscalYears.length > 0 && (
-                  <Badge variant="secondary" className="mt-2 text-xs">
-                    {filters.fiscalYears.length}
-                  </Badge>
-                )}
-              </CardContent>
-            </Card>
-          </PopoverTrigger>
-          <PopoverContent className="w-80 p-0" align="start">
-            <div className="p-4">
-              <h4 className="text-sm font-medium text-foreground mb-3">Filter by Year</h4>
-              <div className="grid grid-cols-3 gap-2 max-h-48 overflow-y-auto">
-                {availableYears.map((year) => {
-                  const isSelected = filters.fiscalYears.includes(year);
-                  return (
-                    <button
-                      key={year}
-                      onClick={() => handleYearToggle(year)}
-                      className={`
-                        flex items-center justify-center h-10 rounded-md border text-sm font-medium transition-all duration-200
-                        ${isSelected
-                          ? 'bg-primary/10 border-primary/20 text-primary hover:bg-primary/20'
-                          : 'bg-white border-gray-200 text-muted-foreground hover:bg-gray-50 hover:border-gray-300'
-                        }
-                      `}
-                    >
-                      {isSelected && <Check className="w-3 h-3 mr-1" />}
-                      {year}
-                    </button>
-                  );
-                })}
+        {/* Year Filter - Using Clean Shadcn Select */}
+        <Card className="hover:shadow-md transition-shadow border-2 hover:border-blue-200">
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between mb-3">
+              <Calendar className="w-5 h-5 text-primary" />
+              <div className="text-xs text-muted-foreground">
+                {filters.fiscalYears.length > 0 
+                  ? `${filters.fiscalYears.length} selected`
+                  : 'All years'}
               </div>
             </div>
-          </PopoverContent>
-        </Popover>
+            <div className="text-sm font-medium text-foreground mb-3">Years</div>
+            <YearsFilter 
+              filters={filters}
+              setFilters={setFilters}
+              availableYears={availableYears}
+              className="w-full"
+            />
+          </CardContent>
+        </Card>
 
         {/* Salary Range Filter */}
         <Popover open={salaryPopoverOpen} onOpenChange={setSalaryPopoverOpen}>
@@ -547,7 +508,10 @@ export const FilterCards: React.FC<FilterCardsProps> = ({
                 <Badge key={year} variant="secondary" className="bg-primary/10 text-primary">
                   {year}
                   <button
-                    onClick={() => handleYearToggle(year)}
+                    onClick={() => setFilters(prev => ({
+                      ...prev,
+                      fiscalYears: prev.fiscalYears.filter(y => y !== year),
+                    }))}
                     className="ml-1 hover:bg-blue-200 rounded-full p-0.5"
                   >
                     <X className="w-3 h-3" />

@@ -282,8 +282,9 @@
   margin-bottom: 4px;
 }
 
-.filter-panel input,
-.filter-panel select {
+/* Scope filter panel styles to native elements only */
+.filter-panel input:not([data-slot]),
+.filter-panel select:not([data-slot]) {
   width: 100%;
   padding: 8px 12px;
   border: 1px solid hsl(var(--border));
@@ -293,8 +294,8 @@
   background: hsl(var(--background));
 }
 
-.filter-panel input:focus,
-.filter-panel select:focus {
+.filter-panel input:focus:not([data-slot]),
+.filter-panel select:focus:not([data-slot]) {
   outline: none;
   border-color: hsl(var(--primary));
   box-shadow: 0 0 0 3px hsl(var(--primary) / 0.1);
@@ -337,16 +338,16 @@
   }
 }
 
-/* Focus styles for accessibility */
-button:focus,
-input:focus,
-select:focus {
+/* Focus styles for accessibility - scoped to avoid Shadcn conflicts */
+.dashboard-content button:focus:not([data-slot]),
+.dashboard-content input:focus:not([data-slot]),
+.dashboard-content select:focus:not([data-slot]) {
   outline: 2px solid #3b82f6;
   outline-offset: 2px;
 }
 
-/* Smooth transitions */
-* {
+/* Smooth transitions - scoped to avoid Shadcn conflicts */
+.dashboard-content *:not([data-slot]) {
   transition: color 0.15s ease, background-color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
 }
 
@@ -367,4 +368,54 @@ select:focus {
 
 ::-webkit-scrollbar-thumb:hover {
   background: hsl(var(--muted-foreground) / 0.5);
+}
+
+/* Shadcn Select Component Isolation */
+.shadcn-select-container {
+  /* Isolate Shadcn Select from global styles */
+  isolation: isolate;
+  position: relative;
+}
+
+/* Ensure Shadcn Select content doesn't inherit dashboard styles */
+.shadcn-select-content {
+  /* Reset any inherited transitions that might conflict */
+  transition: none !important;
+}
+
+/* Prevent global focus styles from affecting Shadcn components */
+.shadcn-select-container [data-slot] {
+  /* Reset any conflicting global styles */
+  transition: all 0.2s ease-in-out !important;
+}
+
+.shadcn-select-container [data-slot]:focus {
+  /* Let Shadcn handle its own focus styles */
+  outline: none !important;
+}
+
+/* Ensure proper z-index for Select content */
+.shadcn-select-container [data-slot="select-content"] {
+  z-index: 9999 !important;
+}
+
+/* Additional isolation for Radix UI components */
+[data-radix-popper-content-wrapper] {
+  /* Ensure Radix popover content is properly isolated */
+  z-index: 10000 !important;
+}
+
+/* Reset any conflicting styles on Radix primitives */
+[data-slot^="select"] {
+  /* Prevent inheritance of dashboard-specific styles */
+  font-family: inherit !important;
+  transition: all 0.2s ease !important;
+}
+
+/* Ensure Select items render properly */
+[data-slot="select-content"] [data-slot="select-item"] {
+  /* Prevent text overlap in select items */
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
 }
