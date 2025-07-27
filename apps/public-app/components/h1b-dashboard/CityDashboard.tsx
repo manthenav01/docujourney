@@ -50,8 +50,14 @@ export const CityDashboard: React.FC<CityDashboardProps> = ({
       const response = await fetch(`/api/h1b-data/city?city=${encodeURIComponent(cityName)}&state=${encodeURIComponent(stateName)}`);
       
       if (response.ok) {
-        const data = await response.json();
-        setCityInfo(data);
+        const apiResponse = await response.json();
+        if (apiResponse.error) {
+          throw new Error(apiResponse.error.message || 'API error occurred');
+        }
+        if (!apiResponse.data) {
+          throw new Error('No data received from API');
+        }
+        setCityInfo(apiResponse.data);
       } else {
         const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
         throw new Error(errorData.error || `Server responded with ${response.status}`);

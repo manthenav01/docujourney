@@ -323,3 +323,93 @@ export interface H1BSearchSuggestion {
   type: 'employer' | 'job' | 'state' | 'city';
   count: number;
 }
+
+// Error handling types
+export interface H1BServiceError {
+  code: string;
+  message: string;
+  details?: any;
+  timestamp: string;
+}
+
+export interface H1BApiResponse<T> {
+  data?: T;
+  error?: H1BServiceError;
+  metadata?: {
+    queryTime: number;
+    cacheHit?: boolean;
+    source: string;
+  };
+}
+
+// Input validation types
+export interface ValidatedAttorneyInput {
+  attorneyName: string;
+  lawFirm?: string;
+}
+
+export interface ValidatedCompanyInput {
+  companyName: string;
+}
+
+export interface ValidatedJobInput {
+  jobTitle: string;
+}
+
+export interface ValidatedCityInput {
+  cityName: string;
+  stateName: string;
+}
+
+// BigQuery row types for better type safety
+export interface BigQueryAttorneyRow {
+  attorney_name: string;
+  law_firm: string | null;
+  city: string | null;
+  state: string | null;
+  total_applications: number;
+  certified_applications: number;
+  denied_applications: number;
+  withdrawn_applications: number;
+  certification_rate: number;
+  avg_salary: number;
+  median_salary: number;
+  min_salary: number;
+  max_salary: number;
+}
+
+export interface BigQueryEmployerRow {
+  employer: string;
+  applications: number;
+  percentage: number;
+  avg_salary: number;
+  certification_rate: number;
+}
+
+export interface BigQueryStateRow {
+  state: string;
+  applications: number;
+  percentage: number;
+  avg_salary: number;
+}
+
+export interface BigQueryJobCategoryRow {
+  job_category: string;
+  applications: number;
+  percentage: number;
+  avg_salary: number;
+  certification_rate: number;
+}
+
+export interface BigQueryYearlyTrendRow {
+  fiscal_year: string;
+  applications: number;
+  certified_applications: number;
+  certification_rate: number;
+  avg_salary: number;
+}
+
+export interface BigQuerySalaryDistributionRow {
+  salary_range: string;
+  count: number;
+}
