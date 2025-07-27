@@ -4,6 +4,7 @@ import React, { useMemo, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@docujourney/ui';
 import { ReusableAreaChart } from './charts';
 import { salaryDistributionColors } from '../../lib/chartColors';
+import { DollarSign } from 'lucide-react';
 
 interface SalaryDistributionData {
   range: string;
@@ -21,7 +22,7 @@ const SalaryDistributionChartComponent: React.FC<SalaryDistributionChartProps> =
   // Process data for the reusable area chart
   const processedData = useMemo(() => {
     if (!data || data.length === 0) {
-      return { chartData: [], statistics: { total: 0, average: 0, median: 0 } };
+      return { chartData: [] };
     }
 
     // Group salary ranges into 5 meaningful brackets for better clarity
@@ -68,29 +69,49 @@ const SalaryDistributionChartComponent: React.FC<SalaryDistributionChartProps> =
     const sortedData = groupedData.sort((a, b) => a.sortOrder - b.sortOrder);
 
     // Convert to area chart data format compatible with ReusableAreaChart
-    const chartData = sortedData.map((item, index) => ({
-      name: item.range,
-      value: item.count,
-      originalData: {
-        percentage: item.percentage,
-        sortOrder: index + 1,
-        total: sortedData.reduce((sum, curr) => sum + curr.count, 0),
-      },
-    }));
-
-    // Calculate statistics
-    const totalApplications = sortedData.reduce((sum, item) => sum + item.count, 0);
-    const averageApplications = sortedData.length > 0 ? totalApplications / sortedData.length : 0;
-    const medianIndex = Math.floor(sortedData.length / 2);
-    const medianApplications = sortedData[medianIndex]?.count || 0;
+    const chartData = sortedData.map((item, index) => {
+      // Extract min and max salary from range string for tooltip
+      let minSalary = 0;
+      let maxSalary = 0;
+      
+      switch (item.range) {
+        case 'Under $90K':
+          minSalary = 0;
+          maxSalary = 90000;
+          break;
+        case '$90K - $130K':
+          minSalary = 90000;
+          maxSalary = 130000;
+          break;
+        case '$130K - $170K':
+          minSalary = 130000;
+          maxSalary = 170000;
+          break;
+        case '$170K - $220K':
+          minSalary = 170000;
+          maxSalary = 220000;
+          break;
+        case '$220K+':
+          minSalary = 220000;
+          maxSalary = 500000; // Cap for display purposes
+          break;
+      }
+      
+      return {
+        name: item.range,
+        value: item.count,
+        originalData: {
+          percentage: item.percentage,
+          sortOrder: index + 1,
+          total: sortedData.reduce((sum, curr) => sum + curr.count, 0),
+          minSalary,
+          maxSalary,
+        },
+      };
+    });
 
     return {
       chartData,
-      statistics: {
-        total: totalApplications,
-        average: averageApplications,
-        median: medianApplications,
-      },
     };
   }, [data]);
 
@@ -101,7 +122,10 @@ const SalaryDistributionChartComponent: React.FC<SalaryDistributionChartProps> =
     return (
       <Card className="h-[500px]">
         <CardHeader>
-          <CardTitle className="text-lg font-semibold">Salary Distribution</CardTitle>
+          <CardTitle className="text-lg font-semibold flex items-center">
+            <DollarSign className="w-5 h-5 mr-2" />
+            Salary Distribution
+          </CardTitle>
         </CardHeader>
         <CardContent className="h-[400px]">
           <ReusableAreaChart
@@ -117,52 +141,18 @@ const SalaryDistributionChartComponent: React.FC<SalaryDistributionChartProps> =
   return (
     <Card className="h-[500px]">
       <CardHeader>
-        <CardTitle className="text-lg font-semibold">Salary Distribution</CardTitle>
+        <CardTitle className="text-lg font-semibold flex items-center">
+          <DollarSign className="w-5 h-5 mr-2" />
+          Salary Distribution
+        </CardTitle>
       </CardHeader>
-      <CardContent className="h-[400px] relative">
+      <CardContent className="h-[400px]">
         <ReusableAreaChart
           data={processedData.chartData}
           height={400}
           curve="monotoneX"
           gradientId="salaryGradient"
         />
-        
-        {/* Enhanced Statistical Overlay */}
-        <div className="absolute top-4 right-4 bg-white/95 backdrop-blur-sm p-3 rounded-lg border border-slate-200 shadow-md z-10">
-          <div className="text-xs font-semibold text-slate-700 mb-2 flex items-center space-x-2">
-            <div className="w-2 h-2 bg-gradient-to-r from-blue-500 to-blue-600 rounded-full"></div>
-            <span>Key Metrics</span>
-          </div>
-          <div className="space-y-1.5">
-            <div className="flex items-center justify-between space-x-3">
-              <div className="flex items-center space-x-1.5">
-                <div className="w-2 h-0.5 bg-blue-500 rounded-full"></div>
-                <span className="text-xs text-slate-500">Average:</span>
-              </div>
-              <span className="text-xs font-semibold text-slate-700">
-                {Math.round(processedData.statistics.average).toLocaleString()}
-              </span>
-            </div>
-            <div className="flex items-center justify-between space-x-3">
-              <div className="flex items-center space-x-1.5">
-                <div className="w-2 h-0.5 bg-green-500 rounded-full"></div>
-                <span className="text-xs text-slate-500">Total:</span>
-              </div>
-              <span className="text-xs font-semibold text-slate-700">
-                {processedData.statistics.total.toLocaleString()}
-              </span>
-            </div>
-            <div className="flex items-center justify-between space-x-3">
-              <div className="flex items-center space-x-1.5">
-                <div className="w-2 h-0.5 bg-orange-500 rounded-full"></div>
-                <span className="text-xs text-slate-500">Median:</span>
-              </div>
-              <span className="text-xs font-semibold text-slate-700">
-                {Math.round(processedData.statistics.median).toLocaleString()}
-              </span>
-            </div>
-          </div>
-        </div>
       </CardContent>
     </Card>
   );

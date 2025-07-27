@@ -17,7 +17,10 @@ export interface H1BEmployer {
   employer: string;
   applications: number;
   avgSalary: number;
+  minSalary: number;
+  maxSalary: number;
   topState: string;
+  yoyGrowthRate: number;
 }
 
 export interface H1BAttorney {

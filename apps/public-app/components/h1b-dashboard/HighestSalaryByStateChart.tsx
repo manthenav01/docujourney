@@ -4,6 +4,7 @@ import React, { useState, useMemo, useCallback } from 'react';
 import { Button, Card, CardContent, CardHeader, CardTitle } from '@docujourney/ui';
 import { CHART_COLOR_ARRAYS, getChartColor } from '../../lib/chartColors';
 import { ReusableBarChart, type BarChartData } from './charts';
+import { MapPin, BarChart3 } from 'lucide-react';
 
 interface StateSalaryData {
   state: string;
@@ -37,6 +38,7 @@ const HighestSalaryByStateChartComponent: React.FC<HighestSalaryByStateChartProp
     }));
   }, [data, viewMode]);
 
+
   // Geographic colors for states
   const stateColors = useMemo(() => {
     return CHART_COLOR_ARRAYS.geographic;
@@ -69,7 +71,10 @@ const HighestSalaryByStateChartComponent: React.FC<HighestSalaryByStateChartProp
         <CardHeader>
           <div className="flex justify-between items-start">
             <div>
-              <CardTitle>Average Salary by State</CardTitle>
+              <CardTitle className="flex items-center">
+                <MapPin className="w-5 h-5 mr-2" />
+                Average Salary by State
+              </CardTitle>
             </div>
             <div className="flex gap-1">
               <Button
@@ -77,6 +82,7 @@ const HighestSalaryByStateChartComponent: React.FC<HighestSalaryByStateChartProp
                 variant={viewMode === 'top' ? 'default' : 'outline'}
                 size="sm"
                 disabled={loading}
+                onClick={handleTopClick}
                 className="h-7 text-xs"
               >
                 Top 7
@@ -86,6 +92,7 @@ const HighestSalaryByStateChartComponent: React.FC<HighestSalaryByStateChartProp
                 variant={viewMode === 'bottom' ? 'default' : 'outline'}
                 size="sm"
                 disabled={loading}
+                onClick={handleBottomClick}
                 className="h-7 text-xs"
               >
                 Bottom 7
@@ -114,7 +121,10 @@ const HighestSalaryByStateChartComponent: React.FC<HighestSalaryByStateChartProp
       <CardHeader>
         <div className="flex justify-between items-start">
           <div>
-            <CardTitle>Average Salary by State</CardTitle>
+            <CardTitle className="flex items-center">
+              <MapPin className="w-5 h-5 mr-2" />
+              Average Salary by State
+            </CardTitle>
           </div>
           <div className="flex gap-1">
             <Button

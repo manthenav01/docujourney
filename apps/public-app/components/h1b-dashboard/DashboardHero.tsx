@@ -110,7 +110,7 @@ export const DashboardHero: React.FC<DashboardHeroProps> = ({
           className="absolute inset-0 opacity-20"
           style={{
             backgroundImage: 'radial-gradient(circle, #d1d5db 0.5px, transparent 0.5px)',
-            backgroundSize: '30px 30px'
+            backgroundSize: '30px 30px',
           }}
         />
         

@@ -17,6 +17,7 @@ export interface ProgressChartData {
 export interface ReusableProgressChartProps {
   data: ProgressChartData[];
   title?: string;
+  titleIcon?: React.ReactNode;
   loading?: boolean;
   height?: number;
   colors?: string[];
@@ -32,6 +33,7 @@ export interface ReusableProgressChartProps {
 const ReusableProgressChartComponent: React.FC<ReusableProgressChartProps> = ({
   data,
   title,
+  titleIcon,
   loading = false,
   height = 300,
   colors,
@@ -221,7 +223,10 @@ const ReusableProgressChartComponent: React.FC<ReusableProgressChartProps> = ({
     return (
       <Card className="w-full">
         <CardHeader>
-          <CardTitle>{title}</CardTitle>
+          <CardTitle className="flex items-center">
+            {titleIcon && <span className="mr-2">{titleIcon}</span>}
+            {title}
+          </CardTitle>
         </CardHeader>
         <CardContent>
           <div style={{ height: `${height}px` }}>

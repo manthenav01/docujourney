@@ -8,8 +8,8 @@ interface ImmigrantCentralLogoProps {
 }
 
 export const ImmigrantCentralLogo: React.FC<ImmigrantCentralLogoProps> = ({ 
-  className = "w-8 h-8",
-  size = 32 
+  className = 'w-8 h-8',
+  size = 32, 
 }) => {
   return (
     <svg 

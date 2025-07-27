@@ -62,8 +62,7 @@ const CustomTooltip = ({ active, payload, label }: any) => {
         {data.originalData && (
           <>
             <div className="border-t border-slate-100 pt-2 mt-2">
-              <div className="text-xs text-slate-500 space-y-1">
-                <div>Range: {data.originalData.minSalary?.toLocaleString()} - {data.originalData.maxSalary?.toLocaleString()}</div>
+              <div className="text-xs text-slate-500">
                 <div>
                   Percentage: {((value / data.originalData.total) * 100).toFixed(1)}%
                 </div>

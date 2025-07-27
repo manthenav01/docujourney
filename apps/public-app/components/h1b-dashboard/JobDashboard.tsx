@@ -359,7 +359,7 @@ export const JobDashboard: React.FC<JobDashboardProps> = ({
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center">
-              <Building className="w-5 h-5 mr-2" />
+              <Building2 className="w-5 h-5 mr-2" />
               Top Hiring Companies
             </CardTitle>
           </CardHeader>
@@ -427,7 +427,7 @@ export const JobDashboard: React.FC<JobDashboardProps> = ({
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center">
-              <PieChart className="w-5 h-5 mr-2" />
+              <DollarSign className="w-5 h-5 mr-2" />
               Salary Distribution
             </CardTitle>
           </CardHeader>

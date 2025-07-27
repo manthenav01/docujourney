@@ -167,8 +167,8 @@ const ReusableBarChartComponent: React.FC<ReusableBarChartProps> = ({
           legendPosition: 'middle',
           legendOffset: axisLeftLegend ? -75 : 0,
           format: formatValue || ((value) => {
-            if (value >= 1000000) return `$${(value / 1000000).toFixed(1)}M`;
-            if (value >= 1000) return `$${(value / 1000).toFixed(0)}K`;
+            if (value >= 1000000) {return `$${(value / 1000000).toFixed(1)}M`;}
+            if (value >= 1000) {return `$${(value / 1000).toFixed(0)}K`;}
             return `$${value}`;
           }),
         }}
@@ -181,9 +181,9 @@ const ReusableBarChartComponent: React.FC<ReusableBarChartProps> = ({
         enableLabel={true}
         label={(d) => {
           const value = d.value as number;
-          if (formatValue) return formatValue(value);
-          if (value >= 1000000) return `$${(value / 1000000).toFixed(1)}M`;
-          if (value >= 1000) return `$${(value / 1000).toFixed(0)}K`;
+          if (formatValue) {return formatValue(value);}
+          if (value >= 1000000) {return `$${(value / 1000000).toFixed(1)}M`;}
+          if (value >= 1000) {return `$${(value / 1000).toFixed(0)}K`;}
           return `$${value}`;
         }}
         tooltip={tooltipComponent}

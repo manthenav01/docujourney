@@ -402,6 +402,7 @@ export const CompanyDashboard: React.FC<CompanyDashboardProps> = ({
             color: getChartColor(index, CHART_COLOR_ARRAYS.geographic),
           }))}
           title="Geographic Distribution"
+          titleIcon={<MapPin className="w-5 h-5" />}
           height={400}
           showPercentage={true}
           showValues={true}
@@ -440,6 +441,7 @@ export const CompanyDashboard: React.FC<CompanyDashboardProps> = ({
             };
           })}
           title="Salary Distribution"
+          titleIcon={<DollarSign className="w-5 h-5" />}
           height={400}
           showPercentage={false}
           showValues={true}

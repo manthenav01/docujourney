@@ -57,7 +57,10 @@ const TopAttorneysCardComponent: React.FC<TopAttorneysCardProps> = ({
     return (
       <Card className="w-full">
         <CardHeader>
-          <CardTitle className="text-lg font-semibold">Top H1B Attorneys</CardTitle>
+          <CardTitle className="text-lg font-semibold flex items-center">
+          <Scale className="w-5 h-5 mr-2" />
+          Top H1B Attorneys
+        </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
@@ -80,7 +83,10 @@ const TopAttorneysCardComponent: React.FC<TopAttorneysCardProps> = ({
     return (
       <Card className="w-full">
         <CardHeader>
-          <CardTitle className="text-lg font-semibold">Top H1B Attorneys</CardTitle>
+          <CardTitle className="text-lg font-semibold flex items-center">
+          <Scale className="w-5 h-5 mr-2" />
+          Top H1B Attorneys
+        </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="flex items-center justify-center h-32">
@@ -94,7 +100,10 @@ const TopAttorneysCardComponent: React.FC<TopAttorneysCardProps> = ({
   return (
     <Card className="w-full">
       <CardHeader>
-        <CardTitle className="text-lg font-semibold">Top H1B Attorneys</CardTitle>
+        <CardTitle className="text-lg font-semibold flex items-center">
+          <Scale className="w-5 h-5 mr-2" />
+          Top H1B Attorneys
+        </CardTitle>
       </CardHeader>
       <CardContent className="space-y-3">
         {processedData.topAttorneys.map((attorney, index) => {

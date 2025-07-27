@@ -27,10 +27,10 @@ export const DashboardHeader: React.FC = () => {
   };
 
   const getActiveItem = () => {
-    if (pathname === '/h1b-dashboard') return 'home';
-    if (pathname.includes('/company/')) return 'employers';
-    if (pathname.includes('/job/')) return 'jobs';
-    if (pathname.includes('/city/')) return 'locations';
+    if (pathname === '/h1b-dashboard') {return 'home';}
+    if (pathname.includes('/company/')) {return 'employers';}
+    if (pathname.includes('/job/')) {return 'jobs';}
+    if (pathname.includes('/city/')) {return 'locations';}
     return 'home';
   };
 

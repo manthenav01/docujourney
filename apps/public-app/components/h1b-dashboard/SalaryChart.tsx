@@ -3,6 +3,7 @@
 import React, { useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@docujourney/ui';
 import { ReusableBarChart, type BarChartData } from './charts';
+import { DollarSign } from 'lucide-react';
 
 interface SalaryChartProps {
   salaryData: Array<{
@@ -72,7 +73,8 @@ export const SalaryChart: React.FC<SalaryChartProps> = ({ salaryData, stateData,
         {/* Salary Distribution Panel */}
         <Card className="bg-muted/20 border border-border/20">
           <CardHeader>
-            <CardTitle className="text-lg font-semibold text-foreground tracking-tight">
+            <CardTitle className="text-lg font-semibold text-foreground tracking-tight flex items-center">
+              <DollarSign className="w-5 h-5 mr-2" />
               Salary Distribution
             </CardTitle>
             <p className="text-sm text-muted-foreground">
@@ -97,7 +99,8 @@ export const SalaryChart: React.FC<SalaryChartProps> = ({ salaryData, stateData,
         {/* Salary by State Panel */}
         <Card className="bg-muted/20 border border-border/20">
           <CardHeader>
-            <CardTitle className="text-lg font-semibold text-foreground tracking-tight">
+            <CardTitle className="text-lg font-semibold text-foreground tracking-tight flex items-center">
+              <DollarSign className="w-5 h-5 mr-2" />
               Salary by State
             </CardTitle>
             <p className="text-sm text-muted-foreground">

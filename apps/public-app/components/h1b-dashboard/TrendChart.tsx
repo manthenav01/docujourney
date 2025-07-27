@@ -3,6 +3,7 @@
 import React, { useState, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@docujourney/ui';
 import { ReusableBarChart, type BarChartData } from './charts';
+import { LineChart } from 'lucide-react';
 
 interface TrendChartProps {
   data: Array<{
@@ -74,7 +75,10 @@ export const TrendChart: React.FC<TrendChartProps> = ({ data, isActive }) => {
         <Card className="bg-muted/20">
           <CardHeader>
             <div className="flex items-center justify-between">
-              <CardTitle className="text-lg font-semibold text-foreground">Applications Trend</CardTitle>
+              <CardTitle className="text-lg font-semibold text-foreground flex items-center">
+                <LineChart className="w-5 h-5 mr-2" />
+                Applications Trend
+              </CardTitle>
               <div className="flex bg-background rounded-lg p-1 shadow-sm">
                 {['24h', '7d', '1mo'].map((timeframe) => (
                   <button
@@ -111,7 +115,10 @@ export const TrendChart: React.FC<TrendChartProps> = ({ data, isActive }) => {
         <Card className="bg-muted/20">
           <CardHeader>
             <div className="flex items-center justify-between">
-              <CardTitle className="text-lg font-semibold text-foreground">Approvals Trend</CardTitle>
+              <CardTitle className="text-lg font-semibold text-foreground flex items-center">
+                <LineChart className="w-5 h-5 mr-2" />
+                Approvals Trend
+              </CardTitle>
               <div className="flex bg-background rounded-lg p-1 shadow-sm">
                 {['24h', '7d', '1mo'].map((timeframe) => (
                   <button

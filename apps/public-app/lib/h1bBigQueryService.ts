@@ -142,13 +142,15 @@ export class H1BBigQueryService {
       AND wage_rate_of_pay_from > 0
     `;
 
-    // Top employers query
+    // Top employers query with salary ranges and YoY trends
     const employersQuery = `
       WITH employer_stats AS (
         SELECT 
           employer_name,
           COUNT(*) as applications,
           AVG(wage_rate_of_pay_from) as avg_salary,
+          MIN(wage_rate_of_pay_from) as min_salary,
+          MAX(wage_rate_of_pay_from) as max_salary,
           ANY_VALUE(worksite_state) as top_state
         FROM \`${this.projectId}.${this.datasetId}.lca_applications\`
         ${whereClause}
@@ -156,14 +158,58 @@ export class H1BBigQueryService {
         AND wage_rate_of_pay_from IS NOT NULL
         AND wage_rate_of_pay_from > 0
         GROUP BY employer_name
+      ),
+      employer_yearly_stats AS (
+        SELECT 
+          employer_name,
+          CASE 
+            WHEN EXTRACT(MONTH FROM received_date) >= 10 
+            THEN EXTRACT(YEAR FROM received_date) + 1
+            ELSE EXTRACT(YEAR FROM received_date)
+          END as fiscal_year,
+          COUNT(*) as yearly_applications
+        FROM \`${this.projectId}.${this.datasetId}.lca_applications\`
+        WHERE case_status = 'Certified'
+        AND wage_rate_of_pay_from IS NOT NULL
+        AND wage_rate_of_pay_from > 0
+        AND received_date IS NOT NULL
+        GROUP BY employer_name, fiscal_year
+      ),
+      employer_yoy_trends AS (
+        SELECT 
+          employer_name,
+          yearly_applications as current_year_apps,
+          LAG(yearly_applications) OVER (PARTITION BY employer_name ORDER BY fiscal_year) as previous_year_apps,
+          CASE 
+            WHEN LAG(yearly_applications) OVER (PARTITION BY employer_name ORDER BY fiscal_year) IS NOT NULL
+            THEN ROUND(
+              (yearly_applications - LAG(yearly_applications) OVER (PARTITION BY employer_name ORDER BY fiscal_year)) * 100.0 
+              / LAG(yearly_applications) OVER (PARTITION BY employer_name ORDER BY fiscal_year), 1
+            )
+            ELSE NULL
+          END as yoy_growth_rate,
+          fiscal_year
+        FROM employer_yearly_stats
+      ),
+      latest_trends AS (
+        SELECT 
+          employer_name,
+          yoy_growth_rate
+        FROM employer_yoy_trends
+        WHERE fiscal_year = 2025  -- Current fiscal year
+        AND yoy_growth_rate IS NOT NULL
       )
       SELECT 
-        employer_name as employer,
-        applications,
-        avg_salary,
-        top_state
-      FROM employer_stats
-      ORDER BY applications DESC
+        es.employer_name as employer,
+        es.applications,
+        es.avg_salary,
+        es.min_salary,
+        es.max_salary,
+        es.top_state,
+        COALESCE(lt.yoy_growth_rate, 0) as yoy_growth_rate
+      FROM employer_stats es
+      LEFT JOIN latest_trends lt ON es.employer_name = lt.employer_name
+      ORDER BY es.applications DESC
       LIMIT 20
     `;
 
@@ -380,7 +426,10 @@ export class H1BBigQueryService {
         employer: row.employer || 'Unknown',
         applications: row.applications || 0,
         avgSalary: Math.round(row.avg_salary || 0),
+        minSalary: Math.round(row.min_salary || 0),
+        maxSalary: Math.round(row.max_salary || 0),
         topState: row.top_state || 'Unknown',
+        yoyGrowthRate: row.yoy_growth_rate || 0,
       }));
 
       const salaryDistribution = salaryDistResults.map((row: any) => ({
