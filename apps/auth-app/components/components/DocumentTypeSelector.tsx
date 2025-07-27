@@ -41,7 +41,7 @@ export const DocumentTypeSelectorrr: React.FC<DocumentTypeSelectorProps> = ({
             Select Document Type
           </h3>
           <p className="text-sm text-muted-foreground max-w-md mx-auto">
-            We couldn't automatically detect the document type. Please select the type that best matches your document.
+            We couldn&apos;t automatically detect the document type. Please select the type that best matches your document.
           </p>
         </div>
       </div>

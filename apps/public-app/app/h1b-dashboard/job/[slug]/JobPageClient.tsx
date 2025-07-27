@@ -1,14 +1,11 @@
+'use client';
+
+import { useSearchParams } from 'next/navigation';
+import { useEffect, useState } from 'react';
 import { JobDashboard } from '@/components/h1b-dashboard';
-import { generateH1BMetadata, generateStructuredData } from '@docujourney/utils';
-import JobPageClient from './JobPageClient';
+import { generateStructuredData } from '@docujourney/utils';
 
-export default async function JobPage({ params }: { params: Promise<{ slug: string }> }) {
-  const { slug } = await params;
-  
-  return <JobPageClient slug={slug} />;
-}
-
-function JobPageClient({ slug }: { slug: string }) {
+export default function JobPageClient({ slug }: { slug: string }) {
   const searchParams = useSearchParams();
   const jobTitle = searchParams.get('title') || 'Unknown Job';
   const [isLoaded, setIsLoaded] = useState(false);
@@ -37,6 +34,36 @@ function JobPageClient({ slug }: { slug: string }) {
     script.textContent = JSON.stringify(structuredData);
     document.head.appendChild(script);
 
+    // Add breadcrumb structured data
+    const breadcrumbData = {
+      '@context': 'https://schema.org',
+      '@type': 'BreadcrumbList',
+      itemListElement: [
+        {
+          '@type': 'ListItem',
+          position: 1,
+          name: 'Home',
+          item: 'https://docujourney.com',
+        },
+        {
+          '@type': 'ListItem',
+          position: 2,
+          name: 'H1B Dashboard',
+          item: 'https://docujourney.com/h1b-dashboard',
+        },
+        {
+          '@type': 'ListItem',
+          position: 3,
+          name: `${cleanJobTitle} H1B Data`,
+          item: `https://docujourney.com/h1b-dashboard/job/${slug}`,
+        },
+      ],
+    };
+
+    const breadcrumbScript = document.createElement('script');
+    breadcrumbScript.type = 'application/ld+json';
+    breadcrumbScript.textContent = JSON.stringify(breadcrumbData);
+    document.head.appendChild(breadcrumbScript);
 
     setIsLoaded(true);
 
@@ -53,32 +80,10 @@ function JobPageClient({ slug }: { slug: string }) {
 
   if (!isLoaded) {
     return (
-      <div className="max-w-7xl mx-auto p-6">
-        <div className="space-y-6">
-          {/* Header skeleton */}
-          <div className="flex items-center space-x-4">
-            <div className="p-3 bg-muted/30 rounded-xl animate-pulse">
-              <div className="w-8 h-8 bg-muted rounded animate-pulse"></div>
-            </div>
-            <div className="space-y-2">
-              <div className="h-8 bg-muted rounded w-80 animate-pulse"></div>
-              <div className="h-4 bg-muted rounded w-64 animate-pulse"></div>
-            </div>
-          </div>
-          
-          {/* Quick skeleton preview */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {[1,2,3].map(i => (
-              <div key={i} className="p-6 border border-border rounded-lg animate-pulse">
-                <div className="h-4 bg-muted rounded w-24 mb-2"></div>
-                <div className="h-8 bg-muted rounded w-20"></div>
-              </div>
-            ))}
-          </div>
-          
-          <div className="text-center py-8">
-            <p className="text-muted-foreground">Loading H1B data for {jobTitle}...</p>
-          </div>
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Loading H1B data for {jobTitle}...</p>
         </div>
       </div>
     );
@@ -99,6 +104,21 @@ function JobPageClient({ slug }: { slug: string }) {
           {jobTitle} employment, H1B {jobTitle}, visa jobs {jobTitle}, job market {jobTitle}</span>
         </div>
       </div>
+      
+      {/* Breadcrumb navigation for SEO */}
+      <nav aria-label="breadcrumb" className="bg-gray-50 px-6 py-3 border-b">
+        <ol className="flex items-center space-x-2 text-sm text-gray-600">
+          <li>
+            <a href="/" className="hover:text-blue-600">Home</a>
+          </li>
+          <li className="before:content-['/'] before:mx-2">/</li>
+          <li>
+            <a href="/h1b-dashboard" className="hover:text-blue-600">H1B Dashboard</a>
+          </li>
+          <li className="before:content-['/'] before:mx-2">/</li>
+          <li className="text-gray-900 font-medium">{jobTitle} H1B Data</li>
+        </ol>
+      </nav>
 
       <JobDashboard 
         jobSlug={slug}

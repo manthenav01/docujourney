@@ -7,7 +7,7 @@ type CompanyPageClientProps = {
   slug: string;
 };
 
-export function CompanyPageClient({ slug }: CompanyPageClientProps) {
+export default function CompanyPageClient({ slug }: CompanyPageClientProps) {
   const searchParams = useSearchParams();
   const companyName = searchParams.get('name') || 'Unknown Company';
 

@@ -334,7 +334,7 @@ const DashboardPageClient: React.FC<DashboardPageClientProps> = ({
                         <h1 className="text-3xl font-bold text-slate-900 flex items-center gap-3">
                             Dashboard
                         </h1>
-                        <p className="text-slate-600 mt-2">Welcome back, {adminProfile.firstName}! Here's your family's document journey overview.</p>
+                        <p className="text-slate-600 mt-2">Welcome back, {adminProfile.firstName}! Here&apos;s your family&apos;s document journey overview.</p>
                     </div>
                     <div className="flex gap-3 items-center">
                         <Button
@@ -374,7 +374,7 @@ const DashboardPageClient: React.FC<DashboardPageClientProps> = ({
                                     <Award className="w-6 h-6 text-blue-600" />
                                     <h3 className="text-xl font-bold text-blue-900">Journey Progress</h3>
                                 </div>
-                                <p className="text-blue-700">Keep going! You're doing great organizing your documents.</p>
+                                <p className="text-blue-700">Keep going! You&apos;re doing great organizing your documents.</p>
                             </div>
                             <div className="text-right">
                                 <div className="text-4xl font-bold mb-1 text-blue-900">{completionScore}%</div>
@@ -467,7 +467,7 @@ const DashboardPageClient: React.FC<DashboardPageClientProps> = ({
                                     <CardTitle className="flex items-center justify-between">
                                         <div className="flex items-center gap-3">
                                             <Calendar className="w-5 h-5 text-blue-600" />
-                                            {profile.firstName} {profile.lastName}'s Immigration Timeline
+                                            {profile.firstName} {profile.lastName}&apos;s Immigration Timeline
                                         </div>
                                         <div className="flex items-center gap-2">
                                             {profile.admin && (
@@ -496,7 +496,7 @@ const DashboardPageClient: React.FC<DashboardPageClientProps> = ({
                                                 No documents uploaded yet for {profile.firstName}
                                             </p>
                                             <p className="text-sm text-gray-500 mb-4">
-                                                Upload visa documents to see {profile.firstName}'s immigration timeline
+                                                Upload visa documents to see {profile.firstName}&apos;s immigration timeline
                                             </p>
                                             <Button 
                                                 variant="outline" 
