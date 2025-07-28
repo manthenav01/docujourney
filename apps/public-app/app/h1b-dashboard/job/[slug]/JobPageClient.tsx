@@ -105,21 +105,6 @@ export default function JobPageClient({ slug }: { slug: string }) {
         </div>
       </div>
       
-      {/* Breadcrumb navigation for SEO */}
-      <nav aria-label="breadcrumb" className="bg-gray-50 px-6 py-3 border-b">
-        <ol className="flex items-center space-x-2 text-sm text-gray-600">
-          <li>
-            <a href="/" className="hover:text-blue-600">Home</a>
-          </li>
-          <li className="before:content-['/'] before:mx-2">/</li>
-          <li>
-            <a href="/h1b-dashboard" className="hover:text-blue-600">H1B Dashboard</a>
-          </li>
-          <li className="before:content-['/'] before:mx-2">/</li>
-          <li className="text-gray-900 font-medium">{jobTitle} H1B Data</li>
-        </ol>
-      </nav>
-
       <JobDashboard 
         jobSlug={slug}
         jobTitle={jobTitle}

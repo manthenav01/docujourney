@@ -6,7 +6,7 @@ import { validateAttorneyName, validateLawFirmName, sanitizeString } from '@/lib
 // Generate metadata for SEO
 export async function generateMetadata({ 
   params, 
-  searchParams 
+  searchParams, 
 }: { 
   params: Promise<{ slug: string }>;
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
@@ -46,7 +46,7 @@ export async function generateMetadata({
       'H1B success rates',
       'visa attorney performance',
       'immigration lawyer analytics',
-      'H1B case data'
+      'H1B case data',
     ],
     openGraph: {
       title,
@@ -68,7 +68,7 @@ export async function generateMetadata({
 
 export default async function AttorneyPage({ 
   params, 
-  searchParams 
+  searchParams, 
 }: { 
   params: Promise<{ slug: string }>;
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;

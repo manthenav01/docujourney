@@ -42,7 +42,7 @@ export async function GET(request: NextRequest): Promise<NextResponse<H1BApiResp
       attorneyName: attorneyData.attorneyName,
       totalApplications: attorneyData.totalApplications,
       certificationRate: attorneyData.certificationRate,
-      queryTime
+      queryTime,
     });
     
     const response: H1BApiResponse<H1BAttorneyAnalysis> = {
@@ -61,7 +61,7 @@ export async function GET(request: NextRequest): Promise<NextResponse<H1BApiResp
       error: error instanceof Error ? error.message : error,
       attorneyName,
       lawFirm,
-      queryTime
+      queryTime,
     });
     
     // Handle validation errors with specific status codes

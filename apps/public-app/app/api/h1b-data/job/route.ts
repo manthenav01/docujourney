@@ -37,7 +37,7 @@ export async function GET(request: NextRequest): Promise<NextResponse<H1BApiResp
     console.log('Job data fetched successfully:', {
       jobTitle: jobData.title,
       totalApplications: jobData.totalApplications,
-      queryTime
+      queryTime,
     });
     
     const response: H1BApiResponse<H1BJobAnalysis> = {
@@ -54,7 +54,7 @@ export async function GET(request: NextRequest): Promise<NextResponse<H1BApiResp
     console.error('Job API error:', {
       error: error instanceof Error ? error.message : error,
       jobTitle: new URL(request.url).searchParams.get('title'),
-      queryTime
+      queryTime,
     });
     
     // Handle validation errors with specific status codes

@@ -14,7 +14,7 @@ import {
 interface YearsFilterProps {
   filters: FilterState;
   setFilters: React.Dispatch<React.SetStateAction<FilterState>>;
-  onFetchData: () => void;
+  onFetchData: (selectedYear?: string) => void;
 }
 
 export const YearsFilter: React.FC<YearsFilterProps> = ({
@@ -22,9 +22,9 @@ export const YearsFilter: React.FC<YearsFilterProps> = ({
   setFilters,
   onFetchData,
 }) => {
-  // Generate available years from 2020 to 2024
-  const availableYears = ['2024', '2023', '2022', '2021', '2020'];
-  const defaultYear = '2024';
+  // Generate available years from 2020 to 2025
+  const availableYears = ['2025', '2024', '2023', '2022', '2021', '2020'];
+  const defaultYear = '2025';
 
   const handleYearChange = (value: string) => {
     setFilters(prev => ({
@@ -32,8 +32,8 @@ export const YearsFilter: React.FC<YearsFilterProps> = ({
       fiscalYear: value,
     }));
 
-    // Trigger data fetch immediately
-    onFetchData();
+    // Call API immediately with the selected year
+    onFetchData(value);
   };
 
   return (

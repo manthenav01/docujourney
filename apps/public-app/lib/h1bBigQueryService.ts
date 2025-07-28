@@ -37,6 +37,33 @@ export class H1BBigQueryService {
   }
 
   /**
+   * Calculate Year-over-Year growth metrics
+   */
+  private calculateYoYGrowth(currentYear: number | null, previousYear: number | null): {
+    yoyGrowth: number | null;
+    yoyGrowthPercentage: number | null;
+  } {
+    if (currentYear === null || currentYear === undefined) {
+      return { yoyGrowth: null, yoyGrowthPercentage: null };
+    }
+
+    if (previousYear === null || previousYear === undefined || previousYear === 0) {
+      return { 
+        yoyGrowth: currentYear, 
+        yoyGrowthPercentage: null, // Can't calculate percentage without previous year baseline
+      };
+    }
+
+    const yoyGrowth = currentYear - previousYear;
+    const yoyGrowthPercentage = (yoyGrowth / previousYear) * 100;
+
+    return {
+      yoyGrowth,
+      yoyGrowthPercentage: Math.round(yoyGrowthPercentage * 10) / 10, // Round to 1 decimal place
+    };
+  }
+
+  /**
    * Build WHERE clause for filters
    */
   private buildWhereClause(filters: H1BQueryFilters = {}): { whereClause: string; params: any } {
@@ -225,13 +252,11 @@ export class H1BBigQueryService {
     const salaryDistQuery = `
       SELECT 
         CASE 
-          WHEN wage_rate_of_pay_from < 60000 THEN 'Under $60k'
-          WHEN wage_rate_of_pay_from < 80000 THEN '$60k-$80k'
-          WHEN wage_rate_of_pay_from < 100000 THEN '$80k-$100k'
-          WHEN wage_rate_of_pay_from < 120000 THEN '$100k-$120k'
-          WHEN wage_rate_of_pay_from < 150000 THEN '$120k-$150k'
-          WHEN wage_rate_of_pay_from < 200000 THEN '$150k-$200k'
-          ELSE 'Over $200k'
+          WHEN wage_rate_of_pay_from < 80000 THEN 'Under $80K'
+          WHEN wage_rate_of_pay_from < 120000 THEN '$80K - $120K'
+          WHEN wage_rate_of_pay_from < 160000 THEN '$120K - $160K'
+          WHEN wage_rate_of_pay_from < 200000 THEN '$160K - $200K'
+          ELSE '$200K+'
         END as salary_range,
         COUNT(*) as count,
         MIN(wage_rate_of_pay_from) as min_salary,
@@ -719,7 +744,7 @@ export class H1BBigQueryService {
       const basicStatsQuery = `
         SELECT 
           COUNT(*) as totalApplications,
-          SUM(CASE WHEN UPPER(case_status) = 'CERTIFIED' THEN 1 ELSE 0 END) as certifiedApplications,
+          SUM(CASE WHEN case_status = 'Certified' THEN 1 ELSE 0 END) as certifiedApplications,
           AVG(CASE WHEN wage_rate_of_pay_from > 0 AND wage_rate_of_pay_from < 1000000 THEN wage_rate_of_pay_from END) as avgSalary,
           AVG(CASE WHEN wage_rate_of_pay_from > 0 AND wage_rate_of_pay_from < 1000000 THEN wage_rate_of_pay_from END) as medianSalary,
           MIN(CASE WHEN wage_rate_of_pay_from > 0 AND wage_rate_of_pay_from < 1000000 THEN wage_rate_of_pay_from END) as minSalary,
@@ -743,19 +768,45 @@ export class H1BBigQueryService {
         LIMIT 10
       `;
 
-      // Get top job titles
+      // Get top job titles with YOY growth data
       const topJobTitlesQuery = `
+        WITH job_title_yearly AS (
+          SELECT 
+            TRIM(job_title) as jobTitle,
+            CAST(CASE 
+              WHEN EXTRACT(MONTH FROM received_date) >= 10 
+              THEN EXTRACT(YEAR FROM received_date) + 1
+              ELSE EXTRACT(YEAR FROM received_date)
+            END AS STRING) as fiscal_year,
+            COUNT(*) as applications,
+            AVG(CASE WHEN wage_rate_of_pay_from > 0 AND wage_rate_of_pay_from < 1000000 THEN wage_rate_of_pay_from END) as avgSalary
+          FROM \`${this.projectId}.${this.datasetId}.${this.tableId}\`
+          WHERE UPPER(TRIM(employer_name)) = UPPER(TRIM(@companyName))
+          AND job_title IS NOT NULL
+          AND TRIM(job_title) != ''
+          AND received_date IS NOT NULL
+          GROUP BY jobTitle, fiscal_year
+        ),
+        job_title_growth AS (
+          SELECT 
+            jobTitle,
+            SUM(applications) as total_applications,
+            AVG(avgSalary) as avgSalary,
+            AVG(avgSalary) as medianSalary,
+            MAX(CASE WHEN fiscal_year = '2025' THEN applications END) as current_year_apps,
+            MAX(CASE WHEN fiscal_year = '2024' THEN applications END) as previous_year_apps
+          FROM job_title_yearly
+          GROUP BY jobTitle
+        )
         SELECT 
-          TRIM(job_title) as jobTitle,
-          COUNT(*) as applications,
-          AVG(CASE WHEN wage_rate_of_pay_from > 0 AND wage_rate_of_pay_from < 1000000 THEN wage_rate_of_pay_from END) as avgSalary,
-          AVG(CASE WHEN wage_rate_of_pay_from > 0 AND wage_rate_of_pay_from < 1000000 THEN wage_rate_of_pay_from END) as medianSalary
-        FROM \`${this.projectId}.${this.datasetId}.${this.tableId}\`
-        WHERE UPPER(TRIM(employer_name)) = UPPER(TRIM(@companyName))
-        AND job_title IS NOT NULL
-        AND TRIM(job_title) != ''
-        GROUP BY TRIM(job_title)
-        ORDER BY applications DESC
+          jobTitle,
+          total_applications as applications,
+          avgSalary,
+          medianSalary,
+          current_year_apps,
+          previous_year_apps
+        FROM job_title_growth
+        ORDER BY total_applications DESC
         LIMIT 10
       `;
 
@@ -788,13 +839,10 @@ export class H1BBigQueryService {
       const salaryDistributionQuery = `
         SELECT 
           CASE 
-            WHEN wage_rate_of_pay_from < 80000 THEN '$60K-$80K'
-            WHEN wage_rate_of_pay_from < 100000 THEN '$80K-$100K'
-            WHEN wage_rate_of_pay_from < 120000 THEN '$100K-$120K'
-            WHEN wage_rate_of_pay_from < 140000 THEN '$120K-$140K'
-            WHEN wage_rate_of_pay_from < 160000 THEN '$140K-$160K'
-            WHEN wage_rate_of_pay_from < 180000 THEN '$160K-$180K'
-            WHEN wage_rate_of_pay_from < 200000 THEN '$180K-$200K'
+            WHEN wage_rate_of_pay_from < 80000 THEN 'Under $80K'
+            WHEN wage_rate_of_pay_from < 120000 THEN '$80K - $120K'
+            WHEN wage_rate_of_pay_from < 160000 THEN '$120K - $160K'
+            WHEN wage_rate_of_pay_from < 200000 THEN '$160K - $200K'
             ELSE '$200K+'
           END as salary_range,
           COUNT(*) as count
@@ -804,25 +852,19 @@ export class H1BBigQueryService {
         AND wage_rate_of_pay_from < 1000000
         GROUP BY 
           CASE 
-            WHEN wage_rate_of_pay_from < 80000 THEN '$60K-$80K'
-            WHEN wage_rate_of_pay_from < 100000 THEN '$80K-$100K'
-            WHEN wage_rate_of_pay_from < 120000 THEN '$100K-$120K'
-            WHEN wage_rate_of_pay_from < 140000 THEN '$120K-$140K'
-            WHEN wage_rate_of_pay_from < 160000 THEN '$140K-$160K'
-            WHEN wage_rate_of_pay_from < 180000 THEN '$160K-$180K'
-            WHEN wage_rate_of_pay_from < 200000 THEN '$180K-$200K'
+            WHEN wage_rate_of_pay_from < 80000 THEN 'Under $80K'
+            WHEN wage_rate_of_pay_from < 120000 THEN '$80K - $120K'
+            WHEN wage_rate_of_pay_from < 160000 THEN '$120K - $160K'
+            WHEN wage_rate_of_pay_from < 200000 THEN '$160K - $200K'
             ELSE '$200K+'
           END
         ORDER BY 
           CASE salary_range
-            WHEN '$60K-$80K' THEN 1
-            WHEN '$80K-$100K' THEN 2
-            WHEN '$100K-$120K' THEN 3
-            WHEN '$120K-$140K' THEN 4
-            WHEN '$140K-$160K' THEN 5
-            WHEN '$160K-$180K' THEN 6
-            WHEN '$180K-$200K' THEN 7
-            WHEN '$200K+' THEN 8
+            WHEN 'Under $80K' THEN 1
+            WHEN '$80K - $120K' THEN 2
+            WHEN '$120K - $160K' THEN 3
+            WHEN '$160K - $200K' THEN 4
+            WHEN '$200K+' THEN 5
           END
       `;
 
@@ -870,12 +912,20 @@ export class H1BBigQueryService {
           applications: Number(row.applications),
           percentage: Number(row.percentage),
         })),
-        topJobTitles: topJobTitles[0].map((row: any) => ({
-          jobTitle: row.jobTitle,
-          applications: Number(row.applications),
-          avgSalary: Math.round(Number(row.avgSalary)),
-          medianSalary: Math.round(Number(row.medianSalary)),
-        })),
+        topJobTitles: topJobTitles[0].map((row: any) => {
+          const currentYear = Number(row.current_year_apps) || null;
+          const previousYear = Number(row.previous_year_apps) || null;
+          const yoyData = this.calculateYoYGrowth(currentYear, previousYear);
+          
+          return {
+            jobTitle: row.jobTitle,
+            applications: Number(row.applications),
+            avgSalary: Math.round(Number(row.avgSalary)),
+            medianSalary: Math.round(Number(row.medianSalary)),
+            yoyGrowth: yoyData.yoyGrowth,
+            yoyGrowthPercentage: yoyData.yoyGrowthPercentage,
+          };
+        }),
         yearlyTrends: yearlyTrends[0].map((row: any) => ({
           fiscalYear: row.fiscal_year,
           applications: Number(row.applications),
@@ -903,7 +953,7 @@ export class H1BBigQueryService {
       const basicStatsQuery = `
         SELECT 
           COUNT(*) as totalApplications,
-          SUM(CASE WHEN UPPER(case_status) = 'CERTIFIED' THEN 1 ELSE 0 END) as certifiedApplications,
+          SUM(CASE WHEN case_status = 'Certified' THEN 1 ELSE 0 END) as certifiedApplications,
           AVG(CASE WHEN wage_rate_of_pay_from > 0 AND wage_rate_of_pay_from < 1000000 THEN wage_rate_of_pay_from END) as avgSalary,
           AVG(CASE WHEN wage_rate_of_pay_from > 0 AND wage_rate_of_pay_from < 1000000 THEN wage_rate_of_pay_from END) as medianSalary,
           MIN(CASE WHEN wage_rate_of_pay_from > 0 AND wage_rate_of_pay_from < 1000000 THEN wage_rate_of_pay_from END) as minSalary,
@@ -912,19 +962,45 @@ export class H1BBigQueryService {
         WHERE UPPER(TRIM(job_title)) LIKE UPPER(TRIM(@jobTitle))
       `;
 
-      // Get top employers for this job
+      // Get top employers for this job with YOY growth data
       const topEmployersQuery = `
+        WITH employer_yearly AS (
+          SELECT 
+            TRIM(employer_name) as employer,
+            CAST(CASE 
+              WHEN EXTRACT(MONTH FROM received_date) >= 10 
+              THEN EXTRACT(YEAR FROM received_date) + 1
+              ELSE EXTRACT(YEAR FROM received_date)
+            END AS STRING) as fiscal_year,
+            COUNT(*) as applications,
+            AVG(CASE WHEN wage_rate_of_pay_from > 0 AND wage_rate_of_pay_from < 1000000 THEN wage_rate_of_pay_from END) as avgSalary
+          FROM \`${this.projectId}.${this.datasetId}.${this.tableId}\`
+          WHERE UPPER(TRIM(job_title)) LIKE UPPER(TRIM(@jobTitle))
+          AND employer_name IS NOT NULL
+          AND TRIM(employer_name) != ''
+          AND received_date IS NOT NULL
+          GROUP BY employer, fiscal_year
+        ),
+        employer_growth AS (
+          SELECT 
+            employer,
+            SUM(applications) as total_applications,
+            AVG(avgSalary) as avgSalary,
+            AVG(avgSalary) as medianSalary,
+            MAX(CASE WHEN fiscal_year = '2025' THEN applications END) as current_year_apps,
+            MAX(CASE WHEN fiscal_year = '2024' THEN applications END) as previous_year_apps
+          FROM employer_yearly
+          GROUP BY employer
+        )
         SELECT 
-          TRIM(employer_name) as employer,
-          COUNT(*) as applications,
-          AVG(CASE WHEN wage_rate_of_pay_from > 0 AND wage_rate_of_pay_from < 1000000 THEN wage_rate_of_pay_from END) as avgSalary,
-          AVG(CASE WHEN wage_rate_of_pay_from > 0 AND wage_rate_of_pay_from < 1000000 THEN wage_rate_of_pay_from END) as medianSalary
-        FROM \`${this.projectId}.${this.datasetId}.${this.tableId}\`
-        WHERE UPPER(TRIM(job_title)) LIKE UPPER(TRIM(@jobTitle))
-        AND employer_name IS NOT NULL
-        AND TRIM(employer_name) != ''
-        GROUP BY TRIM(employer_name)
-        ORDER BY applications DESC
+          employer,
+          total_applications as applications,
+          avgSalary,
+          medianSalary,
+          current_year_apps,
+          previous_year_apps
+        FROM employer_growth
+        ORDER BY total_applications DESC
         LIMIT 10
       `;
 
@@ -973,13 +1049,10 @@ export class H1BBigQueryService {
       const salaryDistributionQuery = `
         SELECT 
           CASE 
-            WHEN wage_rate_of_pay_from < 80000 THEN '$60K-$80K'
-            WHEN wage_rate_of_pay_from < 100000 THEN '$80K-$100K'
-            WHEN wage_rate_of_pay_from < 120000 THEN '$100K-$120K'
-            WHEN wage_rate_of_pay_from < 140000 THEN '$120K-$140K'
-            WHEN wage_rate_of_pay_from < 160000 THEN '$140K-$160K'
-            WHEN wage_rate_of_pay_from < 180000 THEN '$160K-$180K'
-            WHEN wage_rate_of_pay_from < 200000 THEN '$180K-$200K'
+            WHEN wage_rate_of_pay_from < 80000 THEN 'Under $80K'
+            WHEN wage_rate_of_pay_from < 120000 THEN '$80K - $120K'
+            WHEN wage_rate_of_pay_from < 160000 THEN '$120K - $160K'
+            WHEN wage_rate_of_pay_from < 200000 THEN '$160K - $200K'
             ELSE '$200K+'
           END as salary_range,
           COUNT(*) as count
@@ -989,25 +1062,19 @@ export class H1BBigQueryService {
         AND wage_rate_of_pay_from < 1000000
         GROUP BY 
           CASE 
-            WHEN wage_rate_of_pay_from < 80000 THEN '$60K-$80K'
-            WHEN wage_rate_of_pay_from < 100000 THEN '$80K-$100K'
-            WHEN wage_rate_of_pay_from < 120000 THEN '$100K-$120K'
-            WHEN wage_rate_of_pay_from < 140000 THEN '$120K-$140K'
-            WHEN wage_rate_of_pay_from < 160000 THEN '$140K-$160K'
-            WHEN wage_rate_of_pay_from < 180000 THEN '$160K-$180K'
-            WHEN wage_rate_of_pay_from < 200000 THEN '$180K-$200K'
+            WHEN wage_rate_of_pay_from < 80000 THEN 'Under $80K'
+            WHEN wage_rate_of_pay_from < 120000 THEN '$80K - $120K'
+            WHEN wage_rate_of_pay_from < 160000 THEN '$120K - $160K'
+            WHEN wage_rate_of_pay_from < 200000 THEN '$160K - $200K'
             ELSE '$200K+'
           END
         ORDER BY 
           CASE salary_range
-            WHEN '$60K-$80K' THEN 1
-            WHEN '$80K-$100K' THEN 2
-            WHEN '$100K-$120K' THEN 3
-            WHEN '$120K-$140K' THEN 4
-            WHEN '$140K-$160K' THEN 5
-            WHEN '$160K-$180K' THEN 6
-            WHEN '$180K-$200K' THEN 7
-            WHEN '$200K+' THEN 8
+            WHEN 'Under $80K' THEN 1
+            WHEN '$80K - $120K' THEN 2
+            WHEN '$120K - $160K' THEN 3
+            WHEN '$160K - $200K' THEN 4
+            WHEN '$200K+' THEN 5
           END
       `;
 
@@ -1016,7 +1083,7 @@ export class H1BBigQueryService {
         SELECT 
           COUNT(CASE WHEN full_time_position = true THEN 1 END) as fullTimePositions,
           COUNT(CASE WHEN full_time_position = false THEN 1 END) as partTimePositions,
-          COUNT(CASE WHEN UPPER(case_status) = 'CERTIFIED' THEN 1 END) as certifiedCount,
+          COUNT(CASE WHEN case_status = 'Certified' THEN 1 END) as certifiedCount,
           COUNT(CASE WHEN UPPER(case_status) = 'DENIED' THEN 1 END) as deniedCount,
           COUNT(CASE WHEN UPPER(case_status) = 'WITHDRAWN' THEN 1 END) as withdrawnCount
         FROM \`${this.projectId}.${this.datasetId}.${this.tableId}\`
@@ -1066,12 +1133,20 @@ export class H1BBigQueryService {
         maxSalary: Math.round(Number(stats.maxSalary) || 0),
         fullTimePositions: Number(requirements.fullTimePositions) || 0,
         partTimePositions: Number(requirements.partTimePositions) || 0,
-        topEmployers: topEmployers[0].map((row: any) => ({
-          employer: row.employer,
-          applications: Number(row.applications),
-          avgSalary: Math.round(Number(row.avgSalary)),
-          medianSalary: Math.round(Number(row.medianSalary)),
-        })),
+        topEmployers: topEmployers[0].map((row: any) => {
+          const currentYear = Number(row.current_year_apps) || null;
+          const previousYear = Number(row.previous_year_apps) || null;
+          const yoyData = this.calculateYoYGrowth(currentYear, previousYear);
+          
+          return {
+            employer: row.employer,
+            applications: Number(row.applications),
+            avgSalary: Math.round(Number(row.avgSalary)),
+            medianSalary: Math.round(Number(row.medianSalary)),
+            yoyGrowth: yoyData.yoyGrowth,
+            yoyGrowthPercentage: yoyData.yoyGrowthPercentage,
+          };
+        }),
         topStates: topStates[0].map((row: any) => ({
           state: row.state,
           applications: Number(row.applications),
@@ -1105,7 +1180,7 @@ export class H1BBigQueryService {
       const basicStatsQuery = `
         SELECT 
           COUNT(*) as totalApplications,
-          SUM(CASE WHEN UPPER(case_status) = 'CERTIFIED' THEN 1 ELSE 0 END) as certifiedApplications,
+          SUM(CASE WHEN case_status = 'Certified' THEN 1 ELSE 0 END) as certifiedApplications,
           AVG(CASE WHEN wage_rate_of_pay_from > 0 AND wage_rate_of_pay_from < 1000000 THEN wage_rate_of_pay_from END) as avgSalary,
           AVG(CASE WHEN wage_rate_of_pay_from > 0 AND wage_rate_of_pay_from < 1000000 THEN wage_rate_of_pay_from END) as medianSalary,
           MIN(CASE WHEN wage_rate_of_pay_from > 0 AND wage_rate_of_pay_from < 1000000 THEN wage_rate_of_pay_from END) as minSalary,
@@ -1126,27 +1201,53 @@ export class H1BBigQueryService {
         FROM \`${this.projectId}.${this.datasetId}.${this.tableId}\`
         WHERE UPPER(TRIM(worksite_city)) = UPPER(TRIM(@cityName))
         AND UPPER(TRIM(worksite_state)) = UPPER(TRIM(@stateName))
-        AND UPPER(case_status) = 'CERTIFIED'
+        AND case_status = 'Certified'
         AND TRIM(employer_name) != ''
         GROUP BY UPPER(TRIM(employer_name))
         ORDER BY applications DESC
         LIMIT 10
       `;
 
-      // Get top job titles in this city
+      // Get top job titles in this city with YOY growth data
       const topJobTitlesQuery = `
+        WITH job_title_yearly AS (
+          SELECT 
+            UPPER(TRIM(job_title)) as jobTitle,
+            CAST(CASE 
+              WHEN EXTRACT(MONTH FROM received_date) >= 10 
+              THEN EXTRACT(YEAR FROM received_date) + 1
+              ELSE EXTRACT(YEAR FROM received_date)
+            END AS STRING) as fiscal_year,
+            COUNT(*) as applications,
+            AVG(CASE WHEN wage_rate_of_pay_from > 0 AND wage_rate_of_pay_from < 1000000 THEN wage_rate_of_pay_from END) as avgSalary
+          FROM \`${this.projectId}.${this.datasetId}.${this.tableId}\`
+          WHERE UPPER(TRIM(worksite_city)) = UPPER(TRIM(@cityName))
+          AND UPPER(TRIM(worksite_state)) = UPPER(TRIM(@stateName))
+          AND case_status = 'Certified'
+          AND TRIM(job_title) != ''
+          AND received_date IS NOT NULL
+          GROUP BY jobTitle, fiscal_year
+        ),
+        job_title_growth AS (
+          SELECT 
+            jobTitle,
+            SUM(applications) as total_applications,
+            AVG(avgSalary) as avgSalary,
+            AVG(avgSalary) as medianSalary,
+            MAX(CASE WHEN fiscal_year = '2025' THEN applications END) as current_year_apps,
+            MAX(CASE WHEN fiscal_year = '2024' THEN applications END) as previous_year_apps
+          FROM job_title_yearly
+          GROUP BY jobTitle
+        )
         SELECT 
-          UPPER(TRIM(job_title)) as jobTitle,
-          COUNT(*) as applications,
-          AVG(CASE WHEN wage_rate_of_pay_from > 0 AND wage_rate_of_pay_from < 1000000 THEN wage_rate_of_pay_from END) as avgSalary,
-          AVG(CASE WHEN wage_rate_of_pay_from > 0 AND wage_rate_of_pay_from < 1000000 THEN wage_rate_of_pay_from END) as medianSalary
-        FROM \`${this.projectId}.${this.datasetId}.${this.tableId}\`
-        WHERE UPPER(TRIM(worksite_city)) = UPPER(TRIM(@cityName))
-        AND UPPER(TRIM(worksite_state)) = UPPER(TRIM(@stateName))
-        AND UPPER(case_status) = 'CERTIFIED'
-        AND TRIM(job_title) != ''
-        GROUP BY UPPER(TRIM(job_title))
-        ORDER BY applications DESC
+          jobTitle,
+          total_applications as applications,
+          avgSalary,
+          medianSalary,
+          current_year_apps,
+          previous_year_apps
+        FROM job_title_growth
+        ORDER BY total_applications DESC
         LIMIT 10
       `;
 
@@ -1161,7 +1262,7 @@ export class H1BBigQueryService {
           COUNT(*) as applications,
           AVG(CASE WHEN wage_rate_of_pay_from > 0 AND wage_rate_of_pay_from < 1000000 THEN wage_rate_of_pay_from END) as avgSalary,
           ROUND(
-            SUM(CASE WHEN UPPER(case_status) = 'CERTIFIED' THEN 1 ELSE 0 END) * 100.0 / COUNT(*), 
+            SUM(CASE WHEN case_status = 'Certified' THEN 1 ELSE 0 END) * 100.0 / COUNT(*), 
             1
           ) as certificationRate
         FROM \`${this.projectId}.${this.datasetId}.${this.tableId}\`
@@ -1177,23 +1278,28 @@ export class H1BBigQueryService {
       const salaryDistributionQuery = `
         SELECT
           CASE
-            WHEN wage_rate_of_pay_from < 50000 THEN 'Under $50K'
-            WHEN wage_rate_of_pay_from < 75000 THEN '$50K - $75K'
-            WHEN wage_rate_of_pay_from < 100000 THEN '$75K - $100K'
-            WHEN wage_rate_of_pay_from < 125000 THEN '$100K - $125K'
-            WHEN wage_rate_of_pay_from < 150000 THEN '$125K - $150K'
-            WHEN wage_rate_of_pay_from < 200000 THEN '$150K - $200K'
+            WHEN wage_rate_of_pay_from < 80000 THEN 'Under $80K'
+            WHEN wage_rate_of_pay_from < 120000 THEN '$80K - $120K'
+            WHEN wage_rate_of_pay_from < 160000 THEN '$120K - $160K'
+            WHEN wage_rate_of_pay_from < 200000 THEN '$160K - $200K'
             ELSE '$200K+'
           END as salary_range,
           COUNT(*) as count
         FROM \`${this.projectId}.${this.datasetId}.${this.tableId}\`
         WHERE UPPER(TRIM(worksite_city)) = UPPER(TRIM(@cityName))
         AND UPPER(TRIM(worksite_state)) = UPPER(TRIM(@stateName))
-        AND UPPER(case_status) = 'CERTIFIED'
+        AND case_status = 'Certified'
         AND wage_rate_of_pay_from > 0 
         AND wage_rate_of_pay_from < 1000000
         GROUP BY salary_range
-        ORDER BY MIN(wage_rate_of_pay_from)
+        ORDER BY 
+          CASE 
+            WHEN salary_range = 'Under $80K' THEN 1
+            WHEN salary_range = '$80K - $120K' THEN 2
+            WHEN salary_range = '$120K - $160K' THEN 3
+            WHEN salary_range = '$160K - $200K' THEN 4
+            WHEN salary_range = '$200K+' THEN 5
+          END
       `;
 
       // Execute all queries concurrently
@@ -1261,12 +1367,20 @@ export class H1BBigQueryService {
           avgSalary: Math.round(Number(row.avgSalary) || 0),
           medianSalary: Math.round(Number(row.medianSalary) || 0),
         })),
-        topJobTitles: topJobTitles[0].map((row: any) => ({
-          jobTitle: row.jobTitle,
-          applications: Number(row.applications),
-          avgSalary: Math.round(Number(row.avgSalary) || 0),
-          medianSalary: Math.round(Number(row.medianSalary) || 0),
-        })),
+        topJobTitles: topJobTitles[0].map((row: any) => {
+          const currentYear = Number(row.current_year_apps) || null;
+          const previousYear = Number(row.previous_year_apps) || null;
+          const yoyData = this.calculateYoYGrowth(currentYear, previousYear);
+          
+          return {
+            jobTitle: row.jobTitle,
+            applications: Number(row.applications),
+            avgSalary: Math.round(Number(row.avgSalary) || 0),
+            medianSalary: Math.round(Number(row.medianSalary) || 0),
+            yoyGrowth: yoyData.yoyGrowth,
+            yoyGrowthPercentage: yoyData.yoyGrowthPercentage,
+          };
+        }),
         yearlyTrends: yearlyTrends[0].map((row: any) => ({
           fiscalYear: row.fiscal_year.toString(),
           applications: Number(row.applications),
@@ -1304,7 +1418,7 @@ export class H1BBigQueryService {
         ) = @attorneyName
       `;
       
-      const firmFilter = validatedInput.lawFirm ? 'AND COALESCE(lawfirm_name_business_name, agent_attorney_law_firm_name) = @lawFirm' : '';
+      const firmFilter = validatedInput.lawFirm ? 'AND lawfirm_name_business_name = @lawFirm' : '';
       
       // Main attorney statistics using standardized table
       const mainQuery = `
@@ -1319,14 +1433,14 @@ export class H1BBigQueryService {
             CASE WHEN agent_attorney_first_name IS NOT NULL AND agent_attorney_last_name IS NOT NULL THEN ' ' ELSE '' END,
             COALESCE(agent_attorney_last_name, '')
           ) as attorney_name,
-          agent_attorney_law_firm_name as law_firm,
+          lawfirm_name_business_name as law_firm,
           agent_attorney_city as city,
           agent_attorney_state as state,
           COUNT(*) as total_applications,
-          SUM(CASE WHEN case_status = 'CERTIFIED' THEN 1 ELSE 0 END) as certified_applications,
-          SUM(CASE WHEN case_status = 'DENIED' THEN 1 ELSE 0 END) as denied_applications,
-          SUM(CASE WHEN case_status = 'WITHDRAWN' THEN 1 ELSE 0 END) as withdrawn_applications,
-          ROUND(AVG(CASE WHEN case_status = 'CERTIFIED' THEN 1.0 ELSE 0.0 END) * 100, 2) as certification_rate,
+          SUM(CASE WHEN case_status = 'Certified' THEN 1 ELSE 0 END) as certified_applications,
+          SUM(CASE WHEN case_status = 'Denied' THEN 1 ELSE 0 END) as denied_applications,
+          SUM(CASE WHEN case_status = 'Withdrawn' THEN 1 ELSE 0 END) as withdrawn_applications,
+          ROUND(AVG(CASE WHEN case_status = 'Certified' THEN 1.0 ELSE 0.0 END) * 100, 2) as certification_rate,
           AVG(wage_rate_of_pay_from) as avg_salary,
           APPROX_QUANTILES(wage_rate_of_pay_from, 2)[OFFSET(1)] as median_salary,
           MIN(wage_rate_of_pay_from) as min_salary,
@@ -1346,7 +1460,7 @@ export class H1BBigQueryService {
           SELECT 
             employer_name,
             COUNT(*) as applications,
-            ROUND(AVG(CASE WHEN case_status = 'CERTIFIED' THEN 1.0 ELSE 0.0 END) * 100, 2) as certification_rate,
+            ROUND(AVG(CASE WHEN case_status = 'Certified' THEN 1.0 ELSE 0.0 END) * 100, 2) as certification_rate,
             AVG(wage_rate_of_pay_from) as avg_salary
           FROM attorney_base
           GROUP BY employer_name
@@ -1393,34 +1507,54 @@ export class H1BBigQueryService {
         LIMIT 10
       `;
 
-      // Top job categories query
+      // Top job categories query with YOY growth data
       const topJobCategoriesQuery = `
         WITH attorney_base AS (
-          SELECT *
+          SELECT *,
+            CAST(CASE 
+              WHEN EXTRACT(MONTH FROM received_date) >= 10 
+              THEN EXTRACT(YEAR FROM received_date) + 1
+              ELSE EXTRACT(YEAR FROM received_date)
+            END AS STRING) as fiscal_year
           FROM \`${this.projectId}.${this.datasetId}.${this.tableId}\`
           WHERE ${attorneyFilter} ${firmFilter}
+          AND received_date IS NOT NULL
         ),
-        job_stats AS (
+        job_category_yearly AS (
           SELECT 
-            soc_name as job_category,
+            soc_title as job_category,
+            fiscal_year,
             COUNT(*) as applications,
-            ROUND(AVG(CASE WHEN case_status = 'CERTIFIED' THEN 1.0 ELSE 0.0 END) * 100, 2) as certification_rate,
+            ROUND(AVG(CASE WHEN case_status = 'Certified' THEN 1.0 ELSE 0.0 END) * 100, 2) as certification_rate,
             AVG(wage_rate_of_pay_from) as avg_salary
           FROM attorney_base
-          WHERE soc_name IS NOT NULL
-          GROUP BY soc_name
+          WHERE soc_title IS NOT NULL
+          GROUP BY soc_title, fiscal_year
+        ),
+        job_category_growth AS (
+          SELECT 
+            job_category,
+            SUM(applications) as total_applications,
+            AVG(avg_salary) as avg_salary,
+            AVG(certification_rate) as certification_rate,
+            MAX(CASE WHEN fiscal_year = '2025' THEN applications END) as current_year_apps,
+            MAX(CASE WHEN fiscal_year = '2024' THEN applications END) as previous_year_apps
+          FROM job_category_yearly
+          GROUP BY job_category
         ),
         total_apps AS (
           SELECT COUNT(*) as total_applications FROM attorney_base
         )
         SELECT 
           j.job_category,
-          j.applications,
-          ROUND((j.applications / t.total_applications) * 100, 2) as percentage,
+          j.total_applications as applications,
+          ROUND((j.total_applications / t.total_applications) * 100, 2) as percentage,
           ROUND(j.avg_salary, 0) as avg_salary,
-          j.certification_rate
-        FROM job_stats j, total_apps t
-        ORDER BY j.applications DESC
+          j.certification_rate,
+          j.current_year_apps,
+          j.previous_year_apps
+        FROM job_category_growth j, total_apps t
+        ORDER BY j.total_applications DESC
         LIMIT 10
       `;
 
@@ -1439,8 +1573,8 @@ export class H1BBigQueryService {
         SELECT 
           fiscal_year,
           COUNT(*) as applications,
-          SUM(CASE WHEN case_status = 'CERTIFIED' THEN 1 ELSE 0 END) as certified_applications,
-          ROUND(AVG(CASE WHEN case_status = 'CERTIFIED' THEN 1.0 ELSE 0.0 END) * 100, 2) as certification_rate,
+          SUM(CASE WHEN case_status = 'Certified' THEN 1 ELSE 0 END) as certified_applications,
+          ROUND(AVG(CASE WHEN case_status = 'Certified' THEN 1.0 ELSE 0.0 END) * 100, 2) as certification_rate,
           AVG(wage_rate_of_pay_from) as avg_salary
         FROM attorney_base
         GROUP BY fiscal_year
@@ -1458,12 +1592,10 @@ export class H1BBigQueryService {
         )
         SELECT 
           CASE 
-            WHEN salary < 50000 THEN 'Under $50K'
-            WHEN salary < 75000 THEN '$50K - $75K'
-            WHEN salary < 100000 THEN '$75K - $100K'
-            WHEN salary < 125000 THEN '$100K - $125K'
-            WHEN salary < 150000 THEN '$125K - $150K'
-            WHEN salary < 200000 THEN '$150K - $200K'
+            WHEN salary < 80000 THEN 'Under $80K'
+            WHEN salary < 120000 THEN '$80K - $120K'
+            WHEN salary < 160000 THEN '$120K - $160K'
+            WHEN salary < 200000 THEN '$160K - $200K'
             ELSE '$200K+'
           END as salary_range,
           COUNT(*) as count
@@ -1471,13 +1603,11 @@ export class H1BBigQueryService {
         GROUP BY salary_range
         ORDER BY 
           CASE 
-            WHEN salary_range = 'Under $50K' THEN 1
-            WHEN salary_range = '$50K - $75K' THEN 2
-            WHEN salary_range = '$75K - $100K' THEN 3
-            WHEN salary_range = '$100K - $125K' THEN 4
-            WHEN salary_range = '$125K - $150K' THEN 5
-            WHEN salary_range = '$150K - $200K' THEN 6
-            WHEN salary_range = '$200K+' THEN 7
+            WHEN salary_range = 'Under $80K' THEN 1
+            WHEN salary_range = '$80K - $120K' THEN 2
+            WHEN salary_range = '$120K - $160K' THEN 3
+            WHEN salary_range = '$160K - $200K' THEN 4
+            WHEN salary_range = '$200K+' THEN 5
           END
       `;
 
@@ -1538,13 +1668,21 @@ export class H1BBigQueryService {
           percentage: Number(row.percentage),
           avgSalary: Math.round(Number(row.avg_salary) || 0),
         })),
-        topJobCategories: topJobCategories[0].map((row: any) => ({
-          jobCategory: row.job_category,
-          applications: Number(row.applications),
-          percentage: Number(row.percentage),
-          avgSalary: Math.round(Number(row.avg_salary) || 0),
-          certificationRate: Number(row.certification_rate),
-        })),
+        topJobCategories: topJobCategories[0].map((row: any) => {
+          const currentYear = Number(row.current_year_apps) || null;
+          const previousYear = Number(row.previous_year_apps) || null;
+          const yoyData = this.calculateYoYGrowth(currentYear, previousYear);
+          
+          return {
+            jobCategory: row.job_category,
+            applications: Number(row.applications),
+            percentage: Number(row.percentage),
+            avgSalary: Math.round(Number(row.avg_salary) || 0),
+            certificationRate: Number(row.certification_rate),
+            yoyGrowth: yoyData.yoyGrowth,
+            yoyGrowthPercentage: yoyData.yoyGrowthPercentage,
+          };
+        }),
         yearlyTrends: yearlyTrends[0].map((row: any) => ({
           fiscalYear: row.fiscal_year.toString(),
           applications: Number(row.applications),
@@ -1564,7 +1702,7 @@ export class H1BBigQueryService {
         error: error instanceof Error ? error.message : error,
         attorneyName: validatedInput?.attorneyName,
         lawFirm: validatedInput?.lawFirm,
-        queryTime
+        queryTime,
       });
       
       if (error instanceof ValidationError) {

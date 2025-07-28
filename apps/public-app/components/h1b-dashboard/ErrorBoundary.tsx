@@ -117,7 +117,7 @@ export class ErrorBoundary extends Component<Props, State> {
 export function withErrorBoundary<P extends object>(
   Component: React.ComponentType<P>,
   fallback?: ReactNode,
-  onError?: (error: Error, errorInfo: ErrorInfo) => void
+  onError?: (error: Error, errorInfo: ErrorInfo) => void,
 ) {
   return function WrappedComponent(props: P) {
     return (
@@ -131,7 +131,7 @@ export function withErrorBoundary<P extends object>(
 // Specific error boundary for BigQuery operations
 export function BigQueryErrorBoundary({ 
   children, 
-  context = 'BigQuery operation' 
+  context = 'BigQuery operation', 
 }: { 
   children: ReactNode;
   context?: string;

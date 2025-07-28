@@ -108,6 +108,8 @@ export interface H1BCompanyTopJobTitle {
   applications: number;
   avgSalary: number;
   medianSalary: number;
+  yoyGrowth?: number | null;
+  yoyGrowthPercentage?: number | null;
 }
 
 export interface H1BCompanyYearlyTrend {
@@ -148,6 +150,8 @@ export interface H1BJobTopEmployer {
   applications: number;
   avgSalary: number;
   medianSalary: number;
+  yoyGrowth?: number | null;
+  yoyGrowthPercentage?: number | null;
 }
 
 export interface H1BJobTopState {
@@ -205,6 +209,8 @@ export interface H1BCityTopJobTitle {
   applications: number;
   avgSalary: number;
   medianSalary: number;
+  yoyGrowth?: number | null;
+  yoyGrowthPercentage?: number | null;
 }
 
 export interface H1BCityYearlyTrend {
@@ -262,6 +268,8 @@ export interface H1BAttorneyTopJobCategory {
   percentage: number;
   avgSalary: number;
   certificationRate: number;
+  yoyGrowth?: number | null;
+  yoyGrowthPercentage?: number | null;
 }
 
 export interface H1BAttorneyYearlyTrend {

@@ -14,7 +14,7 @@ const bigQueryService = new H1BBigQueryService({
 });
 
 export async function GET(
-  request: NextRequest
+  request: NextRequest,
 ): Promise<NextResponse<H1BApiResponse<H1BAggregatedData | H1BFilterOptions>>> {
   const startTime = Date.now();
   
@@ -68,7 +68,7 @@ export async function GET(
     console.log('H1B dashboard data fetched successfully:', {
       totalApplications: dashboardData.totalApplications,
       certificationRate: dashboardData.certificationRate,
-      queryTime
+      queryTime,
     });
     
     const response: H1BApiResponse<H1BAggregatedData> = {
@@ -86,7 +86,7 @@ export async function GET(
     console.error('H1B data API error:', {
       error: error instanceof Error ? error.message : error,
       requestType: new URL(request.url).searchParams.get('type') || 'dashboard',
-      queryTime
+      queryTime,
     });
     
     // Handle validation errors with specific status codes

@@ -39,7 +39,7 @@ export async function GET(request: NextRequest): Promise<NextResponse<H1BApiResp
       city: cityData.city,
       state: cityData.state,
       totalApplications: cityData.totalApplications,
-      queryTime
+      queryTime,
     });
     
     const response: H1BApiResponse<H1BCityAnalysis> = {
@@ -57,7 +57,7 @@ export async function GET(request: NextRequest): Promise<NextResponse<H1BApiResp
       error: error instanceof Error ? error.message : error,
       cityName: new URL(request.url).searchParams.get('city'),
       stateName: new URL(request.url).searchParams.get('state'),
-      queryTime
+      queryTime,
     });
     
     // Handle validation errors with specific status codes

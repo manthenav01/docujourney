@@ -5,8 +5,10 @@ import { useRouter } from 'next/navigation';
 import { Badge, Button, Card, CardContent, CardHeader, CardTitle } from '@docujourney/ui';
 import { getSalaryRangeColor, getChartColor, CHART_COLOR_ARRAYS } from '../../lib/chartColors';
 import { H1BJobAnalysis } from '../../lib/types';
+import { ReusableSalaryDistribution } from './charts/ReusableSalaryDistribution';
+import { MarketTrendsCard } from './MarketTrendsCard';
+import { TopEmployersCard } from './TopEmployersCard';
 import { 
-  ArrowLeft, 
   Briefcase, 
   MapPin, 
   Users, 
@@ -17,6 +19,7 @@ import {
   Award,
   Target,
   Building,
+  Building2,
   Globe,
   Activity,
   PieChart,
@@ -77,9 +80,6 @@ export const JobDashboard: React.FC<JobDashboardProps> = ({
     }
   };
 
-  const handleBackClick = () => {
-    router.push('/h1b-dashboard');
-  };
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-US', {
@@ -98,15 +98,6 @@ export const JobDashboard: React.FC<JobDashboardProps> = ({
     return (
       <div className="max-w-7xl mx-auto space-y-6">
         <div className="mb-6">
-          <Button 
-            onClick={handleBackClick}
-            variant="outline" 
-            className="mb-4"
-          >
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Back to Dashboard
-          </Button>
-          
           {/* Header Skeleton */}
           <div className="flex items-center space-x-4">
             <div className="p-3 bg-muted/30 rounded-xl animate-pulse">
@@ -199,17 +190,7 @@ export const JobDashboard: React.FC<JobDashboardProps> = ({
   if (error) {
     return (
       <div className="max-w-7xl mx-auto">
-        <div className="mb-6">
-          <Button 
-            onClick={handleBackClick}
-            variant="outline" 
-            className="mb-4"
-          >
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Back to Dashboard
-          </Button>
-        </div>
-           <Card className="bg-destructive/10 border border-destructive/20">
+        <Card className="bg-destructive/10 border border-destructive/20">
         <CardContent className="p-6">
           <div className="text-center">
             <div className="text-destructive text-lg font-semibold mb-2">Unable to Load Job Data</div>
@@ -250,15 +231,6 @@ export const JobDashboard: React.FC<JobDashboardProps> = ({
     <div className="max-w-7xl mx-auto space-y-6">
     {/* Header */}
     <div className="mb-6">
-      <Button 
-        onClick={handleBackClick}
-        variant="outline" 
-        className="mb-4"
-      >
-        <ArrowLeft className="w-4 h-4 mr-2" />
-          Back to Dashboard
-        </Button>
-        
         <div className="flex items-center space-x-4">
           <div className="p-3 bg-primary/10 rounded-xl">
             <Briefcase className="w-8 h-8 text-primary" />
@@ -330,67 +302,27 @@ export const JobDashboard: React.FC<JobDashboardProps> = ({
 
       {/* Charts Row 1 */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Yearly Trends */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center">
-              <LineChart className="w-5 h-5 mr-2" />
-              Job Market Trends
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {jobInfo.yearlyTrends.map((year) => (
-                <div key={year.fiscalYear} className="flex items-center justify-between p-3 bg-muted/20 rounded-lg">
-                  <div className="flex items-center space-x-3">
-                    <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center text-primary font-semibold">
-                      {year.fiscalYear.slice(-2)}
-                    </div>
-                    <div>
-                      <div className="font-medium text-foreground">FY {year.fiscalYear}</div>
-                      <div className="text-sm text-muted-foreground">{formatNumber(year.applications)} applications</div>
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <div className="font-semibold text-foreground">{formatCurrency(year.avgSalary)}</div>
-                    <div className="text-xs text-muted-foreground">{year.certificationRate.toFixed(1)}% certified</div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
+        {/* Market Trends */}
+        <MarketTrendsCard
+          data={jobInfo.yearlyTrends}
+          title="Job Market Trends"
+          showSalary={true}
+          showCertificationRate={true}
+          maxYears={5}
+        />
 
         {/* Top Employers */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center">
-              <Building2 className="w-5 h-5 mr-2" />
-              Top Hiring Companies
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {jobInfo.topEmployers.slice(0, 5).map((employer, index) => (
-                <div key={employer.employer} className="flex items-center justify-between p-3 bg-muted/20 rounded-lg">
-                  <div className="flex items-center space-x-3">
-                    <div className="w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center text-primary font-semibold text-sm">
-                      {index + 1}
-                    </div>
-                    <div>
-                      <div className="font-medium text-foreground">{employer.employer}</div>
-                      <div className="text-sm text-muted-foreground">{formatNumber(employer.applications)} applications</div>
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <div className="font-semibold text-foreground">{formatCurrency(employer.avgSalary)}</div>
-                    <div className="text-xs text-muted-foreground">avg salary</div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
+        <TopEmployersCard
+          data={jobInfo.topEmployers.map(employer => ({
+            employer: employer.employer,
+            applications: employer.applications,
+            avgSalary: employer.avgSalary,
+            yoyGrowth: employer.yoyGrowth,
+            yoyGrowthPercentage: employer.yoyGrowthPercentage,
+          }))}
+          title="Top Hiring Companies"
+          showYoYGrowth={true}
+        />
       </div>
 
       {/* Charts Row 2 */}
@@ -430,128 +362,45 @@ export const JobDashboard: React.FC<JobDashboardProps> = ({
         </Card>
 
         {/* Salary Distribution */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center">
-              <DollarSign className="w-5 h-5 mr-2" />
-              Salary Distribution
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              {jobInfo.salaryDistribution.slice(0, 7).map((salary, index) => {
-                const limitedData = jobInfo.salaryDistribution.slice(0, 7);
-                const maxCount = Math.max(...limitedData.map(s => s.count));
-                const percentage = (salary.count / maxCount) * 100;
-                
-                return (
-                  <div key={salary.range} className="space-y-2">
-                    <div className="flex justify-between items-center">
-                      <span className="font-medium text-foreground">{salary.range}</span>
-                      <span className="text-sm text-muted-foreground">{formatNumber(salary.count)}</span>
-                    </div>
-                    <div className="w-full bg-muted rounded-full h-2">
-                      <div 
-                        className="h-2 rounded-full transition-all duration-300"
-                        style={{ 
-                          width: `${percentage}%`,
-                          backgroundColor: getSalaryRangeColor(index),
-                        }}
-                      ></div>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </CardContent>
-        </Card>
+        <ReusableSalaryDistribution
+          data={jobInfo.salaryDistribution}
+          loading={loading}
+          title="Salary Distribution"
+          showChartToggle={true}
+          height={400}
+        />
       </div>
 
-      {/* Employment Type Analysis */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center">
-              <UserCheck className="w-5 h-5 mr-2" />
-              Employment Type Analysis
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              <div className="flex items-center justify-between p-4 bg-success/10 rounded-lg">
-                <div className="flex items-center space-x-3">
-                  <div className="w-12 h-12 bg-success/20 rounded-full flex items-center justify-center">
-                    <Clock className="w-6 h-6 text-success" />
-                  </div>
-                  <div>
-                    <div className="font-semibold text-foreground">Full-Time Positions</div>
-                    <div className="text-sm text-muted-foreground">{formatNumber(jobInfo.fullTimePositions)} applications</div>
-                  </div>
-                </div>
-                <div className="text-right">
-                  <div className="text-2xl font-bold text-success">{fullTimePercentage}%</div>
-                  <div className="text-xs text-muted-foreground">of total</div>
-                </div>
-              </div>
+      {/* Recent Activity */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center">
+            <Activity className="w-5 h-5 mr-2" />
+            Recent Activity (Last 6 Months)
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+            {jobInfo.recentActivity.map((activity) => {
+              const maxApplications = Math.max(...jobInfo.recentActivity.map(a => a.applications));
+              const height = (activity.applications / maxApplications) * 100;
               
-              <div className="flex items-center justify-between p-4 bg-primary/10 rounded-lg">
-                <div className="flex items-center space-x-3">
-                  <div className="w-12 h-12 bg-primary/20 rounded-full flex items-center justify-center">
-                    <Target className="w-6 h-6 text-primary" />
+              return (
+                <div key={activity.month} className="text-center space-y-2">
+                  <div className="text-sm font-medium text-muted-foreground">{activity.month.split(' ')[0]}</div>
+                  <div className="flex items-end justify-center h-20">
+                    <div 
+                      className="bg-primary rounded-t-md w-8 transition-all duration-300"
+                      style={{ height: `${height}%` }}
+                    ></div>
                   </div>
-                  <div>
-                    <div className="font-semibold text-foreground">Part-Time Positions</div>
-                    <div className="text-sm text-muted-foreground">{formatNumber(jobInfo.partTimePositions)} applications</div>
-                  </div>
+                  <div className="text-xs text-muted-foreground">{formatNumber(activity.applications)}</div>
                 </div>
-                <div className="text-right">
-                  <div className="text-2xl font-bold text-primary">{(100 - parseFloat(fullTimePercentage)).toFixed(1)}%</div>
-                  <div className="text-xs text-muted-foreground">of total</div>
-                </div>
-              </div>
-
-              <div className="mt-4 p-4 bg-muted/20 rounded-lg">
-                <div className="text-sm text-muted-foreground">
-                  <strong>Market Insight:</strong> Full-time positions represent {fullTimePercentage}% of all {jobTitle} H1B applications, 
-                  indicating {parseFloat(fullTimePercentage) > 80 ? 'strong employer demand for permanent roles' : 'mixed employment patterns'} 
-                  in this field.
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Recent Activity */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center">
-              <Activity className="w-5 h-5 mr-2" />
-              Recent Activity (Last 6 Months)
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-              {jobInfo.recentActivity.map((activity) => {
-                const maxApplications = Math.max(...jobInfo.recentActivity.map(a => a.applications));
-                const height = (activity.applications / maxApplications) * 100;
-                
-                return (
-                  <div key={activity.month} className="text-center space-y-2">
-                    <div className="text-sm font-medium text-muted-foreground">{activity.month.split(' ')[0]}</div>
-                    <div className="flex items-end justify-center h-20">
-                      <div 
-                        className="bg-primary rounded-t-md w-8 transition-all duration-300"
-                        style={{ height: `${height}%` }}
-                      ></div>
-                    </div>
-                    <div className="text-xs text-muted-foreground">{formatNumber(activity.applications)}</div>
-                  </div>
-                );
-              })}
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+              );
+            })}
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Market Insights Summary */}
       <Card>

@@ -4,6 +4,9 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Badge, Button, Card, CardContent, CardHeader, CardTitle } from '@docujourney/ui';
 import { H1BCityAnalysis } from '../../lib/types';
+import { MarketTrendsCard } from './MarketTrendsCard';
+import { ReusableSalaryDistribution } from './charts/ReusableSalaryDistribution';
+import { TopJobTitlesCard } from './TopJobTitlesCard';
 import { 
   ArrowLeft, 
   MapPin, 
@@ -12,6 +15,7 @@ import {
   DollarSign,
   Award,
   Building,
+  Building2,
   Briefcase,
   Activity,
   PieChart,
@@ -82,6 +86,16 @@ export const CityDashboard: React.FC<CityDashboardProps> = ({
       minimumFractionDigits: 0,
       maximumFractionDigits: 0,
     }).format(amount);
+  };
+
+  const formatCompactCurrency = (amount: number) => {
+    if (amount >= 1000000) {
+      return `$${(amount / 1000000).toFixed(1)}M`;
+    }
+    if (amount >= 1000) {
+      return `$${(amount / 1000).toFixed(0)}K`;
+    }
+    return `$${amount}`;
   };
 
   const formatNumber = (num: number) => {
@@ -234,7 +248,7 @@ export const CityDashboard: React.FC<CityDashboardProps> = ({
             <h3 className="text-gray-600 text-sm font-medium mb-1">Salary Range</h3>
             <p className="text-3xl font-bold text-gray-900">
               {hasFinancialData && cityInfo.minSalary > 0 && cityInfo.maxSalary > 0
-                ? `${formatCurrency(cityInfo.minSalary)} - ${formatCurrency(cityInfo.maxSalary)}`
+                ? `${formatCompactCurrency(cityInfo.minSalary)} - ${formatCompactCurrency(cityInfo.maxSalary)}`
                 : 'N/A'
               }
             </p>
@@ -244,67 +258,27 @@ export const CityDashboard: React.FC<CityDashboardProps> = ({
 
       {/* Charts Row 1 */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Yearly Trends */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center">
-              <LineChart className="w-5 h-5 mr-2" />
-              Application Trends
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {cityInfo.yearlyTrends.map((year) => (
-                <div key={year.fiscalYear} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                  <div className="flex items-center space-x-3">
-                    <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center text-blue-700 font-semibold">
-                      {year.fiscalYear.slice(-2)}
-                    </div>
-                    <div>
-                      <div className="font-medium text-gray-900">FY {year.fiscalYear}</div>
-                      <div className="text-sm text-gray-500">{formatNumber(year.applications)} applications</div>
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <div className="font-semibold text-gray-900">{formatCurrency(year.avgSalary)}</div>
-                    <div className="text-xs text-gray-500">{year.certificationRate.toFixed(1)}% certified</div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
+        {/* Market Trends */}
+        <MarketTrendsCard
+          data={cityInfo.yearlyTrends}
+          title="Application Trends"
+          showSalary={true}
+          showCertificationRate={true}
+          maxYears={5}
+        />
 
         {/* Top Job Titles */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center">
-              <Briefcase className="w-5 h-5 mr-2" />
-              Top Job Titles
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {cityInfo.topJobTitles.slice(0, 5).map((job, index) => (
-                <div key={job.jobTitle} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                  <div className="flex items-center space-x-3">
-                    <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center text-blue-700 font-semibold text-sm">
-                      {index + 1}
-                    </div>
-                    <div>
-                      <div className="font-medium text-gray-900 text-sm">{job.jobTitle.slice(0, 40)}{job.jobTitle.length > 40 ? '...' : ''}</div>
-                      <div className="text-sm text-gray-500">{formatNumber(job.applications)} applications</div>
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <div className="font-semibold text-gray-900">{formatCurrency(job.avgSalary)}</div>
-                    <div className="text-xs text-gray-500">avg salary</div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
+        <TopJobTitlesCard
+          data={cityInfo.topJobTitles.map(job => ({
+            jobTitle: job.jobTitle,
+            applications: job.applications,
+            percentage: ((job.applications / cityInfo.totalApplications) * 100),
+            avgSalary: job.avgSalary,
+            yoyGrowth: job.yoyGrowth,
+            yoyGrowthPercentage: job.yoyGrowthPercentage,
+          }))}
+          showYoYGrowth={true}
+        />
       </div>
 
       {/* Charts Row 2 */}
@@ -346,39 +320,15 @@ export const CityDashboard: React.FC<CityDashboardProps> = ({
         </Card>
 
         {/* Salary Distribution */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center">
-              <DollarSign className="w-5 h-5 mr-2" />
-              Salary Distribution
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              {cityInfo.salaryDistribution.slice(0, 7).map((salary, index) => {
-                const limitedData = cityInfo.salaryDistribution.slice(0, 7);
-                const maxCount = Math.max(...limitedData.map(s => s.count));
-                const percentage = (salary.count / maxCount) * 100;
-                const colors = ['bg-blue-500', 'bg-green-500', 'bg-yellow-500', 'bg-red-500', 'bg-purple-500', 'bg-indigo-500', 'bg-pink-500', 'bg-orange-500'];
-                
-                return (
-                  <div key={salary.range} className="space-y-2">
-                    <div className="flex justify-between items-center">
-                      <span className="font-medium text-gray-900">{salary.range}</span>
-                      <span className="text-sm text-gray-600">{formatNumber(salary.count)}</span>
-                    </div>
-                    <div className="w-full bg-gray-200 rounded-full h-2">
-                      <div 
-                        className={`${colors[index % colors.length]} h-2 rounded-full transition-all duration-300`}
-                        style={{ width: `${percentage}%` }}
-                      ></div>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </CardContent>
-        </Card>
+        <ReusableSalaryDistribution
+          data={cityInfo.salaryDistribution}
+          loading={false}
+          title={`Salary Distribution`}
+          showTitle={true}
+          height={400}
+          showChartToggle={true}
+          className="h-[500px]"
+        />
       </div>
 
       {/* Recent Activity */}

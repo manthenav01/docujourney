@@ -5,6 +5,9 @@ import { useRouter } from 'next/navigation';
 import { Badge, Button, Card, CardContent, CardHeader, CardTitle } from '@docujourney/ui';
 import { CHART_COLOR_ARRAYS, getChartColor, getSalaryRangeColor } from '../../lib/chartColors';
 import { ReusableProgressChart, ReusableActivityChart, type ProgressChartData, type ActivityChartData } from './charts';
+import { ReusableSalaryDistribution } from './charts/ReusableSalaryDistribution';
+import { MarketTrendsCard } from './MarketTrendsCard';
+import { TopJobTitlesCard } from './TopJobTitlesCard';
 import { H1BCompanyAnalysis } from '../../lib/types';
 import { 
   ArrowLeft, 
@@ -12,6 +15,7 @@ import {
   MapPin, 
   Users, 
   TrendingUp, 
+  TrendingDown,
   Calendar, 
   DollarSign,
   BarChart3,
@@ -87,6 +91,16 @@ export const CompanyDashboard: React.FC<CompanyDashboardProps> = ({
       minimumFractionDigits: 0,
       maximumFractionDigits: 0,
     }).format(amount);
+  };
+
+  const formatCompactCurrency = (amount: number) => {
+    if (amount >= 1000000) {
+      return `$${(amount / 1000000).toFixed(1)}M`;
+    }
+    if (amount >= 1000) {
+      return `$${(amount / 1000).toFixed(0)}K`;
+    }
+    return `$${amount}`;
   };
 
   const formatNumber = (num: number) => {
@@ -245,6 +259,7 @@ export const CompanyDashboard: React.FC<CompanyDashboardProps> = ({
   const hasJobData = companyInfo.topJobTitles.length > 0;
   const hasTrendData = companyInfo.yearlyTrends.length > 0;
 
+
   return (
     <div className="max-w-7xl mx-auto space-y-6">
     {/* Header */}
@@ -324,7 +339,7 @@ export const CompanyDashboard: React.FC<CompanyDashboardProps> = ({
             <h3 className="text-muted-foreground text-sm font-medium mb-1">Salary Range</h3>
             <p className="text-3xl font-bold text-foreground">
               {hasFinancialData && companyInfo.minSalary > 0 && companyInfo.maxSalary > 0
-                ? `${formatCurrency(companyInfo.minSalary)} - ${formatCurrency(companyInfo.maxSalary)}`
+                ? `${formatCompactCurrency(companyInfo.minSalary)} - ${formatCompactCurrency(companyInfo.maxSalary)}`
                 : 'N/A'
               }
             </p>
@@ -334,67 +349,27 @@ export const CompanyDashboard: React.FC<CompanyDashboardProps> = ({
 
       {/* Charts Row 1 */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Yearly Trends */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center">
-              <LineChart className="w-5 h-5 mr-2" />
-              Application Trends
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {companyInfo.yearlyTrends.map((year) => (
-                <div key={year.fiscalYear} className="flex items-center justify-between p-3 bg-muted/20 rounded-lg">
-                  <div className="flex items-center space-x-3">
-                    <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center text-primary font-semibold">
-                      {year.fiscalYear.slice(-2)}
-                    </div>
-                    <div>
-                      <div className="font-medium text-foreground">FY {year.fiscalYear}</div>
-                      <div className="text-sm text-muted-foreground">{formatNumber(year.applications)} applications</div>
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <div className="font-semibold text-foreground">{formatCurrency(year.avgSalary)}</div>
-                    <div className="text-xs text-muted-foreground">{year.certificationRate.toFixed(1)}% certified</div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
+        {/* Market Trends */}
+        <MarketTrendsCard
+          data={companyInfo.yearlyTrends}
+          title="Application Trends"
+          showSalary={true}
+          showCertificationRate={true}
+          maxYears={5}
+        />
 
         {/* Top Job Titles */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center">
-              <Briefcase className="w-5 h-5 mr-2" />
-              Top Job Titles
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {companyInfo.topJobTitles.slice(0, 5).map((job, index) => (
-                <div key={job.jobTitle} className="flex items-center justify-between p-3 bg-muted/20 rounded-lg">
-                  <div className="flex items-center space-x-3">
-                    <div className="w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center text-primary font-semibold text-sm">
-                      {index + 1}
-                    </div>
-                    <div>
-                      <div className="font-medium text-foreground">{job.jobTitle}</div>
-                      <div className="text-sm text-muted-foreground">{formatNumber(job.applications)} applications</div>
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <div className="font-semibold text-foreground">{formatCurrency(job.avgSalary)}</div>
-                    <div className="text-xs text-muted-foreground">avg salary</div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
+        <TopJobTitlesCard
+          data={companyInfo.topJobTitles.map(job => ({
+            jobTitle: job.jobTitle,
+            applications: job.applications,
+            percentage: ((job.applications / companyInfo.totalApplications) * 100),
+            avgSalary: job.avgSalary,
+            yoyGrowth: job.yoyGrowth,
+            yoyGrowthPercentage: job.yoyGrowthPercentage,
+          }))}
+          showYoYGrowth={true}
+        />
       </div>
 
       {/* Charts Row 2 */}
@@ -434,42 +409,14 @@ export const CompanyDashboard: React.FC<CompanyDashboardProps> = ({
         />
 
         {/* Salary Distribution */}
-        <ReusableProgressChart
-          data={companyInfo.salaryDistribution.slice(0, 7).map((salary, index) => {
-            const limitedData = companyInfo.salaryDistribution.slice(0, 7);
-            const maxCount = Math.max(...limitedData.map(s => s.count));
-            const percentage = (salary.count / maxCount) * 100;
-            return {
-              label: salary.range,
-              value: salary.count,
-              percentage,
-              color: getSalaryRangeColor(index),
-            };
-          })}
-          title="Salary Distribution"
-          titleIcon={<DollarSign className="w-5 h-5" />}
+        <ReusableSalaryDistribution
+          data={companyInfo.salaryDistribution}
+          loading={false}
+          title={`Salary Distribution`}
+          showTitle={true}
           height={400}
-          showPercentage={false}
-          showValues={true}
-          formatValue={formatNumber}
-          customTooltip={({ indexValue, value, data }) => (
-            <div className="bg-card/95 backdrop-blur-sm p-4 border border-border rounded-lg shadow-lg">
-              <div className="text-sm font-semibold text-foreground mb-3 flex items-center">
-                <PieChart className="w-4 h-4 mr-2" />
-                {indexValue}
-              </div>
-              <div className="space-y-2">
-                <div className="flex justify-between items-center">
-                  <span className="text-xs text-muted-foreground">Applications:</span>
-                  <span className="text-sm font-medium text-primary">{formatNumber(data?.displayValue || 0)}</span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-xs text-muted-foreground">Relative Share:</span>
-                  <span className="text-sm font-medium text-success">{(data?.percentage || 0).toFixed(1)}%</span>
-                </div>
-              </div>
-            </div>
-          )}
+          showChartToggle={true}
+          className="h-[500px]"
         />
       </div>
 

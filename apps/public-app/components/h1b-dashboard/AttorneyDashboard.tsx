@@ -5,8 +5,11 @@ import { useRouter } from 'next/navigation';
 import { Badge, Button, Card, CardContent, CardHeader, CardTitle } from '@docujourney/ui';
 import { CHART_COLOR_ARRAYS, getChartColor, getSalaryRangeColor } from '../../lib/chartColors';
 import { ReusableProgressChart, ReusableActivityChart, type ProgressChartData, type ActivityChartData } from './charts';
+import { ReusableSalaryDistribution } from './charts/ReusableSalaryDistribution';
 import { H1BAttorneyAnalysis, H1BApiResponse } from '../../lib/types';
 import { BigQueryErrorBoundary } from './ErrorBoundary';
+import { MarketTrendsCard } from './MarketTrendsCard';
+import { TopJobCategoriesCard } from './TopJobCategoriesCard';
 import { 
   ArrowLeft, 
   Scale, 
@@ -361,7 +364,7 @@ export const AttorneyDashboard: React.FC<AttorneyDashboardProps> = ({
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Top Employers */}
         <Card>
-          <CardHeader className="pb-4">
+          <CardHeader>
             <CardTitle className="text-lg font-semibold flex items-center space-x-2">
               <Building2 className="w-5 h-5 text-primary" />
               <span>Top Employers</span>
@@ -398,7 +401,7 @@ export const AttorneyDashboard: React.FC<AttorneyDashboardProps> = ({
 
         {/* Top States */}
         <Card>
-          <CardHeader className="pb-4">
+          <CardHeader>
             <CardTitle className="text-lg font-semibold flex items-center space-x-2">
               <MapPin className="w-5 h-5 text-primary" />
               <span>Top States</span>
@@ -433,76 +436,45 @@ export const AttorneyDashboard: React.FC<AttorneyDashboardProps> = ({
       </div>
 
       {/* Top Job Categories */}
-      <Card>
-        <CardHeader className="pb-4">
-          <CardTitle className="text-lg font-semibold flex items-center space-x-2">
-            <Briefcase className="w-5 h-5 text-primary" />
-            <span>Top Job Categories</span>
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {attorneyInfo.topJobCategories.slice(0, 6).map((category, index) => (
-              <div key={category.jobCategory} className="flex items-center justify-between p-4 border border-border rounded-lg hover:bg-muted/20 transition-colors">
-                <div className="flex items-center space-x-3 min-w-0">
-                  <div className="w-8 h-8 bg-chart-3 text-white text-xs font-semibold rounded-full flex items-center justify-center">
-                    {index + 1}
-                  </div>
-                  <div className="min-w-0">
-                    <h4 className="font-medium text-foreground text-sm truncate">{category.jobCategory}</h4>
-                    <p className="text-xs text-muted-foreground">
-                      {category.applications} cases • {category.certificationRate.toFixed(1)}% success
-                    </p>
-                  </div>
-                </div>
-                <div className="text-right flex-shrink-0">
-                  <p className="text-xs font-medium text-foreground">
-                    {category.percentage.toFixed(1)}%
-                  </p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
+      <TopJobCategoriesCard
+        data={attorneyInfo.topJobCategories.map(category => ({
+          jobCategory: category.jobCategory,
+          applications: category.applications,
+          percentage: category.percentage,
+          certificationRate: category.certificationRate,
+          yoyGrowth: category.yoyGrowth,
+          yoyGrowthPercentage: category.yoyGrowthPercentage,
+        }))}
+        showYoYGrowth={true}
+        maxItems={6}
+      />
 
-      {/* Yearly Performance Trends */}
+      {/* Market Trends */}
       {hasTrendData && (
-        <Card>
-          <CardHeader className="pb-4">
-            <CardTitle className="text-lg font-semibold flex items-center space-x-2">
-              <TrendingUp className="w-5 h-5 text-primary" />
-              <span>Yearly Performance Trends</span>
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {attorneyInfo.yearlyTrends.map((trend) => (
-                <div key={trend.fiscalYear} className="p-4 border border-border rounded-lg">
-                  <div className="flex items-center justify-between mb-2">
-                    <h4 className="font-semibold text-foreground">FY {trend.fiscalYear}</h4>
-                    <Badge variant="outline" className="text-xs">
-                      {trend.certificationRate.toFixed(1)}% success
-                    </Badge>
-                  </div>
-                  <div className="space-y-1">
-                    <p className="text-sm text-muted-foreground">
-                      <span className="font-medium">{formatNumber(trend.applications)}</span> cases
-                    </p>
-                    <p className="text-sm text-muted-foreground">
-                      <span className="font-medium">{formatNumber(trend.certifiedApplications)}</span> certified
-                    </p>
-                    <p className="text-sm text-muted-foreground">
-                      <span className="font-medium">{formatCurrency(trend.avgSalary)}</span> avg salary
-                    </p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
+        <MarketTrendsCard
+          data={attorneyInfo.yearlyTrends}
+          title="Yearly Performance Trends"
+          showSalary={true}
+          showCertificationRate={true}
+          maxYears={5}
+        />
       )}
       </div>
+
+      {/* Salary Distribution */}
+      {attorneyInfo.salaryDistribution && attorneyInfo.salaryDistribution.length > 0 && (
+        <div className="mt-6">
+          <ReusableSalaryDistribution
+            data={attorneyInfo.salaryDistribution}
+            loading={false}
+            title={`Salary Distribution}`}
+            showTitle={true}
+            height={400}
+            showChartToggle={true}
+            className="h-[500px]"
+          />
+        </div>
+      )}
     </BigQueryErrorBoundary>
   );
 };

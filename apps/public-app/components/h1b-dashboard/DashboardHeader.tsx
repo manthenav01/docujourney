@@ -20,6 +20,7 @@ export const DashboardHeader: React.FC = () => {
     { id: 'employers', label: 'Employers', path: '/h1b-dashboard' },
     { id: 'jobs', label: 'Jobs', path: '/h1b-dashboard' },
     { id: 'locations', label: 'Locations', path: '/h1b-dashboard' },
+    { id: 'attorneys', label: 'Attorneys', path: '/h1b-dashboard' },
   ];
 
   const handleNavigation = (item: NavigationItem) => {
@@ -31,6 +32,7 @@ export const DashboardHeader: React.FC = () => {
     if (pathname.includes('/company/')) {return 'employers';}
     if (pathname.includes('/job/')) {return 'jobs';}
     if (pathname.includes('/city/')) {return 'locations';}
+    if (pathname.includes('/attorney/')) {return 'attorneys';}
     return 'home';
   };
 

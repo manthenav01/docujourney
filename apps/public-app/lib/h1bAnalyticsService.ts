@@ -8,7 +8,7 @@ import {
   H1BCompanyAnalysis, 
   H1BJobAnalysis, 
   H1BCityAnalysis,
-  H1BAggregatedData 
+  H1BAggregatedData, 
 } from './types';
 
 export interface AttorneyPerformanceScore {
@@ -58,7 +58,7 @@ export class H1BAnalyticsService {
       (certificationRateScore * 0.4) +
       (volumeScore * 0.25) +
       (salaryScore * 0.2) +
-      (experienceScore * 0.15)
+      (experienceScore * 0.15),
     );
     
     // Generate description
@@ -96,8 +96,8 @@ export class H1BAnalyticsService {
       const previous = company.yearlyTrends[1];
       const growthRate = (recent.applications - previous.applications) / previous.applications;
       
-      if (growthRate > 0.2) growth = 'growing';
-      else if (growthRate < -0.2) growth = 'declining';
+      if (growthRate > 0.2) {growth = 'growing';}
+      else if (growthRate < -0.2) {growth = 'declining';}
     }
     
     // Salary competitiveness (compared to market average)
@@ -141,8 +141,8 @@ export class H1BAnalyticsService {
       const previous = job.yearlyTrends[1];
       const trendRate = (recent.avgSalary - previous.avgSalary) / previous.avgSalary;
       
-      if (trendRate > 0.05) salaryTrend = 'increasing';
-      else if (trendRate < -0.05) salaryTrend = 'decreasing';
+      if (trendRate > 0.05) {salaryTrend = 'increasing';}
+      else if (trendRate < -0.05) {salaryTrend = 'decreasing';}
     }
     
     // Competition level (inverse of certification rate)
@@ -179,7 +179,7 @@ export class H1BAnalyticsService {
       
       // Extract range bounds
       const rangeMatch = range.range.match(/\$?(\d+)K?(?:\s*-\s*\$?(\d+)K?)?/);
-      if (!rangeMatch) continue;
+      if (!rangeMatch) {continue;}
       
       const lowerBound = parseInt(rangeMatch[1]) * (range.range.includes('K') ? 1000 : 1);
       const upperBound = rangeMatch[2] ? 

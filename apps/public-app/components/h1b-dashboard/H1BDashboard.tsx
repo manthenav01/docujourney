@@ -32,7 +32,7 @@ export const H1BDashboard: React.FC = () => {
   const [dashboardData, setDashboardData] = useState<H1BDashboardData | null>(null);
   const [filters, setFilters] = useState<FilterState>({
     searchQuery: '', // Keep this for search functionality
-    fiscalYear: '2024', // Default to current year
+    fiscalYear: '2025', // Default to current year
     salaryRange: [0, 500000],
     states: [],
     cities: [],
@@ -105,7 +105,7 @@ export const H1BDashboard: React.FC = () => {
   }, [dashboardData]);
 
   // Memoize the fetchH1BData function using stable filter dependencies
-  const fetchH1BData = useCallback(async () => {
+  const fetchH1BData = useCallback(async (selectedYear?: string) => {
     try {
       setChartsLoading(true);
       setLoadingError(null); // Clear any previous errors
@@ -113,8 +113,10 @@ export const H1BDashboard: React.FC = () => {
       // Build query parameters
       const params = new URLSearchParams();
       
-      if (filters.fiscalYear) {
-        params.append('fiscalYears', filters.fiscalYear);
+      // Use selectedYear if provided, otherwise fall back to filters.fiscalYear
+      const yearToUse = selectedYear || filters.fiscalYear;
+      if (yearToUse) {
+        params.append('fiscalYears', yearToUse);
       }
       
       if (filters.states.length > 0) {
@@ -316,7 +318,7 @@ export const H1BDashboard: React.FC = () => {
 
         {/* Overview Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8 mb-8">
-        {showInitialLoading ? (
+        {showInitialLoading || chartsLoading ? (
           <>
             <Card className="hover:shadow-md transition-shadow duration-200">
               <CardContent>

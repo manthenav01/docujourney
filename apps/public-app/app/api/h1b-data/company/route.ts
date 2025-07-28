@@ -37,7 +37,7 @@ export async function GET(request: NextRequest): Promise<NextResponse<H1BApiResp
     console.log('Company data fetched successfully:', {
       companyName: companyData.name,
       totalApplications: companyData.totalApplications,
-      queryTime
+      queryTime,
     });
     
     const response: H1BApiResponse<H1BCompanyAnalysis> = {
@@ -54,7 +54,7 @@ export async function GET(request: NextRequest): Promise<NextResponse<H1BApiResp
     console.error('Company API error:', {
       error: error instanceof Error ? error.message : error,
       companyName: new URL(request.url).searchParams.get('name'),
-      queryTime
+      queryTime,
     });
     
     // Handle validation errors with specific status codes

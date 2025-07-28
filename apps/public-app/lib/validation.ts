@@ -7,14 +7,14 @@ import {
   ValidatedCompanyInput, 
   ValidatedJobInput, 
   ValidatedCityInput,
-  H1BServiceError
+  H1BServiceError,
 } from './types/h1b.types';
 
 export class ValidationError extends Error {
   constructor(
     message: string,
     public code: string = 'VALIDATION_ERROR',
-    public field?: string
+    public field?: string,
   ) {
     super(message);
     this.name = 'ValidationError';
@@ -25,7 +25,7 @@ export class ValidationError extends Error {
  * Sanitize string input by trimming, removing null bytes, and limiting length
  */
 export function sanitizeString(input: string | null | undefined, maxLength: number = 100): string {
-  if (!input) return '';
+  if (!input) {return '';}
   
   return input
     .toString()
@@ -60,7 +60,7 @@ export function validateAttorneyName(name: string | null | undefined): string {
  * Validate law firm name input
  */
 export function validateLawFirmName(firm: string | null | undefined): string | undefined {
-  if (!firm) return undefined;
+  if (!firm) {return undefined;}
   
   const sanitized = sanitizeString(firm, 150);
   
@@ -177,7 +177,7 @@ export function validateStateName(state: string | null | undefined): string {
  */
 export function validateAttorneyInput(
   name: string | null | undefined,
-  firm?: string | null | undefined
+  firm?: string | null | undefined,
 ): ValidatedAttorneyInput {
   try {
     const attorneyName = validateAttorneyName(name);
@@ -227,7 +227,7 @@ export function validateJobInput(title: string | null | undefined): ValidatedJob
  */
 export function validateCityInput(
   city: string | null | undefined,
-  state: string | null | undefined
+  state: string | null | undefined,
 ): ValidatedCityInput {
   try {
     const cityName = validateCityName(city);
@@ -246,7 +246,7 @@ export function validateCityInput(
  */
 export function createServiceError(
   error: ValidationError | Error,
-  code?: string
+  code?: string,
 ): H1BServiceError {
   if (error instanceof ValidationError) {
     return {

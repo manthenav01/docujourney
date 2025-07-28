@@ -114,6 +114,16 @@ export const CompanyDashboard: React.FC<CompanyDashboardProps> = ({
     }).format(amount);
   };
 
+  const formatCompactCurrency = (amount: number) => {
+    if (amount >= 1000000) {
+      return `$${(amount / 1000000).toFixed(1)}M`;
+    }
+    if (amount >= 1000) {
+      return `$${(amount / 1000).toFixed(0)}K`;
+    }
+    return `$${amount}`;
+  };
+
   const formatNumber = (num: number) => {
     return new Intl.NumberFormat('en-US').format(num);
   };
@@ -269,7 +279,7 @@ export const CompanyDashboard: React.FC<CompanyDashboardProps> = ({
             <h3 className="text-gray-600 text-sm font-medium mb-1">Salary Range</h3>
             <p className="text-3xl font-bold text-gray-900">
               {hasFinancialData && companyInfo.minSalary > 0 && companyInfo.maxSalary > 0
-                ? `${formatCurrency(companyInfo.minSalary)} - ${formatCurrency(companyInfo.maxSalary)}`
+                ? `${formatCompactCurrency(companyInfo.minSalary)} - ${formatCompactCurrency(companyInfo.maxSalary)}`
                 : 'N/A'
               }
             </p>
