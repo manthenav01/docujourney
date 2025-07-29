@@ -5,8 +5,7 @@ import { ValidationError, createServiceError } from '@/lib/validation';
 import { cacheService } from '@/lib/cacheService';
 import { environment } from '@/lib/config';
 
-// Initialize BigQuery service with environment-aware configuration
-const bigQueryService = createH1BBigQueryService();
+// BigQuery service will be initialized lazily to avoid build-time errors
 
 export async function GET(
   request: NextRequest,
@@ -14,6 +13,9 @@ export async function GET(
   const startTime = Date.now();
   
   try {
+    // Initialize BigQuery service at runtime
+    const bigQueryService = createH1BBigQueryService();
+    
     const { searchParams } = new URL(request.url);
     
     // Check if this is a filter options request
@@ -80,6 +82,7 @@ export async function GET(
     const queryTime = Date.now() - startTime;
     console.error('H1B data API error:', {
       error: error instanceof Error ? error.message : error,
+      stack: error instanceof Error ? error.stack : undefined,
       requestType: new URL(request.url).searchParams.get('type') || 'dashboard',
       queryTime,
     });

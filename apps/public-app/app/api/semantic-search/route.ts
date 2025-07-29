@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createH1BBigQueryService } from '@/lib/h1bBigQueryService';
 
-// Initialize services with environment-aware configuration
-const bigQueryService = createH1BBigQueryService();
+// BigQuery service will be initialized lazily to avoid build-time errors
 
 
 export async function GET(request: NextRequest) {
@@ -40,6 +39,8 @@ async function handleAutocomplete(searchParams: URLSearchParams) {
   }
   
   try {
+    // Initialize BigQuery service at runtime
+    const bigQueryService = createH1BBigQueryService();
     const suggestions = await bigQueryService.getSearchSuggestions(partialQuery, limit);
     
     return NextResponse.json({

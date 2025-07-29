@@ -1,0 +1,46 @@
+# Ignore data files
+scripts/data/
+*.xlsx
+*.csv
+*.zip
+*.tar.gz
+
+# Ignore Python files
+*.py
+*.pyc
+__pycache__/
+.venv/
+*.egg-info/
+
+# Ignore service account keys
+serviceAccountKey.json
+serviceAccountKey-test.json
+serviceAccountKey-prod.json
+firebase-admin-test.json
+firebase-admin-prod.json
+
+# Ignore deployment preparation files
+.vercel-env-test
+.vercel-credentials-test
+
+# Ignore documentation and setup files
+*.md
+docs/
+
+# Ignore test files
+*.test.ts
+*.test.tsx
+*.spec.ts
+*.spec.tsx
+
+# Ignore git files
+.git
+.gitignore
+
+# Ignore IDE files
+.vscode/
+.idea/
+
+# Ignore OS files
+.DS_Store
+Thumbs.db

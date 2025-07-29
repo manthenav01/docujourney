@@ -3,13 +3,15 @@ import { createH1BBigQueryService } from '@/lib/h1bBigQueryService';
 import { ValidationError, createServiceError } from '@/lib/validation';
 import { H1BApiResponse, H1BCityAnalysis } from '@/lib/types';
 
-// Initialize BigQuery service with environment-aware configuration
-const bigQueryService = createH1BBigQueryService();
+// BigQuery service will be initialized lazily to avoid build-time errors
 
 export async function GET(request: NextRequest): Promise<NextResponse<H1BApiResponse<H1BCityAnalysis>>> {
   const startTime = Date.now();
   
   try {
+    // Initialize BigQuery service at runtime
+    const bigQueryService = createH1BBigQueryService();
+    
     const { searchParams } = new URL(request.url);
     const cityName = searchParams.get('city');
     const stateName = searchParams.get('state');

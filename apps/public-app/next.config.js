@@ -1,9 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   transpilePackages: ['@docujourney/ui', '@docujourney/utils'],
-  experimental: {
-    optimizeCss: true,
-  },
   headers: async () => {
     return [
       {

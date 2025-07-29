@@ -1,24 +1,6 @@
 {
-  "version": 2,
-  "builds": [
-    {
-      "src": "apps/public-app/package.json",
-      "use": "@vercel/next"
-    }
-  ],
-  "routes": [
-    {
-      "src": "/(.*)",
-      "dest": "apps/public-app/$1"
-    }
-  ],
-  "installCommand": "npm install",
-  "buildCommand": "npm run build:public",
+  "buildCommand": "cd apps/public-app && npm run build",
   "outputDirectory": "apps/public-app/.next",
-  "framework": "nextjs",
-  "functions": {
-    "apps/public-app/app/api/**/*.ts": {
-      "maxDuration": 30
-    }
-  }
+  "installCommand": "npm install",
+  "framework": "nextjs"
 }

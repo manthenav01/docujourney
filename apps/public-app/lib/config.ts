@@ -45,9 +45,9 @@ function getBigQueryCredentials() {
   
   if (projectId && privateKey && clientEmail) {
     return {
-      project_id: projectId,
-      private_key: privateKey.replace(/\\n/g, '\n'),
-      client_email: clientEmail,
+      project_id: projectId.trim(),
+      private_key: privateKey.replace(/\\n/g, '\n').trim(),
+      client_email: clientEmail.trim(),
       type: 'service_account',
     };
   }
@@ -56,6 +56,12 @@ function getBigQueryCredentials() {
   if (process.env.NODE_ENV === 'development') {
     console.warn('Using Application Default Credentials for BigQuery in development');
     return undefined; // Will use ADC
+  }
+  
+  // During build time, return null to avoid build errors
+  if (process.env.NODE_ENV === undefined || process.env.VERCEL_ENV === undefined) {
+    console.warn('BigQuery credentials not available during build time');
+    return null; // Will be initialized at runtime
   }
   
   throw new Error('BigQuery credentials not configured properly');
@@ -90,18 +96,20 @@ export function createConfig(): AppConfig {
   const isTest = environment === 'test';
   
   // Environment-specific defaults
-  const defaultDatasetId = isTest ? 'h1b_data_test' : 'h1b_data';
-  const defaultProjectId = isTest ? 'immigrant-central-test' : 
-                           isProd ? 'immigrant-central-prod' : 
-                           process.env.GOOGLE_CLOUD_PROJECT_ID;
+  const defaultDatasetId = 'h1b_data'; // Same dataset name across all environments
+  const defaultProjectId = isDev ? 'doctracker-b4528' :
+                           isTest ? 'immigrant-central-test' : 
+                           'doctracker-prod'; // Placeholder for production project
+  
+  const credentials = getBigQueryCredentials();
   
   return {
     environment,
     bigQuery: {
-      projectId: validateEnvVar('GOOGLE_CLOUD_PROJECT_ID', process.env.GOOGLE_CLOUD_PROJECT_ID || defaultProjectId),
-      credentials: getBigQueryCredentials(),
-      datasetId: process.env.BIGQUERY_DATASET_ID || defaultDatasetId,
-      tableId: process.env.BIGQUERY_TABLE_ID || 'lca_applications',
+      projectId: (process.env.GOOGLE_CLOUD_PROJECT_ID || defaultProjectId).trim(),
+      credentials,
+      datasetId: (process.env.BIGQUERY_DATASET_ID || defaultDatasetId).trim(),
+      tableId: (process.env.BIGQUERY_TABLE_ID || 'lca_applications').trim(),
     },
     isProd,
     isDev,
