@@ -54,6 +54,7 @@ cd apps/public-app && npm run dev
 - **Dataset**: `h1b_data` 
 - **Deployment**: Automatic on PR creation
 - **Data**: 340,770 H1B applications (FY2025 focus)
+- **Vercel Project**: `immigrant-central`
 
 **Vercel Environment Variables:**
 ```bash
@@ -158,7 +159,7 @@ BIGQUERY_TABLE_ID=lca_applications
 
 2. **Verify deployment:**
    ```bash
-   curl -s "https://your-production-url.vercel.app/api/h1b-data" | jq .data.totalApplications
+   curl -s "https://immigrant-central.vercel.app/api/h1b-data" | jq .data.totalApplications
    ```
 
 ## Data Pipeline Process
