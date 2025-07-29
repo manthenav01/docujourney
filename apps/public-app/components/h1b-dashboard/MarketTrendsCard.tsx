@@ -115,7 +115,9 @@ export const MarketTrendsCard: React.FC<MarketTrendsCardProps> = ({
                           year.yoyGrowth >= 0 ? 'text-green-600' : 'text-red-600'
                         }`}>
                           {year.yoyGrowth >= 0 ? '+' : ''}{formatNumber(year.yoyGrowth)} 
-                          ({year.yoyGrowthPercentage >= 0 ? '+' : ''}{year.yoyGrowthPercentage.toFixed(1)}%)
+                          {year.yoyGrowthPercentage !== null && (
+                            <>({year.yoyGrowthPercentage >= 0 ? '+' : ''}{year.yoyGrowthPercentage.toFixed(1)}%)</>
+                          )}
                         </span>
                       </div>
                     )}

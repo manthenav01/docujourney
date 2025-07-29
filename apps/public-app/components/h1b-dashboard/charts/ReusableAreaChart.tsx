@@ -9,9 +9,6 @@ import {
   Tooltip,
   XAxis,
   YAxis,
-  defs,
-  linearGradient,
-  stop,
 } from 'recharts';
 import { salaryDistributionColors, generateHSLColor } from '../../../lib/chartColors';
 
@@ -214,12 +211,8 @@ const ReusableAreaChart: React.FC<ReusableAreaChartProps> = ({
               strokeWidth: 3,
               style: { 
                 filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.1))',
-                cursor: 'pointer',
+                cursor: onPointClick ? 'pointer' : 'default',
               },
-            }}
-            onClick={onPointClick}
-            style={{
-              transition: 'all 0.3s ease',
             }}
           />
         </AreaChart>

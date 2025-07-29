@@ -122,7 +122,7 @@ const TopJobTitlesCardComponent: React.FC<TopJobTitlesCardProps> = ({ data, load
                       <span className="text-xs text-muted-foreground">
                         {item.percentage.toFixed(1)}%
                       </span>
-                      {showYoYGrowth && item.yoyGrowth !== null && item.yoyGrowthPercentage !== null && (
+                      {showYoYGrowth && item.yoyGrowth !== null && item.yoyGrowth !== undefined && item.yoyGrowthPercentage !== null && item.yoyGrowthPercentage !== undefined && (
                         <>
                           <span className="text-xs text-muted-foreground/60">•</span>
                           <div className="flex items-center gap-1">

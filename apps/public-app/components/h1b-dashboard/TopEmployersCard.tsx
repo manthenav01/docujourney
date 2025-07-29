@@ -133,7 +133,7 @@ const TopEmployersCardComponent: React.FC<TopEmployersCardProps> = ({
                           </span>
                         </>
                       )}
-                      {showYoYGrowth && item.yoyGrowth !== null && item.yoyGrowthPercentage !== null && (
+                      {showYoYGrowth && item.yoyGrowth !== null && item.yoyGrowth !== undefined && item.yoyGrowthPercentage !== null && item.yoyGrowthPercentage !== undefined && (
                         <>
                           <span className="text-xs text-muted-foreground/60">•</span>
                           <div className="flex items-center gap-1">

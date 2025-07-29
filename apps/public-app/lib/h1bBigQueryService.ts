@@ -12,12 +12,21 @@ import {
   BigQueryAttorneyRow,
 } from './types';
 import { validateAttorneyInput, ValidationError } from './validation';
+import { bigQueryConfig, environment } from './config';
 
 interface BigQueryConfig {
   projectId: string;
-  keyFilename: string;
+  credentials?: any;
+  keyFilename?: string;
   datasetId?: string;
   tableId?: string;
+}
+
+/**
+ * Create a BigQuery service instance with environment-aware configuration
+ */
+export function createH1BBigQueryService(overrides?: Partial<BigQueryConfig>): H1BBigQueryService {
+  return new H1BBigQueryService(overrides);
 }
 
 export class H1BBigQueryService {
@@ -26,14 +35,44 @@ export class H1BBigQueryService {
   private datasetId: string;
   private tableId: string;
 
-  constructor(config: BigQueryConfig) {
-    this.projectId = config.projectId;
-    this.datasetId = config.datasetId || 'h1b_data';
-    this.tableId = config.tableId || 'lca_applications';
-    this.bigquery = new BigQuery({
-      projectId: config.projectId,
-      keyFilename: config.keyFilename,
-    });
+  constructor(config?: Partial<BigQueryConfig>) {
+    // Use environment-aware config as defaults
+    const finalConfig = {
+      projectId: config?.projectId || bigQueryConfig.projectId,
+      datasetId: config?.datasetId || bigQueryConfig.datasetId,
+      tableId: config?.tableId || bigQueryConfig.tableId,
+      credentials: config?.credentials || bigQueryConfig.credentials,
+      keyFilename: config?.keyFilename,
+    };
+
+    this.projectId = finalConfig.projectId;
+    this.datasetId = finalConfig.datasetId;
+    this.tableId = finalConfig.tableId;
+
+    // Initialize BigQuery client
+    const bigQueryOptions: any = {
+      projectId: finalConfig.projectId,
+    };
+
+    // Use credentials or keyFilename based on what's available
+    if (finalConfig.credentials) {
+      bigQueryOptions.credentials = finalConfig.credentials;
+    } else if (finalConfig.keyFilename) {
+      bigQueryOptions.keyFilename = finalConfig.keyFilename;
+    }
+
+    this.bigquery = new BigQuery(bigQueryOptions);
+
+    // Log configuration in non-production environments
+    if (environment !== 'production') {
+      console.log(`🔧 BigQuery Service initialized for ${environment}:`, {
+        projectId: this.projectId,
+        datasetId: this.datasetId,
+        tableId: this.tableId,
+        hasCredentials: !!finalConfig.credentials,
+        hasKeyFile: !!finalConfig.keyFilename,
+      });
+    }
   }
 
   /**

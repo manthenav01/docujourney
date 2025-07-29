@@ -102,6 +102,16 @@ export const AttorneyDashboard: React.FC<AttorneyDashboardProps> = ({
     return new Intl.NumberFormat('en-US').format(num);
   };
 
+  const handleBackClick = () => {
+    // Navigate back to the main dashboard or search
+    if (typeof window !== 'undefined' && window.history.length > 1) {
+      window.history.back();
+    } else {
+      // Fallback to main dashboard
+      window.location.href = '/h1b-dashboard';
+    }
+  };
+
   if (loading) {
     return (
       <div className="max-w-7xl mx-auto space-y-6">

@@ -106,7 +106,7 @@ const TopJobCategoriesCardComponent: React.FC<TopJobCategoriesCardProps> = ({
                     <p className="text-xs text-muted-foreground">
                       {category.applications} cases • {category.certificationRate.toFixed(1)}% success
                     </p>
-                    {showYoYGrowth && category.yoyGrowth !== null && category.yoyGrowthPercentage !== null && (
+                    {showYoYGrowth && category.yoyGrowth !== null && category.yoyGrowth !== undefined && category.yoyGrowthPercentage !== null && category.yoyGrowthPercentage !== undefined && (
                       <>
                         <span className="text-xs text-muted-foreground/60">•</span>
                         <div className="flex items-center gap-1">

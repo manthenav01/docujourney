@@ -12,8 +12,10 @@ export interface BigQueryConfig {
 
 export interface AppConfig {
   bigQuery: BigQueryConfig;
+  environment: 'development' | 'test' | 'production';
   isProd: boolean;
   isDev: boolean;
+  isTest: boolean;
 }
 
 // Validate required environment variables
@@ -59,20 +61,51 @@ function getBigQueryCredentials() {
   throw new Error('BigQuery credentials not configured properly');
 }
 
+// Determine environment
+function getEnvironment(): 'development' | 'test' | 'production' {
+  // Check Vercel environment first
+  if (process.env.VERCEL_ENV === 'production') {
+    return 'production';
+  }
+  if (process.env.VERCEL_ENV === 'preview') {
+    return 'test';
+  }
+  
+  // Fallback to NODE_ENV
+  if (process.env.NODE_ENV === 'production') {
+    return 'production';
+  }
+  if (process.env.NODE_ENV === 'test') {
+    return 'test';
+  }
+  
+  return 'development';
+}
+
 // Create configuration object
 export function createConfig(): AppConfig {
-  const isProd = process.env.NODE_ENV === 'production';
-  const isDev = process.env.NODE_ENV === 'development';
+  const environment = getEnvironment();
+  const isProd = environment === 'production';
+  const isDev = environment === 'development';
+  const isTest = environment === 'test';
+  
+  // Environment-specific defaults
+  const defaultDatasetId = isTest ? 'h1b_data_test' : 'h1b_data';
+  const defaultProjectId = isTest ? 'immigrant-central-test' : 
+                           isProd ? 'immigrant-central-prod' : 
+                           process.env.GOOGLE_CLOUD_PROJECT_ID;
   
   return {
+    environment,
     bigQuery: {
-      projectId: validateEnvVar('GOOGLE_CLOUD_PROJECT_ID', process.env.GOOGLE_CLOUD_PROJECT_ID),
+      projectId: validateEnvVar('GOOGLE_CLOUD_PROJECT_ID', process.env.GOOGLE_CLOUD_PROJECT_ID || defaultProjectId),
       credentials: getBigQueryCredentials(),
-      datasetId: process.env.BIGQUERY_DATASET_ID || 'h1b_data',
+      datasetId: process.env.BIGQUERY_DATASET_ID || defaultDatasetId,
       tableId: process.env.BIGQUERY_TABLE_ID || 'lca_applications',
     },
     isProd,
     isDev,
+    isTest,
   };
 }
 
@@ -83,3 +116,5 @@ export const config = createConfig();
 export const bigQueryConfig = config.bigQuery;
 export const isProduction = config.isProd;
 export const isDevelopment = config.isDev;
+export const isTest = config.isTest;
+export const environment = config.environment;

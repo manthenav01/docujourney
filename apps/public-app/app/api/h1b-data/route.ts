@@ -1,17 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { H1BBigQueryService } from '@/lib/h1bBigQueryService';
+import { createH1BBigQueryService } from '@/lib/h1bBigQueryService';
 import { H1BQueryFilters, H1BApiResponse, H1BAggregatedData, H1BFilterOptions } from '@/lib/types';
 import { ValidationError, createServiceError } from '@/lib/validation';
 import { cacheService } from '@/lib/cacheService';
-import path from 'path';
+import { environment } from '@/lib/config';
 
-// Initialize BigQuery service with secure configuration
-const bigQueryService = new H1BBigQueryService({
-  projectId: 'doctracker-b4528',
-  keyFilename: path.join(process.cwd(), '../../serviceAccountKey.json'),
-  datasetId: 'h1b_data',
-  tableId: 'lca_applications',
-});
+// Initialize BigQuery service with environment-aware configuration
+const bigQueryService = createH1BBigQueryService();
 
 export async function GET(
   request: NextRequest,

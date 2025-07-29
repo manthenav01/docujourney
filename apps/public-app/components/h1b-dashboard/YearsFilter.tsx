@@ -23,7 +23,7 @@ export const YearsFilter: React.FC<YearsFilterProps> = ({
   // Create dropdown options
   const dropdownOptions: DropdownOption[] = availableYears.map(year => ({
     value: year,
-    label: `FY ${year}`
+    label: `FY ${year}`,
   }));
 
   const handleYearChange = (value: string) => {

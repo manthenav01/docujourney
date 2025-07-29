@@ -1,14 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { H1BBigQueryService } from '@/lib/h1bBigQueryService';
-import path from 'path';
+import { createH1BBigQueryService } from '@/lib/h1bBigQueryService';
 
-// Initialize services
-const bigQueryService = new H1BBigQueryService({
-  projectId: 'doctracker-b4528',
-  keyFilename: path.join(process.cwd(), '../../serviceAccountKey.json'),
-  datasetId: 'h1b_data',
-  tableId: 'lca_applications',
-});
+// Initialize services with environment-aware configuration
+const bigQueryService = createH1BBigQueryService();
 
 
 export async function GET(request: NextRequest) {
