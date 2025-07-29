@@ -13,7 +13,7 @@ export const metadata: Metadata = generateMetadata({
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en">
+    <html lang="en" style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}>
       <head>
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <meta name="theme-color" content="#0891b2" />
@@ -25,8 +25,16 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         
-        {/* Inter font for modern typography */}
-        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+        {/* Inter font for modern typography - load asynchronously to avoid build issues */}
+        <link 
+          href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" 
+          rel="stylesheet" 
+          media="print" 
+          onLoad={(e) => { (e.target as HTMLLinkElement).media = 'all'; }}
+        />
+        <noscript>
+          <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+        </noscript>
         
         {/* JSON-LD Structured Data */}
         <script

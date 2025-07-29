@@ -36,6 +36,7 @@ module.exports = [
       // Next.js specific adjustments
       '@next/next/no-html-link-for-pages': 'off',
       '@next/next/no-img-element': 'warn',
+      '@next/next/no-page-custom-font': 'off', // Disabled - we're using app directory, not pages
       
       // React hooks - be careful with these to not break functionality
       'react-hooks/exhaustive-deps': 'off', // Disabled to avoid breaking existing functionality

@@ -159,7 +159,7 @@ export function BigQueryErrorBoundary({
             Data Temporarily Unavailable
           </h3>
           <p className="text-sm text-gray-600">
-            We're having trouble loading the H1B data. Please try refreshing the page.
+            We&apos;re having trouble loading the H1B data. Please try refreshing the page.
           </p>
         </div>
 
