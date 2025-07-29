@@ -10,6 +10,13 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
+# Service account keys - NEVER commit these!
+serviceAccountKey.json
+serviceAccountKey-test.json
+serviceAccountKey-prod.json
+firebase-admin-test.json
+firebase-admin-prod.json
+
 # Firebase Functions
 functions/lib/
 functions/node_modules/
@@ -30,3 +37,7 @@ scripts/data/
 __pycache__/
 *.py[cod]
 *$py.class
+# Vercel deployment files
+.vercel-env-test
+.vercel-credentials-test
+.vercel
