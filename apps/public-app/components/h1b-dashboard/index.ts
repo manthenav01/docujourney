@@ -2,6 +2,7 @@ export { H1BDashboard } from './H1BDashboard';
 export { DashboardSidebar } from './DashboardSidebar';
 export { DashboardLayout } from './DashboardLayout';
 export { DashboardHeader } from './DashboardHeader';
+export { DashboardFooter } from './DashboardFooter';
 export { DashboardHero } from './DashboardHero';
 export { ImmigrantCentralLogo } from './ImmigrantCentralLogo';
 export { SearchAndFilters } from './SearchAndFilters';

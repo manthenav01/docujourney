@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
 import { Badge, Button, Card, CardContent, CardHeader, CardTitle } from '@docujourney/ui';
 import { CHART_COLOR_ARRAYS, getChartColor, getSalaryRangeColor } from '../../lib/chartColors';
 import { ReusableProgressChart, ReusableActivityChart, type ProgressChartData, type ActivityChartData } from './charts';
@@ -11,7 +10,6 @@ import { BigQueryErrorBoundary } from './ErrorBoundary';
 import { MarketTrendsCard } from './MarketTrendsCard';
 import { TopJobCategoriesCard } from './TopJobCategoriesCard';
 import { 
-  ArrowLeft, 
   Scale, 
   MapPin, 
   Users, 
@@ -46,7 +44,6 @@ export const AttorneyDashboard: React.FC<AttorneyDashboardProps> = ({
   attorneyName,
   lawFirm,
 }) => {
-  const router = useRouter();
   const [attorneyInfo, setAttorneyInfo] = useState<AttorneyInfo | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -92,10 +89,6 @@ export const AttorneyDashboard: React.FC<AttorneyDashboardProps> = ({
     }
   };
 
-  const handleBackClick = () => {
-    router.push('/h1b-dashboard');
-  };
-
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
@@ -113,15 +106,6 @@ export const AttorneyDashboard: React.FC<AttorneyDashboardProps> = ({
     return (
       <div className="max-w-7xl mx-auto space-y-6">
         <div className="mb-6">
-          <Button 
-            onClick={handleBackClick}
-            variant="outline" 
-            className="mb-4"
-          >
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Back to Dashboard
-          </Button>
-          
           {/* Header Skeleton */}
           <div className="flex items-center space-x-4">
             <div className="p-3 bg-muted/30 rounded-xl animate-pulse">
@@ -218,17 +202,6 @@ export const AttorneyDashboard: React.FC<AttorneyDashboardProps> = ({
   if (error) {
     return (
       <div className="max-w-7xl mx-auto">
-        <div className="mb-6">
-          <Button 
-            onClick={handleBackClick}
-            variant="outline" 
-            className="mb-4"
-          >
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Back to Dashboard
-          </Button>
-        </div>
-        
         <Card className="max-w-lg mx-auto">
           <CardContent className="p-6 text-center">
             <div className="w-16 h-16 mx-auto mb-4 p-4 bg-destructive/10 rounded-full">
@@ -270,15 +243,6 @@ export const AttorneyDashboard: React.FC<AttorneyDashboardProps> = ({
       <div className="max-w-7xl mx-auto space-y-6">
     {/* Header */}
     <div className="mb-6">
-      <Button 
-        onClick={handleBackClick}
-        variant="outline" 
-        className="mb-4"
-      >
-        <ArrowLeft className="w-4 h-4 mr-2" />
-          Back to Dashboard
-        </Button>
-        
         <div className="flex items-center space-x-4">
           <div className="p-3 bg-primary/10 rounded-xl">
             <Scale className="w-8 h-8 text-primary" />
@@ -449,32 +413,33 @@ export const AttorneyDashboard: React.FC<AttorneyDashboardProps> = ({
         maxItems={6}
       />
 
-      {/* Market Trends */}
-      {hasTrendData && (
-        <MarketTrendsCard
-          data={attorneyInfo.yearlyTrends}
-          title="Yearly Performance Trends"
-          showSalary={true}
-          showCertificationRate={true}
-          maxYears={5}
-        />
-      )}
-      </div>
+      {/* Market Trends and Salary Distribution */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Market Trends */}
+        {hasTrendData && (
+          <MarketTrendsCard
+            data={attorneyInfo.yearlyTrends}
+            title="Yearly Performance Trends"
+            showSalary={true}
+            showCertificationRate={true}
+            maxYears={5}
+          />
+        )}
 
-      {/* Salary Distribution */}
-      {attorneyInfo.salaryDistribution && attorneyInfo.salaryDistribution.length > 0 && (
-        <div className="mt-6">
+        {/* Salary Distribution */}
+        {attorneyInfo.salaryDistribution && attorneyInfo.salaryDistribution.length > 0 && (
           <ReusableSalaryDistribution
             data={attorneyInfo.salaryDistribution}
             loading={false}
-            title={`Salary Distribution}`}
+            title={`Salary Distribution`}
             showTitle={true}
             height={400}
             showChartToggle={true}
             className="h-[500px]"
           />
-        </div>
-      )}
+        )}
+      </div>
+      </div>
     </BigQueryErrorBoundary>
   );
 };

@@ -62,6 +62,8 @@ export interface H1BJobTitleDistribution {
   applications: number;
   avgSalary: number;
   percentage: number;
+  yoyGrowth?: number | null;
+  yoyGrowthPercentage?: number | null;
 }
 
 export interface H1BIndustryDistribution {

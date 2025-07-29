@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { DashboardHeader } from './DashboardHeader';
+import { DashboardFooter } from './DashboardFooter';
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
@@ -9,13 +10,15 @@ interface DashboardLayoutProps {
 
 export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 flex flex-col">
       <DashboardHeader />
       
       {/* Main Content */}
-      <main>
+      <main className="flex-1">
         {children}
       </main>
+      
+      <DashboardFooter />
     </div>
   );
 };

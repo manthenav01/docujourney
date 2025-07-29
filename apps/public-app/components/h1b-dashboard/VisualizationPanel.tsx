@@ -53,6 +53,8 @@ const VisualizationPanelComponent: React.FC<VisualizationPanelProps> = ({
       applications: item.applications,
       avgSalary: item.avgSalary,
       percentage: item.percentage,
+      yoyGrowth: item.yoyGrowth,
+      yoyGrowthPercentage: item.yoyGrowthPercentage,
     }));
   }, [dashboardData.jobTitleDistribution]);
 
@@ -119,6 +121,7 @@ const VisualizationPanelComponent: React.FC<VisualizationPanelProps> = ({
         <TopJobTitlesCard 
           data={jobTitleDistributionData}
           loading={chartsLoading}
+          showYoYGrowth={true}
         />
         <TopAttorneysCard 
           data={dashboardData.topAttorneys || []}

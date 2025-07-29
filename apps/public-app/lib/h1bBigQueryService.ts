@@ -319,16 +319,41 @@ export class H1BBigQueryService {
     `;
 
     const jobTitleDistQuery = `
-      WITH job_stats AS (
+      WITH job_title_yearly AS (
         SELECT 
           job_title,
+          CAST(CASE 
+            WHEN EXTRACT(MONTH FROM received_date) >= 10 
+            THEN EXTRACT(YEAR FROM received_date) + 1
+            ELSE EXTRACT(YEAR FROM received_date)
+          END AS STRING) as fiscal_year,
           COUNT(*) as applications,
           AVG(CASE WHEN case_status = 'Certified' THEN wage_rate_of_pay_from END) as avg_salary
         FROM \`${this.projectId}.${this.datasetId}.${this.tableId}\`
         ${whereClause}
         AND job_title IS NOT NULL
+        AND received_date IS NOT NULL
+        GROUP BY job_title, fiscal_year
+      ),
+      job_title_growth AS (
+        SELECT 
+          job_title,
+          SUM(applications) as total_applications,
+          AVG(avg_salary) as avg_salary,
+          MAX(CASE WHEN fiscal_year = '2025' THEN applications END) as current_year_apps,
+          MAX(CASE WHEN fiscal_year = '2024' THEN applications END) as previous_year_apps
+        FROM job_title_yearly
         GROUP BY job_title
-        ORDER BY applications DESC
+      ),
+      job_stats AS (
+        SELECT 
+          job_title,
+          total_applications as applications,
+          avg_salary,
+          current_year_apps,
+          previous_year_apps
+        FROM job_title_growth
+        ORDER BY total_applications DESC
         LIMIT 15
       ),
       total_count AS (
@@ -341,7 +366,9 @@ export class H1BBigQueryService {
         job_title,
         applications,
         avg_salary,
-        ROUND(applications * 100.0 / total_count.total_applications, 2) as percentage
+        ROUND(applications * 100.0 / total_count.total_applications, 2) as percentage,
+        current_year_apps,
+        previous_year_apps
       FROM job_stats
       CROSS JOIN total_count
       ORDER BY applications DESC
@@ -492,12 +519,20 @@ export class H1BBigQueryService {
         applications: mostAppliedJobData.applications || 0,
       };
 
-      const jobTitleDistribution = jobTitleDistResults.map((row: any) => ({
-        jobTitle: row.job_title,
-        applications: row.applications || 0,
-        avgSalary: Math.round(row.avg_salary || 0),
-        percentage: row.percentage || 0,
-      }));
+      const jobTitleDistribution = jobTitleDistResults.map((row: any) => {
+        const currentYear = Number(row.current_year_apps) || null;
+        const previousYear = Number(row.previous_year_apps) || null;
+        const yoyData = this.calculateYoYGrowth(currentYear, previousYear);
+        
+        return {
+          jobTitle: row.job_title,
+          applications: row.applications || 0,
+          avgSalary: Math.round(row.avg_salary || 0),
+          percentage: row.percentage || 0,
+          yoyGrowth: yoyData.yoyGrowth,
+          yoyGrowthPercentage: yoyData.yoyGrowthPercentage,
+        };
+      });
 
       const industryDistribution = industryDistResults.map((row: any) => ({
         industry: row.industry,

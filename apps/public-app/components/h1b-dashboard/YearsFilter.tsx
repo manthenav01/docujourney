@@ -3,13 +3,7 @@
 import React from 'react';
 import { Calendar } from 'lucide-react';
 import { FilterState } from './types';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@docujourney/ui';
+import { CustomDropdown, type DropdownOption } from './CustomDropdown';
 
 interface YearsFilterProps {
   filters: FilterState;
@@ -25,6 +19,12 @@ export const YearsFilter: React.FC<YearsFilterProps> = ({
   // Generate available years from 2020 to 2025
   const availableYears = ['2025', '2024', '2023', '2022', '2021', '2020'];
   const defaultYear = '2025';
+
+  // Create dropdown options
+  const dropdownOptions: DropdownOption[] = availableYears.map(year => ({
+    value: year,
+    label: `FY ${year}`
+  }));
 
   const handleYearChange = (value: string) => {
     setFilters(prev => ({
@@ -44,21 +44,13 @@ export const YearsFilter: React.FC<YearsFilterProps> = ({
           <span className="text-sm font-medium text-foreground">Fiscal Year:</span>
         </div>
 
-        <Select
+        <CustomDropdown
+          options={dropdownOptions}
           value={filters.fiscalYear || defaultYear}
-          onValueChange={handleYearChange}
-        >
-          <SelectTrigger className="w-[120px]">
-            <SelectValue placeholder="Select year" />
-          </SelectTrigger>
-          <SelectContent>
-            {availableYears.map((year) => (
-              <SelectItem key={year} value={year}>
-                FY {year}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+          onChange={handleYearChange}
+          placeholder="Select year"
+          className="w-[120px]"
+        />
 
         <div className="text-xs text-muted-foreground">
           {filters.fiscalYear ? `Showing data for FY ${filters.fiscalYear}` : `Showing data for FY ${defaultYear}`}
