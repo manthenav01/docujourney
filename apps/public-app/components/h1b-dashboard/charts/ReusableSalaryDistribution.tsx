@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle, Button } from '@docujourney/u
 import ReusableAreaChart from './ReusableAreaChart';
 import { AreaChart, BarChart3, DollarSign } from 'lucide-react';
 import { salaryDistributionColors, getSalaryRangeColor } from '../../../lib/chartColors';
+import { useResponsiveChart } from '../../../hooks/useResponsiveChart';
 
 /**
  * Standard salary distribution data interface
@@ -159,6 +160,16 @@ const ReusableSalaryDistributionComponent: React.FC<ReusableSalaryDistributionPr
 }) => {
   const [chartType, setChartType] = useState<'area' | 'bar'>(defaultChartType);
 
+  // Memoize responsive chart config to prevent infinite re-renders
+  const responsiveConfig = useMemo(() => ({
+    defaultHeight: height,
+    defaultMargin: { top: 40, right: 40, bottom: 80, left: 80 },
+    mobileHeight: Math.min(height * 0.7, 250),
+  }), [height]);
+
+  // Responsive dimensions
+  const { height: responsiveHeight } = useResponsiveChart(responsiveConfig);
+
   // Process and memoize the salary data
   const processedData = useMemo(() => processSalaryData(data), [data]);
 
@@ -195,7 +206,7 @@ const ReusableSalaryDistributionComponent: React.FC<ReusableSalaryDistributionPr
           {chartType === 'area' ? (
             <ReusableAreaChart
               data={[]}
-              height={height}
+              height={responsiveHeight}
               loading={true}
             />
           ) : (
@@ -248,11 +259,11 @@ const ReusableSalaryDistributionComponent: React.FC<ReusableSalaryDistributionPr
 
   // Main component render
   return (
-    <Card className={`h-[${height + 100}px] ${className}`}>
+    <Card className={`w-full chart-card ${className}`}>
       {showTitle && (
-        <CardHeader className={`flex flex-row items-center justify-between ${compactSpacing ? 'pb-4' : ''}`}>
-          <CardTitle className="text-lg font-semibold flex items-center">
-            <DollarSign className="w-5 h-5 mr-2" />
+        <CardHeader className={`flex flex-row items-center justify-between ${compactSpacing ? 'pb-2 px-3' : 'pb-4'}`}>
+          <CardTitle className="text-base sm:text-lg font-semibold flex items-center">
+            <DollarSign className="w-4 h-4 sm:w-5 sm:h-5 mr-1.5 sm:mr-2" />
             {title}
           </CardTitle>
           {showChartToggle && (
@@ -263,11 +274,11 @@ const ReusableSalaryDistributionComponent: React.FC<ReusableSalaryDistributionPr
           )}
         </CardHeader>
       )}
-      <CardContent className={`h-[${height}px] ${showTitle && compactSpacing ? 'pt-0' : ''}`}>
+      <CardContent className={`${showTitle && compactSpacing ? 'pt-0 px-2 pb-2' : 'p-4'}`}>
         {chartType === 'area' ? (
           <ReusableAreaChart
             data={areaChartData}
-            height={height}
+            height={responsiveHeight}
             curve="monotoneX"
             gradientId="salaryGradient"
           />

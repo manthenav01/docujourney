@@ -3,6 +3,7 @@ import '@docujourney/ui/styles/globals.css';
 import { Toaster } from '@docujourney/ui';
 import { BASE_METADATA, generateMetadata } from '@docujourney/utils';
 import { Metadata } from 'next';
+import { SpeedInsights } from '@vercel/speed-insights/next';
 
 export const metadata: Metadata = generateMetadata({
   title: BASE_METADATA.title,
@@ -50,6 +51,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body>
         {children}
         <Toaster />
+        <SpeedInsights />
       </body>
     </html>
   );

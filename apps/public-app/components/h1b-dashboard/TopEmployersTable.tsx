@@ -123,8 +123,9 @@ export const TopEmployersTable: React.FC<TopEmployersTableProps> = ({ dashboardD
         </CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="overflow-x-auto">
-          <table className="w-full">
+        <div className="relative">
+          <div className="overflow-x-auto scroll-smooth" id="employers-table">
+            <table className="w-full">
             <thead>
               <tr className="border-b border-border">
                 <th className="text-left py-3 px-4 font-medium text-foreground text-sm">Employer</th>
@@ -143,7 +144,7 @@ export const TopEmployersTable: React.FC<TopEmployersTableProps> = ({ dashboardD
                       <div className="space-y-1">
                         <Link 
                           href={`/h1b-dashboard/company/${companySlug}?name=${encodeURIComponent(employer.employer)}`}
-                          className="font-medium text-primary hover:text-primary/80 hover:underline transition-colors block"
+                          className="font-medium text-primary hover:text-primary/80 hover:underline transition-colors block py-1 -my-1 min-h-[44px] flex items-center"
                         >
                           {employer.employer}
                         </Link>
@@ -176,6 +177,15 @@ export const TopEmployersTable: React.FC<TopEmployersTableProps> = ({ dashboardD
               })}
             </tbody>
           </table>
+          </div>
+          
+          {/* Mobile scroll indicator */}
+          <div className="absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-white/90 to-transparent pointer-events-none sm:hidden" />
+          <div className="absolute left-0 bottom-3 right-0 flex justify-center sm:hidden">
+            <div className="bg-gray-800/80 text-white text-xs px-2 py-1 rounded-full opacity-70">
+              ← Scroll to see more →
+            </div>
+          </div>
         </div>
       </CardContent>
     </Card>

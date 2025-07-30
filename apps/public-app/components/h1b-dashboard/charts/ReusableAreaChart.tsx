@@ -11,6 +11,7 @@ import {
   YAxis,
 } from 'recharts';
 import { salaryDistributionColors, generateHSLColor } from '../../../lib/chartColors';
+import { useResponsiveChart } from '../../../hooks/useResponsiveChart';
 
 interface DataPoint {
   name: string;
@@ -28,6 +29,7 @@ interface ReusableAreaChartProps {
   className?: string;
   loading?: boolean;
   onPointClick?: (data: DataPoint) => void;
+  margin?: { top: number; right: number; bottom: number; left: number };
 }
 
 const CustomTooltip = ({ active, payload, label }: any) => {
@@ -99,7 +101,18 @@ const ReusableAreaChart: React.FC<ReusableAreaChartProps> = ({
   className = '',
   loading = false,
   onPointClick,
+  margin,
 }) => {
+  // Memoize responsive chart config to prevent infinite re-renders
+  const responsiveConfig = useMemo(() => ({
+    defaultHeight: height,
+    defaultMargin: margin || { top: 20, right: 30, bottom: 20, left: 0 },
+    mobileHeight: Math.min(height * 0.7, 250),
+  }), [height, margin]);
+
+  // Responsive dimensions
+  const { height: responsiveHeight, margin: responsiveMargin } = useResponsiveChart(responsiveConfig);
+
   const gradientColors = useMemo(() => ({
     start: salaryDistributionColors.gradient.startColor,
     end: salaryDistributionColors.gradient.endColor,
@@ -111,20 +124,15 @@ const ReusableAreaChart: React.FC<ReusableAreaChartProps> = ({
   , [data]);
 
   if (loading) {
-    return <LoadingSkeleton height={height} />;
+    return <LoadingSkeleton height={responsiveHeight} />;
   }
 
   return (
     <div className={`w-full ${className}`}>
-      <ResponsiveContainer width="100%" height={height}>
+      <ResponsiveContainer width="100%" height={responsiveHeight}>
         <AreaChart
           data={data}
-          margin={{
-            top: 20,
-            right: 30,
-            left: 0,
-            bottom: 20,
-          }}
+          margin={responsiveMargin}
         >
           <defs>
             <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
@@ -159,25 +167,26 @@ const ReusableAreaChart: React.FC<ReusableAreaChartProps> = ({
             axisLine={false}
             tickLine={false}
             tick={{
-              fontSize: 12,
+              fontSize: responsiveMargin.bottom > 40 ? 12 : 10,
               fill: salaryDistributionColors.text,
-              fontWeight: 500,
+              fontWeight: responsiveMargin.bottom > 40 ? 500 : 400,
             }}
-            angle={-45}
+            angle={responsiveMargin.bottom > 40 ? -45 : -30}
             textAnchor="end"
-            height={60}
+            height={responsiveMargin.bottom}
           />
 
           <YAxis
             axisLine={false}
             tickLine={false}
             tick={{
-              fontSize: 12,
+              fontSize: 10,
               fill: salaryDistributionColors.text,
-              fontWeight: 500,
+              fontWeight: 400,
             }}
-            tickFormatter={(value) => `${(value / 1000).toFixed(0)}k`}
+            tickFormatter={(value) => value >= 1000 ? `${(value / 1000).toFixed(0)}k` : value}
             domain={[0, maxValue]}
+            width={responsiveMargin.left}
           />
 
           {showTooltip && (

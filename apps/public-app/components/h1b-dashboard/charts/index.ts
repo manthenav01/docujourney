@@ -9,6 +9,7 @@ export { ReusableBarChart, type BarChartData } from './ReusableBarChart';
 export { ReusableActivityChart, type ActivityChartData } from './ReusableActivityChart';
 export { ReusableProgressChart, type ProgressChartData } from './ReusableProgressChart';
 export { ReusableSalaryDistribution, type SalaryDistributionData, type ReusableSalaryDistributionProps } from './ReusableSalaryDistribution';
+export { MobileOptimizedChart } from './MobileOptimizedChart';
 export { MarketTrendsCard, type YearlyTrend } from '../MarketTrendsCard';
 export { TopJobTitlesCard } from '../TopJobTitlesCard';
 export { TopEmployersCard } from '../TopEmployersCard';

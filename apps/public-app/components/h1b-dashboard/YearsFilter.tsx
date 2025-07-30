@@ -38,22 +38,24 @@ export const YearsFilter: React.FC<YearsFilterProps> = ({
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 border-b bg-gray-50/50">
-      <div className="flex items-center gap-4">
-        <div className="flex items-center gap-2">
-          <Calendar className="w-5 h-5 text-primary" />
-          <span className="text-sm font-medium text-foreground">Fiscal Year:</span>
+      <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
+        <div className="flex items-center gap-2 min-w-0">
+          <Calendar className="w-5 h-5 text-primary flex-shrink-0" />
+          <span className="text-sm font-medium text-foreground whitespace-nowrap">Fiscal Year:</span>
         </div>
 
-        <CustomDropdown
-          options={dropdownOptions}
-          value={filters.fiscalYear || defaultYear}
-          onChange={handleYearChange}
-          placeholder="Select year"
-          className="w-[120px]"
-        />
+        <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 min-w-0">
+          <CustomDropdown
+            options={dropdownOptions}
+            value={filters.fiscalYear || defaultYear}
+            onChange={handleYearChange}
+            placeholder="Select year"
+            className="w-full sm:w-[120px] min-h-[44px]"
+          />
 
-        <div className="text-xs text-muted-foreground">
-          {filters.fiscalYear ? `Showing data for FY ${filters.fiscalYear}` : `Showing data for FY ${defaultYear}`}
+          <div className="text-xs text-muted-foreground truncate">
+            {filters.fiscalYear ? `Showing data for FY ${filters.fiscalYear}` : `Showing data for FY ${defaultYear}`}
+          </div>
         </div>
       </div>
     </div>

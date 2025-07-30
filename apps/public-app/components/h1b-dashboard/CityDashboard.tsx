@@ -173,14 +173,6 @@ export const CityDashboard: React.FC<CityDashboardProps> = ({
     <div className="max-w-7xl mx-auto space-y-6">
     {/* Header */}
     <div className="mb-6">
-      <Button 
-        onClick={handleBackClick}
-        variant="outline" 
-        className="mb-4"
-      >
-          <ArrowLeft className="w-4 h-4 mr-2" />
-          Back to Dashboard
-        </Button>
         
         <div className="flex items-center space-x-4">
           <div className="p-3 bg-green-50 rounded-xl">
@@ -190,16 +182,11 @@ export const CityDashboard: React.FC<CityDashboardProps> = ({
             <h1 className="text-3xl font-bold text-gray-900">{cityName}, {stateName}</h1>
             <p className="text-gray-600">H1B Data Analysis & Insights</p>
           </div>
-          <div className="ml-auto">
-            <Badge variant="secondary" className="text-sm">
-              {formatNumber(cityInfo.totalApplications)} Total Applications
-            </Badge>
-          </div>
         </div>
       </div>
 
       {/* Key Metrics Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
         <Card className="bg-white rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow duration-200">
           <CardContent className="p-6">
             <div className="flex items-center justify-between mb-4">

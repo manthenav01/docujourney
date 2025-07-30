@@ -4,6 +4,7 @@ import React, { useMemo, useCallback } from 'react';
 import { ResponsiveBar } from '@nivo/bar';
 import { Card, CardContent, CardHeader, CardTitle } from '@docujourney/ui';
 import { CHART_COLOR_ARRAYS, getChartColor, createNivoTheme } from '../../../lib/chartColors';
+import { useResponsiveChart } from '../../../hooks/useResponsiveChart';
 
 export interface BarChartData {
   [key: string]: string | number;
@@ -56,6 +57,22 @@ const ReusableBarChartComponent: React.FC<ReusableBarChartProps> = ({
   animate = true,
   motionConfig = 'gentle',
 }) => {
+  // Memoize responsive chart config to prevent infinite re-renders
+  const responsiveConfig = useMemo(() => ({
+    defaultHeight: height,
+    defaultMargin: margin,
+    mobileHeight: Math.min(height * 0.7, 250),
+    mobileMargin: {
+      top: 5,
+      right: 2,
+      bottom: 35,
+      left: 15,
+    },
+  }), [height, margin]);
+
+  // Responsive dimensions
+  const { height: responsiveHeight, margin: responsiveMargin } = useResponsiveChart(responsiveConfig);
+
   // Memoize the Nivo theme to prevent recreation - always use light theme for consistency
   const nivoTheme = useMemo(() => createNivoTheme(false), []);
 
@@ -95,7 +112,7 @@ const ReusableBarChartComponent: React.FC<ReusableBarChartProps> = ({
           </CardHeader>
         )}
         <CardContent>
-          <div className={`h-${height / 4} bg-muted/20 rounded-lg animate-pulse flex items-center justify-center`} style={{ height: `${height}px` }}>
+          <div className={`bg-muted/20 rounded-lg animate-pulse flex items-center justify-center`} style={{ height: `${responsiveHeight}px` }}>
             <div className="space-y-3 text-center">
               <div className="flex justify-center space-x-1">
                 {[1,2,3,4,5,6].map(i => (
@@ -119,7 +136,7 @@ const ReusableBarChartComponent: React.FC<ReusableBarChartProps> = ({
           </CardHeader>
         )}
         <CardContent>
-          <div className="flex items-center justify-center" style={{ height: `${height}px` }}>
+          <div className="flex items-center justify-center" style={{ height: `${responsiveHeight}px` }}>
             <div className="text-muted-foreground">No data available</div>
           </div>
         </CardContent>
@@ -128,12 +145,12 @@ const ReusableBarChartComponent: React.FC<ReusableBarChartProps> = ({
   }
 
   const chartContent = (
-    <div style={{ height: `${height}px`, width: '100%' }}>
+    <div style={{ height: `${responsiveHeight}px`, width: '100%' }}>
       <ResponsiveBar
         data={data}
         keys={keys}
         indexBy={indexBy}
-        margin={margin}
+        margin={responsiveMargin}
         padding={innerPadding}
         valueScale={{ type: 'linear' }}
         indexScale={{ type: 'band', round: true }}
@@ -146,11 +163,11 @@ const ReusableBarChartComponent: React.FC<ReusableBarChartProps> = ({
         axisRight={null}
         axisBottom={orientation === 'horizontal' ? null : {
           tickSize: 0,
-          tickPadding: 16,
-          tickRotation: -20,
+          tickPadding: responsiveHeight < 300 ? 8 : 16,
+          tickRotation: responsiveHeight < 300 ? -45 : -20,
           legend: axisBottomLegend,
           legendPosition: 'middle',
-          legendOffset: axisBottomLegend ? 70 : 0,
+          legendOffset: axisBottomLegend ? (responsiveHeight < 300 ? 35 : 70) : 0,
         }}
         axisLeft={orientation === 'horizontal' ? {
           tickSize: 0,

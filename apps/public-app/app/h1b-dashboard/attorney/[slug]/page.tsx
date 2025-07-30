@@ -133,7 +133,7 @@ function AttorneyPageWrapper({ slug, attorneyName, lawFirm }: AttorneyPageWrappe
 
 function AttorneyLoadingSkeleton({ attorneyName }: { attorneyName: string }) {
   return (
-    <div className="max-w-7xl mx-auto p-6">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <div className="space-y-6">
         {/* Header skeleton */}
         <div className="flex items-center space-x-4">

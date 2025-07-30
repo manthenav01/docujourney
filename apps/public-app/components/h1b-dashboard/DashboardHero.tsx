@@ -154,14 +154,14 @@ export const DashboardHero: React.FC<DashboardHeroProps> = ({
         {/* Hero Title */}
         <div className="text-center mb-12">
           <h1 className="text-4xl sm:text-5xl lg:text-6xl font-normal text-gray-900 mb-6">
-            Explore what{' '}
+            Explore{' '}
             <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent font-medium">
-              United States
+              H1B visa trends
             </span>
             <br />
-            is searching for
+            and employer data
             <br />
-            right now
+            across America
           </h1>
         </div>
 
@@ -189,7 +189,7 @@ export const DashboardHero: React.FC<DashboardHeroProps> = ({
               <button
                 key={index}
                 onClick={() => handleSuggestionSelect(trend)}
-                className="px-4 py-2 bg-white/80 backdrop-blur-sm text-gray-700 rounded-full hover:bg-white hover:shadow-md transition-all duration-200 text-sm font-medium border border-white/30"
+                className="px-4 py-3 min-h-[44px] bg-white/80 backdrop-blur-sm text-gray-700 rounded-full hover:bg-white hover:shadow-md active:bg-gray-50 transition-all duration-200 text-sm font-medium border border-white/30"
               >
                 {trend.text}
               </button>
@@ -200,7 +200,7 @@ export const DashboardHero: React.FC<DashboardHeroProps> = ({
         {/* Subtitle */}
         <div className="text-center mt-12">
           <p className="text-gray-600 text-lg">
-            Real-time insights from BigQuery • Interactive H1B data exploration
+            Real-time H1B visa insights • Interactive data exploration
           </p>
         </div>
       </div>

@@ -114,7 +114,7 @@ export const AttorneyDashboard: React.FC<AttorneyDashboardProps> = ({
 
   if (loading) {
     return (
-      <div className="max-w-7xl mx-auto space-y-6">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
         <div className="mb-6">
           {/* Header Skeleton */}
           <div className="flex items-center space-x-4">
@@ -211,7 +211,7 @@ export const AttorneyDashboard: React.FC<AttorneyDashboardProps> = ({
 
   if (error) {
     return (
-      <div className="max-w-7xl mx-auto">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <Card className="max-w-lg mx-auto">
           <CardContent className="p-6 text-center">
             <div className="w-16 h-16 mx-auto mb-4 p-4 bg-destructive/10 rounded-full">
@@ -250,48 +250,36 @@ export const AttorneyDashboard: React.FC<AttorneyDashboardProps> = ({
 
   return (
     <BigQueryErrorBoundary context="Attorney Dashboard">
-      <div className="max-w-7xl mx-auto space-y-6">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
     {/* Header */}
     <div className="mb-6">
-        <div className="flex items-center space-x-4">
-          <div className="p-3 bg-primary/10 rounded-xl">
-            <Scale className="w-8 h-8 text-primary" />
-          </div>
-          <div>
-            <h1 className="text-3xl font-bold text-foreground">{attorneyName}</h1>
-            <div className="flex items-center space-x-2 text-muted-foreground">
-              <Building2 className="w-4 h-4" />
-              <span>{attorneyInfo.lawFirm}</span>
-              {attorneyInfo.city && attorneyInfo.state && (
-                <>
-                  <span>•</span>
-                  <MapPin className="w-4 h-4" />
-                  <span>{attorneyInfo.city}, {attorneyInfo.state}</span>
-                </>
-              )}
+        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+          <div className="flex items-start sm:items-center gap-3 sm:gap-4 flex-1">
+            <div className="p-2.5 sm:p-3 bg-primary/10 rounded-xl flex-shrink-0">
+              <Scale className="w-6 h-6 sm:w-8 sm:h-8 text-primary" />
             </div>
-          </div>
-          <div className="ml-auto">
-            <Badge variant="secondary" className="text-sm">
-              {formatNumber(attorneyInfo.totalApplications)} Total Cases
-            </Badge>
+            <div className="flex-1 min-w-0">
+              <h1 className="text-2xl sm:text-3xl font-bold text-foreground leading-tight break-words">{attorneyName}</h1>
+              <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2 text-sm sm:text-base text-muted-foreground mt-1">
+                <div className="flex items-center gap-1">
+                  <Building2 className="w-4 h-4 flex-shrink-0" />
+                  <span className="break-words">{attorneyInfo.lawFirm}</span>
+                </div>
+                {attorneyInfo.city && attorneyInfo.state && (
+                  <div className="flex items-center gap-1">
+                    <span className="hidden sm:inline">•</span>
+                    <MapPin className="w-4 h-4 flex-shrink-0" />
+                    <span>{attorneyInfo.city}, {attorneyInfo.state}</span>
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
         </div>
       </div>
 
       {/* Key Metrics Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <Card className="hover:shadow-md transition-shadow duration-200">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between mb-4">
-              <div className="p-2 bg-primary/10 rounded-lg text-primary">
-                <Briefcase className="w-6 h-6" />
-              </div>
-            </div>
-            <h3 className="text-muted-foreground text-sm font-medium mb-1">Total Cases</h3>
-            <p className="text-3xl font-bold text-foreground">{formatNumber(attorneyInfo.totalApplications)}</p>
-          </CardContent>
-        </Card>
+      <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
 
         <Card className="hover:shadow-md transition-shadow duration-200">
           <CardContent className="p-6">

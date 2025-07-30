@@ -89,10 +89,10 @@ export const CustomDropdown: React.FC<CustomDropdownProps> = ({
         onClick={handleTriggerClick}
         onKeyDown={handleKeyDown}
         className={`
-          flex items-center justify-between w-full px-3 py-2 text-sm 
+          flex items-center justify-between w-full px-3 py-3 min-h-[44px] text-sm 
           bg-white border border-gray-300 rounded-md shadow-sm
           hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500
-          transition-colors duration-200
+          active:bg-gray-50 transition-colors duration-200
           ${isOpen ? 'ring-2 ring-blue-500 border-blue-500' : ''}
         `}
         aria-haspopup="listbox"
@@ -121,8 +121,8 @@ export const CustomDropdown: React.FC<CustomDropdownProps> = ({
                     type="button"
                     onClick={() => handleOptionClick(option.value)}
                     className={`
-                      w-full px-3 py-2 text-sm text-left flex items-center justify-between
-                      hover:bg-gray-100 focus:bg-gray-100 focus:outline-none
+                      w-full px-3 py-3 min-h-[44px] text-sm text-left flex items-center justify-between
+                      hover:bg-gray-100 focus:bg-gray-100 focus:outline-none active:bg-gray-200
                       transition-colors duration-150
                       ${isSelected ? 'bg-blue-50 text-blue-600' : 'text-gray-900'}
                     `}

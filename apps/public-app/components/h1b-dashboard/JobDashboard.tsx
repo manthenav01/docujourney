@@ -96,7 +96,7 @@ export const JobDashboard: React.FC<JobDashboardProps> = ({
 
   if (loading) {
     return (
-      <div className="max-w-7xl mx-auto space-y-6">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
         <div className="mb-6">
           {/* Header Skeleton */}
           <div className="flex items-center space-x-4">
@@ -189,7 +189,7 @@ export const JobDashboard: React.FC<JobDashboardProps> = ({
 
   if (error) {
     return (
-      <div className="max-w-7xl mx-auto">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <Card className="bg-destructive/10 border border-destructive/20">
         <CardContent className="p-6">
           <div className="text-center">
@@ -228,27 +228,28 @@ export const JobDashboard: React.FC<JobDashboardProps> = ({
   const hasTrendData = jobInfo.yearlyTrends.length > 0;
 
   return (
-    <div className="max-w-7xl mx-auto space-y-6">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
     {/* Header */}
     <div className="mb-6">
-        <div className="flex items-center space-x-4">
-          <div className="p-3 bg-primary/10 rounded-xl">
-            <Briefcase className="w-8 h-8 text-primary" />
-          </div>
-          <div>
-            <h1 className="text-3xl font-bold text-foreground">{jobTitle}</h1>
-            <p className="text-muted-foreground">H1B Job Market Analysis & Insights</p>
-          </div>
-          <div className="ml-auto">
-            <Badge variant="secondary" className="text-sm">
-              {formatNumber(jobInfo.totalApplications)} Total Applications
-            </Badge>
+        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+          <div className="flex items-start sm:items-center gap-3 sm:gap-4 flex-1">
+            <div className="p-2.5 sm:p-3 bg-primary/10 rounded-xl flex-shrink-0">
+              <Briefcase className="w-6 h-6 sm:w-8 sm:h-8 text-primary" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <h1 className="text-2xl sm:text-3xl font-bold text-foreground leading-tight break-words hyphens-auto">
+                {jobTitle}
+              </h1>
+              <p className="text-sm sm:text-base text-muted-foreground mt-1">
+                H1B Job Market Analysis & Insights
+              </p>
+            </div>
           </div>
         </div>
       </div>
 
       {/* Key Metrics Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
         <Card className="hover:shadow-md transition-shadow duration-200">
           <CardContent className="p-6">
             <div className="flex items-center justify-between mb-4">
