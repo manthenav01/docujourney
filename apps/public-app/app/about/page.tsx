@@ -4,7 +4,6 @@ import React from 'react';
 import Link from 'next/link';
 import { Button, Card, CardContent, CardHeader, CardTitle } from '@docujourney/ui';
 import { 
-  ArrowLeft,
   Users, 
   Target, 
   Heart, 
@@ -23,28 +22,14 @@ import {
   BookOpen,
 } from 'lucide-react';
 import { ImmigrantCentralLogo } from '../../components/h1b-dashboard/ImmigrantCentralLogo';
+import { DashboardHeader } from '../../components/h1b-dashboard/DashboardHeader';
 import { DashboardFooter } from '../../components/h1b-dashboard/DashboardFooter';
 
 const AboutPage: React.FC = () => {
   return (
     <div className="min-h-screen bg-background">
       {/* Navigation Header */}
-      <header className="w-full bg-card border-b border-border">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
-            <Link href="/h1b-dashboard" className="flex items-center gap-3">
-              <ImmigrantCentralLogo className="w-8 h-8" size={32} />
-              <span className="text-xl font-semibold text-foreground">Immigrant Central</span>
-            </Link>
-            <Link href="/h1b-dashboard">
-              <Button variant="outline" size="sm" className="flex items-center gap-2">
-                <ArrowLeft className="w-4 h-4" />
-                Back to Dashboard
-              </Button>
-            </Link>
-          </div>
-        </div>
-      </header>
+      <DashboardHeader />
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         {/* Hero Section */}

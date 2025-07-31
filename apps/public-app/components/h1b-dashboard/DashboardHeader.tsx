@@ -47,10 +47,13 @@ export const DashboardHeader: React.FC = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
-          <div className="flex items-center gap-3">
+          <button 
+            onClick={() => router.push('/h1b-dashboard')}
+            className="flex items-center gap-3 hover:opacity-80 transition-opacity duration-200"
+          >
             <ImmigrantCentralLogo className="w-8 h-8" size={32} />
             <span className="text-xl font-semibold text-gray-900">Immigrant Central</span>
-          </div>
+          </button>
 
           {/* Navigation */}
           <nav className="hidden md:flex items-center space-x-1">

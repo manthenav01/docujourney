@@ -265,7 +265,7 @@ export const JobDashboard: React.FC<JobDashboardProps> = ({
         <Card className="hover:shadow-md transition-shadow duration-200">
           <CardContent className="p-6">
             <div className="flex items-center justify-between mb-4">
-              <div className="p-2 bg-success/10 rounded-lg text-success">
+              <div className="p-2 bg-purple-100 rounded-lg text-purple-600">
                 <CheckCircle className="w-6 h-6" />
               </div>
             </div>
@@ -277,7 +277,7 @@ export const JobDashboard: React.FC<JobDashboardProps> = ({
         <Card className="hover:shadow-md transition-shadow duration-200">
           <CardContent className="p-6">
             <div className="flex items-center justify-between mb-4">
-              <div className="p-2 bg-chart-3/10 rounded-lg text-chart-3">
+              <div className="p-2 bg-green-100 rounded-lg text-green-600">
                 <DollarSign className="w-6 h-6" />
               </div>
             </div>

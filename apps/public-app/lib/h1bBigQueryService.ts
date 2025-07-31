@@ -810,10 +810,67 @@ export class H1BBigQueryService {
   }
 
   /**
+   * Find the actual company name in the database using fuzzy matching
+   */
+  private async findActualCompanyName(searchName: string): Promise<string> {
+    const searchQuery = `
+      SELECT employer_name, COUNT(*) as count
+      FROM \`${this.projectId}.${this.datasetId}.${this.tableId}\`
+      WHERE UPPER(employer_name) LIKE UPPER(@searchPattern)
+      GROUP BY employer_name
+      ORDER BY count DESC
+      LIMIT 1
+    `;
+    
+    // Try exact match first
+    const [exactResults] = await this.bigquery.query({
+      query: searchQuery,
+      params: { searchPattern: `%${searchName}%` },
+    });
+    
+    if (exactResults.length > 0) {
+      return exactResults[0].employer_name;
+    }
+    
+    // If no exact match, try fuzzy matching
+    const fuzzyQuery = `
+      SELECT employer_name, COUNT(*) as count
+      FROM \`${this.projectId}.${this.datasetId}.${this.tableId}\`
+      WHERE (
+        UPPER(employer_name) LIKE UPPER(@searchPattern)
+        OR REGEXP_CONTAINS(UPPER(employer_name), UPPER(@regexPattern))
+      )
+      GROUP BY employer_name
+      ORDER BY count DESC
+      LIMIT 1
+    `;
+    
+    // Create regex pattern to match company name with variations
+    const regexPattern = `\\b${searchName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`;
+    
+    const [fuzzyResults] = await this.bigquery.query({
+      query: fuzzyQuery,
+      params: { 
+        searchPattern: `%${searchName}%`,
+        regexPattern,
+      },
+    });
+    
+    if (fuzzyResults.length > 0) {
+      return fuzzyResults[0].employer_name;
+    }
+    
+    // Return original name if no match found
+    return searchName;
+  }
+
+  /**
    * Get comprehensive company analysis
    */
   async getCompanyAnalysis(companyName: string): Promise<H1BCompanyAnalysis> {
     try {
+      // First, find the actual company name in the database
+      const actualCompanyName = await this.findActualCompanyName(companyName);
       // Get basic company stats
       const basicStatsQuery = `
         SELECT 
@@ -943,11 +1000,11 @@ export class H1BBigQueryService {
       `;
 
       const [basicStats, topStates, topJobTitles, yearlyTrends, salaryDistribution] = await Promise.all([
-        this.bigquery.query({ query: basicStatsQuery, params: { companyName } }),
-        this.bigquery.query({ query: topStatesQuery, params: { companyName } }),
-        this.bigquery.query({ query: topJobTitlesQuery, params: { companyName } }),
-        this.bigquery.query({ query: yearlyTrendsQuery, params: { companyName } }),
-        this.bigquery.query({ query: salaryDistributionQuery, params: { companyName } }),
+        this.bigquery.query({ query: basicStatsQuery, params: { companyName: actualCompanyName } }),
+        this.bigquery.query({ query: topStatesQuery, params: { companyName: actualCompanyName } }),
+        this.bigquery.query({ query: topJobTitlesQuery, params: { companyName: actualCompanyName } }),
+        this.bigquery.query({ query: yearlyTrendsQuery, params: { companyName: actualCompanyName } }),
+        this.bigquery.query({ query: salaryDistributionQuery, params: { companyName: actualCompanyName } }),
       ]);
 
       const stats = basicStats[0][0] || {};
@@ -955,7 +1012,7 @@ export class H1BBigQueryService {
 
       // Check if company exists in our data
       if (totalApplications === 0) {
-        throw new Error(`No H1B data found for company: ${companyName}. Please check the company name and try again.`);
+        throw new Error(`No H1B data found for company: ${companyName}${actualCompanyName !== companyName ? ` (searched as: ${actualCompanyName})` : ''}. Please check the company name and try again.`);
       }
 
       // Generate recent activity based on yearly trends if available
@@ -974,7 +1031,7 @@ export class H1BBigQueryService {
       }
 
       return {
-        name: companyName,
+        name: actualCompanyName, // Use the actual company name found in database
         totalApplications,
         certifiedApplications: Number(stats.certifiedApplications) || 0,
         avgSalary: Math.round(Number(stats.avgSalary) || 0),

@@ -202,7 +202,7 @@ export const CityDashboard: React.FC<CityDashboardProps> = ({
         <Card className="bg-white rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow duration-200">
           <CardContent className="p-6">
             <div className="flex items-center justify-between mb-4">
-              <div className="p-2 bg-green-50 rounded-lg text-green-600">
+              <div className="p-2 bg-purple-100 rounded-lg text-purple-600">
                 <Award className="w-6 h-6" />
               </div>
             </div>
@@ -214,7 +214,7 @@ export const CityDashboard: React.FC<CityDashboardProps> = ({
         <Card className="bg-white rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow duration-200">
           <CardContent className="p-6">
             <div className="flex items-center justify-between mb-4">
-              <div className="p-2 bg-purple-50 rounded-lg text-purple-600">
+              <div className="p-2 bg-green-100 rounded-lg text-green-600">
                 <DollarSign className="w-6 h-6" />
               </div>
             </div>
@@ -314,7 +314,6 @@ export const CityDashboard: React.FC<CityDashboardProps> = ({
           showTitle={true}
           height={400}
           showChartToggle={true}
-          className="h-[500px]"
         />
       </div>
 

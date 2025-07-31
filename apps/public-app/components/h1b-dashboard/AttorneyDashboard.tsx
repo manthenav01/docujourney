@@ -279,12 +279,23 @@ export const AttorneyDashboard: React.FC<AttorneyDashboardProps> = ({
       </div>
 
       {/* Key Metrics Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+      <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+        <Card className="hover:shadow-md transition-shadow duration-200">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between mb-4">
+              <div className="p-2 bg-primary/10 rounded-lg text-primary">
+                <Users className="w-6 h-6" />
+              </div>
+            </div>
+            <h3 className="text-muted-foreground text-sm font-medium mb-1">Total Cases</h3>
+            <p className="text-3xl font-bold text-foreground">{formatNumber(attorneyInfo.totalApplications)}</p>
+          </CardContent>
+        </Card>
 
         <Card className="hover:shadow-md transition-shadow duration-200">
           <CardContent className="p-6">
             <div className="flex items-center justify-between mb-4">
-              <div className="p-2 bg-success/10 rounded-lg text-success">
+              <div className="p-2 bg-purple-100 rounded-lg text-purple-600">
                 <CheckCircle className="w-6 h-6" />
               </div>
             </div>
@@ -296,7 +307,7 @@ export const AttorneyDashboard: React.FC<AttorneyDashboardProps> = ({
         <Card className="hover:shadow-md transition-shadow duration-200">
           <CardContent className="p-6">
             <div className="flex items-center justify-between mb-4">
-              <div className="p-2 bg-chart-3/10 rounded-lg text-chart-3">
+              <div className="p-2 bg-green-100 rounded-lg text-green-600">
                 <DollarSign className="w-6 h-6" />
               </div>
             </div>
@@ -433,7 +444,6 @@ export const AttorneyDashboard: React.FC<AttorneyDashboardProps> = ({
             showTitle={true}
             height={400}
             showChartToggle={true}
-            className="h-[500px]"
           />
         )}
       </div>

@@ -10,7 +10,6 @@ import { MarketTrendsCard } from './MarketTrendsCard';
 import { TopJobTitlesCard } from './TopJobTitlesCard';
 import { H1BCompanyAnalysis } from '../../lib/types';
 import { 
-  ArrowLeft, 
   Building, 
   MapPin, 
   Users, 
@@ -80,10 +79,6 @@ export const CompanyDashboard: React.FC<CompanyDashboardProps> = ({
     }
   };
 
-  const handleBackClick = () => {
-    router.push('/h1b-dashboard');
-  };
-
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
@@ -109,17 +104,8 @@ export const CompanyDashboard: React.FC<CompanyDashboardProps> = ({
 
   if (loading) {
     return (
-      <div className="max-w-7xl mx-auto space-y-6">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
         <div className="mb-6">
-          <Button 
-            onClick={handleBackClick}
-            variant="outline" 
-            className="mb-4"
-          >
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Back to Dashboard
-          </Button>
-          
           {/* Header Skeleton */}
           <div className="flex items-center space-x-4">
             <div className="p-3 bg-muted/30 rounded-xl animate-pulse">
@@ -215,18 +201,8 @@ export const CompanyDashboard: React.FC<CompanyDashboardProps> = ({
 
   if (error) {
     return (
-      <div className="max-w-7xl mx-auto">
-        <div className="mb-6">
-          <Button 
-            onClick={handleBackClick}
-            variant="outline" 
-            className="mb-4"
-          >
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Back to Dashboard
-          </Button>
-        </div>
-           <Card className="bg-destructive/10 border border-destructive/20">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <Card className="bg-destructive/10 border border-destructive/20">
         <CardContent className="p-6">
           <div className="text-center">
             <div className="text-destructive text-lg font-semibold mb-2">Unable to Load Company Data</div>
@@ -261,18 +237,9 @@ export const CompanyDashboard: React.FC<CompanyDashboardProps> = ({
 
 
   return (
-    <div className="max-w-7xl mx-auto space-y-6">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
     {/* Header */}
     <div className="mb-6">
-      <Button 
-        onClick={handleBackClick}
-        variant="outline" 
-        className="mb-4"
-      >
-        <ArrowLeft className="w-4 h-4 mr-2" />
-          Back to Dashboard
-        </Button>
-        
         <div className="flex items-center space-x-4">
           <div className="p-3 bg-primary/10 rounded-xl">
             <Building className="w-8 h-8 text-primary" />
@@ -306,7 +273,7 @@ export const CompanyDashboard: React.FC<CompanyDashboardProps> = ({
         <Card className="hover:shadow-md transition-shadow duration-200">
           <CardContent className="p-6">
             <div className="flex items-center justify-between mb-4">
-              <div className="p-2 bg-success/10 rounded-lg text-success">
+              <div className="p-2 bg-purple-100 rounded-lg text-purple-600">
                 <Award className="w-6 h-6" />
               </div>
             </div>
@@ -318,7 +285,7 @@ export const CompanyDashboard: React.FC<CompanyDashboardProps> = ({
         <Card className="hover:shadow-md transition-shadow duration-200">
           <CardContent className="p-6">
             <div className="flex items-center justify-between mb-4">
-              <div className="p-2 bg-chart-3/10 rounded-lg text-chart-3">
+              <div className="p-2 bg-green-100 rounded-lg text-green-600">
                 <DollarSign className="w-6 h-6" />
               </div>
             </div>
@@ -416,7 +383,6 @@ export const CompanyDashboard: React.FC<CompanyDashboardProps> = ({
           showTitle={true}
           height={400}
           showChartToggle={true}
-          className="h-[500px]"
         />
       </div>
 

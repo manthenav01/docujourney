@@ -17,7 +17,6 @@ const SalaryDistributionChartComponent: React.FC<SalaryDistributionChartProps> =
       showTitle={true}
       height={400}
       showChartToggle={true}
-      className="h-[500px]"
     />
   );
 };

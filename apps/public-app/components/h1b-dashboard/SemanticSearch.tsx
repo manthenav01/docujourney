@@ -5,7 +5,6 @@ import { useRouter } from 'next/navigation';
 import { 
   Search, 
   Sparkles, 
-  Clock, 
   TrendingUp, 
   Building, 
   MapPin, 
@@ -49,26 +48,90 @@ export const SemanticSearch: React.FC<SemanticSearchProps> = ({
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [semanticEnabled, setSemanticEnabled] = useState(true);
-  const [recentSearches, setRecentSearches] = useState<string[]>([]);
   const [expandedTerms, setExpandedTerms] = useState<string[]>([]);
   const [selectedIndex, setSelectedIndex] = useState(-1);
+  const [animatedPlaceholder, setAnimatedPlaceholder] = useState('');
+  const [isInputFocused, setIsInputFocused] = useState(false);
+  const [showCursor, setShowCursor] = useState(true);
   
   const searchRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const debounceRef = useRef<NodeJS.Timeout | null>(null);
   const router = useRouter();
 
-  // Load recent searches from localStorage
+  // Array of placeholder texts to cycle through
+  const placeholderTexts = React.useMemo(() => [
+    'Search H1B data: companies, jobs, locations...',
+    'Find GOOGLE LLC, MICROSOFT CORPORATION...',
+    'Search Software Engineer, Data Scientist...',
+    'Explore San Francisco, CA filings...',
+    'Find New York, NY H1B applications...',
+    'Search attorneys and law firms...',
+    'Discover Seattle, WA opportunities...',
+    'Find APPLE INC. LCA applications...',
+  ], []);
+
+  // Animated typing effect for placeholder
   useEffect(() => {
-    const saved = localStorage.getItem('h1b-recent-searches');
-    if (saved) {
-      try {
-        setRecentSearches(JSON.parse(saved));
-      } catch (error) {
-        console.error('Error loading recent searches:', error);
-      }
+    if (isInputFocused || query) {
+      setAnimatedPlaceholder('');
+      return;
     }
-  }, []);
+
+    let textIndex = 0;
+    let charIndex = 0;
+    let isDeleting = false;
+    let timeoutId: NodeJS.Timeout;
+
+    const animate = () => {
+      const currentText = placeholderTexts[textIndex];
+      
+      if (isDeleting) {
+        // Delete characters
+        if (charIndex > 0) {
+          charIndex--;
+          setAnimatedPlaceholder(currentText.substring(0, charIndex));
+          timeoutId = setTimeout(animate, 50);
+        } else {
+          // Move to next text
+          isDeleting = false;
+          textIndex = (textIndex + 1) % placeholderTexts.length;
+          timeoutId = setTimeout(animate, 500);
+        }
+      } else {
+        // Type characters
+        if (charIndex < currentText.length) {
+          charIndex++;
+          setAnimatedPlaceholder(currentText.substring(0, charIndex));
+          timeoutId = setTimeout(animate, 100);
+        } else {
+          // Start deleting after pause
+          isDeleting = true;
+          timeoutId = setTimeout(animate, 2000);
+        }
+      }
+    };
+
+    // Start animation
+    timeoutId = setTimeout(animate, 1000);
+
+    return () => {
+      clearTimeout(timeoutId);
+    };
+  }, [isInputFocused, query, placeholderTexts]);
+
+  // Cursor blinking effect
+  useEffect(() => {
+    if (isInputFocused || query) {
+      return;
+    }
+
+    const cursorInterval = setInterval(() => {
+      setShowCursor(prev => !prev);
+    }, 530); // Blink every 530ms
+
+    return () => clearInterval(cursorInterval);
+  }, [isInputFocused, query]);
 
   // Debounced autocomplete with better performance
   useEffect(() => {
@@ -133,15 +196,6 @@ export const SemanticSearch: React.FC<SemanticSearchProps> = ({
     
     const trimmedQuery = searchQuery.trim();
     
-    // Add to recent searches
-    const newRecentSearches = [
-      trimmedQuery,
-      ...recentSearches.filter(s => s !== trimmedQuery),
-    ].slice(0, 5);
-    
-    setRecentSearches(newRecentSearches);
-    localStorage.setItem('h1b-recent-searches', JSON.stringify(newRecentSearches));
-    
     // Don't perform the search - just keep the query for autocomplete
     console.log('Search query entered:', trimmedQuery);
     
@@ -157,15 +211,6 @@ export const SemanticSearch: React.FC<SemanticSearchProps> = ({
     
     // Debug logging
     console.log('Suggestion clicked:', suggestion);
-    
-    // Add to recent searches
-    const newRecentSearches = [
-      suggestion.text,
-      ...recentSearches.filter(s => s !== suggestion.text),
-    ].slice(0, 5);
-    
-    setRecentSearches(newRecentSearches);
-    localStorage.setItem('h1b-recent-searches', JSON.stringify(newRecentSearches));
     
     // Always use the callback if provided, otherwise handle navigation here
     if (onSuggestionSelect) {
@@ -226,7 +271,7 @@ export const SemanticSearch: React.FC<SemanticSearchProps> = ({
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (!showSuggestions) {return;}
     
-    const totalItems = suggestions.length + (query.length < 2 ? recentSearches.length : 0);
+    const totalItems = suggestions.length;
     
     if (e.key === 'ArrowDown') {
       e.preventDefault();
@@ -236,18 +281,8 @@ export const SemanticSearch: React.FC<SemanticSearchProps> = ({
       setSelectedIndex(prev => (prev > -1 ? prev - 1 : totalItems - 1));
     } else if (e.key === 'Enter') {
       e.preventDefault();
-      if (selectedIndex >= 0) {
-        if (query.length < 2 && selectedIndex < recentSearches.length) {
-          // Select from recent searches
-          const selectedSearch = recentSearches[selectedIndex];
-          handleSuggestionClick({ text: selectedSearch, type: 'job_title', count: 0 });
-        } else {
-          // Select from suggestions
-          const adjustedIndex = query.length < 2 ? selectedIndex - recentSearches.length : selectedIndex;
-          if (adjustedIndex >= 0 && adjustedIndex < suggestions.length) {
-            handleSuggestionClick(suggestions[adjustedIndex]);
-          }
-        }
+      if (selectedIndex >= 0 && selectedIndex < suggestions.length) {
+        handleSuggestionClick(suggestions[selectedIndex]);
       } else {
         handleSearch();
       }
@@ -318,8 +353,15 @@ export const SemanticSearch: React.FC<SemanticSearchProps> = ({
           onFocus={() => {
             setShowSuggestions(true);
             setSelectedIndex(-1);
+            setIsInputFocused(true);
           }}
-          placeholder={placeholder}
+          onBlur={(e) => {
+            // Delay the focus state change to allow for clicks on suggestions
+            setTimeout(() => {
+              setIsInputFocused(false);
+            }, 200);
+          }}
+          placeholder={isInputFocused || query ? placeholder : `${animatedPlaceholder}${!isInputFocused && !query && showCursor ? '|' : ''}`}
           className="block w-full pl-10 pr-12 py-3 border border-gray-300 rounded-xl leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
         />
         
@@ -365,20 +407,11 @@ export const SemanticSearch: React.FC<SemanticSearchProps> = ({
             )}
           </div>
           
-          {recentSearches.length > 0 && (
-            <button
-              onClick={() => setShowSuggestions(true)}
-              className="flex items-center space-x-1 text-xs text-gray-500 hover:text-gray-700 transition-colors"
-            >
-              <Clock className="w-3 h-3" />
-              <span>Recent</span>
-            </button>
-          )}
         </div>
       )}
 
       {/* Suggestions Dropdown */}
-      {showSuggestions && (suggestions.length > 0 || recentSearches.length > 0 || isLoading || query.length >= 2) && (
+      {showSuggestions && (suggestions.length > 0 || isLoading || query.length >= 2) && (
         <div className="absolute z-50 w-full mt-2 bg-white border border-gray-200 rounded-xl shadow-lg max-h-80 overflow-y-auto">
           {/* Loading State */}
           {isLoading && (
@@ -391,35 +424,12 @@ export const SemanticSearch: React.FC<SemanticSearchProps> = ({
           {/* No Loading and has content */}
           {!isLoading && (
             <>
-              {/* Recent Searches */}
-              {query.length < 2 && recentSearches.length > 0 && (
-                <div className="p-3 border-b border-gray-100">
-                  <div className="flex items-center space-x-2 mb-2">
-                    <Clock className="w-4 h-4 text-gray-400" />
-                    <span className="text-sm font-medium text-gray-700">Recent Searches</span>
-                  </div>
-                  <div className="space-y-1">
-                    {recentSearches.map((search, index) => (
-                      <button
-                        key={index}
-                        onClick={() => handleSuggestionClick({ text: search, type: 'job_title', count: 0 })}
-                        className={`w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded-lg transition-colors ${
-                          selectedIndex === index ? 'bg-blue-50 border-l-2 border-blue-500' : ''
-                        }`}
-                      >
-                        {search}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              )}
 
               {/* Suggestions */}
               {suggestions.length > 0 && (
                 <div className="p-2">
                   {suggestions.map((suggestion, index) => {
-                    const adjustedIndex = query.length < 2 ? index + recentSearches.length : index;
-                    const isSelected = selectedIndex === adjustedIndex;
+                    const isSelected = selectedIndex === index;
                     
                     return (
                       <button

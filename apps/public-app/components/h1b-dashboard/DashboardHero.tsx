@@ -8,6 +8,7 @@ import { SemanticSearch } from './SemanticSearch';
 
 interface SearchSuggestion {
   text: string;
+  displayText?: string; // Optional friendly display name
   type: 'job_title' | 'employer' | 'location';
   count: number;
   category?: string;
@@ -20,10 +21,10 @@ interface DashboardHeroProps {
 }
 
 const trendingSearches: SearchSuggestion[] = [
-  { text: 'Google', type: 'employer', count: 12500 },
+  { text: 'GOOGLE LLC', displayText: 'Google', type: 'employer', count: 7932 },
   { text: 'Software Engineer', type: 'job_title', count: 45600 },
   { text: 'San Francisco, CA', type: 'location', count: 23400 },
-  { text: 'Microsoft', type: 'employer', count: 8900 },
+  { text: 'MICROSOFT CORPORATION', displayText: 'Microsoft', type: 'employer', count: 7072 },
   { text: 'Data Scientist', type: 'job_title', count: 18700 },
 ];
 
@@ -191,7 +192,7 @@ export const DashboardHero: React.FC<DashboardHeroProps> = ({
                 onClick={() => handleSuggestionSelect(trend)}
                 className="px-4 py-3 min-h-[44px] bg-white/80 backdrop-blur-sm text-gray-700 rounded-full hover:bg-white hover:shadow-md active:bg-gray-50 transition-all duration-200 text-sm font-medium border border-white/30"
               >
-                {trend.text}
+                {trend.displayText || trend.text}
               </button>
             ))}
           </div>

@@ -16,7 +16,6 @@ import {
   ExternalLink,
   Shield,
   FileText,
-  HelpCircle,
   BarChart3,
 } from 'lucide-react';
 import { ImmigrantCentralLogo } from './ImmigrantCentralLogo';
@@ -133,7 +132,7 @@ export const DashboardFooter: React.FC = () => {
           
           {/* Navigation Links */}
           <div className="lg:col-span-8">
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-8">
               
               {/* H1B Data */}
               <FooterSection 
@@ -159,17 +158,6 @@ export const DashboardFooter: React.FC = () => {
                 <FooterLink href="/h1b-dashboard?category=industry">By Industry</FooterLink>
               </FooterSection>
               
-              {/* Resources */}
-              <FooterSection 
-                title="Resources" 
-                icon={<HelpCircle className="w-4 h-4" />}
-              >
-                <FooterLink href="/api-docs" external>API Documentation</FooterLink>
-                <FooterLink href="/data-sources">Data Sources</FooterLink>
-                <FooterLink href="/methodology">Methodology</FooterLink>
-                <FooterLink href="/faq">FAQ</FooterLink>
-                <FooterLink href="/support">Support</FooterLink>
-              </FooterSection>
               
               {/* Legal & Company */}
               <FooterSection 
