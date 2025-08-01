@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import { BarChart3, X } from 'lucide-react';
 import { ImmigrantCentralLogo } from './ImmigrantCentralLogo';
+import { EnvironmentBadge } from '@/components/ui/environment-badge';
 
 interface NavigationItem {
   id: string;
@@ -46,14 +47,17 @@ export const DashboardHeader: React.FC = () => {
     <header className="w-full bg-white border-b border-gray-200">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
-          {/* Logo */}
-          <button 
-            onClick={() => router.push('/h1b-dashboard')}
-            className="flex items-center gap-3 hover:opacity-80 transition-opacity duration-200"
-          >
-            <ImmigrantCentralLogo className="w-8 h-8" size={32} />
-            <span className="text-xl font-semibold text-gray-900">Immigrant Central</span>
-          </button>
+          {/* Logo and Environment Badge */}
+          <div className="flex items-center gap-4">
+            <button 
+              onClick={() => router.push('/h1b-dashboard')}
+              className="flex items-center gap-3 hover:opacity-80 transition-opacity duration-200"
+            >
+              <ImmigrantCentralLogo className="w-8 h-8" size={32} />
+              <span className="text-xl font-semibold text-gray-900">Immigrant Central</span>
+            </button>
+            <EnvironmentBadge />
+          </div>
 
           {/* Navigation */}
           <nav className="hidden md:flex items-center space-x-1">

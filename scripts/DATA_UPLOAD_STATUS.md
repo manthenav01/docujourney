@@ -79,7 +79,8 @@ This document tracks the status of H1B data uploads to BigQuery for the DocuJour
 ## 🔧 Technical Details
 
 ### Upload Method
-- **Pipeline**: `data_pipeline.py` with BigQuery integration
+- **Pipeline**: `data_pipeline.py` with BigQuery integration (unified script for all projects)
+- **Project Support**: Configurable via `--project-id` parameter (default: doctracker-b4528)
 - **Deduplication**: Automatic based on `case_number` for LCA data
 - **Schema Handling**: Automatic addition of missing fields as NULL
 - **Error Handling**: Graceful handling of missing columns across years
@@ -101,8 +102,11 @@ This document tracks the status of H1B data uploads to BigQuery for the DocuJour
 
 ### Process New Data
 ```bash
-# Process specific year folder
+# Process specific year folder (default project: doctracker-b4528)
 python data_pipeline.py --year-folder 2023
+
+# Upload to different project (e.g., immigrant-central-test)
+python data_pipeline.py --year-folder 2023 --project-id immigrant-central-test
 
 # Process specific files
 python data_pipeline.py --files path/to/file1.xlsx path/to/file2.xlsx

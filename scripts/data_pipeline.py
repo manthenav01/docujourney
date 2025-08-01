@@ -117,21 +117,6 @@ lca_schema = [
     bigquery.SchemaField("preparer_email", "STRING"),
 ]
 
-employer_schema = [
-    bigquery.SchemaField("line_by_line", "INTEGER"),
-    bigquery.SchemaField("fiscalyear", "INTEGER"),
-    bigquery.SchemaField("employerpetitionername", "STRING"),
-    bigquery.SchemaField("taxid", "STRING"),
-    bigquery.SchemaField("industry_naics_code", "STRING"),
-    bigquery.SchemaField("petitionercity", "STRING"),
-    bigquery.SchemaField("petitionerstate", "STRING"),
-    bigquery.SchemaField("petitionerzipcode", "STRING"),
-    bigquery.SchemaField("initialapproval", "INTEGER"),
-    bigquery.SchemaField("initialdenial", "INTEGER"),
-    bigquery.SchemaField("continuingapproval", "INTEGER"),
-    bigquery.SchemaField("continuingdenial", "INTEGER"),
-]
-
 def clean_column_names(df):
     """Clean column names: remove spaces, convert to lowercase"""
     df.columns = df.columns.str.replace(' ', '').str.lower()
@@ -161,19 +146,16 @@ def validate_and_clean_dataframe(df, unique_id_column, data_type):
     return df
 
 def discover_files(year_folder):
-    """Discover LCA and Employer files in the specified year folder"""
+    """Discover LCA files in the specified year folder"""
     base_path = Path(BASE_DATA_PATH) / year_folder
     if not base_path.exists():
         print(f"Error: Folder {base_path} does not exist")
-        return [], []
+        return []
     
     # Find LCA files (usually contain 'LCA_Disclosure')
     lca_files = list(base_path.glob('*LCA*.xlsx')) + list(base_path.glob('*LCA*.csv'))
     
-    # Find Employer files (usually contain 'Employer')
-    employer_files = list(base_path.glob('*Employer*.xlsx')) + list(base_path.glob('*Employer*.csv'))
-    
-    return lca_files, employer_files
+    return lca_files
 
 def process_lca_file(file_path):
     """Process a single LCA file"""
@@ -220,51 +202,13 @@ def process_lca_file(file_path):
     
     return df
 
-def process_employer_file(file_path):
-    """Process a single Employer file"""
-    print(f"\n--- Processing Employer file: {file_path.name} ---")
-    
-    # Load data
-    if file_path.suffix.lower() == '.xlsx':
-        df = load_excel_data(str(file_path))
-    else:
-        df = load_csv_data(str(file_path))
-    
-    if df is None:
-        print(f"Failed to load {file_path}")
-        return None
-    
-    print(f"Loaded: {len(df)} rows")
-    
-    # Clean column names
-    df = clean_column_names(df)
-    
-    # Filter relevant columns
-    employer_columns = ['fiscalyear', 'employer(petitioner)name', 'taxid', 'industry(naics)code', 
-                       'petitionercity', 'petitionerstate', 'petitionerzipcode', 'initialapproval', 
-                       'initialdenial', 'continuingapproval', 'continuingdenial']
-    
-    available_columns = [col for col in employer_columns if col in df.columns]
-    df = df[available_columns]
-    print(f"Using {len(available_columns)} columns")
-    
-    # Validate and clean
-    df = validate_and_clean_dataframe(df, 'taxid', 'Employer')
-    
-    # Clean data
-    df = clean_data(df)
-    
-    # Resolve employer names
-    df = resolve_employer_names(df, CANONICAL_MAP_PATH)
-    
-    return df
-
-def run_pipeline(year_folder=None, specific_files=None, upload_to_bigquery=True):
-    """Enhanced data pipeline with flexible file processing"""
-    print("🚀 Starting Enhanced Data Pipeline...")
+def run_pipeline(year_folder=None, specific_files=None, upload_to_bigquery=True, project_id=None):
+    """LCA data pipeline with flexible file processing"""
+    # Use provided project_id or default
+    current_project_id = project_id or PROJECT_ID
+    print(f"🚀 Starting LCA Data Pipeline for project: {current_project_id}...")
     
     lca_dataframes = []
-    employer_dataframes = []
     
     if specific_files:
         # Process specific files
@@ -279,29 +223,19 @@ def run_pipeline(year_folder=None, specific_files=None, upload_to_bigquery=True)
                 df = process_lca_file(path)
                 if df is not None:
                     lca_dataframes.append(df)
-            elif 'employer' in path.name.lower():
-                df = process_employer_file(path)
-                if df is not None:
-                    employer_dataframes.append(df)
     
     elif year_folder:
         # Discover and process files in year folder
         print(f"\nDiscovering files in folder: {year_folder}")
-        lca_files, employer_files = discover_files(year_folder)
+        lca_files = discover_files(year_folder)
         
-        print(f"Found {len(lca_files)} LCA files and {len(employer_files)} Employer files")
+        print(f"Found {len(lca_files)} LCA files")
         
         # Process LCA files
         for file_path in lca_files:
             df = process_lca_file(file_path)
             if df is not None:
                 lca_dataframes.append(df)
-        
-        # Process Employer files
-        for file_path in employer_files:
-            df = process_employer_file(file_path)
-            if df is not None:
-                employer_dataframes.append(df)
     
     else:
         print("Error: No files specified. Use --year-folder or --files")
@@ -323,29 +257,18 @@ def run_pipeline(year_folder=None, specific_files=None, upload_to_bigquery=True)
                 combined_lca_df = combined_lca_df.drop_duplicates(subset=['case_number'], keep='first')
                 print(f"Final LCA data: {len(combined_lca_df)} rows")
     
-    combined_employer_df = None
-    if employer_dataframes:
-        combined_employer_df = pd.concat(employer_dataframes, ignore_index=True)
-        print(f"Combined Employer data: {len(combined_employer_df)} rows")
-        
-        # Remove duplicates across files
-        if 'taxid' in combined_employer_df.columns:
-            duplicates = combined_employer_df['taxid'].duplicated().sum()
-            if duplicates > 0:
-                print(f"Removing {duplicates} cross-file Employer duplicates...")
-                combined_employer_df = combined_employer_df.drop_duplicates(subset=['taxid'], keep='first')
-                print(f"Final Employer data: {len(combined_employer_df)} rows")
     
     # Upload to BigQuery if requested
     if upload_to_bigquery:
         print("\n--- Uploading to BigQuery ---")
-        service_account_path = os.path.join(os.path.dirname(__file__), '..', 'serviceAccountKey.json')
+        # Use production service account key or fallback to default
+        service_account_path = os.environ.get('GOOGLE_APPLICATION_CREDENTIALS') or os.path.join(os.path.dirname(__file__), '..', 'serviceAccountKey-prod.json')
         
         if combined_lca_df is not None:
             print("Uploading LCA data...")
             lca_success = upload_dataframe_to_bigquery(
                 combined_lca_df,
-                PROJECT_ID,
+                current_project_id,
                 DATASET_ID,
                 'lca_applications',
                 service_account_path,
@@ -355,30 +278,15 @@ def run_pipeline(year_folder=None, specific_files=None, upload_to_bigquery=True)
             if not lca_success:
                 print("LCA upload failed")
                 return False
-        
-        if combined_employer_df is not None:
-            print("Uploading Employer data...")
-            employer_success = upload_dataframe_to_bigquery(
-                combined_employer_df,
-                PROJECT_ID,
-                DATASET_ID,
-                'employers',
-                service_account_path,
-                schema=employer_schema,
-                unique_id_columns=['fiscalyear', 'employerpetitionername', 'taxid']
-            )
-            if not employer_success:
-                print("Employer upload failed")
-                return False
     
     print("\n🎉 Data pipeline completed successfully!")
     return True
 
 def main():
-    parser = argparse.ArgumentParser(description='Enhanced H1B Data Pipeline')
+    parser = argparse.ArgumentParser(description='LCA Data Pipeline - Process and upload H1B LCA application data')
     
     # Mutually exclusive group for input method
-    input_group = parser.add_mutually_exclusive_group(required=True)
+    input_group = parser.add_mutually_exclusive_group(required=False)
     input_group.add_argument('--year-folder', type=str, 
                            help='Year folder to process (e.g., "2024", "2025-q2")')
     input_group.add_argument('--files', nargs='+', 
@@ -390,6 +298,9 @@ def main():
     parser.add_argument('--list-files', action='store_true',
                        help='List available files in data directory')
     
+    parser.add_argument('--project-id', type=str,
+                       help=f'Google Cloud Project ID (default: {PROJECT_ID})')
+    
     args = parser.parse_args()
     
     if args.list_files:
@@ -398,18 +309,21 @@ def main():
         for folder in data_path.iterdir():
             if folder.is_dir():
                 print(f"  📁 {folder.name}")
-                lca_files, employer_files = discover_files(folder.name)
+                lca_files = discover_files(folder.name)
                 for lca_file in lca_files:
                     print(f"    📄 {lca_file.name}")
-                for emp_file in employer_files:
-                    print(f"    📄 {emp_file.name}")
         return
+    
+    # Validate that an input method is provided
+    if not args.year_folder and not args.files:
+        parser.error("Either --year-folder or --files must be provided (unless using --list-files)")
     
     # Run pipeline
     success = run_pipeline(
         year_folder=args.year_folder,
         specific_files=args.files,
-        upload_to_bigquery=not args.no_upload
+        upload_to_bigquery=not args.no_upload,
+        project_id=args.project_id
     )
     
     if not success:

@@ -11,12 +11,30 @@ const admin = require('firebase-admin');
 const fs = require('fs');
 const path = require('path');
 
-// Initialize Firebase Admin (adjust path as needed)
-const serviceAccount = require('../serviceAccountKey.json');
+// Initialize Firebase Admin using environment credentials
+let credential;
+
+if (process.env.GOOGLE_APPLICATION_CREDENTIALS) {
+  // Use service account key file
+  credential = admin.credential.applicationDefault();
+} else if (process.env.GOOGLE_CLOUD_PRIVATE_KEY && process.env.GOOGLE_CLOUD_CLIENT_EMAIL) {
+  // Use environment variables
+  credential = admin.credential.cert({
+    client_email: process.env.GOOGLE_CLOUD_CLIENT_EMAIL,
+    private_key: process.env.GOOGLE_CLOUD_PRIVATE_KEY.replace(/\\n/g, '\n'),
+    project_id: process.env.GOOGLE_CLOUD_PROJECT_ID,
+  });
+} else {
+  console.error('❌ No valid Firebase Admin credentials found.');
+  console.error('Please set either:');
+  console.error('  - GOOGLE_APPLICATION_CREDENTIALS environment variable, or');
+  console.error('  - GOOGLE_CLOUD_PRIVATE_KEY, GOOGLE_CLOUD_CLIENT_EMAIL, and GOOGLE_CLOUD_PROJECT_ID environment variables');
+  process.exit(1);
+}
 
 if (!admin.apps.length) {
   admin.initializeApp({
-    credential: admin.credential.cert(serviceAccount),
+    credential: credential,
   });
 }
 

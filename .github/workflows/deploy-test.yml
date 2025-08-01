@@ -1,8 +1,8 @@
-name: Deploy Preview
+name: Deploy Test Environment
 
 on:
   push:
-    branches: [preview]
+    branches: [develop]
 
 jobs:
   deploy:
