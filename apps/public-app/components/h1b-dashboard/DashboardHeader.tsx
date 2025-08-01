@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import { BarChart3, X } from 'lucide-react';
 import { ImmigrantCentralLogo } from './ImmigrantCentralLogo';
-import { EnvironmentBadge } from '@/components/ui/environment-badge';
+import { EnvironmentBadge } from '../ui/environment-badge';
 
 interface NavigationItem {
   id: string;
