@@ -99,7 +99,7 @@ export function createConfig(): AppConfig {
   const defaultDatasetId = 'h1b_data'; // Same dataset name across all environments
   const defaultProjectId = isDev ? 'doctracker-b4528' :
                            isTest ? 'immigrant-central-test' : 
-                           'doctracker-prod'; // Placeholder for production project
+                           'immigrant-central'; // Production project
   
   const credentials = getBigQueryCredentials();
   
