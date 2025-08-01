@@ -3,7 +3,7 @@
 import { Home, FileText, LayoutDashboard, Users, Upload, BarChart3 } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
-import { EnvironmentBadge } from '@/components/ui/environment-badge';
+import { EnvironmentBadge } from './ui/environment-badge';
 
 import {
   Sidebar,
