@@ -5,19 +5,41 @@ const fs = require('fs');
 // Test script to verify Firebase connection and create sample data
 async function testFirebaseConnection() {
   try {
-    // Initialize Firebase Admin SDK
-    const serviceAccountPath = process.env.FIREBASE_SERVICE_ACCOUNT_PATH || path.join(__dirname, '..', 'serviceAccountKey.json');
-    
-    if (!fs.existsSync(serviceAccountPath)) {
-      console.error('❌ Service account key file not found at:', serviceAccountPath);
-      console.log('Please ensure serviceAccountKey.json is in the project root or set FIREBASE_SERVICE_ACCOUNT_PATH environment variable');
+    // Initialize Firebase Admin SDK using environment credentials
+    let credential;
+
+    if (process.env.GOOGLE_APPLICATION_CREDENTIALS) {
+      // Use service account key file
+      credential = admin.credential.applicationDefault();
+    } else if (process.env.GOOGLE_CLOUD_PRIVATE_KEY && process.env.GOOGLE_CLOUD_CLIENT_EMAIL) {
+      // Use environment variables
+      credential = admin.credential.cert({
+        client_email: process.env.GOOGLE_CLOUD_CLIENT_EMAIL,
+        private_key: process.env.GOOGLE_CLOUD_PRIVATE_KEY.replace(/\\n/g, '\n'),
+        project_id: process.env.GOOGLE_CLOUD_PROJECT_ID,
+      });
+    } else if (process.env.FIREBASE_SERVICE_ACCOUNT_PATH) {
+      // Fallback to legacy path method (deprecated)
+      console.warn('⚠️  Using deprecated FIREBASE_SERVICE_ACCOUNT_PATH. Please migrate to GOOGLE_APPLICATION_CREDENTIALS.');
+      const serviceAccountPath = process.env.FIREBASE_SERVICE_ACCOUNT_PATH;
+      
+      if (!fs.existsSync(serviceAccountPath)) {
+        console.error('❌ Service account key file not found at:', serviceAccountPath);
+        return;
+      }
+      
+      const serviceAccount = JSON.parse(fs.readFileSync(serviceAccountPath, 'utf-8'));
+      credential = admin.credential.cert(serviceAccount);
+    } else {
+      console.error('❌ No valid Firebase Admin credentials found.');
+      console.error('Please set either:');
+      console.error('  - GOOGLE_APPLICATION_CREDENTIALS environment variable, or');
+      console.error('  - GOOGLE_CLOUD_PRIVATE_KEY, GOOGLE_CLOUD_CLIENT_EMAIL, and GOOGLE_CLOUD_PROJECT_ID environment variables');
       return;
     }
 
-    const serviceAccount = JSON.parse(fs.readFileSync(serviceAccountPath, 'utf-8'));
-
     admin.initializeApp({
-      credential: admin.credential.cert(serviceAccount),
+      credential: credential,
     });
 
     const db = admin.firestore();

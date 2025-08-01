@@ -9,11 +9,26 @@ const TABLE_ID = 'lca_applications';
 async function validateDataImport() {
   console.log('🔍 Validating 2024 Q3 H1B data import...\n');
 
-  // Initialize BigQuery client
-  const bigquery = new BigQuery({
-    projectId: PROJECT_ID,
-    keyFilename: path.join(__dirname, '..', 'serviceAccountKey.json'),
-  });
+  // Initialize BigQuery client using environment credentials
+  const bigQueryOptions = { projectId: PROJECT_ID };
+  
+  // Use GOOGLE_APPLICATION_CREDENTIALS if set, otherwise fall back to environment variables
+  if (process.env.GOOGLE_APPLICATION_CREDENTIALS) {
+    bigQueryOptions.keyFilename = process.env.GOOGLE_APPLICATION_CREDENTIALS;
+  } else if (process.env.GOOGLE_CLOUD_PRIVATE_KEY && process.env.GOOGLE_CLOUD_CLIENT_EMAIL) {
+    bigQueryOptions.credentials = {
+      client_email: process.env.GOOGLE_CLOUD_CLIENT_EMAIL,
+      private_key: process.env.GOOGLE_CLOUD_PRIVATE_KEY.replace(/\\n/g, '\n'),
+    };
+  } else {
+    console.error('❌ No valid Google Cloud credentials found.');
+    console.error('Please set either:');
+    console.error('  - GOOGLE_APPLICATION_CREDENTIALS environment variable, or');
+    console.error('  - GOOGLE_CLOUD_PRIVATE_KEY and GOOGLE_CLOUD_CLIENT_EMAIL environment variables');
+    process.exit(1);
+  }
+
+  const bigquery = new BigQuery(bigQueryOptions);
 
   try {
     // 1. Check monthly distribution for fiscal year 2024 (Oct 2023 - Sep 2024)

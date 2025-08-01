@@ -20,11 +20,22 @@ echo "   Project: $PROJECT_NAME"
 echo "   Environment: Test (Preview)"
 echo ""
 
+# Security warning
+echo "🚨 SECURITY NOTICE:"
+echo "   This script has been updated to use secure credential management."
+echo "   Service account keys should NOT be committed to the repository."
+echo "   Use environment variables and Vercel's secure environment system."
+echo ""
+
 # Check for required files
 echo "🔍 Checking required files..."
 if [ ! -f "serviceAccountKey-test.json" ]; then
     echo "❌ Missing serviceAccountKey-test.json"
-    echo "   Run ./scripts/setup-gcp-test.sh first"
+    echo "   Please generate a NEW service account key (the old one was compromised)"
+    echo "   1. Go to Google Cloud Console → IAM & Admin → Service Accounts"
+    echo "   2. Create a new key for immigrant-central-test project"
+    echo "   3. Download as serviceAccountKey-test.json"
+    echo "   4. Place in project root (it's in .gitignore)"
     exit 1
 fi
 
@@ -49,9 +60,11 @@ GOOGLE_CLOUD_PROJECT_ID=immigrant-central-test
 BIGQUERY_DATASET_ID=h1b_data_test
 BIGQUERY_TABLE_ID=lca_applications
 
-# You need to add:
-# GOOGLE_APPLICATION_CREDENTIALS_JSON=(contents of serviceAccountKey-test.json)
+# ⚠️  SECURITY: Add these manually in Vercel Dashboard:
+# GOOGLE_APPLICATION_CREDENTIALS_JSON=(contents of NEW serviceAccountKey-test.json)
 # GOOGLE_GENAI_API_KEY=your-genai-key
+# 
+# 🔐 IMPORTANT: Use NEW credentials generated AFTER revoking compromised keys!
 
 # Firebase Configuration (add after setting up Firebase)
 # NEXT_PUBLIC_FIREBASE_API_KEY=
@@ -96,10 +109,13 @@ echo ""
 echo "4. Your test site will be available at:"
 echo "   https://immigrant-central-test.vercel.app"
 echo ""
-echo "🔐 Security Notes:"
-echo "   - Never commit .vercel-credentials-test"
-echo "   - Delete these files after adding to Vercel"
-echo "   - Use Vercel's environment variables for all secrets"
+echo "🔐 CRITICAL Security Notes:"
+echo "   - The old service account key was COMPROMISED and should be revoked"
+echo "   - Use ONLY NEW credentials generated after the security incident"
+echo "   - Never commit .vercel-credentials-test to git"
+echo "   - Delete these files immediately after adding to Vercel"
+echo "   - Use only Vercel's secure environment variables for secrets"
+echo "   - Monitor deployment logs for any credential-related errors"
 
 # Add to gitignore
 if ! grep -q ".vercel-env-test" .gitignore; then
