@@ -23,6 +23,23 @@ npm run import:test          # Test Firebase connection
 npm run import:sample        # Create sample data for testing
 ```
 
+### BigQuery Data Upload Pipeline
+```bash
+# Upload to default project (doctracker-b4528)
+python scripts/data_pipeline.py --year-folder 2024
+
+# Upload to specific project (e.g., immigrant-central-test)
+python scripts/data_pipeline.py --year-folder 2024 --project-id immigrant-central-test
+
+# Process specific files
+python scripts/data_pipeline.py --files path/to/file1.xlsx path/to/file2.xlsx
+
+# Test without uploading
+python scripts/data_pipeline.py --year-folder 2023 --no-upload
+
+# List available data files
+python scripts/data_pipeline.py --list-files
+```
 
 ### Python Data Processing
 ```bash
