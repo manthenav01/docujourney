@@ -6,34 +6,88 @@ on:
   pull_request_review_comment:
     types: [created]
   issues:
-    types: [opened, edited]
+    types: [opened, assigned]
 
 permissions:
   contents: write
   pull-requests: write
   issues: write
+  id-token: write  # Required for OIDC authentication
 
 jobs:
   claude-code:
     runs-on: ubuntu-latest
+    # Only run if comment contains @claude or issue is assigned with @claude mention
     if: |
       (github.event_name == 'issue_comment' && contains(github.event.comment.body, '@claude')) ||
       (github.event_name == 'pull_request_review_comment' && contains(github.event.comment.body, '@claude')) ||
       (github.event_name == 'issues' && contains(github.event.issue.body, '@claude'))
     
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          # Fetch full history for better context
+          fetch-depth: 0
       
       - name: Claude Code Action
-        uses: anthropics/claude-code-action@v1
+        uses: anthropics/claude-code-action@beta
         with:
-          anthropic-api-key: ${{ secrets.ANTHROPIC_API_KEY }}
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          model: claude-3-5-sonnet-20241022
-          max-tokens: 4096
-          temperature: 0.7
-          system-prompt: |
-            You are an AI assistant helping with the DocuJourney project, an immigration document management system.
-            Always follow the instructions in CLAUDE.md file.
-            Focus on code quality, security, and following the established patterns in the codebase.
-            When making changes, ensure they align with the existing architecture and coding standards.
+          # Authentication - use either API key or OAuth token
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          # Alternative: claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          
+          # Required GitHub token for API access
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          
+          # Optional: Set trigger phrase (defaults to "@claude")
+          trigger_phrase: "@claude"
+          
+          # Optional: Set timeout in minutes (defaults to 25)
+          timeout_minutes: "30"
+          
+          # Optional: Set mode - "tag" (default) or "agent"
+          # Tag mode: Claude responds to being tagged
+          # Agent mode: Claude proactively monitors and assists
+          mode: "tag"
+        env:
+          # Optional: Set environment for better context
+          CLAUDE_PROJECT_NAME: "DocuJourney"
+          CLAUDE_PROJECT_DESCRIPTION: "Immigration document management system with AI-powered analysis"
+
+# Example usage:
+# 1. In an issue comment: "@claude can you help fix the TypeScript error in src/components/ProfileForm.tsx?"
+# 2. In a PR review: "@claude please update the tests for the new visa status analysis feature"
+# 3. In an issue body: "@claude implement dark mode toggle for the dashboard"
+#
+# Advanced configuration examples:
+#
+# For specific file changes trigger:
+# on:
+#   pull_request:
+#     paths:
+#       - "src/api/**/*.ts"
+#
+# For automatic documentation updates:
+# - name: Claude Code Action
+#   uses: anthropics/claude-code-action@beta
+#   with:
+#     anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+#     github_token: ${{ secrets.GITHUB_TOKEN }}
+#     direct_prompt: |
+#       Update the API documentation in README.md to reflect 
+#       the changes made to the API endpoints in this PR.
+#
+# For agent mode (proactive assistance):
+# - name: Claude Code Action
+#   uses: anthropics/claude-code-action@beta
+#   with:
+#     anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+#     github_token: ${{ secrets.GITHUB_TOKEN }}
+#     mode: "agent"
+#     agent_prompt: |
+#       Monitor this PR and suggest improvements for:
+#       - Code quality and best practices
+#       - Missing tests
+#       - Documentation updates
+#       - Security considerations
