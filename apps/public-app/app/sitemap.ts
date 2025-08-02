@@ -2,7 +2,7 @@ import { MetadataRoute } from 'next';
 
 async function fetchTopCompanies(): Promise<Array<{ name: string; slug: string }>> {
   try {
-    const response = await fetch(`${process.env.NEXT_PUBLIC_APP_URL || 'https://docujourney.com'}/api/h1b-data?category=topEmployers&limit=1000`);
+    const response = await fetch(`${process.env.NEXT_PUBLIC_APP_URL || 'https://usimmigrantcentral.com'}/api/h1b-data?category=topEmployers&limit=1000`);
     if (!response.ok) {
       return [];
     }
@@ -20,7 +20,7 @@ async function fetchTopCompanies(): Promise<Array<{ name: string; slug: string }
 
 async function fetchTopJobs(): Promise<Array<{ title: string; slug: string }>> {
   try {
-    const response = await fetch(`${process.env.NEXT_PUBLIC_APP_URL || 'https://docujourney.com'}/api/h1b-data?category=topJobTitles&limit=500`);
+    const response = await fetch(`${process.env.NEXT_PUBLIC_APP_URL || 'https://usimmigrantcentral.com'}/api/h1b-data?category=topJobTitles&limit=500`);
     if (!response.ok) {
       return [];
     }
@@ -38,7 +38,7 @@ async function fetchTopJobs(): Promise<Array<{ title: string; slug: string }>> {
 
 async function fetchTopCities(): Promise<Array<{ city: string; state: string; slug: string }>> {
   try {
-    const response = await fetch(`${process.env.NEXT_PUBLIC_APP_URL || 'https://docujourney.com'}/api/h1b-data?category=stateDistribution&limit=200`);
+    const response = await fetch(`${process.env.NEXT_PUBLIC_APP_URL || 'https://usimmigrantcentral.com'}/api/h1b-data?category=stateDistribution&limit=200`);
     if (!response.ok) {
       return [];
     }
@@ -81,7 +81,7 @@ async function fetchTopCities(): Promise<Array<{ city: string; state: string; sl
 }
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://docujourney.com';
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://usimmigrantcentral.com';
   
   // Fetch data for dynamic pages
   const [topCompanies, topJobs, topCities] = await Promise.all([

@@ -104,21 +104,120 @@ export const CityDashboard: React.FC<CityDashboardProps> = ({
 
   if (loading) {
     return (
-      <div className="max-w-7xl mx-auto">
+      <div className="max-w-7xl mx-auto space-y-6">
+        {/* Header Skeleton */}
         <div className="mb-6">
-          <Button 
-            onClick={handleBackClick}
-            variant="outline" 
-            className="mb-4"
-          >
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Back to Dashboard
-          </Button>
+          <div className="flex items-center space-x-4 animate-pulse">
+            <div className="p-3 bg-gray-200 rounded-xl w-14 h-14"></div>
+            <div>
+              <div className="h-8 bg-gray-200 rounded w-64 mb-2"></div>
+              <div className="h-4 bg-gray-200 rounded w-48"></div>
+            </div>
+          </div>
         </div>
-        
-        <div className="flex items-center justify-center min-h-[400px]">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+
+        {/* Key Metrics Cards Skeleton */}
+        <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+          {[1, 2, 3, 4].map((i) => (
+            <Card key={i} className="bg-white rounded-xl shadow-sm border border-gray-100">
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="p-2 bg-gray-200 rounded-lg w-10 h-10 animate-pulse"></div>
+                </div>
+                <div className="h-4 bg-gray-200 rounded w-28 animate-pulse mb-1"></div>
+                <div className="h-8 bg-gray-200 rounded w-20 animate-pulse"></div>
+              </CardContent>
+            </Card>
+          ))}
         </div>
+
+        {/* Charts Row 1 Skeleton */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <Card>
+            <CardHeader>
+              <div className="h-6 bg-gray-200 rounded w-40 animate-pulse"></div>
+            </CardHeader>
+            <CardContent>
+              <div className="h-64 bg-gray-200 rounded animate-pulse"></div>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardHeader>
+              <div className="h-6 bg-gray-200 rounded w-32 animate-pulse"></div>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                {[1, 2, 3, 4, 5].map((i) => (
+                  <div key={i} className="flex items-center justify-between animate-pulse">
+                    <div className="flex items-center space-x-3">
+                      <div className="w-6 h-6 bg-gray-200 rounded-full"></div>
+                      <div className="h-4 bg-gray-200 rounded w-48"></div>
+                    </div>
+                    <div className="h-4 bg-gray-200 rounded w-16"></div>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Charts Row 2 Skeleton */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <Card>
+            <CardHeader>
+              <div className="h-6 bg-gray-200 rounded w-36 animate-pulse"></div>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                {[1, 2, 3, 4, 5, 6].map((i) => (
+                  <div key={i} className="space-y-2 animate-pulse">
+                    <div className="flex justify-between items-center">
+                      <div className="flex items-center space-x-3">
+                        <div className="w-8 h-8 bg-gray-200 rounded-full"></div>
+                        <div>
+                          <div className="h-4 bg-gray-200 rounded w-32 mb-1"></div>
+                          <div className="h-3 bg-gray-200 rounded w-20"></div>
+                        </div>
+                      </div>
+                      <div className="h-4 bg-gray-200 rounded w-16"></div>
+                    </div>
+                    <div className="w-full bg-gray-200 rounded-full h-2"></div>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <div className="h-6 bg-gray-200 rounded w-40 animate-pulse"></div>
+            </CardHeader>
+            <CardContent>
+              <div className="h-64 bg-gray-200 rounded animate-pulse"></div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Recent Activity Skeleton */}
+        <Card>
+          <CardHeader>
+            <div className="h-6 bg-gray-200 rounded w-48 animate-pulse"></div>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+              {[1, 2, 3, 4, 5, 6].map((i) => (
+                <div key={i} className="text-center space-y-2 animate-pulse">
+                  <div className="h-4 bg-gray-200 rounded w-12 mx-auto"></div>
+                  <div className="flex items-end justify-center h-20">
+                    <div className="bg-gray-200 rounded-t-md w-8 h-12"></div>
+                  </div>
+                  <div className="h-3 bg-gray-200 rounded w-8 mx-auto"></div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
       </div>
     );
   }

@@ -72,6 +72,27 @@ const formatNumber = (num: number): string => {
 };
 
 /**
+ * Format salary range labels responsively
+ */
+const formatSalaryLabel = (range: string, isMobile: boolean = false): string => {
+  const labelMappings: { [key: string]: { mobile: string; desktop: string } } = {
+    'Under $80K': { mobile: '<80K', desktop: '<80K' },
+    '$80K - $120K': { mobile: '80-120K', desktop: '80-120K' },
+    '$120K - $160K': { mobile: '120-160K', desktop: '120-160K' },
+    '$160K - $200K': { mobile: '160-200K', desktop: '160-200K' },
+    '$200K+': { mobile: '200K+', desktop: '200K+' },
+  };
+
+  const mapping = labelMappings[range];
+  if (mapping) {
+    return isMobile ? mapping.mobile : mapping.desktop;
+  }
+  
+  // Fallback for any unrecognized ranges
+  return range.replace(/\$|Under |Over /, '').replace(' - ', '-');
+};
+
+/**
  * Custom tooltip component for area chart
  */
 const CustomTooltip = ({ active, payload, label }: any) => {
@@ -81,12 +102,14 @@ const CustomTooltip = ({ active, payload, label }: any) => {
 
   const data = payload[0].payload;
   const value = payload[0].value;
+  // Use original name if available, otherwise fall back to label
+  const displayLabel = data.originalName || label;
 
   return (
     <div className="bg-card/95 backdrop-blur-sm border border-border rounded-lg shadow-lg p-3 min-w-[180px]">
       <div className="space-y-2">
         <div className="font-semibold text-foreground text-sm">
-          {label}
+          {displayLabel}
         </div>
         
         <div className="flex items-center gap-2">
@@ -117,7 +140,7 @@ const ResponsiveChartWrapper: React.FC<{
   children: React.ReactNode;
   height: number;
 }> = ({ children, height }) => {
-  // Calculate responsive dimensions
+  // Calculate responsive dimensions with better space utilization
   const responsiveHeight = useMemo(() => {
     if (typeof window === 'undefined') {
       return height;
@@ -125,13 +148,13 @@ const ResponsiveChartWrapper: React.FC<{
     
     const width = window.innerWidth;
     if (width < 375) {
-      return Math.max(height * 0.6, 200);
+      return Math.max(height * 0.7, 240); // Slightly taller for very small screens
     }
     if (width < 640) {
-      return Math.max(height * 0.7, 220);
+      return Math.max(height * 0.8, 260); // Better height for mobile
     }
     if (width < 1024) {
-      return Math.max(height * 0.85, 280);
+      return Math.max(height * 0.9, 300); // Better height for tablets
     }
     return height;
   }, [height]);
@@ -259,29 +282,49 @@ const AreaChartVisualization: React.FC<{
   data: SalaryDistributionData[];
   height: number;
 }> = ({ data, height }) => {
+  // Detect if mobile screen
+  const isMobile = useMemo(() => {
+    if (typeof window === 'undefined') return false;
+    return window.innerWidth < 640;
+  }, []);
+
   const chartData = useMemo(() => 
     data.map(item => ({
-      name: item.range,
+      name: formatSalaryLabel(item.range, isMobile),
+      originalName: item.range, // Keep original for tooltip
       value: item.count,
       percentage: item.percentage || 0,
-    })), [data],
+    })), [data, isMobile],
   );
 
   const maxValue = useMemo(() => 
     Math.max(...chartData.map(d => d.value)) * 1.1, [chartData],
   );
 
+  // Responsive margins based on screen size and label rotation
+  const chartMargins = useMemo(() => {
+    if (isMobile) {
+      return {
+        top: 5,
+        right: 10,
+        left: 15,
+        bottom: 35, // Reduced for mobile
+      };
+    }
+    return {
+      top: 10,
+      right: 20,
+      left: 20,
+      bottom: 45, // Reduced from 60
+    };
+  }, [isMobile]);
+
   return (
     <ResponsiveChartWrapper height={height}>
       <ResponsiveContainer width="100%" height="100%">
         <RechartsAreaChart
           data={chartData}
-          margin={{
-            top: 10,
-            right: 10,
-            left: 0,
-            bottom: 40,
-          }}
+          margin={chartMargins}
         >
           <defs>
             <linearGradient id="salaryGradient" x1="0" y1="0" x2="0" y2="1">
@@ -314,13 +357,13 @@ const AreaChartVisualization: React.FC<{
             axisLine={false}
             tickLine={false}
             tick={{
-              fontSize: 10,
+              fontSize: isMobile ? 10 : 11,
               fill: salaryDistributionColors.text,
               fontWeight: 500,
             }}
-            angle={-30}
-            textAnchor="end"
-            height={40}
+            angle={isMobile ? -15 : -20}
+            textAnchor="middle"
+            height={isMobile ? 35 : 45}
             interval={0}
           />
 
