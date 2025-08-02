@@ -11,6 +11,7 @@ export const metadata: Metadata = generateMetadata({
   description: BASE_METADATA.description,
   keywords: ['immigration', 'H1B visa', 'AI-powered', 'visa analytics', 'H1B Employer', 'H1B Sponsor'],
   type: 'website',
+  path: '',
 });
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

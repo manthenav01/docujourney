@@ -7,6 +7,7 @@ export const metadata: Metadata = generateMetadata({
   description: 'Learn how ImmigrantCentral protects your privacy and handles your data. Comprehensive privacy policy for our H1B analytics platform.',
   keywords: ['privacy policy', 'data protection', 'GDPR', 'privacy rights', 'H1B data'],
   type: 'website',
+  path: '/privacy-policy',
 });
 
 const PrivacyPolicyPage = () => {
