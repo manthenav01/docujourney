@@ -1,7 +1,7 @@
-'use client'
+'use client';
 
-import { Badge } from '@docujourney/ui'
-import { GitBranch, Cloud } from 'lucide-react'
+import { Badge } from '@docujourney/ui';
+import { GitBranch, Cloud } from 'lucide-react';
 
 interface EnvironmentBadgeProps {
   projectId?: string
@@ -14,25 +14,25 @@ export function EnvironmentBadge({
   projectId, 
   branch, 
   environment,
-  className = ''
+  className = '',
 }: EnvironmentBadgeProps) {
   // Don't show badge in production
   if (environment === 'production' || process.env.NODE_ENV === 'production' && !projectId) {
-    return null
+    return null;
   }
 
   // Get environment info from environment variables or props
-  const currentProjectId = projectId || process.env.NEXT_PUBLIC_GOOGLE_CLOUD_PROJECT_ID || 'unknown'
-  const currentBranch = branch || process.env.VERCEL_GIT_COMMIT_REF || process.env.NEXT_PUBLIC_BRANCH_NAME || 'local'
-  const currentEnv = environment || (process.env.VERCEL_ENV === 'preview' ? 'preview' : 'development')
+  const currentProjectId = projectId || process.env.NEXT_PUBLIC_GOOGLE_CLOUD_PROJECT_ID || 'unknown';
+  const currentBranch = branch || process.env.VERCEL_GIT_COMMIT_REF || process.env.NEXT_PUBLIC_BRANCH_NAME || 'local';
+  const currentEnv = environment || (process.env.VERCEL_ENV === 'preview' ? 'preview' : 'development');
 
   // Don't show for production project
   if (currentProjectId === 'doctracker-b4528') {
-    return null
+    return null;
   }
 
-  const badgeVariant = currentEnv === 'preview' ? 'secondary' : 'outline'
-  const badgeColor = currentEnv === 'preview' ? 'bg-blue-100 text-blue-800' : 'bg-orange-100 text-orange-800'
+  const badgeVariant = currentEnv === 'preview' ? 'secondary' : 'outline';
+  const badgeColor = currentEnv === 'preview' ? 'bg-blue-100 text-blue-800' : 'bg-orange-100 text-orange-800';
 
   return (
     <div className={`flex items-center gap-2 ${className}`}>
@@ -45,5 +45,5 @@ export function EnvironmentBadge({
         {currentBranch}
       </Badge>
     </div>
-  )
+  );
 }

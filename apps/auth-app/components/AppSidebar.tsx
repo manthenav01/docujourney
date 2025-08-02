@@ -3,7 +3,6 @@
 import { Home, FileText, LayoutDashboard, Users, Upload, BarChart3 } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
-import { EnvironmentBadge } from './ui/environment-badge';
 
 import {
   Sidebar,
@@ -58,7 +57,6 @@ export function AppSidebar() {
             <span className="text-teal-500 text-2xl mr-2">&#10048;</span>
             <span className="font-bold text-xl">DocuJourney</span>
           </div>
-          <EnvironmentBadge className="ml-8" />
         </div>
       </SidebarHeader>
       <SidebarContent>
