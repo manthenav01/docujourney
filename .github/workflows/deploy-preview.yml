@@ -21,3 +21,6 @@ jobs:
         env:
           NEXT_PUBLIC_BRANCH_NAME: ${{ github.ref_name }}
           NEXT_PUBLIC_GOOGLE_CLOUD_PROJECT_ID: immigrant-central-test
+          GOOGLE_CLOUD_PROJECT_ID: immigrant-central-test
+          GOOGLE_CLOUD_PRIVATE_KEY: ${{ secrets.GOOGLE_CLOUD_PRIVATE_KEY }}
+          GOOGLE_CLOUD_CLIENT_EMAIL: ${{ secrets.GOOGLE_CLOUD_CLIENT_EMAIL }}

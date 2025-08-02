@@ -19,6 +19,11 @@ jobs:
           vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
           scope: ${{ secrets.VERCEL_ORG_ID }}
           vercel-args: '--prod'
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          production: true
         env:
           NEXT_PUBLIC_BRANCH_NAME: main
           NEXT_PUBLIC_GOOGLE_CLOUD_PROJECT_ID: immigrant-central
+          GOOGLE_CLOUD_PROJECT_ID: immigrant-central
+          GOOGLE_CLOUD_PRIVATE_KEY: ${{ secrets.GOOGLE_CLOUD_PRIVATE_KEY }}
+          GOOGLE_CLOUD_CLIENT_EMAIL: ${{ secrets.GOOGLE_CLOUD_CLIENT_EMAIL }}
