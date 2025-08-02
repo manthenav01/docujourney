@@ -165,7 +165,7 @@ export const DashboardFooter: React.FC = () => {
                 icon={<Scale className="w-4 h-4" />}
               >
                 <FooterLink href="/about">About Us</FooterLink>
-                <FooterLink href="/privacy">Privacy Policy</FooterLink>
+                <FooterLink href="/privacy-policy">Privacy Policy</FooterLink>
                 <FooterLink href="/terms">Terms of Service</FooterLink>
                 <FooterLink href="/contact">Contact</FooterLink>
                 <FooterLink href="/careers">Careers</FooterLink>
