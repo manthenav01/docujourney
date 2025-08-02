@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
+import { trackJobSearch } from '../../lib/analytics';
 import { 
   Search, 
   Sparkles, 
@@ -195,6 +196,12 @@ export const SemanticSearch: React.FC<SemanticSearchProps> = ({
     if (!searchQuery.trim()) {return;}
     
     const trimmedQuery = searchQuery.trim();
+    
+    // Track search in Google Analytics
+    trackJobSearch({
+      jobTitle: trimmedQuery,
+      resultsCount: suggestions.length,
+    });
     
     // Don't perform the search - just keep the query for autocomplete
     console.log('Search query entered:', trimmedQuery);

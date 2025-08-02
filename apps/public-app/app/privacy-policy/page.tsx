@@ -63,10 +63,11 @@ const PrivacyPolicyPage = () => {
               <div>
                 <h3 className="text-xl font-medium text-gray-900 mb-3">Technical Data (Anonymous)</h3>
                 <ul className="list-disc pl-6 space-y-2 text-gray-700">
-                  <li>Basic analytics data (page views, popular searches) via Vercel Analytics</li>
+                  <li>Basic analytics data (page views, popular searches) via Vercel Analytics and Google Analytics</li>
                   <li>Performance metrics to improve platform speed and reliability</li>
                   <li>Error logs for technical troubleshooting (no personal information)</li>
                   <li>General usage patterns to enhance user experience</li>
+                  <li>Cookie data for analytics and user preferences (with your consent)</li>
                 </ul>
               </div>
             </div>
@@ -184,22 +185,49 @@ const PrivacyPolicyPage = () => {
           {/* Cookies & Analytics */}
           <section className="mb-12 bg-white rounded-xl p-8 shadow-sm border border-gray-100">
             <h2 className="text-2xl font-semibold text-gray-900 mb-6">Cookies & Analytics</h2>
-            <p className="text-gray-700 mb-4">
-              We use cookies and similar technologies to enhance your experience and analyze platform usage:
+            <p className="text-gray-700 mb-6">
+              We use cookies and similar technologies to enhance your experience and analyze platform usage. You can control these through our cookie consent banner.
             </p>
-            <div className="space-y-3">
-              <div className="flex items-center space-x-3">
-                <span className="w-2 h-2 bg-blue-500 rounded-full"></span>
-                <span className="text-gray-700"><strong>Essential Cookies:</strong> Required for platform functionality</span>
+            
+            <div className="grid md:grid-cols-2 gap-6">
+              <div>
+                <h3 className="text-lg font-medium text-gray-900 mb-3">Cookie Types</h3>
+                <div className="space-y-3">
+                  <div className="flex items-center space-x-3">
+                    <span className="w-2 h-2 bg-blue-500 rounded-full"></span>
+                    <span className="text-gray-700"><strong>Essential Cookies:</strong> Required for platform functionality</span>
+                  </div>
+                  <div className="flex items-center space-x-3">
+                    <span className="w-2 h-2 bg-green-500 rounded-full"></span>
+                    <span className="text-gray-700"><strong>Analytics Cookies:</strong> Google Analytics for usage insights</span>
+                  </div>
+                  <div className="flex items-center space-x-3">
+                    <span className="w-2 h-2 bg-purple-500 rounded-full"></span>
+                    <span className="text-gray-700"><strong>Performance Cookies:</strong> Vercel Analytics for performance monitoring</span>
+                  </div>
+                </div>
               </div>
-              <div className="flex items-center space-x-3">
-                <span className="w-2 h-2 bg-green-500 rounded-full"></span>
-                <span className="text-gray-700"><strong>Analytics Cookies:</strong> Help us understand usage patterns</span>
+              
+              <div>
+                <h3 className="text-lg font-medium text-gray-900 mb-3">Analytics Services</h3>
+                <div className="space-y-3 text-sm">
+                  <div>
+                    <strong className="text-gray-900">Google Analytics 4:</strong>
+                    <p className="text-gray-600">Tracks page views, user interactions, and platform usage to help us improve the H1B analytics experience.</p>
+                  </div>
+                  <div>
+                    <strong className="text-gray-900">Vercel Analytics:</strong>
+                    <p className="text-gray-600">Monitors performance metrics and helps ensure fast loading times for H1B data.</p>
+                  </div>
+                </div>
               </div>
-              <div className="flex items-center space-x-3">
-                <span className="w-2 h-2 bg-purple-500 rounded-full"></span>
-                <span className="text-gray-700"><strong>Performance Cookies:</strong> Monitor and improve platform performance</span>
-              </div>
+            </div>
+            
+            <div className="mt-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
+              <p className="text-sm text-blue-800">
+                <strong>Your Control:</strong> You can accept or decline analytics cookies through our consent banner. 
+                Essential cookies are always active to ensure the platform functions properly.
+              </p>
             </div>
           </section>
 

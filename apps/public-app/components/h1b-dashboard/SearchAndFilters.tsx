@@ -8,6 +8,7 @@ import {
 } from 'lucide-react';
 import { FilterState } from './types';
 import { SemanticSearch } from './SemanticSearch';
+import { trackFilterUsage } from '../../lib/analytics';
 import { Card, CardContent, Input } from '@docujourney/ui';
 
 interface SearchSuggestion {

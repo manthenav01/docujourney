@@ -1,10 +1,12 @@
-import React from 'react';
+import React, { Suspense } from 'react';
 import '@docujourney/ui/styles/globals.css';
 import { Toaster } from '@docujourney/ui';
 import { BASE_METADATA, generateMetadata } from '@docujourney/utils';
 import { Metadata } from 'next';
 import { SpeedInsights } from '@vercel/speed-insights/next';
 import { Analytics } from '@vercel/analytics/react';
+import GoogleAnalytics from '@/components/GoogleAnalytics';
+import CookieConsent from '@/components/CookieConsent';
 
 export const metadata: Metadata = generateMetadata({
   title: BASE_METADATA.title,
@@ -61,7 +63,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         />
       </head>
       <body>
+        <Suspense fallback={null}>
+          <GoogleAnalytics />
+        </Suspense>
         {children}
+        <CookieConsent />
         <Toaster />
         <SpeedInsights />
         <Analytics />

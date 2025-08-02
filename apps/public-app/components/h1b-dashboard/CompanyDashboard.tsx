@@ -9,6 +9,7 @@ import { ReusableSalaryDistribution } from './charts/ReusableSalaryDistribution'
 import { MarketTrendsCard } from './MarketTrendsCard';
 import { TopJobTitlesCard } from './TopJobTitlesCard';
 import { H1BCompanyAnalysis } from '../../lib/types';
+import { trackCompanyView, trackSalaryDataView } from '../../lib/analytics';
 import { 
   Building, 
   MapPin, 
@@ -66,6 +67,14 @@ export const CompanyDashboard: React.FC<CompanyDashboardProps> = ({
           throw new Error('No data received from API');
         }
         setCompanyInfo(apiResponse.data);
+        
+        // Track company view in Google Analytics
+        trackCompanyView({
+          name: companyName,
+          totalApplications: apiResponse.data.summary?.totalApplications,
+          approvalRate: apiResponse.data.summary?.approvalRate,
+          avgSalary: apiResponse.data.summary?.avgSalary,
+        });
       } else {
         const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
         throw new Error(errorData.error || `Server responded with ${response.status}`);
