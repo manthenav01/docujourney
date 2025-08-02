@@ -3,7 +3,9 @@ import { MetadataRoute } from 'next';
 async function fetchTopCompanies(): Promise<Array<{ name: string; slug: string }>> {
   try {
     const response = await fetch(`${process.env.NEXT_PUBLIC_APP_URL || 'https://docujourney.com'}/api/h1b-data?category=topEmployers&limit=1000`);
-    if (!response.ok) return [];
+    if (!response.ok) {
+      return [];
+    }
     
     const data = await response.json();
     return (data.data?.topEmployers || []).map((company: any) => ({
@@ -19,7 +21,9 @@ async function fetchTopCompanies(): Promise<Array<{ name: string; slug: string }
 async function fetchTopJobs(): Promise<Array<{ title: string; slug: string }>> {
   try {
     const response = await fetch(`${process.env.NEXT_PUBLIC_APP_URL || 'https://docujourney.com'}/api/h1b-data?category=topJobTitles&limit=500`);
-    if (!response.ok) return [];
+    if (!response.ok) {
+      return [];
+    }
     
     const data = await response.json();
     return (data.data?.topJobTitles || []).map((job: any) => ({
@@ -35,7 +39,9 @@ async function fetchTopJobs(): Promise<Array<{ title: string; slug: string }>> {
 async function fetchTopCities(): Promise<Array<{ city: string; state: string; slug: string }>> {
   try {
     const response = await fetch(`${process.env.NEXT_PUBLIC_APP_URL || 'https://docujourney.com'}/api/h1b-data?category=stateDistribution&limit=200`);
-    if (!response.ok) return [];
+    if (!response.ok) {
+      return [];
+    }
     
     const data = await response.json();
     // For now, we'll create a simplified city list based on states

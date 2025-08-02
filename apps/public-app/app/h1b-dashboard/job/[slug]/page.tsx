@@ -15,7 +15,7 @@ export async function generateMetadata({ params, searchParams }: PageProps): Pro
   const jobTitle = Array.isArray(resolvedSearchParams.title) 
     ? resolvedSearchParams.title[0] 
     : resolvedSearchParams.title || slug.replace(/-/g, ' ').split(' ').map(word => 
-        word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
+        word.charAt(0).toUpperCase() + word.slice(1).toLowerCase(),
       ).join(' ');
   
   const title = `${jobTitle} H1B Salary Data 2025 | Visa Sponsorship & Requirements`;

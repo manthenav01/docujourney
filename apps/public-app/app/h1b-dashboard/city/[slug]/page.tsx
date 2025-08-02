@@ -15,7 +15,7 @@ export async function generateMetadata({ params, searchParams }: PageProps): Pro
   const cityName = Array.isArray(resolvedSearchParams.city) 
     ? resolvedSearchParams.city[0] 
     : resolvedSearchParams.city || slug.replace(/-/g, ' ').split(' ').map(word => 
-        word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
+        word.charAt(0).toUpperCase() + word.slice(1).toLowerCase(),
       ).join(' ');
   
   const stateName = Array.isArray(resolvedSearchParams.state) 

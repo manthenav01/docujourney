@@ -1,20 +1,6 @@
-import React from 'react';
-import { Metadata } from 'next';
-import { generateMetadata } from '@docujourney/utils';
+'use client';
 
-export const metadata: Metadata = generateMetadata({
-  title: 'About Immigrant Central - H1B Data Analytics Platform',
-  description: 'Learn about Immigrant Central\'s mission to provide transparent H1B visa data analytics. Access comprehensive immigration statistics, salary insights, and employer data to make informed decisions.',
-  keywords: [
-    'about immigrant central',
-    'H1B data platform',
-    'immigration analytics',
-    'visa data transparency',
-    'H1B statistics mission',
-    'immigration data company',
-  ],
-  path: '/about',
-});
+import React from 'react';
 import Link from 'next/link';
 import { Button, Card, CardContent, CardHeader, CardTitle } from '@docujourney/ui';
 import { 
