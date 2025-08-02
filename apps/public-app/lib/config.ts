@@ -44,10 +44,17 @@ function getBigQueryCredentials() {
   const clientEmail = process.env.GOOGLE_CLOUD_CLIENT_EMAIL;
   
   if (projectId && privateKey && clientEmail) {
+    // Aggressive whitespace cleanup
+    const cleanProjectId = projectId.replace(/[\n\r\t\s]+$/, '').replace(/^[\n\r\t\s]+/, '');
+    const cleanPrivateKey = privateKey.replace(/\\n/g, '\n')
+      .replace(/[\n\r\t\s]+$/, '')
+      .replace(/^[\n\r\t\s]+/, '');
+    const cleanClientEmail = clientEmail.replace(/[\n\r\t\s]+$/, '').replace(/^[\n\r\t\s]+/, '');
+    
     return {
-      project_id: projectId.trim(),
-      private_key: privateKey.replace(/\\n/g, '\n').trim(),
-      client_email: clientEmail.trim(),
+      project_id: cleanProjectId,
+      private_key: cleanPrivateKey,
+      client_email: cleanClientEmail,
       type: 'service_account',
     };
   }
@@ -106,10 +113,13 @@ export function createConfig(): AppConfig {
   return {
     environment,
     bigQuery: {
-      projectId: (process.env.GOOGLE_CLOUD_PROJECT_ID || defaultProjectId).trim(),
+      projectId: (process.env.GOOGLE_CLOUD_PROJECT_ID || defaultProjectId)
+        .replace(/[\n\r\t\s]+$/, '').replace(/^[\n\r\t\s]+/, ''),
       credentials,
-      datasetId: (process.env.BIGQUERY_DATASET_ID || defaultDatasetId).trim(),
-      tableId: (process.env.BIGQUERY_TABLE_ID || 'lca_applications').trim(),
+      datasetId: (process.env.BIGQUERY_DATASET_ID || defaultDatasetId)
+        .replace(/[\n\r\t\s]+$/, '').replace(/^[\n\r\t\s]+/, ''),
+      tableId: (process.env.BIGQUERY_TABLE_ID || 'lca_applications')
+        .replace(/[\n\r\t\s]+$/, '').replace(/^[\n\r\t\s]+/, ''),
     },
     isProd,
     isDev,
