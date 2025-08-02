@@ -45,7 +45,7 @@ export async function generateMetadata({ params, searchParams }: PageProps): Pro
       description,
       type: 'website',
       url: canonicalUrl,
-      siteName: 'DocuJourney - H1B Analytics Platform',
+      siteName: 'Immigrant Central',
       images: [
         {
           url: `${baseUrl}/api/og?type=company&name=${encodeURIComponent(companyName)}`,

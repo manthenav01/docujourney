@@ -19,10 +19,20 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en">
       <head>
         <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <meta name="theme-color" content="#0891b2" />
-        <link rel="icon" href="/favicon.ico" />
-        <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+        <meta name="theme-color" content="#2563eb" />
+        
+        {/* Favicon and app icons */}
+        <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+        <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+        <link rel="apple-touch-icon" href="/apple-touch-icon.svg" />
         <link rel="manifest" href="/site.webmanifest" />
+        
+        {/* Additional meta tags for PWA */}
+        <meta name="application-name" content="Immigrant Central" />
+        <meta name="apple-mobile-web-app-title" content="Immigrant Central" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+        <meta name="mobile-web-app-capable" content="yes" />
         
         {/* Preconnect to external domains for performance */}
         <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -38,9 +48,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             __html: JSON.stringify({
               '@context': 'https://schema.org',
               '@type': 'WebSite',
-              name: 'DocuJourney',
+              name: 'Immigrant Central',
               url: 'https://docujourney.com',
-              description: 'AI-powered immigration document management and H1B visa analytics platform',
+              description: 'Comprehensive H1B visa analytics platform with real-time immigration data insights',
               potentialAction: {
                 '@type': 'SearchAction',
                 target: 'https://docujourney.com/h1b-dashboard?q={search_term_string}',

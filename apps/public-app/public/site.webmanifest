@@ -1,28 +1,28 @@
 {
-  "name": "DocuJourney - Immigration Document Management & H1B Analytics",
-  "short_name": "DocuJourney",
-  "description": "AI-powered immigration document management and comprehensive H1B visa analytics platform",
+  "name": "Immigrant Central - H1B Data Analytics Platform",
+  "short_name": "Immigrant Central",
+  "description": "Comprehensive H1B visa analytics platform with real-time immigration data insights and employer statistics",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#ffffff",
-  "theme_color": "#0891b2",
+  "theme_color": "#2563eb",
   "icons": [
     {
-      "src": "/assets/icon-192.png",
-      "sizes": "192x192",
-      "type": "image/png",
+      "src": "/favicon.svg",
+      "sizes": "32x32",
+      "type": "image/svg+xml",
       "purpose": "any"
     },
     {
-      "src": "/assets/icon-512.png",
-      "sizes": "512x512",
-      "type": "image/png",
+      "src": "/apple-touch-icon.svg",
+      "sizes": "180x180",
+      "type": "image/svg+xml",
       "purpose": "any"
     },
     {
-      "src": "/assets/icon-maskable.png",
+      "src": "/favicon.svg",
       "sizes": "192x192",
-      "type": "image/png",
+      "type": "image/svg+xml",
       "purpose": "maskable"
     }
   ],

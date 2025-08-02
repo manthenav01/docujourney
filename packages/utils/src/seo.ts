@@ -36,10 +36,10 @@ export const SEO_KEYWORDS = {
 
 // Base metadata for the site
 export const BASE_METADATA = {
-  title: 'DocuJourney - AI-Powered Immigration Document Management & H1B Analytics',
-  description: 'Comprehensive H1B visa analytics, company data, and AI-powered immigration document management. Track visa status, manage documents, and explore detailed H1B statistics.',
-  siteName: 'DocuJourney',
-  url: 'https://docujourney.com',
+  title: 'Immigrant Central - H1B Data Analytics Platform',
+  description: 'Comprehensive H1B visa analytics, company data, and immigration insights. Access real-time H1B statistics, salary data, approval rates, and employer information.',
+  siteName: 'Immigrant Central',
+  url: 'https://usimmigrantcentral.com',
   image: '/assets/og-image.png',
   type: 'website',
 };
@@ -62,7 +62,7 @@ export function generateMetadata({
   image?: string;
   noIndex?: boolean;
 }): Metadata {
-  const fullTitle = title.includes('DocuJourney') ? title : `${title} | DocuJourney`;
+  const fullTitle = title.includes('Immigrant Central') ? title : `${title} | Immigrant Central`;
   const fullUrl = `${BASE_METADATA.url}${path}`;
   const fullImage = image || BASE_METADATA.image;
 
@@ -70,9 +70,9 @@ export function generateMetadata({
     title: fullTitle,
     description,
     keywords: [...keywords, ...SEO_KEYWORDS.immigration].join(', '),
-    authors: [{ name: 'DocuJourney Team' }],
-    creator: 'DocuJourney',
-    publisher: 'DocuJourney',
+    authors: [{ name: 'Immigrant Central Team' }],
+    creator: 'Immigrant Central',
+    publisher: 'Immigrant Central',
     robots: noIndex ? 'noindex, nofollow' : 'index, follow',
     openGraph: {
       type: type as any,
@@ -164,7 +164,7 @@ export function generateStructuredData(type: 'website' | 'h1b-data' | 'company',
         keywords: SEO_KEYWORDS.h1b.join(', '),
         creator: {
           '@type': 'Organization',
-          name: 'DocuJourney',
+          name: 'Immigrant Central',
         },
         distribution: {
           '@type': 'DataDownload',

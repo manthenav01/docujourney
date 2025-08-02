@@ -34,7 +34,7 @@ export async function generateMetadata({
     lawFirm = sanitizeString(rawLawFirm) || 'Unknown Firm';
   }
   
-  const title = `${attorneyName} - H1B Visa Attorney Analytics | DocuJourney`;
+  const title = `${attorneyName} - H1B Visa Attorney Analytics | Immigrant Central`;
   const description = `Comprehensive H1B visa attorney analytics for ${attorneyName} at ${lawFirm}. View case success rates, application volume, geographic distribution, and performance metrics.`;
   
   return {
