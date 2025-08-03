@@ -7,6 +7,12 @@ on:
     types: [created]
   issues:
     types: [opened, assigned]
+  workflow_dispatch:
+    inputs:
+      debug:
+        description: 'Debug mode'
+        required: false
+        default: 'true'
 
 permissions:
   contents: write
@@ -102,31 +108,10 @@ jobs:
         run: |
           ISSUE_NUMBER="${{ github.event.issue.number }}"
           
-          # Post a comment acknowledging the Claude mention
+          # Post a simple comment acknowledging the Claude mention
           gh api repos/${{ github.repository }}/issues/$ISSUE_NUMBER/comments \
             --method POST \
-            --field body="👋 Hello! I detected the @claude mention in this issue.
-
-🚧 **Status**: Claude Code GitHub Actions integration is currently being set up.
-
-**What's working:**
-✅ Workflow triggers on @claude mentions
-✅ Authentication is configured 
-✅ Can post responses to issues
-
-**Next steps:**
-- Integrate with Claude Code CLI
-- Enable actual AI-powered responses
-- Test end-to-end functionality
-
-The workflow is running successfully! This confirms that:
-1. Your GitHub workflows are properly configured
-2. Secrets are set up correctly  
-3. The trigger conditions work as expected
-
-Once the Claude Code action becomes available or we implement the CLI integration, you'll get full AI assistance directly in your issues and PRs.
-
-_Workflow run: [${{ github.run_id }}](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})_"
+            --field body="🤖 Claude Code workflow is working! I detected your mention and this workflow ran successfully. The workflow triggers properly and can post comments back to issues."
 
 # Example usage:
 # 1. In an issue comment: "@claude can you help fix the TypeScript error in src/components/ProfileForm.tsx?"
