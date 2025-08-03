@@ -17,11 +17,11 @@ permissions:
 jobs:
   claude-code:
     runs-on: ubuntu-latest
-    # Only run if comment contains @claude or issue is assigned with @claude mention
-    if: |
-      (github.event_name == 'issue_comment' && contains(github.event.comment.body, '@claude')) ||
-      (github.event_name == 'pull_request_review_comment' && contains(github.event.comment.body, '@claude')) ||
-      (github.event_name == 'issues' && contains(github.event.issue.body, '@claude'))
+    # Temporarily remove conditional to test if workflow triggers at all
+    # if: |
+    #   (github.event_name == 'issue_comment' && contains(github.event.comment.body, '@claude')) ||
+    #   (github.event_name == 'pull_request_review_comment' && contains(github.event.comment.body, '@claude')) ||
+    #   (github.event_name == 'issues' && contains(github.event.issue.body, '@claude'))
     
     steps:
       - name: Checkout repository
