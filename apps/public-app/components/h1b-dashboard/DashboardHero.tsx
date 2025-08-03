@@ -186,15 +186,30 @@ export const DashboardHero: React.FC<DashboardHeroProps> = ({
             <span className="text-sm text-gray-600 font-medium">Trending searches</span>
           </div>
           <div className="flex flex-wrap justify-center gap-3">
-            {trendingSearches.slice(0, 5).map((trend, index) => (
-              <button
-                key={index}
-                onClick={() => handleSuggestionSelect(trend)}
-                className="px-4 py-3 min-h-[44px] bg-white/80 backdrop-blur-sm text-gray-700 rounded-full hover:bg-white hover:shadow-md active:bg-gray-50 transition-all duration-200 text-sm font-medium border border-white/30"
-              >
-                {trend.displayText || trend.text}
-              </button>
-            ))}
+            {/* Desktop: Show 5 trending searches */}
+            <div className="hidden sm:flex flex-wrap justify-center gap-3">
+              {trendingSearches.slice(0, 5).map((trend, index) => (
+                <button
+                  key={index}
+                  onClick={() => handleSuggestionSelect(trend)}
+                  className="px-4 py-3 min-h-[44px] bg-white/80 backdrop-blur-sm text-gray-700 rounded-full hover:bg-white hover:shadow-md active:bg-gray-50 transition-all duration-200 text-sm font-medium border border-white/30"
+                >
+                  {trend.displayText || trend.text}
+                </button>
+              ))}
+            </div>
+            {/* Mobile: Show 3 trending searches in one row */}
+            <div className="flex sm:hidden justify-center gap-2">
+              {trendingSearches.slice(0, 3).map((trend, index) => (
+                <button
+                  key={index}
+                  onClick={() => handleSuggestionSelect(trend)}
+                  className="px-3 py-2.5 min-h-[40px] bg-white/80 backdrop-blur-sm text-gray-700 rounded-full hover:bg-white hover:shadow-md active:bg-gray-50 transition-all duration-200 text-xs font-medium border border-white/30"
+                >
+                  {trend.displayText || trend.text}
+                </button>
+              ))}
+            </div>
           </div>
         </div>
 
