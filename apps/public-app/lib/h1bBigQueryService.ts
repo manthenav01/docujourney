@@ -1209,6 +1209,30 @@ export class H1BBigQueryService {
           END
       `;
 
+      // Get prevailing wage level analysis
+      const wageLevelAnalysisQuery = `
+        SELECT 
+          COALESCE(TRIM(pw_wage_level), 'Not Specified') as wage_level,
+          COUNT(*) as applications,
+          AVG(CASE WHEN wage_rate_of_pay_from > 0 AND wage_rate_of_pay_from < 1000000 THEN wage_rate_of_pay_from END) as avg_actual_wage,
+          AVG(CASE WHEN prevailing_wage > 0 AND prevailing_wage < 1000000 THEN prevailing_wage END) as avg_prevailing_wage,
+          COUNT(CASE WHEN wage_rate_of_pay_from > prevailing_wage AND wage_rate_of_pay_from > 0 AND prevailing_wage > 0 THEN 1 END) as above_prevailing_count,
+          AVG(CASE WHEN wage_rate_of_pay_from > 0 AND prevailing_wage > 0 AND wage_rate_of_pay_from < 1000000 AND prevailing_wage < 1000000 
+                   THEN wage_rate_of_pay_from - prevailing_wage END) as avg_wage_premium
+        FROM \`${this.projectId}.${this.datasetId}.${this.tableId}\`
+        WHERE UPPER(TRIM(job_title)) LIKE UPPER(TRIM(@jobTitle))
+        AND case_status = 'Certified'
+        GROUP BY pw_wage_level
+        ORDER BY 
+          CASE TRIM(pw_wage_level)
+            WHEN 'Level I' THEN 1
+            WHEN 'Level II' THEN 2
+            WHEN 'Level III' THEN 3
+            WHEN 'Level IV' THEN 4
+            ELSE 5
+          END
+      `;
+
       // Get education requirements and experience patterns
       const requirementsAnalysisQuery = `
         SELECT 
@@ -1221,17 +1245,29 @@ export class H1BBigQueryService {
         WHERE UPPER(TRIM(job_title)) LIKE UPPER(TRIM(@jobTitle))
       `;
 
-      const [basicStats, topEmployers, topStates, yearlyTrends, salaryDistribution, requirementsAnalysis] = await Promise.all([
+      // Get unique employers count for this job
+      const uniqueEmployersQuery = `
+        SELECT COUNT(DISTINCT TRIM(employer_name)) as uniqueEmployers
+        FROM \`${this.projectId}.${this.datasetId}.${this.tableId}\`
+        WHERE UPPER(TRIM(job_title)) LIKE UPPER(TRIM(@jobTitle))
+        AND employer_name IS NOT NULL
+        AND TRIM(employer_name) != ''
+      `;
+
+      const [basicStats, topEmployers, topStates, yearlyTrends, salaryDistribution, wageLevelAnalysis, requirementsAnalysis, uniqueEmployersResult] = await Promise.all([
         this.bigquery.query({ query: basicStatsQuery, params: { jobTitle: `%${jobTitle}%` } }),
         this.bigquery.query({ query: topEmployersQuery, params: { jobTitle: `%${jobTitle}%` } }),
         this.bigquery.query({ query: topStatesQuery, params: { jobTitle: `%${jobTitle}%` } }),
         this.bigquery.query({ query: yearlyTrendsQuery, params: { jobTitle: `%${jobTitle}%` } }),
         this.bigquery.query({ query: salaryDistributionQuery, params: { jobTitle: `%${jobTitle}%` } }),
+        this.bigquery.query({ query: wageLevelAnalysisQuery, params: { jobTitle: `%${jobTitle}%` } }),
         this.bigquery.query({ query: requirementsAnalysisQuery, params: { jobTitle: `%${jobTitle}%` } }),
+        this.bigquery.query({ query: uniqueEmployersQuery, params: { jobTitle: `%${jobTitle}%` } }),
       ]);
 
       const stats = basicStats[0][0] || {};
       const requirements = requirementsAnalysis[0][0] || {};
+      const uniqueEmployersData = uniqueEmployersResult[0][0] || {};
       const totalApplications = Number(stats.totalApplications) || 0;
 
       // Check if job exists in our data
@@ -1239,20 +1275,19 @@ export class H1BBigQueryService {
         throw new Error(`No H1B data found for job title: ${jobTitle}. Please check the job title and try again.`);
       }
 
-      // Generate recent activity based on yearly trends if available
-      const recentActivity = [];
-      const currentYear = new Date().getFullYear();
-      const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'];
+      // Process wage level analysis data
+      console.log('BigQuery - Raw wage level results:', wageLevelAnalysis[0]);
       
-      for (let i = 0; i < 6; i++) {
-        const monthName = months[i];
-        // Use a percentage of total applications distributed across months
-        const monthlyApps = Math.floor((totalApplications * 0.15) / 6) + Math.floor(Math.random() * 50);
-        recentActivity.push({
-          month: `${monthName} ${currentYear}`,
-          applications: monthlyApps,
-        });
-      }
+      const wageLevelData = wageLevelAnalysis[0].map((row: any) => ({
+        level: row.wage_level || 'Not Specified',
+        applications: Number(row.applications) || 0,
+        avgActualWage: Math.round(Number(row.avg_actual_wage) || 0),
+        avgPrevailingWage: Math.round(Number(row.avg_prevailing_wage) || 0),
+        abovePrevailingCount: Number(row.above_prevailing_count) || 0,
+        avgWagePremium: Math.round(Number(row.avg_wage_premium) || 0),
+      }));
+      
+      console.log('BigQuery - Processed wage level data:', wageLevelData);
 
       return {
         title: jobTitle,
@@ -1264,6 +1299,7 @@ export class H1BBigQueryService {
         maxSalary: Math.round(Number(stats.maxSalary) || 0),
         fullTimePositions: Number(requirements.fullTimePositions) || 0,
         partTimePositions: Number(requirements.partTimePositions) || 0,
+        uniqueEmployers: Number(uniqueEmployersData.uniqueEmployers) || 0,
         topEmployers: topEmployers[0].map((row: any) => {
           const currentYear = Number(row.current_year_apps) || null;
           const previousYear = Number(row.previous_year_apps) || null;
@@ -1294,7 +1330,7 @@ export class H1BBigQueryService {
           range: row.salary_range,
           count: Number(row.count),
         })),
-        recentActivity,
+        wageLevelAnalysis: wageLevelData,
       };
     } catch (error) {
       console.error('Error getting job analysis:', error);

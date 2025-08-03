@@ -113,17 +113,17 @@ export const DashboardFooter: React.FC = () => {
               <div className="grid grid-cols-3 gap-4">
                 <StatCard 
                   label="Companies" 
-                  value="50K+" 
+                  value="170K+" 
                   icon={<Building className="w-4 h-4" />} 
                 />
                 <StatCard 
                   label="Applications" 
-                  value="2M+" 
+                  value="2.9M+" 
                   icon={<FileText className="w-4 h-4" />} 
                 />
                 <StatCard 
                   label="Job Titles" 
-                  value="10K+" 
+                  value="400K+" 
                   icon={<Users className="w-4 h-4" />} 
                 />
               </div>
@@ -212,7 +212,7 @@ export const DashboardFooter: React.FC = () => {
               <div className="flex items-center gap-4">
                 <span className="flex items-center gap-1">
                   <Shield className="w-3 h-3" />
-                  Data Updated Daily
+                  Data Updated Regularly
                 </span>
                 <span className="flex items-center gap-1">
                   <Database className="w-3 h-3" />
@@ -253,7 +253,7 @@ export const DashboardFooter: React.FC = () => {
                   <Github className="w-4 h-4" />
                 </a>
                 <a
-                  href="mailto:contact@immigrantcentral.com"
+                  href="mailto:support@usimmigrantcentral.com"
                   className="p-2 text-muted-foreground hover:text-foreground hover:bg-muted rounded-lg transition-colors duration-200"
                   aria-label="Email us"
                 >

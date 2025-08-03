@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { Badge, Button, Card, CardContent, CardHeader, CardTitle } from '@docujourney/ui';
 import { CHART_COLOR_ARRAYS, getChartColor, getSalaryRangeColor } from '../../lib/chartColors';
-import { ReusableProgressChart, ReusableActivityChart, type ProgressChartData, type ActivityChartData } from './charts';
+import { ReusableProgressChart, type ProgressChartData } from './charts';
 import { ReusableSalaryDistribution } from './charts/ReusableSalaryDistribution';
 import { H1BAttorneyAnalysis, H1BApiResponse } from '../../lib/types';
 import { BigQueryErrorBoundary } from './ErrorBoundary';
@@ -21,14 +21,15 @@ import {
   Target,
   Briefcase,
   Globe,
-  Activity,
   PieChart,
   LineChart,
   Star,
   CheckCircle,
   Building2,
   Gavel,
+  FileText,
 } from 'lucide-react';
+import { METRIC_CONFIGS } from '../../lib/metricCardConfig';
 
 // Use the standardized H1BAttorneyAnalysis type
 type AttorneyInfo = H1BAttorneyAnalysis;
@@ -283,8 +284,8 @@ export const AttorneyDashboard: React.FC<AttorneyDashboardProps> = ({
         <Card className="hover:shadow-md transition-shadow duration-200">
           <CardContent className="p-6">
             <div className="flex items-center justify-between mb-4">
-              <div className="p-2 bg-primary/10 rounded-lg text-primary">
-                <Users className="w-6 h-6" />
+              <div className={`p-2 ${METRIC_CONFIGS.totalCases.bgClass} rounded-lg ${METRIC_CONFIGS.totalCases.colorClass}`}>
+                <METRIC_CONFIGS.totalCases.icon className="w-6 h-6" />
               </div>
             </div>
             <h3 className="text-muted-foreground text-sm font-medium mb-1">Total Cases</h3>
@@ -295,8 +296,8 @@ export const AttorneyDashboard: React.FC<AttorneyDashboardProps> = ({
         <Card className="hover:shadow-md transition-shadow duration-200">
           <CardContent className="p-6">
             <div className="flex items-center justify-between mb-4">
-              <div className="p-2 bg-purple-100 rounded-lg text-purple-600">
-                <CheckCircle className="w-6 h-6" />
+              <div className={`p-2 ${METRIC_CONFIGS.successRate.bgClass} rounded-lg ${METRIC_CONFIGS.successRate.colorClass}`}>
+                <METRIC_CONFIGS.successRate.icon className="w-6 h-6" />
               </div>
             </div>
             <h3 className="text-muted-foreground text-sm font-medium mb-1">Success Rate</h3>
@@ -307,8 +308,8 @@ export const AttorneyDashboard: React.FC<AttorneyDashboardProps> = ({
         <Card className="hover:shadow-md transition-shadow duration-200">
           <CardContent className="p-6">
             <div className="flex items-center justify-between mb-4">
-              <div className="p-2 bg-green-100 rounded-lg text-green-600">
-                <DollarSign className="w-6 h-6" />
+              <div className={`p-2 ${METRIC_CONFIGS.averageSalary.bgClass} rounded-lg ${METRIC_CONFIGS.averageSalary.colorClass}`}>
+                <METRIC_CONFIGS.averageSalary.icon className="w-6 h-6" />
               </div>
             </div>
             <h3 className="text-muted-foreground text-sm font-medium mb-1">Average Salary</h3>
@@ -321,13 +322,13 @@ export const AttorneyDashboard: React.FC<AttorneyDashboardProps> = ({
         <Card className="hover:shadow-md transition-shadow duration-200">
           <CardContent className="p-6">
             <div className="flex items-center justify-between mb-4">
-              <div className="p-2 bg-warning/10 rounded-lg text-warning">
-                <Award className="w-6 h-6" />
+              <div className={`p-2 ${METRIC_CONFIGS.uniqueEmployers.bgClass} rounded-lg ${METRIC_CONFIGS.uniqueEmployers.colorClass}`}>
+                <METRIC_CONFIGS.uniqueEmployers.icon className="w-6 h-6" />
               </div>
             </div>
-            <h3 className="text-muted-foreground text-sm font-medium mb-1">Certified Cases</h3>
+            <h3 className="text-muted-foreground text-sm font-medium mb-1">Unique Employers</h3>
             <p className="text-3xl font-bold text-foreground">
-              {formatNumber(attorneyInfo.certifiedApplications)}
+              {formatNumber(attorneyInfo.topEmployers.length)}
             </p>
           </CardContent>
         </Card>

@@ -27,7 +27,7 @@ export async function generateMetadata({ params, searchParams }: PageProps): Pro
   const title = `H1B Jobs in ${locationString} 2025 | Visa Sponsors & Salary Data`;
   const description = `H1B visa jobs and sponsoring companies in ${locationString}. View salary ranges, top employers, approval rates, and visa sponsorship opportunities in ${cityName}. Comprehensive H1B data for ${locationString}.`;
   
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://docujourney.com';
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://usimmigrantcentral.com';
   const canonicalUrl = `${baseUrl}/h1b-dashboard/city/${slug}`;
   
   return {

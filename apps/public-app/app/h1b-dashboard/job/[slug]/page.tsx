@@ -21,7 +21,7 @@ export async function generateMetadata({ params, searchParams }: PageProps): Pro
   const title = `${jobTitle} H1B Salary Data 2025 | Visa Sponsorship & Requirements`;
   const description = `${jobTitle} H1B visa salary information and sponsorship data. Average salary ranges, top sponsoring companies, approval rates, and visa requirements for ${jobTitle} positions in the USA.`;
   
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://docujourney.com';
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://usimmigrantcentral.com';
   const canonicalUrl = `${baseUrl}/h1b-dashboard/job/${slug}`;
   
   return {

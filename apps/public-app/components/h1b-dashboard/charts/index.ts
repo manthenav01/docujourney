@@ -6,7 +6,6 @@
 export { default as ReusableAreaChart } from './ReusableAreaChart';
 export { ReusablePieChart, type PieChartData } from './ReusablePieChart';
 export { ReusableBarChart, type BarChartData } from './ReusableBarChart';
-export { ReusableActivityChart, type ActivityChartData } from './ReusableActivityChart';
 export { ReusableProgressChart, type ProgressChartData } from './ReusableProgressChart';
 export { ReusableSalaryDistribution, type SalaryDistributionData, type ReusableSalaryDistributionProps } from './ReusableSalaryDistribution';
 export { MobileOptimizedChart } from './MobileOptimizedChart';

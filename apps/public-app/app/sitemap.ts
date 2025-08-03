@@ -8,10 +8,12 @@ async function fetchTopCompanies(): Promise<Array<{ name: string; slug: string }
     }
     
     const data = await response.json();
-    return (data.data?.topEmployers || []).map((company: any) => ({
-      name: company.employer_name,
-      slug: company.employer_name.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
-    }));
+    return (data.data?.topEmployers || [])
+      .filter((company: any) => company.employer_name && typeof company.employer_name === 'string')
+      .map((company: any) => ({
+        name: company.employer_name,
+        slug: company.employer_name.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
+      }));
   } catch (error) {
     console.error('Error fetching companies for sitemap:', error);
     return [];
@@ -26,10 +28,12 @@ async function fetchTopJobs(): Promise<Array<{ title: string; slug: string }>> {
     }
     
     const data = await response.json();
-    return (data.data?.topJobTitles || []).map((job: any) => ({
-      title: job.job_title,
-      slug: job.job_title.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
-    }));
+    return (data.data?.topJobTitles || [])
+      .filter((job: any) => job.job_title && typeof job.job_title === 'string')
+      .map((job: any) => ({
+        title: job.job_title,
+        slug: job.job_title.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
+      }));
   } catch (error) {
     console.error('Error fetching jobs for sitemap:', error);
     return [];

@@ -1,31 +1,111 @@
 # H1B Data Processing and Import Pipeline
 
-This directory contains scripts for processing H1B visa data from Excel files and importing them into Firebase Firestore. The process involves two main steps: data cleaning/preparation and database import.
+This directory contains scripts for processing H1B visa data from Excel files and importing them into both Firebase Firestore and Google BigQuery. The pipeline supports both legacy Firestore imports and the new BigQuery data warehouse.
 
 ## 📋 Overview
 
-The pipeline processes three types of H1B data:
+The pipeline supports two destinations:
+
+### BigQuery Pipeline (Recommended - Production)
+- **LCA Disclosure Data** - Complete H1B application records for analytics
+- **Automatic deduplication** - Handles overlapping quarterly data
+- **2.8M+ records** spanning 2016-2025
+
+### Firestore Pipeline (Legacy)
 - **Employer Information** - Company details and approval/denial statistics
-- **LCA (Labor Condition Application) Data** - Individual job applications and details
+- **LCA Data** - Individual job applications and details
 - **Worksite Data** - Location information for approved positions
 
-## 🔄 Complete Process Flow
+## 🔄 Process Flows
 
+### BigQuery Pipeline (Current)
+```
+Raw Excel Files → data_pipeline.py → BigQuery (with deduplication)
+```
+
+### Firestore Pipeline (Legacy)
 ```
 Raw Excel Files → Python Cleanup Script → Clean CSV Files → Node.js Import Script → Firestore Database
 ```
+
+---
+
+# 🚀 BigQuery Pipeline (Production)
+
+## Essential Scripts
+- **`data_pipeline.py`** - Main pipeline with built-in deduplication
+- **`data_loader.py`** - Excel/CSV loading utilities
+- **`data_cleaner.py`** - Data cleaning and validation
+- **`entity_resolver.py`** - Employer name standardization
+- **`bigquery_uploader.py`** - BigQuery upload with duplicate detection
+
+## Quick Start for New Data
+
+### 1. Download and Organize
+```bash
+# Create directory for new quarter
+mkdir scripts/data/2025-q3/
+
+# Place DOL Excel file:
+# scripts/data/2025-q3/LCA_Disclosure_Data_FY2025_Q3.xlsx
+```
+
+### 2. Upload to BigQuery
+```bash
+# Set environment
+export GOOGLE_APPLICATION_CREDENTIALS="/path/to/serviceAccountKey-prod.json"
+
+# Run pipeline
+python scripts/data_pipeline.py --year-folder 2025-q3 --project-id immigrant-central
+```
+
+### 3. Features
+- ✅ **Automatic deduplication** using `case_number`
+- ✅ **Cross-file duplicate removal** for quarterly overlaps
+- ✅ **Incremental uploads** - only new records added
+- ✅ **Schema validation** - all 97 fields mapped
+- ✅ **Data quality checks** - validation before upload
+
+## Database Status (Aug 2025)
+- **Total Records**: 2,876,039 H1B applications
+- **Coverage**: FY2020-2025 (complete)
+- **Data Quality**: 100% unique (zero duplicates)
+- **Top Employers**: Cognizant (81K), Amazon (66K), Google (56K)
+
+## Support Commands
+```bash
+# List available data
+python scripts/data_pipeline.py --list-files
+
+# Test without uploading
+python scripts/data_pipeline.py --year-folder 2025-q3 --no-upload
+
+# Upload specific files
+python scripts/data_pipeline.py --files path/to/file.xlsx --project-id immigrant-central
+```
+
+---
+
+# 📚 Firestore Pipeline (Legacy)
 
 ## 📁 File Structure
 
 ```
 scripts/
 ├── README.md                           # This file
-├── employer-data-cleanup.py             # Python script for data cleaning
+├── data_pipeline.py                    # BigQuery pipeline (MAIN)
+├── bigquery_uploader.py                # BigQuery utilities
+├── data_loader.py                      # Data loading utilities
+├── data_cleaner.py                     # Data cleaning functions
+├── entity_resolver.py                  # Employer name resolution
+├── employer-data-cleanup.py             # Legacy Firestore cleanup
 ├── batch-import.js                     # Node.js script for Firestore import
 ├── import-setup.js                     # Testing and setup utilities
 ├── IMPORT_README.md                    # Detailed import documentation
 └── data/
-    └── h1b/
+    ├── 2020/ ... 2025-q2/              # BigQuery data (organized by year)
+    │   └── LCA_Disclosure_Data_*.xlsx   # DOL disclosure files
+    └── h1b/                            # Legacy Firestore data
         └── 2025/
             ├── Employer Information.xlsx           # Raw employer data
             ├── LCA_Disclosure_Data_FY2025_Q2.xlsx  # Raw LCA data
