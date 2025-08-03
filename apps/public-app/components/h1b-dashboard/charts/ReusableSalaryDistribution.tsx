@@ -284,7 +284,9 @@ const AreaChartVisualization: React.FC<{
 }> = ({ data, height }) => {
   // Detect if mobile screen
   const isMobile = useMemo(() => {
-    if (typeof window === 'undefined') return false;
+    if (typeof window === 'undefined') {
+      return false;
+    }
     return window.innerWidth < 640;
   }, []);
 
