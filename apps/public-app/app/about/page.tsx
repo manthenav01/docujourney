@@ -322,7 +322,7 @@ export default function AboutPage() {
                   Explore H1B Dashboard
                 </Button>
               </Link>
-              <Link href="mailto:contact@immigrantcentral.com">
+              <Link href="mailto:support@usimmigrantcentral.com">
                 <Button variant="outline" size="lg" className="px-8">
                   Get in Touch
                 </Button>

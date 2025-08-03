@@ -51,11 +51,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               '@context': 'https://schema.org',
               '@type': 'WebSite',
               name: 'Immigrant Central',
-              url: 'https://docujourney.com',
+              url: 'https://usimmigrantcentral.com',
               description: 'Comprehensive H1B visa analytics platform with real-time immigration data insights',
               potentialAction: {
                 '@type': 'SearchAction',
-                target: 'https://docujourney.com/h1b-dashboard?q={search_term_string}',
+                target: 'https://usimmigrantcentral.com/h1b-dashboard?q={search_term_string}',
                 'query-input': 'required name=search_term_string',
               },
             }),

@@ -43,19 +43,19 @@ export default function JobPageClient({ slug }: { slug: string }) {
           '@type': 'ListItem',
           position: 1,
           name: 'Home',
-          item: 'https://docujourney.com',
+          item: 'https://usimmigrantcentral.com',
         },
         {
           '@type': 'ListItem',
           position: 2,
           name: 'H1B Dashboard',
-          item: 'https://docujourney.com/h1b-dashboard',
+          item: 'https://usimmigrantcentral.com/h1b-dashboard',
         },
         {
           '@type': 'ListItem',
           position: 3,
           name: `${cleanJobTitle} H1B Data`,
-          item: `https://docujourney.com/h1b-dashboard/job/${slug}`,
+          item: `https://usimmigrantcentral.com/h1b-dashboard/job/${slug}`,
         },
       ],
     };
