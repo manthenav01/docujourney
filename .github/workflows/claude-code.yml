@@ -6,7 +6,7 @@ on:
   pull_request_review_comment:
     types: [created]
   issues:
-    types: [opened, assigned]
+    types: [opened, edited, assigned]
   workflow_dispatch:
     inputs:
       debug:
@@ -23,11 +23,12 @@ permissions:
 jobs:
   claude-code:
     runs-on: ubuntu-latest
-    # Temporarily remove conditional to test if workflow triggers at all
-    # if: |
-    #   (github.event_name == 'issue_comment' && contains(github.event.comment.body, '@claude')) ||
-    #   (github.event_name == 'pull_request_review_comment' && contains(github.event.comment.body, '@claude')) ||
-    #   (github.event_name == 'issues' && contains(github.event.issue.body, '@claude'))
+    # Only run if @claude is mentioned or if manually triggered
+    if: |
+      github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'issue_comment' && contains(github.event.comment.body, '@claude')) ||
+      (github.event_name == 'pull_request_review_comment' && contains(github.event.comment.body, '@claude')) ||
+      (github.event_name == 'issues' && contains(github.event.issue.body, '@claude'))
     
     steps:
       - name: Checkout repository
