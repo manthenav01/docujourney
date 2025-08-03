@@ -11,6 +11,7 @@ import {
   FileText,
   DollarSign,
   Building,
+  Building2,
   TrendingUp,
   ArrowUp,
   ArrowDown,
@@ -20,6 +21,7 @@ import {
   Settings,
 } from 'lucide-react';
 import { Card, CardContent } from '@docujourney/ui';
+import { METRIC_CONFIGS } from '../../lib/metricCardConfig';
 import './dashboard.css';
 
 // Extend the H1BAggregatedData type to include cache information
@@ -250,12 +252,7 @@ export const H1BDashboard: React.FC = () => {
     <Card className="hover:shadow-md transition-shadow duration-200">
       <CardContent>
         <div className="flex items-center justify-between mb-4">
-          <div className={`p-2.5 ${
-            color === 'primary' ? 'bg-primary/10 text-primary' :
-            color === 'success' ? 'bg-success/10 text-success' :
-            color === 'warning' ? 'bg-warning/10 text-warning' :
-            'bg-muted/30 text-foreground'
-          } rounded-lg`}>
+          <div className={`p-2.5 bg-primary/10 text-primary rounded-lg`}>
             {icon}
           </div>
           {change !== undefined && (
@@ -370,26 +367,26 @@ export const H1BDashboard: React.FC = () => {
             <MetricCard
               title="Total Applications"
               value={dashboardData?.totalApplications.toLocaleString() || '0'}
-              icon={<FileText className="w-6 h-6" />}
+              icon={<METRIC_CONFIGS.totalApplications.icon className="w-6 h-6" />}
               color="primary"
             />
             <MetricCard
               title="Average Salary"
               value={`$${((dashboardData?.avgSalary || 0) / 1000).toFixed(0)}K`}
-              icon={<DollarSign className="w-6 h-6" />}
-              color="success"
+              icon={<METRIC_CONFIGS.averageSalary.icon className="w-6 h-6" />}
+              color="primary"
             />
             <MetricCard
               title="Unique Employers"
               value={dashboardData?.uniqueEmployers.toLocaleString() || '0'}
-              icon={<Building className="w-6 h-6" />}
+              icon={<METRIC_CONFIGS.uniqueEmployers.icon className="w-6 h-6" />}
               color="primary"
             />
             <MetricCard
               title="Approval Rate"
               value={`${(dashboardData?.certificationRate || 0).toFixed(1)}%`}
-              icon={<TrendingUp className="w-6 h-6" />}
-              color="success"
+              icon={<METRIC_CONFIGS.approvalRate.icon className="w-6 h-6" />}
+              color="primary"
             />
           </>
         )}

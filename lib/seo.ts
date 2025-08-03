@@ -39,7 +39,7 @@ export const BASE_METADATA = {
   title: 'DocuJourney - AI-Powered Immigration Document Management & H1B Analytics',
   description: 'Comprehensive H1B visa analytics, company data, and AI-powered immigration document management. Track visa status, manage documents, and explore detailed H1B statistics.',
   siteName: 'DocuJourney',
-  url: 'https://docujourney.com',
+  url: 'https://usimmigrantcentral.com',
   image: '/assets/og-image.png',
   type: 'website',
 };

@@ -61,28 +61,6 @@ The refactored chart system addresses several key issues from the previous imple
 />
 ```
 
-### ReusableActivityChart
-**File**: `ReusableActivityChart.tsx`
-**Purpose**: Time-series and activity data visualization
-
-**Key Features**:
-- Compact mode for timeline displays
-- Full chart mode with axis labels
-- Configurable time period formatting
-- Activity trend visualization
-- Mobile-responsive bar sizing
-
-**Usage Example**:
-```tsx
-<ReusableActivityChart
-  data={activityData}
-  title="Recent Application Activity"
-  height={200}
-  compact={true}
-  formatPeriod={(period) => period.split(' ')[0]}
-  formatValue={(value) => value.toLocaleString()}
-/>
-```
 
 ### ReusablePieChart
 **File**: `ReusablePieChart.tsx`
@@ -139,11 +117,6 @@ interface ProgressChartData {
   color?: string;
 }
 
-// Activity Chart Data
-interface ActivityChartData {
-  period: string;
-  value: number;
-}
 
 // Pie Chart Data
 interface PieChartData {
@@ -159,8 +132,8 @@ interface PieChartData {
 ### Refactored Components
 
 #### CompanyDashboard.tsx
-**Before**: Manual HTML/CSS progress bars and activity bars
-**After**: ReusableProgressChart and ReusableActivityChart
+**Before**: Manual HTML/CSS progress bars
+**After**: ReusableProgressChart
 **Benefits**: 
 - Consistent theming with rest of dashboard
 - Interactive tooltips
@@ -252,7 +225,6 @@ interface PieChartData {
 components/h1b-dashboard/charts/
 ├── ReusableBarChart.tsx        # Bar chart component
 ├── ReusableProgressChart.tsx   # Progress bar component  
-├── ReusableActivityChart.tsx   # Activity timeline component
 ├── ReusablePieChart.tsx       # Pie/donut chart component
 ├── index.ts                   # Exports and type definitions
 └── README.md                  # This documentation
@@ -271,7 +243,6 @@ import type { BarChartData, ProgressChartData } from './charts';
 import { 
   ReusableBarChart,
   ReusableProgressChart,
-  ReusableActivityChart,
   ReusablePieChart
 } from './charts';
 ```

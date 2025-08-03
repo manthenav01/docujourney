@@ -66,7 +66,14 @@ const ReusableBarChartComponent: React.FC<ReusableBarChartProps> = ({
       top: 5,
       right: 2,
       bottom: 35,
-      left: 15,
+      left: 45,
+    },
+    tabletHeight: Math.min(height * 0.85, 340),
+    tabletMargin: {
+      top: 20,
+      right: 15,
+      bottom: 50,
+      left: 65,
     },
   }), [height, margin]);
 

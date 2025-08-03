@@ -17,11 +17,12 @@ import {
   Building,
   Building2,
   Briefcase,
-  Activity,
   PieChart,
   LineChart,
   BarChart3,
+  FileText,
 } from 'lucide-react';
+import { METRIC_CONFIGS } from '../../lib/metricCardConfig';
 
 // Use the standardized H1BCityAnalysis type
 type CityInfo = H1BCityAnalysis;
@@ -198,26 +199,6 @@ export const CityDashboard: React.FC<CityDashboardProps> = ({
             </CardContent>
           </Card>
         </div>
-
-        {/* Recent Activity Skeleton */}
-        <Card>
-          <CardHeader>
-            <div className="h-6 bg-gray-200 rounded w-48 animate-pulse"></div>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-              {[1, 2, 3, 4, 5, 6].map((i) => (
-                <div key={i} className="text-center space-y-2 animate-pulse">
-                  <div className="h-4 bg-gray-200 rounded w-12 mx-auto"></div>
-                  <div className="flex items-end justify-center h-20">
-                    <div className="bg-gray-200 rounded-t-md w-8 h-12"></div>
-                  </div>
-                  <div className="h-3 bg-gray-200 rounded w-8 mx-auto"></div>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
       </div>
     );
   }
@@ -274,69 +255,66 @@ export const CityDashboard: React.FC<CityDashboardProps> = ({
     <div className="mb-6">
         
         <div className="flex items-center space-x-4">
-          <div className="p-3 bg-green-50 rounded-xl">
-            <MapPin className="w-8 h-8 text-green-600" />
+          <div className="p-3 bg-primary/10 rounded-xl">
+            <MapPin className="w-8 h-8 text-primary" />
           </div>
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">{cityName}, {stateName}</h1>
-            <p className="text-gray-600">H1B Data Analysis & Insights</p>
+            <h1 className="text-3xl font-bold text-foreground">{cityName}, {stateName}</h1>
+            <p className="text-muted-foreground">H1B Data Analysis & Insights</p>
           </div>
         </div>
       </div>
 
       {/* Key Metrics Cards */}
       <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
-        <Card className="bg-white rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow duration-200">
+        <Card className="hover:shadow-md transition-shadow duration-200">
           <CardContent className="p-6">
             <div className="flex items-center justify-between mb-4">
-              <div className="p-2 bg-blue-50 rounded-lg text-blue-600">
-                <Users className="w-6 h-6" />
+              <div className={`p-2 ${METRIC_CONFIGS.totalApplications.bgClass} rounded-lg ${METRIC_CONFIGS.totalApplications.colorClass}`}>
+                <METRIC_CONFIGS.totalApplications.icon className="w-6 h-6" />
               </div>
             </div>
-            <h3 className="text-gray-600 text-sm font-medium mb-1">Total Applications</h3>
-            <p className="text-3xl font-bold text-gray-900">{formatNumber(cityInfo.totalApplications)}</p>
+            <h3 className="text-muted-foreground text-sm font-medium mb-1">Total Applications</h3>
+            <p className="text-3xl font-bold text-foreground">{formatNumber(cityInfo.totalApplications)}</p>
           </CardContent>
         </Card>
 
-        <Card className="bg-white rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow duration-200">
+        <Card className="hover:shadow-md transition-shadow duration-200">
           <CardContent className="p-6">
             <div className="flex items-center justify-between mb-4">
-              <div className="p-2 bg-purple-100 rounded-lg text-purple-600">
-                <Award className="w-6 h-6" />
+              <div className={`p-2 ${METRIC_CONFIGS.certificationRate.bgClass} rounded-lg ${METRIC_CONFIGS.certificationRate.colorClass}`}>
+                <METRIC_CONFIGS.certificationRate.icon className="w-6 h-6" />
               </div>
             </div>
-            <h3 className="text-gray-600 text-sm font-medium mb-1">Certification Rate</h3>
-            <p className="text-3xl font-bold text-gray-900">{certificationRate}%</p>
+            <h3 className="text-muted-foreground text-sm font-medium mb-1">Approval Rate</h3>
+            <p className="text-3xl font-bold text-foreground">{certificationRate}%</p>
           </CardContent>
         </Card>
 
-        <Card className="bg-white rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow duration-200">
+        <Card className="hover:shadow-md transition-shadow duration-200">
           <CardContent className="p-6">
             <div className="flex items-center justify-between mb-4">
-              <div className="p-2 bg-green-100 rounded-lg text-green-600">
-                <DollarSign className="w-6 h-6" />
+              <div className={`p-2 ${METRIC_CONFIGS.averageSalary.bgClass} rounded-lg ${METRIC_CONFIGS.averageSalary.colorClass}`}>
+                <METRIC_CONFIGS.averageSalary.icon className="w-6 h-6" />
               </div>
             </div>
-            <h3 className="text-gray-600 text-sm font-medium mb-1">Average Salary</h3>
-            <p className="text-3xl font-bold text-gray-900">
+            <h3 className="text-muted-foreground text-sm font-medium mb-1">Average Salary</h3>
+            <p className="text-3xl font-bold text-foreground">
               {hasFinancialData ? formatCurrency(cityInfo.avgSalary) : 'N/A'}
             </p>
           </CardContent>
         </Card>
 
-        <Card className="bg-white rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow duration-200">
+        <Card className="hover:shadow-md transition-shadow duration-200">
           <CardContent className="p-6">
             <div className="flex items-center justify-between mb-4">
-              <div className="p-2 bg-orange-50 rounded-lg text-orange-600">
-                <TrendingUp className="w-6 h-6" />
+              <div className={`p-2 ${METRIC_CONFIGS.uniqueEmployers.bgClass} rounded-lg ${METRIC_CONFIGS.uniqueEmployers.colorClass}`}>
+                <METRIC_CONFIGS.uniqueEmployers.icon className="w-6 h-6" />
               </div>
             </div>
-            <h3 className="text-gray-600 text-sm font-medium mb-1">Salary Range</h3>
-            <p className="text-3xl font-bold text-gray-900">
-              {hasFinancialData && cityInfo.minSalary > 0 && cityInfo.maxSalary > 0
-                ? `${formatCompactCurrency(cityInfo.minSalary)} - ${formatCompactCurrency(cityInfo.maxSalary)}`
-                : 'N/A'
-              }
+            <h3 className="text-muted-foreground text-sm font-medium mb-1">Unique Employers</h3>
+            <p className="text-3xl font-bold text-foreground">
+              {formatNumber(cityInfo.topEmployers.length)}
             </p>
           </CardContent>
         </Card>
@@ -415,37 +393,6 @@ export const CityDashboard: React.FC<CityDashboardProps> = ({
           showChartToggle={true}
         />
       </div>
-
-      {/* Recent Activity */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center">
-            <Activity className="w-5 h-5 mr-2" />
-            Recent Activity (Last 6 Months)
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-            {cityInfo.recentActivity.map((activity) => {
-              const maxApplications = Math.max(...cityInfo.recentActivity.map(a => a.applications));
-              const height = maxApplications > 0 ? (activity.applications / maxApplications) * 100 : 0;
-              
-              return (
-                <div key={activity.month} className="text-center space-y-2">
-                  <div className="text-sm font-medium text-gray-600">{activity.month.split(' ')[0]}</div>
-                  <div className="flex items-end justify-center h-20">
-                    <div 
-                      className="bg-orange-500 rounded-t-md w-8 transition-all duration-300"
-                      style={{ height: `${height}%`, minHeight: '4px' }}
-                    ></div>
-                  </div>
-                  <div className="text-xs text-gray-500">{formatNumber(activity.applications)}</div>
-                </div>
-              );
-            })}
-          </div>
-        </CardContent>
-      </Card>
     </div>
   );
 };

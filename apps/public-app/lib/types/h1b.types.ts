@@ -175,9 +175,13 @@ export interface H1BJobSalaryDistribution {
   count: number;
 }
 
-export interface H1BJobRecentActivity {
-  month: string;
+export interface H1BJobWageLevel {
+  level: string;
   applications: number;
+  avgActualWage: number;
+  avgPrevailingWage: number;
+  abovePrevailingCount: number;
+  avgWagePremium: number;
 }
 
 export interface H1BJobAnalysis {
@@ -190,11 +194,12 @@ export interface H1BJobAnalysis {
   maxSalary: number;
   fullTimePositions: number;
   partTimePositions: number;
+  uniqueEmployers: number;
   topEmployers: H1BJobTopEmployer[];
   topStates: H1BJobTopState[];
   yearlyTrends: H1BJobYearlyTrend[];
   salaryDistribution: H1BJobSalaryDistribution[];
-  recentActivity: H1BJobRecentActivity[];
+  wageLevelAnalysis: H1BJobWageLevel[];
 }
 
 // City-specific analysis types

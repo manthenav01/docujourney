@@ -23,7 +23,7 @@ export async function generateMetadata({ params, searchParams }: PageProps): Pro
   const title = `${companyName} H1B Visa Sponsorship Data 2025 | Salary & Approval Rates`;
   const description = `${companyName} H1B visa sponsorship analytics: View detailed salary ranges, approval rates, job titles, and visa sponsorship trends. Comprehensive H1B data and statistics for ${companyName}.`;
   
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://docujourney.com';
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://usimmigrantcentral.com';
   const canonicalUrl = `${baseUrl}/h1b-dashboard/company/${slug}`;
   
   return {

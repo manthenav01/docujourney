@@ -22,7 +22,7 @@ Allow: /assets/*
 Allow: /_next/static/*
 
 # Sitemap location
-Sitemap: https://docujourney.com/sitemap.xml
+Sitemap: https://usimmigrantcentral.com/sitemap.xml
 
 # Crawl delay to be respectful
 Crawl-delay: 1

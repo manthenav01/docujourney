@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Badge, Button, Card, CardContent, CardHeader, CardTitle } from '@docujourney/ui';
 import { CHART_COLOR_ARRAYS, getChartColor, getSalaryRangeColor } from '../../lib/chartColors';
-import { ReusableProgressChart, ReusableActivityChart, type ProgressChartData, type ActivityChartData } from './charts';
+import { ReusableProgressChart, type ProgressChartData } from './charts';
 import { ReusableSalaryDistribution } from './charts/ReusableSalaryDistribution';
 import { MarketTrendsCard } from './MarketTrendsCard';
 import { TopJobTitlesCard } from './TopJobTitlesCard';
@@ -23,12 +23,14 @@ import {
   Target,
   Briefcase,
   Globe,
-  Activity,
   PieChart,
   LineChart,
   Star,
   CheckCircle,
+  FileText,
+  Building2,
 } from 'lucide-react';
+import { METRIC_CONFIGS } from '../../lib/metricCardConfig';
 
 // Use the standardized H1BCompanyAnalysis type
 type CompanyInfo = H1BCompanyAnalysis;
@@ -270,8 +272,8 @@ export const CompanyDashboard: React.FC<CompanyDashboardProps> = ({
         <Card className="hover:shadow-md transition-shadow duration-200">
           <CardContent className="p-6">
             <div className="flex items-center justify-between mb-4">
-              <div className="p-2 bg-primary/10 rounded-lg text-primary">
-                <Users className="w-6 h-6" />
+              <div className={`p-2 ${METRIC_CONFIGS.totalApplications.bgClass} rounded-lg ${METRIC_CONFIGS.totalApplications.colorClass}`}>
+                <METRIC_CONFIGS.totalApplications.icon className="w-6 h-6" />
               </div>
             </div>
             <h3 className="text-muted-foreground text-sm font-medium mb-1">Total Applications</h3>
@@ -282,11 +284,11 @@ export const CompanyDashboard: React.FC<CompanyDashboardProps> = ({
         <Card className="hover:shadow-md transition-shadow duration-200">
           <CardContent className="p-6">
             <div className="flex items-center justify-between mb-4">
-              <div className="p-2 bg-purple-100 rounded-lg text-purple-600">
-                <Award className="w-6 h-6" />
+              <div className={`p-2 ${METRIC_CONFIGS.certificationRate.bgClass} rounded-lg ${METRIC_CONFIGS.certificationRate.colorClass}`}>
+                <METRIC_CONFIGS.certificationRate.icon className="w-6 h-6" />
               </div>
             </div>
-            <h3 className="text-muted-foreground text-sm font-medium mb-1">Certification Rate</h3>
+            <h3 className="text-muted-foreground text-sm font-medium mb-1">Approval Rate</h3>
             <p className="text-3xl font-bold text-foreground">{certificationRate}%</p>
           </CardContent>
         </Card>
@@ -294,8 +296,8 @@ export const CompanyDashboard: React.FC<CompanyDashboardProps> = ({
         <Card className="hover:shadow-md transition-shadow duration-200">
           <CardContent className="p-6">
             <div className="flex items-center justify-between mb-4">
-              <div className="p-2 bg-green-100 rounded-lg text-green-600">
-                <DollarSign className="w-6 h-6" />
+              <div className={`p-2 ${METRIC_CONFIGS.averageSalary.bgClass} rounded-lg ${METRIC_CONFIGS.averageSalary.colorClass}`}>
+                <METRIC_CONFIGS.averageSalary.icon className="w-6 h-6" />
               </div>
             </div>
             <h3 className="text-muted-foreground text-sm font-medium mb-1">Average Salary</h3>
@@ -308,16 +310,13 @@ export const CompanyDashboard: React.FC<CompanyDashboardProps> = ({
         <Card className="hover:shadow-md transition-shadow duration-200">
           <CardContent className="p-6">
             <div className="flex items-center justify-between mb-4">
-              <div className="p-2 bg-warning/10 rounded-lg text-warning">
-                <TrendingUp className="w-6 h-6" />
+              <div className={`p-2 ${METRIC_CONFIGS.uniqueEmployers.bgClass} rounded-lg ${METRIC_CONFIGS.uniqueEmployers.colorClass}`}>
+                <METRIC_CONFIGS.uniqueEmployers.icon className="w-6 h-6" />
               </div>
             </div>
-            <h3 className="text-muted-foreground text-sm font-medium mb-1">Salary Range</h3>
+            <h3 className="text-muted-foreground text-sm font-medium mb-1">Unique Locations</h3>
             <p className="text-3xl font-bold text-foreground">
-              {hasFinancialData && companyInfo.minSalary > 0 && companyInfo.maxSalary > 0
-                ? `${formatCompactCurrency(companyInfo.minSalary)} - ${formatCompactCurrency(companyInfo.maxSalary)}`
-                : 'N/A'
-              }
+              {formatNumber(companyInfo.topStates.length)}
             </p>
           </CardContent>
         </Card>
@@ -394,32 +393,6 @@ export const CompanyDashboard: React.FC<CompanyDashboardProps> = ({
           showChartToggle={true}
         />
       </div>
-
-      {/* Recent Activity */}
-      <ReusableActivityChart
-        data={companyInfo.recentActivity.map(activity => ({
-          period: activity.month,
-          value: activity.applications,
-        }))}
-        title="Recent Activity (Last 6 Months)"
-        height={250}
-        compact={true}
-        formatValue={formatNumber}
-        formatPeriod={(period) => period.split(' ')[0]}
-        colors={CHART_COLOR_ARRAYS.standard}
-        customTooltip={({ indexValue, value }) => (
-          <div className="bg-card/95 backdrop-blur-sm p-4 border border-border rounded-lg shadow-lg">
-            <div className="text-sm font-semibold text-foreground mb-3 flex items-center">
-              <Activity className="w-4 h-4 mr-2" />
-              {indexValue}
-            </div>
-            <div className="flex justify-between items-center">
-              <span className="text-xs text-muted-foreground">Applications:</span>
-              <span className="text-sm font-medium text-primary">{formatNumber(value)}</span>
-            </div>
-          </div>
-        )}
-      />
     </div>
   );
 };

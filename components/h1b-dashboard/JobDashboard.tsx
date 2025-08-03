@@ -21,7 +21,6 @@ import {
   Activity,
   PieChart,
   LineChart,
-  Star,
   CheckCircle,
   Clock,
   UserCheck,
@@ -500,48 +499,6 @@ export const JobDashboard: React.FC<JobDashboardProps> = ({
         </Card>
       </div>
 
-      {/* Market Insights Summary */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center">
-            <Star className="w-5 h-5 mr-2" />
-            Market Insights Summary
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="text-center p-4 bg-blue-50 rounded-lg">
-              <div className="text-2xl font-bold text-blue-600">{hasFinancialData ? formatCurrency(jobInfo.medianSalary) : 'N/A'}</div>
-              <div className="text-sm text-gray-600">Median Salary</div>
-              <div className="text-xs text-gray-500 mt-1">50th percentile earnings</div>
-            </div>
-            
-            <div className="text-center p-4 bg-green-50 rounded-lg">
-              <div className="text-2xl font-bold text-green-600">{formatNumber(jobInfo.topEmployers.length)}</div>
-              <div className="text-sm text-gray-600">Active Employers</div>
-              <div className="text-xs text-gray-500 mt-1">Companies hiring for this role</div>
-            </div>
-            
-            <div className="text-center p-4 bg-purple-50 rounded-lg">
-              <div className="text-2xl font-bold text-purple-600">{formatNumber(jobInfo.topStates.length)}</div>
-              <div className="text-sm text-gray-600">Active States</div>
-              <div className="text-xs text-gray-500 mt-1">Geographic opportunities</div>
-            </div>
-          </div>
-          
-          {hasFinancialData && (
-            <div className="mt-6 p-4 bg-gray-50 rounded-lg">
-              <div className="text-sm text-gray-700">
-                <strong>Key Takeaways:</strong> The {jobTitle} role shows {
-                  hasFinancialData && jobInfo.avgSalary > 100000 ? 'competitive' : 'moderate'
-                } compensation with an average salary of {formatCurrency(jobInfo.avgSalary)}. 
-                With a {certificationRate}% certification rate and {formatNumber(jobInfo.totalApplications)} total applications, 
-                this represents a {parseFloat(certificationRate) > 85 ? 'highly sought-after' : 'competitive'} position in the H1B market.
-              </div>
-            </div>
-          )}
-        </CardContent>
-      </Card>
       </div>
     </div>
   );
