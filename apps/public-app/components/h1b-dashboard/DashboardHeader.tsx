@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { usePathname, useRouter } from 'next/navigation';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { BarChart3, X } from 'lucide-react';
 import { ImmigrantCentralLogo } from './ImmigrantCentralLogo';
 import { EnvironmentBadge } from '../ui/environment-badge';
@@ -15,14 +15,15 @@ interface NavigationItem {
 export const DashboardHeader: React.FC = () => {
   const pathname = usePathname();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const navigationItems: NavigationItem[] = [
     { id: 'home', label: 'Home', path: '/h1b-dashboard' },
-    { id: 'employers', label: 'Employers', path: '/h1b-dashboard' },
-    { id: 'jobs', label: 'Jobs', path: '/h1b-dashboard' },
-    { id: 'locations', label: 'Locations', path: '/h1b-dashboard' },
-    { id: 'attorneys', label: 'Attorneys', path: '/h1b-dashboard' },
+    { id: 'employers', label: 'Employers', path: '/h1b-dashboard/employers' },
+    { id: 'jobs', label: 'Jobs', path: '/h1b-dashboard/jobs' },
+    { id: 'locations', label: 'Locations', path: '/h1b-dashboard/cities' },
+    { id: 'attorneys', label: 'Attorneys', path: '/h1b-dashboard/attorneys' },
     { id: 'about', label: 'About', path: '/about' },
   ];
 
@@ -32,12 +33,46 @@ export const DashboardHeader: React.FC = () => {
   };
 
   const getActiveItem = () => {
-    if (pathname === '/h1b-dashboard') {return 'home';}
-    if (pathname.includes('/company/')) {return 'employers';}
-    if (pathname.includes('/job/')) {return 'jobs';}
-    if (pathname.includes('/city/')) {return 'locations';}
-    if (pathname.includes('/attorney/')) {return 'attorneys';}
-    if (pathname === '/about') {return 'about';}
+    // Check for query parameter-based views first
+    const employer = searchParams.get('employer');
+    const job = searchParams.get('job') || searchParams.get('title');
+    const city = searchParams.get('city') || searchParams.get('state');
+    const attorney = searchParams.get('attorney');
+    
+    // If we have query parameters, determine view based on them
+    if (employer) {
+      return 'employers';
+    }
+    if (job) {
+      return 'jobs';
+    }
+    if (city) {
+      return 'locations';
+    }
+    if (attorney) {
+      return 'attorneys';
+    }
+    
+    // Check pathname-based routes
+    if (pathname === '/h1b-dashboard') {
+      return 'home';
+    }
+    if (pathname.includes('/employers') || pathname.includes('/company/')) {
+      return 'employers';
+    }
+    if (pathname.includes('/jobs') || pathname.includes('/job/')) {
+      return 'jobs';
+    }
+    if (pathname.includes('/cities') || pathname.includes('/city/')) {
+      return 'locations';
+    }
+    if (pathname.includes('/attorneys') || pathname.includes('/attorney/')) {
+      return 'attorneys';
+    }
+    if (pathname === '/about') {
+      return 'about';
+    }
+    
     return 'home';
   };
 

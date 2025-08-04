@@ -10,7 +10,6 @@ import {
   Users, 
   Scale,
   Mail,
-  Github,
   Twitter,
   Linkedin,
   ExternalLink,
@@ -151,10 +150,10 @@ export const DashboardFooter: React.FC = () => {
                 title="Analytics" 
                 icon={<TrendingUp className="w-4 h-4" />}
               >
-                <FooterLink href="/h1b-dashboard?category=employers">By Employer</FooterLink>
-                <FooterLink href="/h1b-dashboard?category=locations">By Location</FooterLink>
-                <FooterLink href="/h1b-dashboard?category=jobs">By Job Title</FooterLink>
-                <FooterLink href="/h1b-dashboard?category=attorneys">By Attorney</FooterLink>
+                <FooterLink href="/h1b-dashboard/employers">By Employer</FooterLink>
+                <FooterLink href="/h1b-dashboard/cities">By Location</FooterLink>
+                <FooterLink href="/h1b-dashboard/jobs">By Job Title</FooterLink>
+                <FooterLink href="/h1b-dashboard/attorneys">By Attorney</FooterLink>
                 <FooterLink href="/h1b-dashboard?category=industry">By Industry</FooterLink>
               </FooterSection>
               
@@ -166,9 +165,8 @@ export const DashboardFooter: React.FC = () => {
               >
                 <FooterLink href="/about">About Us</FooterLink>
                 <FooterLink href="/privacy-policy">Privacy Policy</FooterLink>
-                <FooterLink href="/terms">Terms of Service</FooterLink>
+                <FooterLink href="/terms-of-service">Terms of Service</FooterLink>
                 <FooterLink href="/contact">Contact</FooterLink>
-                <FooterLink href="/careers">Careers</FooterLink>
               </FooterSection>
               
             </div>
@@ -226,11 +224,11 @@ export const DashboardFooter: React.FC = () => {
               <span className="text-sm text-muted-foreground hidden sm:block">Follow us:</span>
               <div className="flex items-center gap-3">
                 <a
-                  href="https://twitter.com/immigrantcentral"
+                  href="https://x.com/immigracentral"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="p-2 text-muted-foreground hover:text-foreground hover:bg-muted rounded-lg transition-colors duration-200"
-                  aria-label="Follow us on Twitter"
+                  aria-label="Follow us on X (Twitter)"
                 >
                   <Twitter className="w-4 h-4" />
                 </a>
@@ -242,15 +240,6 @@ export const DashboardFooter: React.FC = () => {
                   aria-label="Follow us on LinkedIn"
                 >
                   <Linkedin className="w-4 h-4" />
-                </a>
-                <a
-                  href="https://github.com/immigrantcentral"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="p-2 text-muted-foreground hover:text-foreground hover:bg-muted rounded-lg transition-colors duration-200"
-                  aria-label="View our GitHub"
-                >
-                  <Github className="w-4 h-4" />
                 </a>
                 <a
                   href="mailto:support@usimmigrantcentral.com"
