@@ -18,6 +18,7 @@ interface DashboardHeroProps {
   filters: FilterState;
   setFilters: React.Dispatch<React.SetStateAction<FilterState>>;
   onSearch?: (query: string) => void;
+  onSuggestionSelect?: (suggestion: SearchSuggestion) => void;
 }
 
 const trendingSearches: SearchSuggestion[] = [
@@ -32,6 +33,7 @@ export const DashboardHero: React.FC<DashboardHeroProps> = ({
   filters,
   setFilters,
   onSearch,
+  onSuggestionSelect,
 }) => {
   const router = useRouter();
 
@@ -44,6 +46,12 @@ export const DashboardHero: React.FC<DashboardHeroProps> = ({
 
   const handleSuggestionSelect = (suggestion: SearchSuggestion) => {
     console.log('Hero suggestion selected:', suggestion);
+    
+    // If a custom handler is provided, use it instead
+    if (onSuggestionSelect) {
+      onSuggestionSelect(suggestion);
+      return;
+    }
     
     // Helper function to detect if text looks like a company name
     const looksLikeCompanyName = (text: string) => {

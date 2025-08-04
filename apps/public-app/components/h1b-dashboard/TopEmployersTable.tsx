@@ -131,7 +131,6 @@ export const TopEmployersTable: React.FC<TopEmployersTableProps> = ({ dashboardD
                 <th className="text-left py-3 px-4 font-medium text-foreground text-sm">Employer</th>
                 <th className="text-left py-3 px-4 font-medium text-foreground text-sm hidden sm:table-cell">Applications</th>
                 <th className="text-left py-3 px-4 font-medium text-foreground text-sm">Salary Range</th>
-                <th className="text-left py-3 px-4 font-medium text-foreground text-sm hidden md:table-cell">YoY Growth</th>
                 <th className="text-left py-3 px-4 font-medium text-foreground text-sm hidden lg:table-cell">Top Location</th>
               </tr>
             </thead>
@@ -148,14 +147,18 @@ export const TopEmployersTable: React.FC<TopEmployersTableProps> = ({ dashboardD
                         >
                           {employer.employer}
                         </Link>
-                        {/* Show applications count on mobile */}
-                        <div className="text-xs text-muted-foreground sm:hidden">
-                          {employer.applications.toLocaleString()} applications
+                        {/* Show applications count and growth on mobile */}
+                        <div className="text-xs text-muted-foreground sm:hidden space-y-1">
+                          <div>{employer.applications.toLocaleString()} applications</div>
+                          <YoYGrowthIndicator growthRate={employer.yoyGrowthRate} />
                         </div>
                       </div>
                     </td>
                     <td className="py-4 px-4 text-foreground text-sm font-medium hidden sm:table-cell">
-                      {employer.applications.toLocaleString()}
+                      <div className="space-y-2">
+                        <div>{employer.applications.toLocaleString()}</div>
+                        <YoYGrowthIndicator growthRate={employer.yoyGrowthRate} />
+                      </div>
                     </td>
                     <td className="py-4 px-4">
                       <SalaryRange 
@@ -163,13 +166,6 @@ export const TopEmployersTable: React.FC<TopEmployersTableProps> = ({ dashboardD
                         maxSalary={employer.maxSalary}
                         avgSalary={employer.avgSalary}
                       />
-                      {/* Show YoY growth on mobile */}
-                      <div className="mt-2 md:hidden">
-                        <YoYGrowthIndicator growthRate={employer.yoyGrowthRate} />
-                      </div>
-                    </td>
-                    <td className="py-4 px-4 hidden md:table-cell">
-                      <YoYGrowthIndicator growthRate={employer.yoyGrowthRate} />
                     </td>
                     <td className="py-4 px-4 text-muted-foreground text-sm hidden lg:table-cell">{employer.topState}</td>
                   </tr>

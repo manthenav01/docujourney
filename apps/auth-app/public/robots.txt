@@ -3,7 +3,7 @@ Allow: /
 
 # Allow crawling of H1B dashboard and public pages
 Allow: /h1b-dashboard
-Allow: /h1b-dashboard/company/*
+Allow: /h1b-dashboard/*
 
 # Disallow crawling of user-specific and auth pages
 Disallow: /login

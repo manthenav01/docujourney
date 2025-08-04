@@ -36,6 +36,19 @@ export interface H1BAttorney {
   state: string;
 }
 
+export interface H1BLawFirm {
+  lawFirm: string;
+  totalApplications: number;
+  certifiedApplications: number;
+  certificationRate: number;
+  avgSalary: number;
+  attorneyCount: number;
+  topStates: string[];
+  topJobCategories: string[];
+  city: string;
+  state: string;
+}
+
 export interface H1BSalaryDistribution {
   range: string;
   count: number;
@@ -88,6 +101,9 @@ export interface H1BAggregatedData {
   medianSalary: number;
   uniqueEmployers: number;
   uniqueStates: number;
+  uniqueAttorneys: number;
+  uniqueLawFirms: number;
+  uniqueJobTitles: number;
   mostAppliedJob: H1BMostAppliedJob;
   topEmployers: H1BEmployer[];
   topAttorneys: H1BAttorney[];

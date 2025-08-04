@@ -14,7 +14,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) =>
       <DashboardHeader />
       
       {/* Main Content */}
-      <main className="flex-1 pt-6">
+      <main className="flex-1">
         {children}
       </main>
       

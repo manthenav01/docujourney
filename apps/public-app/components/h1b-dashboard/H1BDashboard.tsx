@@ -19,6 +19,8 @@ import {
   BarChart3,
   Home,
   Settings,
+  Calendar,
+  Info,
 } from 'lucide-react';
 import { Card, CardContent } from '@docujourney/ui';
 import { METRIC_CONFIGS } from '../../lib/metricCardConfig';
@@ -294,23 +296,6 @@ export const H1BDashboard: React.FC = () => {
 
       {/* Dashboard Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Status Indicator */}
-        <div className="mb-6">
-          <div className="flex items-center gap-3">
-            {showInitialLoading && (
-              <div className="flex items-center gap-1 px-2 py-1 bg-gray-100 border border-gray-200 rounded-md text-gray-600 text-xs font-medium animate-pulse">
-                <div className="w-3 h-3 bg-gray-300 rounded animate-pulse"></div>
-                <span>Loading...</span>
-              </div>
-            )}
-            {dashboardData?.isFromCache && !showInitialLoading && (
-              <div className="flex items-center gap-1 px-2 py-1 bg-blue-50 border border-blue-200 rounded-md text-blue-600 text-xs font-medium">
-                <Database className="w-3 h-3" />
-                <span>Cached</span>
-              </div>
-            )}
-          </div>
-        </div>
 
 
         {/* Overview Cards */}
