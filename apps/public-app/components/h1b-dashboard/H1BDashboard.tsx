@@ -92,6 +92,9 @@ export const H1BDashboard: React.FC = () => {
         medianSalary: 0,
         uniqueEmployers: 0,
         uniqueStates: 0,
+        uniqueAttorneys: 0,
+        uniqueLawFirms: 0,
+        uniqueJobTitles: 0,
         mostAppliedJob: {
           title: 'N/A',
           applications: 0,
@@ -182,6 +185,9 @@ export const H1BDashboard: React.FC = () => {
         medianSalary: 0,
         uniqueEmployers: 0,
         uniqueStates: 0,
+        uniqueAttorneys: 0,
+        uniqueLawFirms: 0,
+        uniqueJobTitles: 0,
         mostAppliedJob: {
           title: 'N/A',
           applications: 0,
