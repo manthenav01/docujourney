@@ -21,8 +21,15 @@ Disallow: /api/*
 Allow: /assets/*
 Allow: /_next/static/*
 
-# Sitemap location
+# Sitemap location  
 Sitemap: https://usimmigrantcentral.com/sitemap.xml
+
+# Additional crawl directives
+User-agent: Googlebot
+Allow: /
+
+User-agent: Bingbot  
+Allow: /
 
 # Crawl delay to be respectful
 Crawl-delay: 1

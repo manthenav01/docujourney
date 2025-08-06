@@ -22,4 +22,8 @@ export { CityDashboard } from './CityDashboard';
 export { AttorneyDashboard } from './AttorneyDashboard';
 export { ErrorBoundary, BigQueryErrorBoundary } from './ErrorBoundary';
 
+// Professional SEO Components
+export { InvisibleSEO } from './InvisibleSEO';
+export { SmartBreadcrumb } from './SmartBreadcrumb';
+
 export type { FilterState, H1BData, TabType } from './types';
