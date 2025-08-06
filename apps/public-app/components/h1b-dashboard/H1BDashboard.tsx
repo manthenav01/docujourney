@@ -1,11 +1,13 @@
 'use client';
 
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useMemo, useCallback, Suspense } from 'react';
 import { FilterState } from './types';
 import { DashboardHero } from './DashboardHero';
 import { YearsFilter } from './YearsFilter';
 import { VisualizationPanel } from './VisualizationPanel';
 import { TopEmployersTable } from './TopEmployersTable';
+import { InvisibleSEO } from './InvisibleSEO';
+import { SmartBreadcrumb } from './SmartBreadcrumb';
 import { H1BAggregatedData } from '../../lib/types';
 import { 
   FileText,
@@ -293,6 +295,11 @@ export const H1BDashboard: React.FC = () => {
         onSearch={handleHeroSearch}
       />
 
+      {/* Smart Breadcrumb */}
+      <Suspense fallback={null}>
+        <SmartBreadcrumb />
+      </Suspense>
+      
       {/* Years Filter */}
       <YearsFilter
         filters={filters}
@@ -300,6 +307,11 @@ export const H1BDashboard: React.FC = () => {
         onFetchData={fetchH1BData}
       />
 
+      {/* Invisible SEO */}
+      <Suspense fallback={null}>
+        <InvisibleSEO />
+      </Suspense>
+      
       {/* Dashboard Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
 

@@ -1,4 +1,5 @@
 import { MetadataRoute } from 'next';
+import { getSEOSitemapEntries } from '@/lib/seoUrlGenerator';
 
 async function fetchTopCompanies(): Promise<Array<{ name: string; slug: string }>> {
   try {
@@ -177,9 +178,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.7,
   }));
   
+  // High-value SEO URLs
+  const seoPages = getSEOSitemapEntries();
+  
   // Combine all pages
   return [
     ...staticPages,
+    ...seoPages, // High-priority SEO URLs
     ...companyPages.slice(0, 1000), // Limit to top 1000 companies
     ...jobPages.slice(0, 500), // Limit to top 500 jobs
     ...cityPages.slice(0, 200), // Limit to top 200 cities
