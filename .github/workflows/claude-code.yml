@@ -50,69 +50,57 @@ jobs:
             echo "Issue by: ${{ github.event.issue.user.login }}"
           fi
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-          cache: 'npm'
+      # Node.js setup removed - not needed for GitHub Action
 
-      - name: Install Claude Code CLI
+      - name: Check API Key
         run: |
-          npm install -g @anthropic-ai/claude-code
-          claude --version
-
-      - name: Check Claude Code Token
-        run: |
-          if [ -z "${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}" ]; then
-            echo "❌ CLAUDE_CODE_OAUTH_TOKEN secret not set"
+          if [ -z "${{ secrets.ANTHROPIC_API_KEY }}" ]; then
+            echo "❌ ANTHROPIC_API_KEY secret not set"
+            echo "Please add your Anthropic API key to repository secrets"
             exit 1
           else
-            echo "✅ CLAUDE_CODE_OAUTH_TOKEN is configured"
+            echo "✅ ANTHROPIC_API_KEY is configured"
           fi
 
-      # Configure Claude Code authentication
-      - name: Configure Claude Code
-        env:
-          CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+      - name: Extract Request
+        id: extract
         run: |
-          # Set up Claude Code authentication using OAuth token
-          echo "Setting up Claude Code authentication..."
-          # Note: This step configures the CLI to use OAuth token for GitHub integration
-
-      - name: Process GitHub Event with Claude Code
-        env:
-          CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          echo "Processing GitHub event with Claude Code..."
-          
-          # For now, just acknowledge the mention and log the event
-          # The actual Claude Code GitHub integration may require a different setup
           if [ "${{ github.event_name }}" = "issue_comment" ]; then
-            echo "Received @claude mention in issue comment #${{ github.event.issue.number }}"
-            echo "Comment: ${{ github.event.comment.body }}"
+            REQUEST="${{ github.event.comment.body }}"
             ISSUE_NUMBER="${{ github.event.issue.number }}"
           elif [ "${{ github.event_name }}" = "issues" ]; then
-            echo "Received @claude mention in new issue #${{ github.event.issue.number }}"
-            echo "Issue body: ${{ github.event.issue.body }}"
+            REQUEST="${{ github.event.issue.body }}"
             ISSUE_NUMBER="${{ github.event.issue.number }}"
           fi
           
-          # TODO: Integrate with Claude Code CLI once proper API is available
-          echo "⚠️ Claude Code GitHub Action integration is still in development"
-          echo "Using placeholder response for now"
+          # Remove @claude mention and clean up request
+          REQUEST=$(echo "$REQUEST" | sed 's/@claude//g' | xargs)
+          
+          # Save for next step
+          echo "request=$REQUEST" >> $GITHUB_OUTPUT
+          echo "issue_number=$ISSUE_NUMBER" >> $GITHUB_OUTPUT
 
-      - name: Post Acknowledgment Comment
-        if: github.event_name == 'issues' || github.event_name == 'issue_comment'
+      - name: Run Claude Code
+        uses: anthropics/claude-code-action@main  # Using main branch during beta
+        with:
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          model: claude-3-5-sonnet-20241022
+          max_iterations: 3
+          issue_number: ${{ steps.extract.outputs.issue_number }}
+          request: ${{ steps.extract.outputs.request }}
+          
+      # Fallback if action fails
+      - name: Post Error Comment
+        if: failure()
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          ISSUE_NUMBER="${{ github.event.issue.number }}"
+          ISSUE_NUMBER="${{ steps.extract.outputs.issue_number }}"
           
-          # Post a simple comment acknowledging the Claude mention
           gh api repos/${{ github.repository }}/issues/$ISSUE_NUMBER/comments \
             --method POST \
-            --field body="🤖 Claude Code workflow is working! I detected your mention and this workflow ran successfully. The workflow triggers properly and can post comments back to issues."
+            --field body="❌ Claude Code encountered an error. Please check the workflow logs or ensure ANTHROPIC_API_KEY is properly configured in repository secrets."
 
 # Example usage:
 # 1. In an issue comment: "@claude can you help fix the TypeScript error in src/components/ProfileForm.tsx?"
@@ -129,7 +117,7 @@ jobs:
 #
 # For automatic documentation updates:
 # - name: Claude Code Action
-#   uses: anthropics/claude-code-action@beta
+#   uses: anthropics/claude-code-action@main
 #   with:
 #     anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
 #     github_token: ${{ secrets.GITHUB_TOKEN }}
@@ -139,7 +127,7 @@ jobs:
 #
 # For agent mode (proactive assistance):
 # - name: Claude Code Action
-#   uses: anthropics/claude-code-action@beta
+#   uses: anthropics/claude-code-action@main
 #   with:
 #     anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
 #     github_token: ${{ secrets.GITHUB_TOKEN }}
