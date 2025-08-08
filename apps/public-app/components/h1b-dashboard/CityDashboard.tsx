@@ -105,7 +105,7 @@ export const CityDashboard: React.FC<CityDashboardProps> = ({
 
   if (loading) {
     return (
-      <div className="max-w-7xl mx-auto space-y-6">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
         {/* Header Skeleton */}
         <div className="mb-6">
           <div className="flex items-center space-x-4 animate-pulse">
@@ -205,7 +205,7 @@ export const CityDashboard: React.FC<CityDashboardProps> = ({
 
   if (error) {
     return (
-      <div className="max-w-7xl mx-auto">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         <div className="mb-6">
           <Button 
             onClick={handleBackClick}
@@ -250,7 +250,7 @@ export const CityDashboard: React.FC<CityDashboardProps> = ({
   const hasTrendData = cityInfo.yearlyTrends.length > 0;
 
   return (
-    <div className="max-w-7xl mx-auto space-y-6">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
     {/* Header */}
     <div className="mb-6">
         

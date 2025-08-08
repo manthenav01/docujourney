@@ -259,11 +259,6 @@ export const CompanyDashboard: React.FC<CompanyDashboardProps> = ({
             <h1 className="text-3xl font-bold text-foreground">{companyName}</h1>
             <p className="text-muted-foreground">H1B Data Analysis & Insights</p>
           </div>
-          <div className="ml-auto">
-            <Badge variant="secondary" className="text-sm">
-              {formatNumber(companyInfo.totalApplications)} Total Applications
-            </Badge>
-          </div>
         </div>
       </div>
 
