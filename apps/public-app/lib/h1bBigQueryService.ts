@@ -494,23 +494,110 @@ export class H1BBigQueryService {
     `;
 
     const industryDistQuery = `
-      WITH industry_stats AS (
+      WITH industry_mapping AS (
         SELECT 
-          soc_title as industry,
-          COUNT(*) as applications,
-          AVG(CASE WHEN case_status = 'Certified' THEN wage_rate_of_pay_from END) as avg_salary
+          CASE 
+            WHEN LOWER(employer_name) LIKE '%software%' 
+              OR LOWER(employer_name) LIKE '%technology%' 
+              OR LOWER(employer_name) LIKE '%tech %'
+              OR LOWER(employer_name) LIKE '%google%'
+              OR LOWER(employer_name) LIKE '%microsoft%'
+              OR LOWER(employer_name) LIKE '%amazon%'
+              OR LOWER(employer_name) LIKE '%apple%'
+              OR LOWER(employer_name) LIKE '%meta%'
+              OR LOWER(employer_name) LIKE '%facebook%'
+              OR LOWER(employer_name) LIKE '%nvidia%'
+              OR LOWER(employer_name) LIKE '%intel%'
+              OR LOWER(employer_name) LIKE '%oracle%'
+              OR LOWER(employer_name) LIKE '%salesforce%'
+              OR LOWER(employer_name) LIKE '%adobe%'
+              OR LOWER(job_title) LIKE '%software%'
+              OR LOWER(job_title) LIKE '%developer%'
+              OR LOWER(job_title) LIKE '%programmer%'
+              OR LOWER(job_title) LIKE '%engineer%' AND NOT LOWER(job_title) LIKE '%civil%'
+            THEN 'Technology & Software'
+            
+            WHEN LOWER(employer_name) LIKE '%consulting%'
+              OR LOWER(employer_name) LIKE '%consultants%'
+              OR LOWER(employer_name) LIKE '%deloitte%'
+              OR LOWER(employer_name) LIKE '%accenture%'
+              OR LOWER(employer_name) LIKE '%pwc%'
+              OR LOWER(employer_name) LIKE '%kpmg%'
+              OR LOWER(employer_name) LIKE '%ernst%young%'
+              OR LOWER(employer_name) LIKE '%ey %'
+              OR LOWER(employer_name) LIKE '%mckinsey%'
+              OR LOWER(employer_name) LIKE '%bain%'
+              OR LOWER(employer_name) LIKE '%bcg%'
+            THEN 'Consulting Services'
+            
+            WHEN LOWER(employer_name) LIKE '%health%'
+              OR LOWER(employer_name) LIKE '%medical%'
+              OR LOWER(employer_name) LIKE '%hospital%'
+              OR LOWER(employer_name) LIKE '%pharma%'
+              OR LOWER(employer_name) LIKE '%clinic%'
+              OR LOWER(employer_name) LIKE '%pfizer%'
+              OR LOWER(employer_name) LIKE '%johnson%johnson%'
+              OR LOWER(employer_name) LIKE '%merck%'
+              OR LOWER(employer_name) LIKE '%abbott%'
+              OR LOWER(job_title) LIKE '%physician%'
+              OR LOWER(job_title) LIKE '%doctor%'
+              OR LOWER(job_title) LIKE '%nurse%'
+              OR LOWER(job_title) LIKE '%medical%'
+            THEN 'Healthcare & Pharmaceuticals'
+            
+            WHEN LOWER(employer_name) LIKE '%bank%'
+              OR LOWER(employer_name) LIKE '%financial%'
+              OR LOWER(employer_name) LIKE '%capital%'
+              OR LOWER(employer_name) LIKE '%securities%'
+              OR LOWER(employer_name) LIKE '%jpmorgan%'
+              OR LOWER(employer_name) LIKE '%goldman%'
+              OR LOWER(employer_name) LIKE '%morgan stanley%'
+              OR LOWER(employer_name) LIKE '%citigroup%'
+              OR LOWER(employer_name) LIKE '%wells fargo%'
+              OR LOWER(employer_name) LIKE '%american express%'
+              OR LOWER(employer_name) LIKE '%fidelity%'
+              OR LOWER(employer_name) LIKE '%blackrock%'
+            THEN 'Financial Services'
+            
+            WHEN LOWER(employer_name) LIKE '%manufactur%'
+              OR LOWER(employer_name) LIKE '%motors%'
+              OR LOWER(employer_name) LIKE '%automotive%'
+              OR LOWER(employer_name) LIKE '%boeing%'
+              OR LOWER(employer_name) LIKE '%general electric%'
+              OR LOWER(employer_name) LIKE '%ge %'
+              OR LOWER(employer_name) LIKE '%caterpillar%'
+              OR LOWER(employer_name) LIKE '%3m%'
+            THEN 'Manufacturing'
+            
+            WHEN LOWER(employer_name) LIKE '%university%'
+              OR LOWER(employer_name) LIKE '%college%'
+              OR LOWER(employer_name) LIKE '%institute%'
+              OR LOWER(employer_name) LIKE '%school%'
+              OR LOWER(employer_name) LIKE '%academy%'
+              OR LOWER(job_title) LIKE '%professor%'
+              OR LOWER(job_title) LIKE '%researcher%'
+              OR LOWER(job_title) LIKE '%postdoc%'
+            THEN 'Education & Research'
+            
+            ELSE 'Other'
+          END as industry,
+          wage_rate_of_pay_from,
+          case_status
         FROM \`${this.projectId}.${this.datasetId}.${this.tableId}\`
         ${whereClause}
-        AND soc_title IS NOT NULL
-        GROUP BY soc_title
-        ORDER BY applications DESC
-        LIMIT 15
+        AND employer_name IS NOT NULL
+      ),
+      industry_stats AS (
+        SELECT 
+          industry,
+          COUNT(*) as applications,
+          AVG(CASE WHEN case_status = 'Certified' THEN wage_rate_of_pay_from END) as avg_salary
+        FROM industry_mapping
+        GROUP BY industry
       ),
       total_count AS (
         SELECT COUNT(*) as total_applications
-        FROM \`${this.projectId}.${this.datasetId}.${this.tableId}\`
-        ${whereClause}
-        AND soc_title IS NOT NULL
+        FROM industry_mapping
       )
       SELECT 
         industry,
