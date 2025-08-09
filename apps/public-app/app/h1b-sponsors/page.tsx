@@ -1,12 +1,9 @@
 import { Suspense } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@docujourney/ui';
-import { TrendingUp } from 'lucide-react';
 import { DashboardLayout } from '@/components/h1b-dashboard';
 import { H1BSponsorsClient } from './H1BSponsorsClient';
 
-// Force this page to be statically generated with ISR
-export const dynamic = 'force-static';
-export const revalidate = 86400; // Revalidate every 24 hours
+// ISR: Perfect for quarterly data updates
+export const revalidate = 86400; // Revalidate daily (data updates quarterly)
 
 interface IndustryData {
   industry: string;
@@ -28,71 +25,50 @@ interface StaticStatsData {
   totalApplications: number;
 }
 
-// Static data fetching - development-safe approach
+// ISR data fetching - builds statically, regenerates as needed
 async function getStaticStats(): Promise<StaticStatsData> {
-  // In development, avoid server-side API calls that can cause circular dependencies
-  if (process.env.NODE_ENV === 'development') {
-    console.log('🔧 Development mode: Using fallback data to avoid SSR issues');
-    return getFallbackData();
+  // For ISR, use absolute URL construction
+  const protocol = process.env.NODE_ENV === 'development' ? 'http' : 'https';
+  const host = process.env.VERCEL_URL || 
+               (process.env.NODE_ENV === 'development' ? 'localhost:3000' : 'usimmigrantcentral.com');
+  const baseUrl = `${protocol}://${host}`;
+
+  const response = await fetch(`${baseUrl}/api/h1b-data/static-stats`, {
+    // ISR will handle caching, no need for force-cache
+    cache: 'no-store', // Always fetch fresh during regeneration
+  });
+
+  if (!response.ok) {
+    throw new Error(`API returned ${response.status}: ${response.statusText}`);
   }
 
-  // Only attempt API fetch in production/build environments
-  try {
-    const baseUrl = process.env.VERCEL_URL 
-      ? `https://${process.env.VERCEL_URL}`
-      : 'https://usimmigrantcentral.com';
-
-    const response = await fetch(`${baseUrl}/api/h1b-data/static-stats`, {
-      next: { revalidate: 86400 }, // 24 hours
-      cache: 'force-cache', // Ensure static generation
-    });
-
-    if (!response.ok) {
-      throw new Error(`Failed to fetch static stats: ${response.status}`);
-    }
-
-    const data = await response.json();
-    console.log('✅ Static stats fetched successfully for production');
-    return data;
-  } catch (error) {
-    console.error('⚠️ Error fetching static stats, using fallback:', error);
-    return getFallbackData();
-  }
+  const data = await response.json();
+  console.log('✅ ISR: Fetched fresh static stats');
+  return data;
 }
 
-// Separate fallback data function
-function getFallbackData(): StaticStatsData {
-  return {
-    industries: [
-      { industry: 'Technology & Software', percentage: 34.2, applications: 150000 },
-      { industry: 'Consulting Services', percentage: 18.7, applications: 82000 },
-      { industry: 'Healthcare & Pharmaceuticals', percentage: 12.4, applications: 54000 },
-      { industry: 'Financial Services', percentage: 9.8, applications: 43000 },
-      { industry: 'Manufacturing', percentage: 8.1, applications: 35000 },
-    ],
-    insights: [
-      {
-        title: 'Growing Sponsors',
-        description: 'New companies continue to sponsor H1B visas for the first time',
-        value: 'Active Growth',
-        color: 'blue',
-      },
-      {
-        title: 'Success Rate', 
-        description: 'Companies maintain high approval rates for H1B applications',
-        value: 'High Success',
-        color: 'green',
-      },
-      {
-        title: 'Salary Growth',
-        description: 'Positive salary trends across all sponsors',
-        value: 'Increasing',
-        color: 'purple',
-      },
-    ],
-    lastUpdated: new Date().toISOString(),
-    totalApplications: 450000,
-  };
+// Error component to show when data fetch fails
+function ErrorState({ error }: { error: string }) {
+  return (
+    <div className="mt-12 space-y-8">
+      <div className="bg-red-50 border border-red-200 rounded-lg p-6">
+        <h2 className="text-2xl font-bold text-red-900 mb-4">
+          ⚠️ Unable to Load H1B Industry Data
+        </h2>
+        <div className="text-red-700">
+          <p className="mb-2">
+            We're experiencing issues connecting to our H1B database. This helps us identify and fix the problem.
+          </p>
+          <details className="mt-4">
+            <summary className="cursor-pointer font-medium">Technical Details</summary>
+            <pre className="mt-2 p-2 bg-red-100 rounded text-sm overflow-auto">
+              {error}
+            </pre>
+          </details>
+        </div>
+      </div>
+    </div>
+  );
 }
 
 
@@ -171,15 +147,15 @@ function StaticContent({ staticStats }: { staticStats: StaticStatsData }) {
 
 // Server Component for static content
 export default async function H1BSponsorsPage() {
-  let staticStats: StaticStatsData;
+  let staticStats: StaticStatsData | null = null;
+  let error: string | null = null;
   
   try {
-    // Fetch static data at build time with error handling
+    // Fetch static data - will throw if API fails
     staticStats = await getStaticStats();
-  } catch (error) {
-    console.error('🚨 Critical error in H1BSponsorsPage:', error);
-    // Use fallback data in case of critical errors
-    staticStats = getFallbackData();
+  } catch (err) {
+    console.error('🚨 H1BSponsorsPage data fetch failed:', err);
+    error = err instanceof Error ? err.message : 'Unknown error occurred';
   }
 
   return (
@@ -200,8 +176,16 @@ export default async function H1BSponsorsPage() {
       </Suspense>
       
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* SEO Content Sections - STATIC with ERROR HANDLING */}
-        <StaticContent staticStats={staticStats} />
+        {/* Show error state or real data - NO FALLBACK */}
+        {error ? (
+          <ErrorState error={error} />
+        ) : staticStats ? (
+          <StaticContent staticStats={staticStats} />
+        ) : (
+          <div className="text-center py-12">
+            <div className="text-gray-500">Loading industry data...</div>
+          </div>
+        )}
       </div>
     </DashboardLayout>
   );

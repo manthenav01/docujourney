@@ -2,8 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { BigQuery } from '@google-cloud/bigquery';
 import { bigQueryConfig } from '@/lib/config';
 
-export const dynamic = 'force-static';
-export const revalidate = 86400; // 24 hours
+// Allow caching for ISR - optimal for quarterly data updates
+export const revalidate = 86400; // 24 hours cache
 
 interface IndustryData {
   industry: string;
@@ -28,6 +28,25 @@ interface StaticStatsResponse {
 export async function GET(): Promise<NextResponse<StaticStatsResponse | { error: string }>> {
   try {
     console.log('🔄 Fetching static stats for SSG...');
+    console.log('🔍 Using BigQuery config:', {
+      projectId: bigQueryConfig.projectId,
+      datasetId: bigQueryConfig.datasetId,
+      tableId: bigQueryConfig.tableId
+    });
+
+    // Calculate current fiscal year (starts Oct 1)
+    const now = new Date();
+    const currentYear = now.getFullYear();
+    const currentMonth = now.getMonth(); // 0-based (0=Jan, 9=Oct)
+    
+    // If we're before October, we're in the previous fiscal year
+    const fiscalYearStart = currentMonth >= 9 ? currentYear : currentYear - 1;
+    const fiscalYearEnd = fiscalYearStart + 1;
+    
+    const startDate = `${fiscalYearStart}-10-01`;
+    const endDate = `${fiscalYearEnd}-10-01`;
+    
+    console.log(`📅 Using fiscal year range: ${startDate} to ${endDate}`);
 
     // Get industry distribution
     const industryQuery = `
@@ -58,9 +77,9 @@ export async function GET(): Promise<NextResponse<StaticStatsResponse | { error:
           ELSE 'Other'
         END as industry,
         COUNT(*) as applications
-      FROM \`immigrant-central.h1b_data.lca_applications\`
-      WHERE received_date >= '2023-10-01' AND received_date < '2024-10-01'
-        AND case_status = 'CERTIFIED'
+      FROM \`${bigQueryConfig.projectId}.${bigQueryConfig.datasetId}.${bigQueryConfig.tableId}\`
+      WHERE received_date >= '${startDate}' AND received_date < '${endDate}'
+        AND (case_status = 'CERTIFIED' OR case_status IS NOT NULL)
       GROUP BY industry
       ORDER BY applications DESC
     `;
@@ -68,20 +87,23 @@ export async function GET(): Promise<NextResponse<StaticStatsResponse | { error:
     // Get total applications for percentage calculation
     const totalQuery = `
       SELECT COUNT(*) as total_applications
-      FROM \`immigrant-central.h1b_data.lca_applications\`
-      WHERE received_date >= '2023-10-01' AND received_date < '2024-10-01'
-        AND case_status = 'CERTIFIED'
+      FROM \`${bigQueryConfig.projectId}.${bigQueryConfig.datasetId}.${bigQueryConfig.tableId}\`
+      WHERE received_date >= '${startDate}' AND received_date < '${endDate}'
+        AND (case_status = 'CERTIFIED' OR case_status IS NOT NULL)
     `;
 
-    // Get new sponsors (FY2024 vs FY2023)
+    // Get new sponsors (current fiscal year vs previous fiscal year)
+    const prevFiscalYearStart = `${fiscalYearStart - 1}-10-01`;
+    const prevFiscalYearEnd = `${fiscalYearStart}-10-01`;
+    
     const newSponsorsQuery = `
       SELECT COUNT(DISTINCT employer_name) as new_sponsors_count
-      FROM \`immigrant-central.h1b_data.lca_applications\`
-      WHERE received_date >= '2023-10-01' AND received_date < '2024-10-01'
+      FROM \`${bigQueryConfig.projectId}.${bigQueryConfig.datasetId}.${bigQueryConfig.tableId}\`
+      WHERE received_date >= '${startDate}' AND received_date < '${endDate}'
         AND employer_name NOT IN (
           SELECT DISTINCT employer_name 
-          FROM \`immigrant-central.h1b_data.lca_applications\`
-          WHERE received_date >= '2022-10-01' AND received_date < '2023-10-01'
+          FROM \`${bigQueryConfig.projectId}.${bigQueryConfig.datasetId}.${bigQueryConfig.tableId}\`
+          WHERE received_date >= '${prevFiscalYearStart}' AND received_date < '${prevFiscalYearEnd}'
         )
     `;
 
@@ -93,8 +115,8 @@ export async function GET(): Promise<NextResponse<StaticStatsResponse | { error:
           COUNT(*) as total_apps,
           COUNTIF(case_status = 'CERTIFIED') as certified_apps,
           SAFE_DIVIDE(COUNTIF(case_status = 'CERTIFIED'), COUNT(*)) * 100 as approval_rate
-        FROM \`immigrant-central.h1b_data.lca_applications\`
-        WHERE received_date >= '2023-10-01' AND received_date < '2024-10-01'
+        FROM \`${bigQueryConfig.projectId}.${bigQueryConfig.datasetId}.${bigQueryConfig.tableId}\`
+        WHERE received_date >= '${startDate}' AND received_date < '${endDate}'
         GROUP BY employer_name
         HAVING COUNT(*) >= 10
       ),
@@ -106,25 +128,25 @@ export async function GET(): Promise<NextResponse<StaticStatsResponse | { error:
       FROM high_approval_companies
     `;
 
-    // Get salary growth
+    // Get salary growth (previous fiscal year vs current fiscal year)
     const salaryGrowthQuery = `
-      WITH fy2023_salary AS (
-        SELECT AVG(prevailing_wage) as avg_2023
-        FROM \`immigrant-central.h1b_data.lca_applications\`
-        WHERE received_date >= '2022-10-01' AND received_date < '2023-10-01'
-          AND case_status = 'CERTIFIED'
+      WITH prev_fy_salary AS (
+        SELECT AVG(prevailing_wage) as avg_prev
+        FROM \`${bigQueryConfig.projectId}.${bigQueryConfig.datasetId}.${bigQueryConfig.tableId}\`
+        WHERE received_date >= '${prevFiscalYearStart}' AND received_date < '${prevFiscalYearEnd}'
+          AND (case_status = 'CERTIFIED' OR case_status IS NOT NULL)
           AND prevailing_wage > 30000 AND prevailing_wage < 300000
       ),
-      fy2024_salary AS (
-        SELECT AVG(prevailing_wage) as avg_2024
-        FROM \`immigrant-central.h1b_data.lca_applications\`
-        WHERE received_date >= '2023-10-01' AND received_date < '2024-10-01'
-          AND case_status = 'CERTIFIED'
+      current_fy_salary AS (
+        SELECT AVG(prevailing_wage) as avg_current
+        FROM \`${bigQueryConfig.projectId}.${bigQueryConfig.datasetId}.${bigQueryConfig.tableId}\`
+        WHERE received_date >= '${startDate}' AND received_date < '${endDate}'
+          AND (case_status = 'CERTIFIED' OR case_status IS NOT NULL)
           AND prevailing_wage > 30000 AND prevailing_wage < 300000
       )
       SELECT 
-        ROUND(SAFE_DIVIDE(avg_2024 - avg_2023, avg_2023) * 100, 1) as salary_growth_percentage
-      FROM fy2023_salary, fy2024_salary
+        ROUND(SAFE_DIVIDE(avg_current - avg_prev, avg_prev) * 100, 1) as salary_growth_percentage
+      FROM prev_fy_salary, current_fy_salary
     `;
 
     // Create BigQuery client
@@ -162,7 +184,7 @@ export async function GET(): Promise<NextResponse<StaticStatsResponse | { error:
     const insights: SponsorInsight[] = [
       {
         title: 'Growing Sponsors',
-        description: `${newSponsorsCount.toLocaleString()} new companies sponsored H1B visas for the first time in FY2024`,
+        description: `${newSponsorsCount.toLocaleString()} new companies sponsored H1B visas for the first time in FY${fiscalYearEnd}`,
         value: newSponsorsCount,
         color: 'blue',
       },
@@ -193,44 +215,35 @@ export async function GET(): Promise<NextResponse<StaticStatsResponse | { error:
       insightsCount: insights.length,
     });
 
-    return NextResponse.json(response);
+    return NextResponse.json(response, {
+      headers: {
+        // Perfect caching for quarterly data updates
+        'Cache-Control': 'public, s-maxage=86400, max-age=3600, stale-while-revalidate=3600',
+        // s-maxage=86400: CDN caches for 24 hours
+        // max-age=3600: Browser caches for 1 hour  
+        // stale-while-revalidate=3600: Serve stale up to 1 hour while fetching fresh
+      },
+    });
 
   } catch (error) {
     console.error('❌ Error fetching static stats:', error);
     
-    // Return fallback data for development/build
-    const fallbackResponse: StaticStatsResponse = {
-      industries: [
-        { industry: 'Technology & Software', percentage: 34.2, applications: 150000 },
-        { industry: 'Consulting Services', percentage: 18.7, applications: 82000 },
-        { industry: 'Healthcare & Pharmaceuticals', percentage: 12.4, applications: 54000 },
-        { industry: 'Financial Services', percentage: 9.8, applications: 43000 },
-        { industry: 'Manufacturing', percentage: 8.1, applications: 35000 },
-      ],
-      insights: [
-        {
-          title: 'Growing Sponsors',
-          description: 'New companies sponsored H1B visas for the first time in FY2024',
-          value: 'Growing',
-          color: 'blue',
-        },
-        {
-          title: 'Success Rate',
-          description: 'Companies maintain high approval rates for H1B applications',
-          value: 'High',
-          color: 'green',
-        },
-        {
-          title: 'Salary Growth',
-          description: 'Average H1B salaries show positive year-over-year growth',
-          value: 'Positive',
-          color: 'purple',
-        },
-      ],
-      lastUpdated: new Date().toISOString(),
-      totalApplications: 450000,
-    };
-
-    return NextResponse.json(fallbackResponse);
+    // Return proper error response - no fallback data
+    const errorMessage = error instanceof Error ? error.message : 'Unknown BigQuery error';
+    
+    return NextResponse.json(
+      { 
+        error: 'Failed to fetch H1B statistics', 
+        message: errorMessage,
+        timestamp: new Date().toISOString()
+      }, 
+      { 
+        status: 500,
+        headers: {
+          // Don't cache error responses
+          'Cache-Control': 'no-store',
+        }
+      }
+    );
   }
 }
