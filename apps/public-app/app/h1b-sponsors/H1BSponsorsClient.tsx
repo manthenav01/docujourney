@@ -97,8 +97,6 @@ export function H1BSponsorsClient() {
     }
   };
 
-
-
   const handleHeroSearch = (query: string) => {
     setSearchTerm(query);
   };

@@ -106,7 +106,9 @@ const ReusableAreaChart: React.FC<ReusableAreaChartProps> = ({
   // Create stable margin reference to prevent infinite re-renders
   const defaultMargin = { top: 20, right: 30, bottom: 20, left: 0 };
   const stableMargin = useMemo(() => {
-    if (!margin) return defaultMargin;
+    if (!margin) {
+      return defaultMargin;
+    }
     return margin;
   }, [
     margin?.top,
