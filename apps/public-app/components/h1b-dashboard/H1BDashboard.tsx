@@ -295,11 +295,6 @@ export const H1BDashboard: React.FC = () => {
         onSearch={handleHeroSearch}
       />
 
-      {/* Smart Breadcrumb */}
-      <Suspense fallback={null}>
-        <SmartBreadcrumb />
-      </Suspense>
-      
       {/* Years Filter */}
       <YearsFilter
         filters={filters}

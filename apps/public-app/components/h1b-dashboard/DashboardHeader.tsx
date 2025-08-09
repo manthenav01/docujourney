@@ -21,7 +21,7 @@ const DashboardHeaderContent: React.FC = () => {
 
   const navigationItems: NavigationItem[] = [
     { id: 'home', label: 'Home', path: '/h1b-dashboard' },
-    { id: 'employers', label: 'Employers', path: '/h1b-dashboard/employers' },
+    { id: 'sponsors', label: 'H1B Sponsors', path: '/h1b-sponsors' },
     { id: 'jobs', label: 'Jobs', path: '/h1b-dashboard/jobs' },
     { id: 'locations', label: 'Locations', path: '/h1b-dashboard/cities' },
     { id: 'attorneys', label: 'Attorneys', path: '/h1b-dashboard/attorneys' },
@@ -42,7 +42,7 @@ const DashboardHeaderContent: React.FC = () => {
     
     // If we have query parameters, determine view based on them
     if (employer) {
-      return 'employers';
+      return 'sponsors';
     }
     if (job) {
       return 'jobs';
@@ -58,8 +58,8 @@ const DashboardHeaderContent: React.FC = () => {
     if (pathname === '/h1b-dashboard') {
       return 'home';
     }
-    if (pathname.includes('/employers') || pathname.includes('/company/')) {
-      return 'employers';
+    if (pathname.includes('/sponsors') || pathname.includes('/h1b-sponsors') || pathname.includes('/employers') || pathname.includes('/company/')) {
+      return 'sponsors';
     }
     if (pathname.includes('/jobs') || pathname.includes('/job/')) {
       return 'jobs';
@@ -164,7 +164,7 @@ const DashboardHeaderFallback: React.FC = () => {
 
   const navigationItems: NavigationItem[] = [
     { id: 'home', label: 'Home', path: '/h1b-dashboard' },
-    { id: 'employers', label: 'Employers', path: '/h1b-dashboard/employers' },
+    { id: 'sponsors', label: 'H1B Sponsors', path: '/h1b-sponsors' },
     { id: 'jobs', label: 'Jobs', path: '/h1b-dashboard/jobs' },
     { id: 'locations', label: 'Locations', path: '/h1b-dashboard/cities' },
     { id: 'attorneys', label: 'Attorneys', path: '/h1b-dashboard/attorneys' },
@@ -181,8 +181,8 @@ const DashboardHeaderFallback: React.FC = () => {
     if (pathname === '/h1b-dashboard') {
       return 'home';
     }
-    if (pathname.includes('/employers') || pathname.includes('/company/')) {
-      return 'employers';
+    if (pathname.includes('/sponsors') || pathname.includes('/h1b-sponsors') || pathname.includes('/employers') || pathname.includes('/company/')) {
+      return 'sponsors';
     }
     if (pathname.includes('/jobs') || pathname.includes('/job/')) {
       return 'jobs';

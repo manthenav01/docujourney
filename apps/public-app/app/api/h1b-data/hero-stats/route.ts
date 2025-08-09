@@ -22,8 +22,40 @@ export async function GET(request: NextRequest) {
       HAS_CREDENTIALS_FILE: !!process.env.GOOGLE_APPLICATION_CREDENTIALS,
     });
     
-    const bigQueryService = createH1BBigQueryService();
-    console.log(`[DEBUG] BigQuery service created successfully`);
+    let bigQueryService;
+    try {
+      bigQueryService = createH1BBigQueryService();
+      console.log(`[DEBUG] BigQuery service created successfully`);
+    } catch (initError) {
+      console.error('[DEBUG] Failed to initialize BigQuery service:', initError);
+      
+      // Return fallback data for development
+      if (process.env.NODE_ENV === 'development') {
+        const fallbackStats = {
+          topEmployers: [
+            { text: 'GOOGLE LLC', displayText: 'Google', type: 'employer', count: 7932 },
+            { text: 'MICROSOFT CORPORATION', displayText: 'Microsoft', type: 'employer', count: 7072 },
+            { text: 'AMAZON.COM SERVICES LLC', displayText: 'Amazon', type: 'employer', count: 6854 },
+            { text: 'APPLE INC.', displayText: 'Apple', type: 'employer', count: 5912 },
+            { text: 'META PLATFORMS, INC.', displayText: 'Meta', type: 'employer', count: 4789 },
+          ],
+          stats: {
+            totalEmployers: 15000,
+            avgSalary: 95000,
+            approvalRate: 87,
+            totalApplications: 500000,
+          },
+        };
+        
+        return NextResponse.json(fallbackStats, {
+          headers: {
+            'Cache-Control': 'public, s-maxage=60, stale-while-revalidate=300',
+          },
+        });
+      }
+      
+      throw initError;
+    }
 
     let stats = {};
 

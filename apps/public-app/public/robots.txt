@@ -1,35 +1,30 @@
 User-agent: *
 Allow: /
 
-# Allow crawling of H1B dashboard and public pages
+# Allow all H1B dashboard pages
 Allow: /h1b-dashboard
 Allow: /h1b-dashboard/company/*
+Allow: /h1b-dashboard/job/*
+Allow: /h1b-dashboard/city/*
+Allow: /h1b-dashboard/attorney/*
+Allow: /h1b-dashboard/employers
+Allow: /h1b-dashboard/jobs
+Allow: /h1b-dashboard/cities
+Allow: /h1b-dashboard/attorneys
 
-# Disallow crawling of user-specific and auth pages
-Disallow: /login
-Disallow: /dashboard
-Disallow: /documents
-Disallow: /profiles
-Disallow: /upload
-Disallow: /api/
-Disallow: /(auth)/
+# Allow content pages
+Allow: /about
+Allow: /contact
+Allow: /privacy-policy
+Allow: /terms-of-service
 
-# Disallow crawling of dynamic API routes
-Disallow: /api/*
+# Disallow admin/internal pages if any exist
+Disallow: /admin/
+Disallow: /api/internal/
 
-# Allow crawling of static assets
-Allow: /assets/*
-Allow: /_next/static/*
-
-# Sitemap location  
-Sitemap: https://usimmigrantcentral.com/sitemap.xml
-
-# Additional crawl directives
+# Crawl optimization for large sites
 User-agent: Googlebot
-Allow: /
+Crawl-delay: 0.5
 
-User-agent: Bingbot  
-Allow: /
-
-# Crawl delay to be respectful
-Crawl-delay: 1
+# Priority sitemap
+Sitemap: https://usimmigrantcentral.com/sitemap.xml

@@ -22,8 +22,51 @@ export async function GET(
       HAS_CLIENT_EMAIL: !!process.env.GOOGLE_CLOUD_CLIENT_EMAIL,
     });
     
-    // Initialize BigQuery service at runtime
-    const bigQueryService = createH1BBigQueryService();
+    // Initialize BigQuery service at runtime with error handling
+    let bigQueryService;
+    try {
+      bigQueryService = createH1BBigQueryService();
+    } catch (initError) {
+      console.error('Failed to initialize BigQuery service:', initError);
+      
+      // Return fallback response for development
+      if (process.env.NODE_ENV === 'development') {
+        const fallbackResponse: H1BApiResponse<H1BAggregatedData> = {
+          data: {
+            totalApplications: 450000,
+            certificationRate: 87.2,
+            uniqueEmployers: 15000,
+            uniqueJobTitles: 2500,
+            uniqueStates: 50,
+            uniqueAttorneys: 8500,
+            uniqueLawFirms: 1200,
+            medianSalary: 95000,
+            topEmployers: [
+              { employer: 'GOOGLE LLC', applications: 7932, avgSalary: 165000, approvalRate: 92.4 },
+              { employer: 'MICROSOFT CORPORATION', applications: 7072, avgSalary: 158000, approvalRate: 94.1 },
+              { employer: 'AMAZON.COM SERVICES LLC', applications: 6854, avgSalary: 152000, approvalRate: 89.7 },
+              { employer: 'APPLE INC.', applications: 5912, avgSalary: 168000, approvalRate: 91.8 },
+              { employer: 'META PLATFORMS, INC.', applications: 4789, avgSalary: 178000, approvalRate: 93.2 },
+            ],
+            jobTitleDistribution: [],
+            stateDistribution: [],
+            industryDistribution: [],
+            yearlyTrends: [],
+            salaryTrends: [],
+            topAttorneys: [],
+            topLawFirms: [],
+          },
+          metadata: {
+            queryTime: 0,
+            source: 'Fallback',
+          },
+        };
+        
+        return NextResponse.json(fallbackResponse);
+      }
+      
+      throw initError;
+    }
     
     const { searchParams } = new URL(request.url);
     

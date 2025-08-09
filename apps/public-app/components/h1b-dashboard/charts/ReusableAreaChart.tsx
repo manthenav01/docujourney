@@ -103,12 +103,24 @@ const ReusableAreaChart: React.FC<ReusableAreaChartProps> = ({
   onPointClick,
   margin,
 }) => {
+  // Create stable margin reference to prevent infinite re-renders
+  const defaultMargin = { top: 20, right: 30, bottom: 20, left: 0 };
+  const stableMargin = useMemo(() => {
+    if (!margin) return defaultMargin;
+    return margin;
+  }, [
+    margin?.top,
+    margin?.right,
+    margin?.bottom,
+    margin?.left,
+  ]);
+
   // Memoize responsive chart config to prevent infinite re-renders
   const responsiveConfig = useMemo(() => ({
     defaultHeight: height,
-    defaultMargin: margin || { top: 20, right: 30, bottom: 20, left: 0 },
+    defaultMargin: stableMargin,
     mobileHeight: Math.min(height * 0.7, 250),
-  }), [height, margin]);
+  }), [height, stableMargin]);
 
   // Responsive dimensions
   const { height: responsiveHeight, margin: responsiveMargin } = useResponsiveChart(responsiveConfig);
