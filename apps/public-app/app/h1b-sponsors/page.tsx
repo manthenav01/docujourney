@@ -57,7 +57,7 @@ function ErrorState({ error }: { error: string }) {
         </h2>
         <div className="text-red-700">
           <p className="mb-2">
-            We're experiencing issues connecting to our H1B database. This helps us identify and fix the problem.
+            We&apos;re experiencing issues connecting to our H1B database. This helps us identify and fix the problem.
           </p>
           <details className="mt-4">
             <summary className="cursor-pointer font-medium">Technical Details</summary>

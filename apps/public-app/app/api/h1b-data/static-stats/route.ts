@@ -31,7 +31,7 @@ export async function GET(): Promise<NextResponse<StaticStatsResponse | { error:
     console.log('🔍 Using BigQuery config:', {
       projectId: bigQueryConfig.projectId,
       datasetId: bigQueryConfig.datasetId,
-      tableId: bigQueryConfig.tableId
+      tableId: bigQueryConfig.tableId,
     });
 
     // Calculate current fiscal year (starts Oct 1)
@@ -235,15 +235,15 @@ export async function GET(): Promise<NextResponse<StaticStatsResponse | { error:
       { 
         error: 'Failed to fetch H1B statistics', 
         message: errorMessage,
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
       }, 
       { 
         status: 500,
         headers: {
           // Don't cache error responses
           'Cache-Control': 'no-store',
-        }
-      }
+        },
+      },
     );
   }
 }
