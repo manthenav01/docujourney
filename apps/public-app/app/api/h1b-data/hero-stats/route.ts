@@ -22,8 +22,40 @@ export async function GET(request: NextRequest) {
       HAS_CREDENTIALS_FILE: !!process.env.GOOGLE_APPLICATION_CREDENTIALS,
     });
     
-    const bigQueryService = createH1BBigQueryService();
-    console.log(`[DEBUG] BigQuery service created successfully`);
+    let bigQueryService;
+    try {
+      bigQueryService = createH1BBigQueryService();
+      console.log(`[DEBUG] BigQuery service created successfully`);
+    } catch (initError) {
+      console.error('[DEBUG] Failed to initialize BigQuery service:', initError);
+      
+      // Return fallback data for development
+      if (process.env.NODE_ENV === 'development') {
+        const fallbackStats = {
+          topEmployers: [
+            { text: 'AMAZON.COM', displayText: 'Amazon', type: 'employer', count: 31171 },
+            { text: 'ERNST & YOUNG U.S. LLP', displayText: 'Ernst & Young', type: 'employer', count: 25681 },
+            { text: 'COGNIZANT TECHNOLOGY SOLUTIONS', displayText: 'Cognizant', type: 'employer', count: 25446 },
+            { text: 'GOOGLE LLC', displayText: 'Google', type: 'employer', count: 23576 },
+            { text: 'MICROSOFT CORPORATION', displayText: 'Microsoft', type: 'employer', count: 19103 },
+          ],
+          stats: {
+            totalEmployers: 99360,
+            avgSalary: 114000,
+            approvalRate: 95,
+            totalApplications: 1167000,
+          },
+        };
+        
+        return NextResponse.json(fallbackStats, {
+          headers: {
+            'Cache-Control': 'public, s-maxage=60, stale-while-revalidate=300',
+          },
+        });
+      }
+      
+      throw initError;
+    }
 
     let stats = {};
 
@@ -34,7 +66,7 @@ export async function GET(request: NextRequest) {
           
           // Get aggregated data which includes top employers and stats
           const aggregatedData = await bigQueryService.getH1BDashboardData({
-            fiscalYears: ['2023', '2024', '2025'],
+            fiscalYears: ['2025'],
           });
 
           console.log(`[DEBUG] Aggregated data received:`, {
@@ -90,7 +122,7 @@ export async function GET(request: NextRequest) {
       case 'jobs':
         try {
           const aggregatedData = await bigQueryService.getH1BDashboardData({
-            fiscalYears: ['2023', '2024', '2025'],
+            fiscalYears: ['2025'],
           });
 
           // Get top job titles from job title distribution
@@ -124,7 +156,7 @@ export async function GET(request: NextRequest) {
       case 'cities':
         try {
           const aggregatedData = await bigQueryService.getH1BDashboardData({
-            fiscalYears: ['2023', '2024', '2025'],
+            fiscalYears: ['2025'],
           });
 
           // Get top cities/states from state distribution
@@ -156,7 +188,7 @@ export async function GET(request: NextRequest) {
       case 'attorneys':
         try {
           const aggregatedData = await bigQueryService.getH1BDashboardData({
-            fiscalYears: ['2023', '2024', '2025'],
+            fiscalYears: ['2025'],
           });
 
           // Get top attorneys from attorneys data
@@ -195,11 +227,11 @@ export async function GET(request: NextRequest) {
         try {
           // Get top law firms data using the new method
           const topLawFirmsData = await bigQueryService.getTopLawFirms({
-            fiscalYears: ['2023', '2024', '2025'],
+            fiscalYears: ['2025'],
           }, 10);
 
           const aggregatedData = await bigQueryService.getH1BDashboardData({
-            fiscalYears: ['2023', '2024', '2025'],
+            fiscalYears: ['2025'],
           });
 
           // Transform law firms data for the UI
@@ -257,7 +289,7 @@ export async function GET(request: NextRequest) {
         // General statistics for home page
         try {
           const aggregatedData = await bigQueryService.getH1BDashboardData({
-            fiscalYears: ['2023', '2024', '2025'],
+            fiscalYears: ['2025'],
           });
 
           stats = {

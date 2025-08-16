@@ -34,9 +34,31 @@ export const useResponsiveChart = (config: ResponsiveChartConfig) => {
     left: 10,
   }), []);
 
+  // Create stable references for config margins to prevent infinite re-renders
+  const stableDefaultMargin = useMemo(() => config.defaultMargin, [
+    config.defaultMargin?.top,
+    config.defaultMargin?.right,
+    config.defaultMargin?.bottom,
+    config.defaultMargin?.left,
+  ]);
+
+  const stableMobileMargin = useMemo(() => config.mobileMargin, [
+    config.mobileMargin?.top,
+    config.mobileMargin?.right,
+    config.mobileMargin?.bottom,
+    config.mobileMargin?.left,
+  ]);
+
+  const stableTabletMargin = useMemo(() => config.tabletMargin, [
+    config.tabletMargin?.top,
+    config.tabletMargin?.right,
+    config.tabletMargin?.bottom,
+    config.tabletMargin?.left,
+  ]);
+
   const [dimensions, setDimensions] = useState({
     height: config.defaultHeight,
-    margin: config.defaultMargin,
+    margin: stableDefaultMargin,
   });
 
   useEffect(() => {
@@ -47,28 +69,28 @@ export const useResponsiveChart = (config: ResponsiveChartConfig) => {
       if (width < 375) {
         setDimensions({
           height: config.mobileHeight || config.defaultHeight * 0.65,
-          margin: config.mobileMargin || defaultVerySmallMargin,
+          margin: stableMobileMargin || defaultVerySmallMargin,
         });
       }
       // Mobile
       else if (width < 640) {
         setDimensions({
           height: config.mobileHeight || config.defaultHeight * 0.7,
-          margin: config.mobileMargin || defaultMobileMargin,
+          margin: stableMobileMargin || defaultMobileMargin,
         });
       }
       // Tablet
       else if (width < 1024) {
         setDimensions({
           height: config.tabletHeight || config.defaultHeight * 0.85,
-          margin: config.tabletMargin || defaultTabletMargin,
+          margin: stableTabletMargin || defaultTabletMargin,
         });
       }
       // Desktop
       else {
         setDimensions({
           height: config.defaultHeight,
-          margin: config.defaultMargin,
+          margin: stableDefaultMargin,
         });
       }
     };
@@ -85,9 +107,9 @@ export const useResponsiveChart = (config: ResponsiveChartConfig) => {
     config.defaultHeight,
     config.mobileHeight,
     config.tabletHeight,
-    config.defaultMargin,
-    config.mobileMargin,
-    config.tabletMargin,
+    stableDefaultMargin,
+    stableMobileMargin,
+    stableTabletMargin,
     defaultMobileMargin,
     defaultTabletMargin,
     defaultVerySmallMargin,

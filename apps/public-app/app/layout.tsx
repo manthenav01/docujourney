@@ -8,13 +8,40 @@ import { Analytics } from '@vercel/analytics/react';
 import GoogleAnalytics from '@/components/GoogleAnalytics';
 import CookieConsent from '@/components/CookieConsent';
 
-export const metadata: Metadata = generateMetadata({
-  title: BASE_METADATA.title,
-  description: BASE_METADATA.description,
-  keywords: ['immigration', 'H1B visa', 'AI-powered', 'visa analytics', 'H1B Employer', 'H1B Sponsor'],
-  type: 'website',
-  path: '',
-});
+export const metadata: Metadata = {
+  ...generateMetadata({
+    title: 'H1B Data Analytics Platform | Immigrant Central - Visa Salary Database',
+    description: 'Comprehensive H1B visa analytics platform with 2.9M+ applications, salary data, sponsor companies, and real-time immigration insights. Find H1B sponsors, calculate salaries, and analyze approval rates.',
+    keywords: [
+      // Primary high-volume keywords
+      'H1B data',
+      'H1B salary database',
+      'H1B sponsor companies',
+      'H1B visa analytics', 
+      'H1B approval rates',
+      'H1B minimum salary 2025',
+      'H1B prevailing wage',
+      'H1B employer database',
+      // Secondary keywords
+      'H1B petition data',
+      'immigration analytics',
+      'visa sponsorship data',
+      'H1B statistics',
+      'H1B trends',
+      'H1B calculator',
+      'H1B filing data',
+      // Long-tail keywords
+      'companies that sponsor H1B visa',
+      'H1B salary by company',
+      'H1B sponsor list 2025',
+      'H1B application statistics',
+      'best H1B sponsor companies',
+    ],
+    type: 'website',
+    path: '',
+  }),
+  metadataBase: new URL('https://usimmigrantcentral.com'),
+};
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (

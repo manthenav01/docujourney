@@ -8,7 +8,6 @@ import { VisualizationPanel } from './VisualizationPanel';
 import { TopEmployersTable } from './TopEmployersTable';
 import { InvisibleSEO } from './InvisibleSEO';
 import { SmartBreadcrumb } from './SmartBreadcrumb';
-import { ContextualNavigation } from '../seo/ContextualNavigation';
 import { H1BAggregatedData } from '../../lib/types';
 import { 
   FileText,
@@ -296,11 +295,6 @@ export const H1BDashboard: React.FC = () => {
         onSearch={handleHeroSearch}
       />
 
-      {/* Smart Breadcrumb */}
-      <Suspense fallback={null}>
-        <SmartBreadcrumb />
-      </Suspense>
-      
       {/* Years Filter */}
       <YearsFilter
         filters={filters}
@@ -310,19 +304,7 @@ export const H1BDashboard: React.FC = () => {
 
       {/* Invisible SEO */}
       <Suspense fallback={null}>
-        <InvisibleSEO 
-          pageType="dashboard"
-          dataContext={{
-            totalApplications: dashboardData?.totalApplications,
-            avgSalary: dashboardData?.avgSalary,
-            topCategories: dashboardData?.jobTitleDistribution?.map((job: any) => job.jobTitle || job.job_title).slice(0, 5),
-          }}
-        />
-      </Suspense>
-      
-      {/* Contextual Navigation for SEO */}
-      <Suspense fallback={null}>
-        <ContextualNavigation maxItems={20} />
+        <InvisibleSEO />
       </Suspense>
       
       {/* Dashboard Content */}

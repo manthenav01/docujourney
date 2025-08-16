@@ -45,29 +45,45 @@ export const EmployersHero: React.FC<EmployersHeroProps> = ({
     const fetchHeroData = async () => {
       try {
         const response = await fetch('/api/h1b-data/hero-stats?type=employers');
-        const data = await response.json();
-        setHeroData(data);
+        
+        if (response.ok) {
+          const data = await response.json();
+          
+          // Check if data has error property (API returned error response)
+          if (data.error) {
+            console.warn('API returned error, using fallback data:', data.error);
+            setFallbackHeroData();
+          } else {
+            setHeroData(data);
+          }
+        } else {
+          console.warn('API response not ok, using fallback data. Status:', response.status);
+          setFallbackHeroData();
+        }
       } catch (error) {
-        console.error('Error fetching employer hero data:', error);
-        // Fallback to default data if API fails
-        setHeroData({
-          topEmployers: [
-            { text: 'GOOGLE LLC', displayText: 'Google', type: 'employer', count: 7932 },
-            { text: 'MICROSOFT CORPORATION', displayText: 'Microsoft', type: 'employer', count: 7072 },
-            { text: 'AMAZON.COM SERVICES LLC', displayText: 'Amazon', type: 'employer', count: 6854 },
-            { text: 'APPLE INC.', displayText: 'Apple', type: 'employer', count: 5912 },
-            { text: 'META PLATFORMS, INC.', displayText: 'Meta', type: 'employer', count: 4789 },
-          ],
-          stats: {
-            totalEmployers: 15000,
-            avgSalary: 95000,
-            approvalRate: 87,
-            totalApplications: 500000,
-          },
-        });
+        console.warn('Error fetching employer hero data, using fallback:', error);
+        setFallbackHeroData();
       } finally {
         setLoading(false);
       }
+    };
+
+    const setFallbackHeroData = () => {
+      setHeroData({
+        topEmployers: [
+          { text: 'GOOGLE LLC', displayText: 'Google', type: 'employer', count: 7932 },
+          { text: 'MICROSOFT CORPORATION', displayText: 'Microsoft', type: 'employer', count: 7072 },
+          { text: 'AMAZON.COM SERVICES LLC', displayText: 'Amazon', type: 'employer', count: 6854 },
+          { text: 'APPLE INC.', displayText: 'Apple', type: 'employer', count: 5912 },
+          { text: 'META PLATFORMS, INC.', displayText: 'Meta', type: 'employer', count: 4789 },
+        ],
+        stats: {
+          totalEmployers: 15000,
+          avgSalary: 95000,
+          approvalRate: 87,
+          totalApplications: 500000,
+        },
+      });
     };
 
     fetchHeroData();

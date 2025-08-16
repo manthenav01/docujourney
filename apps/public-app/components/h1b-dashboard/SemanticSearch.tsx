@@ -54,6 +54,7 @@ export const SemanticSearch: React.FC<SemanticSearchProps> = ({
   const [animatedPlaceholder, setAnimatedPlaceholder] = useState('');
   const [isInputFocused, setIsInputFocused] = useState(false);
   const [showCursor, setShowCursor] = useState(true);
+  const [isMounted, setIsMounted] = useState(false);
   
   const searchRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -72,9 +73,14 @@ export const SemanticSearch: React.FC<SemanticSearchProps> = ({
     'Find APPLE INC. LCA applications...',
   ], []);
 
+  // Mount effect to prevent hydration mismatches
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
   // Animated typing effect for placeholder
   useEffect(() => {
-    if (isInputFocused || query) {
+    if (!isMounted || isInputFocused || query) {
       setAnimatedPlaceholder('');
       return;
     }
@@ -119,11 +125,11 @@ export const SemanticSearch: React.FC<SemanticSearchProps> = ({
     return () => {
       clearTimeout(timeoutId);
     };
-  }, [isInputFocused, query, placeholderTexts]);
+  }, [isMounted, isInputFocused, query, placeholderTexts]);
 
   // Cursor blinking effect
   useEffect(() => {
-    if (isInputFocused || query) {
+    if (!isMounted || isInputFocused || query) {
       return;
     }
 
@@ -132,7 +138,7 @@ export const SemanticSearch: React.FC<SemanticSearchProps> = ({
     }, 530); // Blink every 530ms
 
     return () => clearInterval(cursorInterval);
-  }, [isInputFocused, query]);
+  }, [isMounted, isInputFocused, query]);
 
   // Debounced autocomplete with better performance
   useEffect(() => {
@@ -197,11 +203,17 @@ export const SemanticSearch: React.FC<SemanticSearchProps> = ({
     
     const trimmedQuery = searchQuery.trim();
     
-    // Track search in Google Analytics
-    trackJobSearch({
-      jobTitle: trimmedQuery,
-      resultsCount: suggestions.length,
-    });
+    // Track search in Google Analytics (only on client-side after hydration)
+    if (isMounted) {
+      try {
+        trackJobSearch({
+          jobTitle: trimmedQuery,
+          resultsCount: suggestions.length,
+        });
+      } catch (error) {
+        console.warn('Analytics tracking error:', error);
+      }
+    }
     
     // Don't perform the search - just keep the query for autocomplete
     console.log('Search query entered:', trimmedQuery);

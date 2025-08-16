@@ -57,10 +57,18 @@ const ReusableBarChartComponent: React.FC<ReusableBarChartProps> = ({
   animate = true,
   motionConfig = 'gentle',
 }) => {
+  // Create stable margin reference to prevent infinite re-renders
+  const stableMargin = useMemo(() => margin, [
+    margin.top,
+    margin.right,
+    margin.bottom,
+    margin.left,
+  ]);
+
   // Memoize responsive chart config to prevent infinite re-renders
   const responsiveConfig = useMemo(() => ({
     defaultHeight: height,
-    defaultMargin: margin,
+    defaultMargin: stableMargin,
     mobileHeight: Math.min(height * 0.7, 250),
     mobileMargin: {
       top: 5,
@@ -75,7 +83,7 @@ const ReusableBarChartComponent: React.FC<ReusableBarChartProps> = ({
       bottom: 50,
       left: 65,
     },
-  }), [height, margin]);
+  }), [height, stableMargin]);
 
   // Responsive dimensions
   const { height: responsiveHeight, margin: responsiveMargin } = useResponsiveChart(responsiveConfig);

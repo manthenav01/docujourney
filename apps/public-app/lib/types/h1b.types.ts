@@ -21,6 +21,7 @@ export interface H1BEmployer {
   maxSalary: number;
   topState: string;
   yoyGrowthRate: number;
+  approvalRate?: number; // Optional approval rate percentage
 }
 
 export interface H1BAttorney {

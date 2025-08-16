@@ -5,6 +5,7 @@ export const GA_MEASUREMENT_ID = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID;
 export const isAnalyticsEnabled = (): boolean => {
   return typeof window !== 'undefined' && 
          !!GA_MEASUREMENT_ID && 
+         typeof window.gtag === 'function' &&
          process.env.NODE_ENV === 'production';
 };
 
@@ -14,9 +15,13 @@ export const pageview = (url: string) => {
     return;
   }
   
-  window.gtag('config', GA_MEASUREMENT_ID!, {
-    page_path: url,
-  });
+  try {
+    window.gtag('config', GA_MEASUREMENT_ID!, {
+      page_path: url,
+    });
+  } catch (error) {
+    console.warn('Analytics pageview error:', error);
+  }
 };
 
 // Custom event tracking
@@ -25,7 +30,11 @@ export const event = (action: string, parameters: Record<string, any>) => {
     return;
   }
   
-  window.gtag('event', action, parameters);
+  try {
+    window.gtag('event', action, parameters);
+  } catch (error) {
+    console.warn('Analytics event error:', error);
+  }
 };
 
 // H1B-specific event tracking functions
