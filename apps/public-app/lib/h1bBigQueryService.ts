@@ -1910,32 +1910,39 @@ export class H1BBigQueryService {
       // Get yearly trends for this city
       const yearlyTrendsQuery = `
         SELECT
-          CASE 
-            WHEN EXTRACT(MONTH FROM received_date) >= 10 
-            THEN EXTRACT(YEAR FROM received_date) + 1 
-            ELSE EXTRACT(YEAR FROM received_date) 
-          END as fiscal_year,
-          COUNT(*) as applications,
-          AVG(
-            CASE WHEN wage_rate_of_pay_from > 0 AND wage_rate_of_pay_from < 1000000 THEN 
-              CASE 
-                WHEN wage_unit_of_pay = 'Hour' THEN wage_rate_of_pay_from * 2080
-                WHEN wage_unit_of_pay = 'Week' THEN wage_rate_of_pay_from * 52
-                WHEN wage_unit_of_pay = 'Month' THEN wage_rate_of_pay_from * 12
-                WHEN wage_unit_of_pay = 'Bi-Weekly' THEN wage_rate_of_pay_from * 26
-                ELSE wage_rate_of_pay_from
+          fiscal_year,
+          applications,
+          avgSalary,
+          certificationRate
+        FROM (
+          SELECT
+            CASE 
+              WHEN EXTRACT(MONTH FROM received_date) >= 10 
+              THEN EXTRACT(YEAR FROM received_date) + 1 
+              ELSE EXTRACT(YEAR FROM received_date) 
+            END as fiscal_year,
+            COUNT(*) as applications,
+            AVG(
+              CASE WHEN wage_rate_of_pay_from > 0 AND wage_rate_of_pay_from < 1000000 THEN 
+                CASE 
+                  WHEN wage_unit_of_pay = 'Hour' THEN wage_rate_of_pay_from * 2080
+                  WHEN wage_unit_of_pay = 'Week' THEN wage_rate_of_pay_from * 52
+                  WHEN wage_unit_of_pay = 'Month' THEN wage_rate_of_pay_from * 12
+                  WHEN wage_unit_of_pay = 'Bi-Weekly' THEN wage_rate_of_pay_from * 26
+                  ELSE wage_rate_of_pay_from
+                END
               END
-            END
-          ) as avgSalary,
-          ROUND(
-            SUM(CASE WHEN case_status = 'Certified' THEN 1 ELSE 0 END) * 100.0 / COUNT(*), 
-            1
-          ) as certificationRate
-        FROM \`${this.projectId}.${this.datasetId}.${this.tableId}\`
-        WHERE UPPER(TRIM(worksite_city)) = UPPER(TRIM(@cityName))
-        AND UPPER(TRIM(worksite_state)) = UPPER(TRIM(@stateName))
-        AND received_date IS NOT NULL
-        GROUP BY fiscal_year
+            ) as avgSalary,
+            ROUND(
+              SUM(CASE WHEN case_status = 'Certified' THEN 1 ELSE 0 END) * 100.0 / COUNT(*), 
+              1
+            ) as certificationRate
+          FROM \`${this.projectId}.${this.datasetId}.${this.tableId}\`
+          WHERE UPPER(TRIM(worksite_city)) = UPPER(TRIM(@cityName))
+          AND UPPER(TRIM(worksite_state)) = UPPER(TRIM(@stateName))
+          AND received_date IS NOT NULL
+          GROUP BY fiscal_year
+        )
         ORDER BY fiscal_year DESC
         LIMIT 5
       `;
@@ -2011,22 +2018,33 @@ export class H1BBigQueryService {
         throw new Error(`No H1B data found for ${cityName}, ${stateName}`);
       }
 
-      // Generate recent activity data (last 6 months)
-      const recentActivity = [];
-      const currentDate = new Date();
-      for (let i = 5; i >= 0; i--) {
-        const date = new Date(currentDate.getFullYear(), currentDate.getMonth() - i, 1);
-        const monthName = date.toLocaleString('default', { month: 'short' });
-        const currentYear = date.getFullYear();
-        
-        // For demonstration, generate some activity based on yearly trends
-        const monthlyApps = Math.floor((totalApplications / 12) * (0.5 + Math.random()));
-        
-        recentActivity.push({
-          month: `${monthName} ${currentYear}`,
-          applications: monthlyApps,
-        });
-      }
+      // Get real monthly activity data (last 6 months)
+      const monthlyQuery = `
+        SELECT 
+          FORMAT_DATE('%b %Y', received_date) as month,
+          EXTRACT(YEAR FROM received_date) as year,
+          EXTRACT(MONTH FROM received_date) as month_num,
+          COUNT(*) as applications
+        FROM \`${this.projectId}.${this.datasetId}.${this.tableId}\`
+        WHERE UPPER(TRIM(worksite_city)) = UPPER(TRIM(@cityName))
+          AND UPPER(TRIM(worksite_state)) = UPPER(TRIM(@stateName))
+          AND received_date >= DATE_SUB(CURRENT_DATE(), INTERVAL 6 MONTH)
+          AND received_date IS NOT NULL
+        GROUP BY month, year, month_num
+        ORDER BY year DESC, month_num DESC
+        LIMIT 6
+      `;
+
+      const monthlyOptions = {
+        query: monthlyQuery,
+        params: { cityName, stateName },
+      };
+
+      const [monthlyRows] = await this.bigquery.query(monthlyOptions);
+      const recentActivity = monthlyRows.map((row: any) => ({
+        month: row.month,
+        applications: parseInt(row.applications),
+      }));
 
       return {
         city: cityName,

@@ -51,40 +51,23 @@ export const EmployersHero: React.FC<EmployersHeroProps> = ({
           
           // Check if data has error property (API returned error response)
           if (data.error) {
-            console.warn('API returned error, using fallback data:', data.error);
-            setFallbackHeroData();
+            console.error('API returned error:', data.error);
+            setHeroData(null);
           } else {
             setHeroData(data);
           }
         } else {
-          console.warn('API response not ok, using fallback data. Status:', response.status);
-          setFallbackHeroData();
+          console.error('API response not ok. Status:', response.status);
+          setHeroData(null);
         }
       } catch (error) {
-        console.warn('Error fetching employer hero data, using fallback:', error);
-        setFallbackHeroData();
+        console.error('Error fetching employer hero data:', error);
+        setHeroData(null);
       } finally {
         setLoading(false);
       }
     };
 
-    const setFallbackHeroData = () => {
-      setHeroData({
-        topEmployers: [
-          { text: 'GOOGLE LLC', displayText: 'Google', type: 'employer', count: 7932 },
-          { text: 'MICROSOFT CORPORATION', displayText: 'Microsoft', type: 'employer', count: 7072 },
-          { text: 'AMAZON.COM SERVICES LLC', displayText: 'Amazon', type: 'employer', count: 6854 },
-          { text: 'APPLE INC.', displayText: 'Apple', type: 'employer', count: 5912 },
-          { text: 'META PLATFORMS, INC.', displayText: 'Meta', type: 'employer', count: 4789 },
-        ],
-        stats: {
-          totalEmployers: 15000,
-          avgSalary: 95000,
-          approvalRate: 87,
-          totalApplications: 500000,
-        },
-      });
-    };
 
     fetchHeroData();
   }, []);
@@ -140,8 +123,6 @@ export const EmployersHero: React.FC<EmployersHeroProps> = ({
             <span className="bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent font-medium">
               Top H1B Sponsors
             </span>
-            <br />
-            and employer insights
           </h1>
           <p className="text-xl text-gray-600 max-w-2xl mx-auto">
             Explore comprehensive data on H1B employers, their hiring patterns, salary ranges, and success rates

@@ -29,30 +29,6 @@ export async function GET(request: NextRequest) {
     } catch (initError) {
       console.error('[DEBUG] Failed to initialize BigQuery service:', initError);
       
-      // Return fallback data for development
-      if (process.env.NODE_ENV === 'development') {
-        const fallbackStats = {
-          topEmployers: [
-            { text: 'AMAZON.COM', displayText: 'Amazon', type: 'employer', count: 31171 },
-            { text: 'ERNST & YOUNG U.S. LLP', displayText: 'Ernst & Young', type: 'employer', count: 25681 },
-            { text: 'COGNIZANT TECHNOLOGY SOLUTIONS', displayText: 'Cognizant', type: 'employer', count: 25446 },
-            { text: 'GOOGLE LLC', displayText: 'Google', type: 'employer', count: 23576 },
-            { text: 'MICROSOFT CORPORATION', displayText: 'Microsoft', type: 'employer', count: 19103 },
-          ],
-          stats: {
-            totalEmployers: 99360,
-            avgSalary: 114000,
-            approvalRate: 95,
-            totalApplications: 1167000,
-          },
-        };
-        
-        return NextResponse.json(fallbackStats, {
-          headers: {
-            'Cache-Control': 'public, s-maxage=60, stale-while-revalidate=300',
-          },
-        });
-      }
       
       throw initError;
     }

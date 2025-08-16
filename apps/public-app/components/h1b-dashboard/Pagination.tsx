@@ -18,7 +18,6 @@ interface PaginationProps {
   totalPages: number;
   baseUrl: string;
   searchParams?: SearchParams;
-  scrollToTop?: boolean;
 }
 
 export function Pagination({
@@ -26,7 +25,6 @@ export function Pagination({
   totalPages,
   baseUrl,
   searchParams = {},
-  scrollToTop = false, // Changed default to false - no scrolling
 }: PaginationProps) {
   // Don't show pagination if there's only one page
   if (totalPages <= 1) {
@@ -70,18 +68,10 @@ export function Pagination({
     return pages;
   };
 
-  const handleClick = () => {
-    if (scrollToTop) {
-      // Scroll to the sponsors list section instead of top of page
-      const sponsorsSection = document.getElementById('sponsors-list');
-      if (sponsorsSection) {
-        // Scroll to sponsors list with some offset so it's not stuck to the top
-        const yOffset = -20; 
-        const y = sponsorsSection.getBoundingClientRect().top + window.pageYOffset + yOffset;
-        window.scrollTo({ top: y, behavior: 'smooth' });
-      }
-      // Don't fallback to scrolling to top - just stay where we are
-    }
+  // Remove scrolling behavior - let user stay where they are
+  const handleClick = (e: React.MouseEvent) => {
+    // Prevent any default scrolling behavior
+    e.stopPropagation();
   };
 
   const getPageUrl = (page: number) => {

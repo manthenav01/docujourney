@@ -40,7 +40,7 @@ export async function GET(request: NextRequest): Promise<NextResponse<PaginatedR
   try {
     const searchParams = request.nextUrl.searchParams;
     const page = Math.max(1, parseInt(searchParams.get('page') || '1', 10));
-    const limit = Math.min(100, Math.max(10, parseInt(searchParams.get('limit') || '20', 10)));
+    const limit = Math.min(100, Math.max(10, parseInt(searchParams.get('limit') || '10', 10)));
     const search = searchParams.get('search') || '';
     const industry = searchParams.get('industry') || '';
     const state = searchParams.get('state') || '';
@@ -125,6 +125,44 @@ export async function GET(request: NextRequest): Promise<NextResponse<PaginatedR
           ROW_NUMBER() OVER (ORDER BY total_applications DESC, employer_name) as rank
         FROM employer_stats
       ),
+      top_job_titles AS (
+        SELECT 
+          re.employer_name,
+          ARRAY_AGG(job_title ORDER BY job_count DESC LIMIT 3) as job_titles
+        FROM ranked_employers re
+        JOIN (
+          SELECT 
+            TRIM(UPPER(employer_name)) as employer_name,
+            job_title,
+            COUNT(*) as job_count
+          FROM \`${bigQueryConfig.projectId}.${bigQueryConfig.datasetId}.${bigQueryConfig.tableId}\`
+          WHERE received_date >= '2024-10-01'
+            AND job_title IS NOT NULL
+            AND ${whereClause}
+          GROUP BY employer_name, job_title
+        ) job_counts ON job_counts.employer_name = re.employer_name
+        WHERE re.rank > ${offset} AND re.rank <= ${offset + limit}
+        GROUP BY re.employer_name
+      ),
+      top_states AS (
+        SELECT 
+          re.employer_name,
+          ARRAY_AGG(worksite_state ORDER BY state_count DESC LIMIT 3) as states
+        FROM ranked_employers re
+        JOIN (
+          SELECT 
+            TRIM(UPPER(employer_name)) as employer_name,
+            worksite_state,
+            COUNT(*) as state_count
+          FROM \`${bigQueryConfig.projectId}.${bigQueryConfig.datasetId}.${bigQueryConfig.tableId}\`
+          WHERE received_date >= '2024-10-01'
+            AND worksite_state IS NOT NULL
+            AND ${whereClause}
+          GROUP BY employer_name, worksite_state
+        ) state_counts ON state_counts.employer_name = re.employer_name
+        WHERE re.rank > ${offset} AND re.rank <= ${offset + limit}
+        GROUP BY re.employer_name
+      ),
       employer_details AS (
         SELECT 
           re.employer_name,
@@ -136,16 +174,12 @@ export async function GET(request: NextRequest): Promise<NextResponse<PaginatedR
           re.max_salary,
           re.latest_year,
           re.rank,
-          ARRAY_AGG(DISTINCT job_title ORDER BY job_title LIMIT 3) as top_job_titles,
-          ARRAY_AGG(DISTINCT worksite_state ORDER BY worksite_state LIMIT 3) as top_states
+          COALESCE(tj.job_titles, []) as top_job_titles,
+          COALESCE(ts.states, []) as top_states
         FROM ranked_employers re
-        LEFT JOIN \`${bigQueryConfig.projectId}.${bigQueryConfig.datasetId}.${bigQueryConfig.tableId}\` lca
-          ON TRIM(UPPER(lca.employer_name)) = re.employer_name
+        LEFT JOIN top_job_titles tj ON tj.employer_name = re.employer_name
+        LEFT JOIN top_states ts ON ts.employer_name = re.employer_name
         WHERE re.rank > ${offset} AND re.rank <= ${offset + limit}
-        GROUP BY 
-          re.employer_name, re.total_applications, re.certified_count, 
-          re.approval_rate, re.avg_salary, re.min_salary, re.max_salary, 
-          re.latest_year, re.rank
       )
       SELECT * FROM employer_details
       ORDER BY rank

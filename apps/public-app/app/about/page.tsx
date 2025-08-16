@@ -1,7 +1,7 @@
-'use client';
-
 import React from 'react';
+import { Metadata } from 'next';
 import Link from 'next/link';
+import { generateMetadata } from '@docujourney/utils';
 import { Button, Card, CardContent, CardHeader, CardTitle } from '@docujourney/ui';
 import { 
   Users, 
@@ -24,6 +24,14 @@ import {
 import { ImmigrantCentralLogo } from '../../components/h1b-dashboard/ImmigrantCentralLogo';
 import { DashboardHeader } from '../../components/h1b-dashboard/DashboardHeader';
 import { DashboardFooter } from '../../components/h1b-dashboard/DashboardFooter';
+
+export const metadata: Metadata = generateMetadata({
+  title: 'About Us - ImmigrantCentral H1B Analytics Platform',
+  description: 'Learn about ImmigrantCentral, the leading H1B data analytics platform. We provide comprehensive immigration insights, salary data, and employer analytics to help navigate your H1B journey.',
+  keywords: ['about ImmigrantCentral', 'H1B analytics platform', 'immigration data', 'visa analytics', 'H1B insights', 'immigration platform'],
+  type: 'website',
+  path: '/about',
+});
 
 export default function AboutPage() {
   return (
@@ -71,15 +79,15 @@ export default function AboutPage() {
             <Card className="p-8 bg-gradient-to-br from-primary/5 to-primary/10 border-primary/20">
               <div className="grid grid-cols-2 gap-6">
                 <div className="text-center">
-                  <div className="text-3xl font-bold text-primary mb-2">2M+</div>
+                  <div className="text-3xl font-bold text-primary mb-2">2.8M+</div>
                   <div className="text-sm text-muted-foreground">H1B Applications Analyzed</div>
                 </div>
                 <div className="text-center">
-                  <div className="text-3xl font-bold text-primary mb-2">50K+</div>
+                  <div className="text-3xl font-bold text-primary mb-2">170K+</div>
                   <div className="text-sm text-muted-foreground">Companies Tracked</div>
                 </div>
                 <div className="text-center">
-                  <div className="text-3xl font-bold text-primary mb-2">10K+</div>
+                  <div className="text-3xl font-bold text-primary mb-2">400K+</div>
                   <div className="text-sm text-muted-foreground">Job Titles Covered</div>
                 </div>
                 <div className="text-center">

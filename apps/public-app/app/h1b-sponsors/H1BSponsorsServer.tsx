@@ -59,7 +59,7 @@ async function fetchSponsors({
     // Build query params
     const params = new URLSearchParams({
       page: page.toString(),
-      limit: '20',
+      limit: '10',
     });
     
     if (search) {
