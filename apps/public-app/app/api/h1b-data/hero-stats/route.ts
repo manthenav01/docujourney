@@ -33,17 +33,17 @@ export async function GET(request: NextRequest) {
       if (process.env.NODE_ENV === 'development') {
         const fallbackStats = {
           topEmployers: [
-            { text: 'GOOGLE LLC', displayText: 'Google', type: 'employer', count: 7932 },
-            { text: 'MICROSOFT CORPORATION', displayText: 'Microsoft', type: 'employer', count: 7072 },
-            { text: 'AMAZON.COM SERVICES LLC', displayText: 'Amazon', type: 'employer', count: 6854 },
-            { text: 'APPLE INC.', displayText: 'Apple', type: 'employer', count: 5912 },
-            { text: 'META PLATFORMS, INC.', displayText: 'Meta', type: 'employer', count: 4789 },
+            { text: 'AMAZON.COM', displayText: 'Amazon', type: 'employer', count: 31171 },
+            { text: 'ERNST & YOUNG U.S. LLP', displayText: 'Ernst & Young', type: 'employer', count: 25681 },
+            { text: 'COGNIZANT TECHNOLOGY SOLUTIONS', displayText: 'Cognizant', type: 'employer', count: 25446 },
+            { text: 'GOOGLE LLC', displayText: 'Google', type: 'employer', count: 23576 },
+            { text: 'MICROSOFT CORPORATION', displayText: 'Microsoft', type: 'employer', count: 19103 },
           ],
           stats: {
-            totalEmployers: 15000,
-            avgSalary: 95000,
-            approvalRate: 87,
-            totalApplications: 500000,
+            totalEmployers: 99360,
+            avgSalary: 114000,
+            approvalRate: 95,
+            totalApplications: 1167000,
           },
         };
         
@@ -66,7 +66,7 @@ export async function GET(request: NextRequest) {
           
           // Get aggregated data which includes top employers and stats
           const aggregatedData = await bigQueryService.getH1BDashboardData({
-            fiscalYears: ['2023', '2024', '2025'],
+            fiscalYears: ['2025'],
           });
 
           console.log(`[DEBUG] Aggregated data received:`, {
@@ -122,7 +122,7 @@ export async function GET(request: NextRequest) {
       case 'jobs':
         try {
           const aggregatedData = await bigQueryService.getH1BDashboardData({
-            fiscalYears: ['2023', '2024', '2025'],
+            fiscalYears: ['2025'],
           });
 
           // Get top job titles from job title distribution
@@ -156,7 +156,7 @@ export async function GET(request: NextRequest) {
       case 'cities':
         try {
           const aggregatedData = await bigQueryService.getH1BDashboardData({
-            fiscalYears: ['2023', '2024', '2025'],
+            fiscalYears: ['2025'],
           });
 
           // Get top cities/states from state distribution
@@ -188,7 +188,7 @@ export async function GET(request: NextRequest) {
       case 'attorneys':
         try {
           const aggregatedData = await bigQueryService.getH1BDashboardData({
-            fiscalYears: ['2023', '2024', '2025'],
+            fiscalYears: ['2025'],
           });
 
           // Get top attorneys from attorneys data
@@ -227,11 +227,11 @@ export async function GET(request: NextRequest) {
         try {
           // Get top law firms data using the new method
           const topLawFirmsData = await bigQueryService.getTopLawFirms({
-            fiscalYears: ['2023', '2024', '2025'],
+            fiscalYears: ['2025'],
           }, 10);
 
           const aggregatedData = await bigQueryService.getH1BDashboardData({
-            fiscalYears: ['2023', '2024', '2025'],
+            fiscalYears: ['2025'],
           });
 
           // Transform law firms data for the UI
@@ -289,7 +289,7 @@ export async function GET(request: NextRequest) {
         // General statistics for home page
         try {
           const aggregatedData = await bigQueryService.getH1BDashboardData({
-            fiscalYears: ['2023', '2024', '2025'],
+            fiscalYears: ['2025'],
           });
 
           stats = {

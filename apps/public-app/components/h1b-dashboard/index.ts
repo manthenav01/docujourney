@@ -26,4 +26,8 @@ export { ErrorBoundary, BigQueryErrorBoundary } from './ErrorBoundary';
 export { InvisibleSEO } from './InvisibleSEO';
 export { SmartBreadcrumb } from './SmartBreadcrumb';
 
+// Pagination Components  
+export { Pagination, PaginationInfo } from './Pagination';
+export { SponsorsListSkeleton } from './SponsorsListSkeleton';
+
 export type { FilterState, H1BData, TabType } from './types';

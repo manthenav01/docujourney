@@ -2,8 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { BigQuery } from '@google-cloud/bigquery';
 import { bigQueryConfig } from '@/lib/config';
 
-// Allow caching for ISR - optimal for quarterly data updates
-export const revalidate = 86400; // 24 hours cache
+// Disable caching in development, use ISR in production
+export const revalidate = process.env.NODE_ENV === 'development' ? 0 : 86400; // 24 hours cache in production
 
 interface IndustryData {
   industry: string;
@@ -215,13 +215,23 @@ export async function GET(): Promise<NextResponse<StaticStatsResponse | { error:
       insightsCount: insights.length,
     });
 
+    // Check if we're in development mode
+    const isDevelopment = process.env.NODE_ENV === 'development' || 
+                          process.env.VERCEL_ENV === 'development' ||
+                          (!process.env.VERCEL_ENV && process.env.NODE_ENV !== 'production');
+    
+    const cacheControl = isDevelopment
+      ? 'no-store, no-cache, must-revalidate'
+      : 'public, s-maxage=86400, max-age=3600, stale-while-revalidate=3600';
+    
+    if (isDevelopment) {
+      console.log('🔧 Development mode: Cache disabled for static-stats');
+    }
+    
     return NextResponse.json(response, {
       headers: {
-        // Perfect caching for quarterly data updates
-        'Cache-Control': 'public, s-maxage=86400, max-age=3600, stale-while-revalidate=3600',
-        // s-maxage=86400: CDN caches for 24 hours
-        // max-age=3600: Browser caches for 1 hour  
-        // stale-while-revalidate=3600: Serve stale up to 1 hour while fetching fresh
+        // Disable cache in dev, perfect caching for quarterly data updates in prod
+        'Cache-Control': cacheControl,
       },
     });
 

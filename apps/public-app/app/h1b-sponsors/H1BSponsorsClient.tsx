@@ -1,22 +1,9 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle, Input } from '@docujourney/ui';
-import { Search, TrendingUp } from 'lucide-react';
+import { useState, useEffect, useCallback, useTransition } from 'react';
 import { EmployersHero } from '@/components/h1b-dashboard/EmployersHero';
 import { ClientErrorBoundary } from './ClientErrorBoundary';
-import Link from 'next/link';
-
-interface H1BSponsor {
-  employer: string;
-  totalApplications: number;
-  approvalRate: number;
-  avgSalary: number;
-  topStates: string[];
-  topJobTitles: string[];
-  fiscalYear: string;
-  rank: number;
-}
+import { useRouter, useSearchParams, usePathname } from 'next/navigation';
 
 interface FilterState {
   searchQuery: string;
@@ -30,196 +17,193 @@ interface FilterState {
   companyTypes: string[];
 }
 
-export function H1BSponsorsClient() {
-  const [sponsors, setSponsors] = useState<H1BSponsor[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [filteredSponsors, setFilteredSponsors] = useState<H1BSponsor[]>([]);
-  const [mounted, setMounted] = useState(false);
+interface H1BSponsorsClientProps {
+  initialPage?: number;
+  initialSearch?: string;
+  initialIndustry?: string;
+  initialState?: string;
+  initialMinSalary?: number;
+  initialMaxSalary?: number;
+}
 
-  // State for EmployersHero component
+export function H1BSponsorsClient({
+  initialPage = 1,
+  initialSearch = '',
+  initialIndustry = '',
+  initialState = '',
+  initialMinSalary,
+  initialMaxSalary,
+}: H1BSponsorsClientProps) {
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const [isPending, startTransition] = useTransition();
+  const [isClient, setIsClient] = useState(false);
+
+  // Initialize state from URL params
   const [filters, setFilters] = useState<FilterState>({
-    searchQuery: '',
+    searchQuery: initialSearch,
     fiscalYear: '2024',
-    salaryRange: [0, 500000],
-    states: [],
+    salaryRange: [
+      initialMinSalary || 0, 
+      initialMaxSalary || 500000
+    ],
+    states: initialState ? [initialState] : [],
     cities: [],
-    jobCategories: [],
+    jobCategories: initialIndustry ? [initialIndustry] : [],
     skillLevels: [],
     companySizes: [],
     companyTypes: [],
   });
 
-  // Handle hydration
+  // Update URL when filters change
+  const updateURL = useCallback((newFilters: Partial<FilterState>, newPage?: number) => {
+    const params = new URLSearchParams(searchParams.toString());
+    
+    // Update page
+    if (newPage !== undefined && newPage !== 1) {
+      params.set('page', newPage.toString());
+    } else if (newPage === 1) {
+      params.delete('page');
+    }
+    
+    // Update search
+    if (newFilters.searchQuery !== undefined) {
+      if (newFilters.searchQuery) {
+        params.set('search', newFilters.searchQuery);
+      } else {
+        params.delete('search');
+      }
+    }
+    
+    // Update salary range
+    if (newFilters.salaryRange) {
+      const [min, max] = newFilters.salaryRange;
+      if (min > 0) {
+        params.set('minSalary', min.toString());
+      } else {
+        params.delete('minSalary');
+      }
+      if (max < 500000) {
+        params.set('maxSalary', max.toString());
+      } else {
+        params.delete('maxSalary');
+      }
+    }
+    
+    // Update states
+    if (newFilters.states !== undefined) {
+      if (newFilters.states.length > 0) {
+        params.set('state', newFilters.states[0]); // For now, just use first state
+      } else {
+        params.delete('state');
+      }
+    }
+    
+    // Update industries/job categories
+    if (newFilters.jobCategories !== undefined) {
+      if (newFilters.jobCategories.length > 0) {
+        params.set('industry', newFilters.jobCategories[0]); // For now, just use first category
+      } else {
+        params.delete('industry');
+      }
+    }
+    
+    // Navigate to new URL
+    const newURL = params.toString() ? `${pathname}?${params.toString()}` : pathname;
+    router.push(newURL, { scroll: false });
+  }, [pathname, router, searchParams]);
+
+  // Handle filter changes
+  const handleFiltersChange = useCallback((newFilters: FilterState) => {
+    setFilters(newFilters);
+    // Reset to page 1 when filters change
+    updateURL(newFilters, 1);
+  }, [updateURL]);
+
+  // Handle search from hero
+  const handleHeroSearch = useCallback((query: string) => {
+    const newFilters = { ...filters, searchQuery: query };
+    handleFiltersChange(newFilters);
+  }, [filters, handleFiltersChange]);
+
+  // Handle suggestion select
+  const handleSuggestionSelect = useCallback((suggestion: any) => {
+    if (suggestion.type === 'employer') {
+      const companySlug = suggestion.text.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+      router.push(`/h1b-dashboard/company/${companySlug}?name=${encodeURIComponent(suggestion.text)}`);
+    }
+  }, [router]);
+
+  // Detect client-side mounting to avoid hydration issues
   useEffect(() => {
-    setMounted(true);
-    fetchSponsors();
+    setIsClient(true);
   }, []);
 
+  // Sync with browser back/forward navigation
   useEffect(() => {
-    if (!searchTerm) {
-      setFilteredSponsors(sponsors);
-    } else {
-      setFilteredSponsors(
-        sponsors.filter(sponsor =>
-          sponsor.employer.toLowerCase().includes(searchTerm.toLowerCase()),
-        ),
-      );
-    }
-  }, [searchTerm, sponsors]);
+    const currentSearch = searchParams.get('search') || '';
+    const currentState = searchParams.get('state') || '';
+    const currentIndustry = searchParams.get('industry') || '';
+    const currentMinSalary = searchParams.get('minSalary');
+    const currentMaxSalary = searchParams.get('maxSalary');
+    
+    setFilters(prev => ({
+      ...prev,
+      searchQuery: currentSearch,
+      states: currentState ? [currentState] : [],
+      jobCategories: currentIndustry ? [currentIndustry] : [],
+      salaryRange: [
+        currentMinSalary ? parseInt(currentMinSalary, 10) : 0,
+        currentMaxSalary ? parseInt(currentMaxSalary, 10) : 500000,
+      ],
+    }));
+  }, [searchParams]);
 
-  const fetchSponsors = async () => {
-    try {
-      const response = await fetch('/api/h1b-data?category=topEmployers&limit=20');
-      if (response.ok) {
-        const data = await response.json();
-        const currentYear = String(new Date().getFullYear());
-        const mappedSponsors = data.data?.topEmployers?.map((employer: any, index: number) => ({
-          employer: employer.employer_name || employer.employer,
-          totalApplications: employer.applications || employer.total_applications,
-          approvalRate: employer.approval_rate || employer.approvalRate || 89.2,
-          avgSalary: employer.avg_salary || employer.avgSalary || 95000,
-          topStates: employer.top_states || ['CA', 'NY', 'TX'],
-          topJobTitles: employer.top_job_titles || ['Software Engineer', 'Data Analyst', 'Product Manager'],
-          fiscalYear: currentYear,
-          rank: index + 1,
-        })) || [];
-
-        setSponsors(mappedSponsors);
-        setFilteredSponsors(mappedSponsors);
-      } else {
-        console.warn('API response not ok, using fallback data');
-      }
-    } catch (error) {
-      console.warn('API error, using fallback data:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleHeroSearch = (query: string) => {
-    setSearchTerm(query);
-  };
-
-  const handleSuggestionSelect = (suggestion: any) => {
-    if (suggestion.type === 'employer') {
-      setSearchTerm(suggestion.text);
-    }
-  };
-
-  const getCompanySlug = (companyName: string) => {
-    return companyName.toLowerCase().replace(/[^a-z0-9]+/g, '-');
-  };
-
-  // Prevent hydration issues by not rendering until mounted
-  if (!mounted) {
-    return (
-      <div className="relative bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 overflow-hidden">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-          <div className="text-center">
-            <div className="text-4xl sm:text-5xl lg:text-6xl font-normal text-gray-900 mb-6">
-              Loading H1B Sponsors...
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
+  // Handle data refresh (dev only)
+  const handleRefresh = useCallback(() => {
+    startTransition(() => {
+      router.refresh();
+    });
+  }, [router]);
 
   return (
     <ClientErrorBoundary>
-      {/* Hero Section - Keep existing EmployersHero but change title */}
+      {/* Hero Section with Search */}
       <div className="relative bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 overflow-hidden">
         <EmployersHero
           filters={filters}
-          setFilters={setFilters}
+          setFilters={handleFiltersChange}
           onSearch={handleHeroSearch}
           onSuggestionSelect={handleSuggestionSelect}
         />
-      </div>
-
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-
-        {/* Top Sponsors Directory */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center">
-              <TrendingUp className="w-6 h-6 mr-2 text-blue-600" />
-              Top H1B Sponsor Companies 2025
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {loading ? (
-              <div className="text-center py-8">Loading sponsors...</div>
-            ) : filteredSponsors.length === 0 ? (
-              <div className="text-center py-8">
-                <p className="text-gray-500">No sponsors data available at the moment.</p>
-                <p className="text-sm text-gray-400 mt-2">Please try again later.</p>
-              </div>
-            ) : (
-              <div className="space-y-4">
-                {filteredSponsors.slice(0, 100).map((sponsor, index) => (
-                  <div key={sponsor.employer} className="border rounded-lg p-6 hover:shadow-md transition-shadow">
-                    <div className="flex items-start justify-between">
-                      <div className="flex-1">
-                        <div className="flex items-center mb-2">
-                          <span className="text-sm font-medium text-gray-500 mr-3">#{index + 1}</span>
-                          <Link
-                            href={`/h1b-dashboard/company/${getCompanySlug(sponsor.employer)}?name=${encodeURIComponent(sponsor.employer)}`}
-                            className="text-xl font-bold text-blue-600 hover:text-blue-800"
-                          >
-                            {sponsor.employer}
-                          </Link>
-                        </div>
-
-                        <div className="grid md:grid-cols-4 gap-4 mt-4">
-                          <div>
-                            <div className="text-sm text-gray-500">Total Applications</div>
-                            <div className="text-lg font-semibold text-gray-900">
-                              {sponsor.totalApplications.toLocaleString()}
-                            </div>
-                          </div>
-                          <div>
-                            <div className="text-sm text-gray-500">Approval Rate</div>
-                            <div className="text-lg font-semibold text-green-600">
-                              {sponsor.approvalRate}%
-                            </div>
-                          </div>
-                          <div>
-                            <div className="text-sm text-gray-500">Average Salary</div>
-                            <div className="text-lg font-semibold text-blue-600">
-                              ${sponsor.avgSalary.toLocaleString()}
-                            </div>
-                          </div>
-                          <div>
-                            <div className="text-sm text-gray-500">Top Locations</div>
-                            <div className="text-sm text-gray-700">
-                              {sponsor.topStates.join(', ')}
-                            </div>
-                          </div>
-                        </div>
-
-                        <div className="mt-4">
-                          <div className="text-sm text-gray-500 mb-1">Popular Job Titles</div>
-                          <div className="flex flex-wrap gap-2">
-                            {sponsor.topJobTitles.slice(0, 3).map((title, idx) => (
-                              <span
-                                key={idx}
-                                className="px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded"
-                              >
-                                {title}
-                              </span>
-                            ))}
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </CardContent>
-        </Card>
+        
+        {/* Development-only refresh button - only show after client hydration */}
+        {isClient && process.env.NODE_ENV === 'development' && (
+          <div className="absolute top-4 right-4 z-50">
+            <button
+              onClick={handleRefresh}
+              disabled={isPending}
+              className="flex items-center gap-2 px-4 py-2 bg-yellow-500 text-black font-medium rounded-lg shadow-lg hover:bg-yellow-400 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              title="Refresh data (Development only)"
+            >
+              <svg 
+                className={`w-4 h-4 ${isPending ? 'animate-spin' : ''}`} 
+                fill="none" 
+                stroke="currentColor" 
+                viewBox="0 0 24 24"
+              >
+                <path 
+                  strokeLinecap="round" 
+                  strokeLinejoin="round" 
+                  strokeWidth={2} 
+                  d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" 
+                />
+              </svg>
+              {isPending ? 'Refreshing...' : 'Refresh Data (Dev)'}
+            </button>
+          </div>
+        )}
       </div>
     </ClientErrorBoundary>
   );

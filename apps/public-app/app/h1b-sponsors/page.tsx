@@ -1,9 +1,11 @@
 import { Suspense } from 'react';
 import { DashboardLayout } from '@/components/h1b-dashboard';
+import { H1BSponsorsServer } from './H1BSponsorsServer';
 import { H1BSponsorsClient } from './H1BSponsorsClient';
+import { SponsorsListSkeleton } from '@/components/h1b-dashboard/SponsorsListSkeleton';
 
-// ISR: Perfect for quarterly data updates
-export const revalidate = 86400; // Revalidate daily (data updates quarterly)
+// ISR: Disable caching in development, revalidate every hour in production
+export const revalidate = process.env.NODE_ENV === 'development' ? 0 : 3600;
 
 interface IndustryData {
   industry: string;
@@ -34,8 +36,8 @@ async function getStaticStats(): Promise<StaticStatsData> {
   const baseUrl = `${protocol}://${host}`;
 
   const response = await fetch(`${baseUrl}/api/h1b-data/static-stats`, {
-    // ISR will handle caching, no need for force-cache
-    cache: 'no-store', // Always fetch fresh during regeneration
+    // Disable cache in development, use ISR in production
+    next: { revalidate: process.env.NODE_ENV === 'development' ? 0 : 3600 },
   });
 
   if (!response.ok) {
@@ -50,8 +52,8 @@ async function getStaticStats(): Promise<StaticStatsData> {
 // Error component to show when data fetch fails
 function ErrorState({ error }: { error: string }) {
   return (
-    <div className="mt-12 space-y-8">
-      <div className="bg-red-50 border border-red-200 rounded-lg p-6">
+    <div className="mt-6 space-y-6">
+      <div className="bg-red-50 border border-red-200 rounded-lg p-4">
         <h2 className="text-2xl font-bold text-red-900 mb-4">
           ⚠️ Unable to Load H1B Industry Data
         </h2>
@@ -71,34 +73,53 @@ function ErrorState({ error }: { error: string }) {
   );
 }
 
-
 // Static Content Component (for better error isolation)
 function StaticContent({ staticStats }: { staticStats: StaticStatsData }) {
   return (
-    <div className="mt-12 space-y-8">
-      <div>
-        <h2 className="text-3xl font-bold text-gray-900 mb-6">
-          Complete H1B Sponsor Company Database
+    <div className="mt-6 space-y-6">
+      {/* SEO-optimized content in a more subtle, modern design */}
+      <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-6 border border-blue-100">
+        <h2 className="text-xl font-bold text-gray-900 mb-3 flex items-center">
+          <svg className="w-5 h-5 mr-2 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+          </svg>
+          About Our H1B Sponsor Database
         </h2>
-        <div className="prose max-w-none text-gray-600">
-          <p>
-            Our comprehensive H1B sponsor database includes detailed information about every company 
-            that has filed H1B visa petitions from 2020-2025. Each company profile includes:
-          </p>
-          <ul>
-            <li>Historical H1B application volumes and approval rates</li>
-            <li>Salary ranges and compensation data by job title</li>
-            <li>Geographic distribution of H1B employees</li>
-            <li>Year-over-year hiring trends and patterns</li>
-            <li>Popular job titles and skill requirements</li>
-          </ul>
+        <p className="text-gray-700 mb-3">
+          Track and analyze H1B sponsorship patterns across <span className="font-semibold text-blue-600">170,441+ companies</span> from 2016-2025
+        </p>
+        <div className="grid md:grid-cols-2 gap-4 text-sm">
+          <div className="flex items-start">
+            <svg className="w-5 h-5 text-green-500 mr-2 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <span className="text-gray-600">Historical application volumes & approval rates</span>
+          </div>
+          <div className="flex items-start">
+            <svg className="w-5 h-5 text-green-500 mr-2 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <span className="text-gray-600">Salary ranges by job title & location</span>
+          </div>
+          <div className="flex items-start">
+            <svg className="w-5 h-5 text-green-500 mr-2 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <span className="text-gray-600">Geographic distribution insights</span>
+          </div>
+          <div className="flex items-start">
+            <svg className="w-5 h-5 text-green-500 mr-2 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <span className="text-gray-600">Year-over-year hiring trends</span>
+          </div>
         </div>
       </div>
 
-      <div className="grid md:grid-cols-2 gap-8">
+      <div className="grid md:grid-cols-2 gap-6">
         {/* Real Industry Data */}
         <div>
-          <h3 className="text-2xl font-bold text-gray-900 mb-4">Top H1B Industries</h3>
+          <h3 className="text-xl font-bold text-gray-900 mb-3">Top H1B Industries</h3>
           <div className="space-y-2">
             {staticStats.industries.map((industry, index) => (
               <div key={index} className="flex justify-between">
@@ -111,8 +132,8 @@ function StaticContent({ staticStats }: { staticStats: StaticStatsData }) {
 
         {/* Real Sponsor Insights */}
         <div>
-          <h3 className="text-2xl font-bold text-gray-900 mb-4">H1B Sponsor Insights</h3>
-          <div className="space-y-4">
+          <h3 className="text-xl font-bold text-gray-900 mb-3">H1B Sponsor Insights</h3>
+          <div className="space-y-3">
             {staticStats.insights.map((insight, index) => {
               const bgColor = insight.color === 'blue' ? 'bg-blue-50' : 
                             insight.color === 'green' ? 'bg-green-50' : 'bg-purple-50';
@@ -122,7 +143,7 @@ function StaticContent({ staticStats }: { staticStats: StaticStatsData }) {
                               insight.color === 'green' ? 'text-green-700' : 'text-purple-700';
 
               return (
-                <div key={index} className={`p-4 ${bgColor} rounded-lg`}>
+                <div key={index} className={`p-3 ${bgColor} rounded-lg`}>
                   <div className={`font-semibold ${textColor}`}>{insight.title}</div>
                   <div className={`${descColor} text-sm`}>
                     {insight.description}
@@ -135,18 +156,40 @@ function StaticContent({ staticStats }: { staticStats: StaticStatsData }) {
       </div>
 
       {/* Data freshness indicator */}
-      <div className="mt-8 text-center" suppressHydrationWarning>
-        <p className="text-sm text-gray-500">
+      <div className="mt-4 text-center" suppressHydrationWarning>
+        <p className="text-xs text-gray-500">
           Data updated: {new Date(staticStats.lastUpdated).toLocaleDateString()} | 
-          Based on {staticStats.totalApplications.toLocaleString()} H1B applications
+          Based on {staticStats.totalApplications.toLocaleString('en-US')} H1B applications
         </p>
       </div>
     </div>
   );
 }
 
+interface H1BSponsorsPageProps {
+  searchParams: Promise<{
+    page?: string;
+    search?: string;
+    industry?: string;
+    state?: string;
+    minSalary?: string;
+    maxSalary?: string;
+  }>;
+}
+
 // Server Component for static content
-export default async function H1BSponsorsPage() {
+export default async function H1BSponsorsPage({ searchParams }: H1BSponsorsPageProps) {
+  // Await searchParams in Next.js 15
+  const params = await searchParams;
+  
+  // Parse URL parameters with defaults
+  const page = parseInt(params.page || '1', 10);
+  const search = params.search || '';
+  const industry = params.industry || '';
+  const state = params.state || '';
+  const minSalary = params.minSalary ? parseInt(params.minSalary, 10) : undefined;
+  const maxSalary = params.maxSalary ? parseInt(params.maxSalary, 10) : undefined;
+  
   let staticStats: StaticStatsData | null = null;
   let error: string | null = null;
   
@@ -160,22 +203,29 @@ export default async function H1BSponsorsPage() {
 
   return (
     <DashboardLayout>
-      <Suspense fallback={
-        <div className="relative bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 overflow-hidden">
-          <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-            <div className="text-center">
-              <div className="text-4xl sm:text-5xl lg:text-6xl font-normal text-gray-900 mb-6">
-                Loading H1B Sponsors...
-              </div>
-            </div>
-          </div>
-        </div>
-      }>
-        {/* Client component for hero and interactive search */}
-        <H1BSponsorsClient />
+      {/* Client component for hero and search - pass initial params */}
+      <H1BSponsorsClient 
+        initialPage={page}
+        initialSearch={search}
+        initialIndustry={industry}
+        initialState={state}
+        initialMinSalary={minSalary}
+        initialMaxSalary={maxSalary}
+      />
+      
+      {/* Server component for paginated sponsors - pass all params */}
+      <Suspense fallback={<SponsorsListSkeleton />}>
+        <H1BSponsorsServer 
+          page={page}
+          search={search}
+          industry={industry}
+          state={state}
+          minSalary={minSalary}
+          maxSalary={maxSalary}
+        />
       </Suspense>
       
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
         {/* Show error state or real data - NO FALLBACK */}
         {error ? (
           <ErrorState error={error} />
