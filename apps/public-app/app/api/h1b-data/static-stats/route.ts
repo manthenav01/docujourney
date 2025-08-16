@@ -2,8 +2,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import { BigQuery } from '@google-cloud/bigquery';
 import { bigQueryConfig } from '@/lib/config';
 
-// Disable caching in development, use ISR in production
-export const revalidate = process.env.NODE_ENV === 'development' ? 0 : 86400; // 24 hours cache in production
+// Use static values for Next.js config
+export const revalidate = 86400; // 24 hours cache
+export const dynamic = 'force-dynamic';
 
 interface IndustryData {
   industry: string;

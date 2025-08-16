@@ -62,11 +62,21 @@ async function fetchSponsors({
       limit: '20',
     });
     
-    if (search) params.append('search', search);
-    if (industry) params.append('industry', industry);
-    if (state) params.append('state', state);
-    if (minSalary !== undefined) params.append('minSalary', minSalary.toString());
-    if (maxSalary !== undefined) params.append('maxSalary', maxSalary.toString());
+    if (search) {
+      params.append('search', search);
+    }
+    if (industry) {
+      params.append('industry', industry);
+    }
+    if (state) {
+      params.append('state', state);
+    }
+    if (minSalary !== undefined) {
+      params.append('minSalary', minSalary.toString());
+    }
+    if (maxSalary !== undefined) {
+      params.append('maxSalary', maxSalary.toString());
+    }
     
     const response = await fetch(`${baseUrl}/api/h1b-data/sponsors?${params.toString()}`, {
       // Disable cache in development, use ISR in production
@@ -107,7 +117,7 @@ export async function H1BSponsorsServer({
   state = '',
   minSalary,
   maxSalary,
-  showHero = false 
+  showHero = false,
 }: H1BSponsorsServerProps) {
   const data = await fetchSponsors({ page, search, industry, state, minSalary, maxSalary });
 

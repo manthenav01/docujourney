@@ -46,7 +46,7 @@ export function H1BSponsorsClient({
     fiscalYear: '2024',
     salaryRange: [
       initialMinSalary || 0, 
-      initialMaxSalary || 500000
+      initialMaxSalary || 500000,
     ],
     states: initialState ? [initialState] : [],
     cities: [],
@@ -115,11 +115,12 @@ export function H1BSponsorsClient({
   }, [pathname, router, searchParams]);
 
   // Handle filter changes
-  const handleFiltersChange = useCallback((newFilters: FilterState) => {
-    setFilters(newFilters);
+  const handleFiltersChange = useCallback((newFilters: React.SetStateAction<FilterState>) => {
+    const resolvedFilters = typeof newFilters === 'function' ? newFilters(filters) : newFilters;
+    setFilters(resolvedFilters);
     // Reset to page 1 when filters change
-    updateURL(newFilters, 1);
-  }, [updateURL]);
+    updateURL(resolvedFilters, 1);
+  }, [updateURL, filters]);
 
   // Handle search from hero
   const handleHeroSearch = useCallback((query: string) => {

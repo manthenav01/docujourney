@@ -4,8 +4,9 @@ import { H1BSponsorsServer } from './H1BSponsorsServer';
 import { H1BSponsorsClient } from './H1BSponsorsClient';
 import { SponsorsListSkeleton } from '@/components/h1b-dashboard/SponsorsListSkeleton';
 
-// ISR: Disable caching in development, revalidate every hour in production
-export const revalidate = process.env.NODE_ENV === 'development' ? 0 : 3600;
+// ISR: revalidate every hour
+export const revalidate = 3600;
+export const dynamic = 'force-dynamic';
 
 interface IndustryData {
   industry: string;

@@ -87,3 +87,8 @@ __pycache__/
 .vercel-env-test
 .vercel-credentials-test
 .vercel
+
+# Log files (contain sensitive operation data)
+logs/*.log
+logs/**/*.log
+*.log

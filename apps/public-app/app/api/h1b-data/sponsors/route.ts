@@ -2,8 +2,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import { BigQuery } from '@google-cloud/bigquery';
 import { bigQueryConfig } from '@/lib/config';
 
-// Disable caching in development, use ISR in production
-export const revalidate = process.env.NODE_ENV === 'development' ? 0 : 3600;
+// Use static values for Next.js config
+export const revalidate = 3600;
+export const dynamic = 'force-dynamic';
 
 interface Sponsor {
   employer_name: string;
@@ -57,21 +58,21 @@ export async function GET(request: NextRequest): Promise<NextResponse<PaginatedR
 
     // Build where conditions for filtering
     const whereConditions = [
-      "employer_name IS NOT NULL",
-      "employer_name != ''",
-      "employer_name != 'N/A'",
-      "received_date >= '2024-10-01'"
+      'employer_name IS NOT NULL',
+      'employer_name != \'\'',
+      'employer_name != \'N/A\'',
+      'received_date >= \'2024-10-01\'',
     ];
     
     if (search) {
-      whereConditions.push(`UPPER(employer_name) LIKE UPPER('%${search.replace(/'/g, "''")}%')`);
+      whereConditions.push(`UPPER(employer_name) LIKE UPPER('%${search.replace(/'/g, '\'\'')}%')`);
     }
     if (state) {
-      whereConditions.push(`worksite_state = '${state.replace(/'/g, "''")}'`);
+      whereConditions.push(`worksite_state = '${state.replace(/'/g, '\'\'')}'`);
     }
     if (industry) {
       // You might want to map industry to job titles or SOC codes
-      whereConditions.push(`UPPER(job_title) LIKE UPPER('%${industry.replace(/'/g, "''")}%')`);
+      whereConditions.push(`UPPER(job_title) LIKE UPPER('%${industry.replace(/'/g, '\'\'')}%')`);
     }
     if (minSalary !== undefined) {
       whereConditions.push(`prevailing_wage >= ${minSalary}`);
