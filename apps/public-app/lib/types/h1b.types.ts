@@ -337,6 +337,80 @@ export interface H1BAttorneyAnalysis {
   recentActivity: H1BAttorneyRecentActivity[];
 }
 
+// State-specific analysis types
+export interface H1BStateTopEmployer {
+  employer: string;
+  applications: number;
+  percentage: number;
+  avgSalary: number;
+  certificationRate: number;
+  yoyGrowth?: number | null;
+  yoyGrowthPercentage?: number | null;
+}
+
+export interface H1BStateTopCity {
+  city: string;
+  applications: number;
+  percentage: number;
+  avgSalary: number;
+  certificationRate: number;
+}
+
+export interface H1BStateTopJobTitle {
+  jobTitle: string;
+  applications: number;
+  percentage: number;
+  avgSalary: number;
+  certificationRate: number;
+  yoyGrowth?: number | null;
+  yoyGrowthPercentage?: number | null;
+}
+
+export interface H1BStateYearlyTrend {
+  fiscalYear: string;
+  applications: number;
+  certifiedApplications: number;
+  certificationRate: number;
+  avgSalary: number;
+  yoyGrowth?: number | null;
+  yoyGrowthPercentage?: number | null;
+}
+
+export interface H1BStateSalaryDistribution {
+  range: string;
+  count: number;
+  percentage: number;
+}
+
+export interface H1BStateRecentActivity {
+  month: string;
+  applications: number;
+  certificationRate: number;
+  avgSalary: number;
+}
+
+export interface H1BStateAnalysis {
+  state: string;
+  totalApplications: number;
+  certifiedApplications: number;
+  deniedApplications: number;
+  withdrawnApplications: number;
+  certificationRate: number;
+  avgSalary: number;
+  medianSalary: number;
+  minSalary: number;
+  maxSalary: number;
+  topEmployers: H1BStateTopEmployer[];
+  topCities: H1BStateTopCity[];
+  topJobTitles: H1BStateTopJobTitle[];
+  yearlyTrends: H1BStateYearlyTrend[];
+  salaryDistribution: H1BStateSalaryDistribution[];
+  recentActivity: H1BStateRecentActivity[];
+  uniqueEmployers: number;
+  uniqueCities: number;
+  uniqueJobTitles: number;
+}
+
 // Filter options types
 export interface H1BFilterOptions {
   fiscalYears: string[];

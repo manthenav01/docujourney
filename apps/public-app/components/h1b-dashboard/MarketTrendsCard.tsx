@@ -25,6 +25,8 @@ export const MarketTrendsCard: React.FC<MarketTrendsCardProps> = ({
   showCertificationRate = true,
   maxYears = 5,
 }) => {
+  console.log('MarketTrendsCard - Raw data received:', data);
+  console.log('MarketTrendsCard - Title:', title);
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
@@ -39,7 +41,27 @@ export const MarketTrendsCard: React.FC<MarketTrendsCardProps> = ({
   };
 
   // Sort years chronologically and limit to last N years
-  const sortedYears = [...data]
+  // Add safety check to ensure data is an array
+  const safeData = Array.isArray(data) ? data : [];
+  
+  // If no data, show empty state
+  if (safeData.length === 0) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center">
+            <LineChart className="w-5 h-5 mr-2" />
+            {title}
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="text-gray-500 text-center py-8">No trend data available</p>
+        </CardContent>
+      </Card>
+    );
+  }
+  
+  const sortedYears = [...safeData]
     .sort((a, b) => parseInt(a.fiscalYear) - parseInt(b.fiscalYear))
     .slice(-maxYears);
   
@@ -63,6 +85,8 @@ export const MarketTrendsCard: React.FC<MarketTrendsCardProps> = ({
       yoyGrowthPercentage,
     };
   }).reverse(); // Reverse to show most recent year first
+
+  console.log('MarketTrendsCard - Processed yearlyTrendsWithGrowth:', yearlyTrendsWithGrowth);
 
   if (!data || data.length === 0) {
     return (

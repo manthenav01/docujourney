@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { Suspense } from 'react';
 import { Metadata } from 'next';
 import Link from 'next/link';
 import { generateMetadata } from '@docujourney/utils';
@@ -24,6 +24,7 @@ import {
 import { ImmigrantCentralLogo } from '../../components/h1b-dashboard/ImmigrantCentralLogo';
 import { DashboardHeader } from '../../components/h1b-dashboard/DashboardHeader';
 import { DashboardFooter } from '../../components/h1b-dashboard/DashboardFooter';
+import { SmartBreadcrumb } from '../../components/h1b-dashboard/SmartBreadcrumb';
 
 export const metadata: Metadata = generateMetadata({
   title: 'About Us - ImmigrantCentral H1B Analytics Platform',
@@ -39,7 +40,12 @@ export default function AboutPage() {
       {/* Navigation Header */}
       <DashboardHeader />
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      {/* Breadcrumb Navigation */}
+      <Suspense fallback={<div className="h-12" />}>
+        <SmartBreadcrumb />
+      </Suspense>
+
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Hero Section */}
         <section className="text-center mb-16">
           <div className="flex justify-center mb-6">
@@ -330,7 +336,7 @@ export default function AboutPage() {
                   Explore H1B Dashboard
                 </Button>
               </Link>
-              <Link href="mailto:support@usimmigrantcentral.com">
+              <Link href="/contact">
                 <Button variant="outline" size="lg" className="px-8">
                   Get in Touch
                 </Button>

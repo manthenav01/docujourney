@@ -9,7 +9,7 @@ Allow: /h1b-dashboard/city/*
 Allow: /h1b-dashboard/attorney/*
 Allow: /h1b-dashboard/employers
 Allow: /h1b-dashboard/jobs
-Allow: /h1b-dashboard/cities
+Allow: /h1b-dashboard/locations
 Allow: /h1b-dashboard/attorneys
 
 # Allow content pages

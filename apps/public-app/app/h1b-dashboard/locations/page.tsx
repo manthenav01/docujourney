@@ -4,10 +4,10 @@ import { Metadata } from 'next';
 
 // SEO Metadata
 export const metadata: Metadata = generateMetadataUtil({
-  title: 'H1B Cities - Geographic Distribution & Location Analytics',
+  title: 'H1B Locations - Geographic Distribution & Location Analytics',
   description: 'Explore H1B data by city and state, geographic distribution patterns, cost of living comparisons, salary ranges by location, and comprehensive analytics for H1B opportunities across different metropolitan areas.',
-  keywords: ['H1B cities', 'H1B locations', 'H1B geography', 'H1B by state', 'H1B location analytics', 'H1B metropolitan areas', 'H1B regional data'],
-  path: '/h1b-dashboard/cities',
+  keywords: ['H1B locations', 'H1B geography', 'H1B by state', 'H1B location analytics', 'H1B metropolitan areas', 'H1B regional data'],
+  path: '/h1b-dashboard/locations',
   type: 'article',
 });
 
@@ -20,11 +20,11 @@ const ContextualDashboard = dynamic(() =>
   { loading: () => <div>Loading...</div> },
 );
 
-const CitiesPage = () => {
+const LocationsPage = () => {
   return (
     <>
       <div className="sr-only">
-        <h1>H1B Cities - Geographic Distribution & Location Analytics</h1>
+        <h1>H1B Locations - Geographic Distribution & Location Analytics</h1>
         <p>
           Explore H1B data by city and state, geographic distribution patterns, 
           cost of living comparisons, salary ranges by location, and comprehensive 
@@ -36,4 +36,4 @@ const CitiesPage = () => {
   );
 };
 
-export default CitiesPage;
+export default LocationsPage;

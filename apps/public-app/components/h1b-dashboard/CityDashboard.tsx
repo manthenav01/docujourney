@@ -77,7 +77,9 @@ export const CityDashboard: React.FC<CityDashboardProps> = ({
   };
 
   const handleBackClick = () => {
-    router.push('/h1b-dashboard');
+    // Navigate back to the state page
+    const stateSlug = stateName.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
+    router.push(`/h1b-dashboard/locations/${encodeURIComponent(stateSlug)}?state=${encodeURIComponent(stateName)}`);
   };
 
   const formatCurrency = (amount: number) => {
@@ -213,7 +215,7 @@ export const CityDashboard: React.FC<CityDashboardProps> = ({
             className="mb-4"
           >
             <ArrowLeft className="w-4 h-4 mr-2" />
-            Back to Dashboard
+            Back to {stateName}
           </Button>
         </div>
           <Card className="bg-red-50 border-red-200">

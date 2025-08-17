@@ -273,8 +273,9 @@ export const SemanticSearch: React.FC<SemanticSearchProps> = ({
           
           if (cityName && stateName) {
             const citySlug = cityName.toLowerCase().replace(/[^a-z0-9]+/g, '-');
-            console.log('Navigating to city page:', `/h1b-dashboard/city/${encodeURIComponent(citySlug)}?city=${encodeURIComponent(cityName)}&state=${encodeURIComponent(stateName)}`);
-            router.push(`/h1b-dashboard/city/${encodeURIComponent(citySlug)}?city=${encodeURIComponent(cityName)}&state=${encodeURIComponent(stateName)}`);
+            const stateSlug = stateName.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+            console.log('Navigating to city page:', `/h1b-dashboard/locations/${encodeURIComponent(stateSlug)}/${encodeURIComponent(citySlug)}?city=${encodeURIComponent(cityName)}&state=${encodeURIComponent(stateName)}`);
+            router.push(`/h1b-dashboard/locations/${encodeURIComponent(stateSlug)}/${encodeURIComponent(citySlug)}?city=${encodeURIComponent(cityName)}&state=${encodeURIComponent(stateName)}`);
             return;
           }
         }

@@ -154,7 +154,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.8,
     },
     {
-      url: `${baseUrl}/h1b-dashboard/cities`,
+      url: `${baseUrl}/h1b-dashboard/locations`,
       lastModified: new Date(),
       changeFrequency: 'daily',
       priority: 0.8,
@@ -183,13 +183,26 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.7,
   }));
   
-  // Dynamic city pages
-  const cityPages: MetadataRoute.Sitemap = topCities.map(city => ({
-    url: `${baseUrl}/h1b-dashboard/city/${city.slug}`,
-    lastModified: new Date(),
-    changeFrequency: 'weekly' as const,
-    priority: 0.7,
-  }));
+  // Dynamic state pages
+  const statePages: MetadataRoute.Sitemap = [...new Set(topCities.map(city => city.state))]
+    .map(state => ({
+      url: `${baseUrl}/h1b-dashboard/locations/${state.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`,
+      lastModified: new Date(),
+      changeFrequency: 'weekly' as const,
+      priority: 0.8,
+    }));
+
+  // Dynamic city pages (hierarchical structure)
+  const cityPages: MetadataRoute.Sitemap = topCities.map(city => {
+    const stateSlug = city.state.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+    const citySlug = city.slug;
+    return {
+      url: `${baseUrl}/h1b-dashboard/locations/${stateSlug}/${citySlug}`,
+      lastModified: new Date(),
+      changeFrequency: 'weekly' as const,
+      priority: 0.7,
+    };
+  });
   
   // High-value SEO URLs
   const seoPages = getSEOSitemapEntries();
@@ -200,6 +213,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     ...seoPages, // High-priority SEO URLs
     ...companyPages.slice(0, 1000), // Limit to top 1000 companies
     ...jobPages.slice(0, 500), // Limit to top 500 jobs
+    ...statePages, // All state pages
     ...cityPages.slice(0, 200), // Limit to top 200 cities
   ];
 }

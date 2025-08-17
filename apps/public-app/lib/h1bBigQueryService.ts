@@ -6,6 +6,7 @@ import {
   H1BCompanyAnalysis,
   H1BJobAnalysis,
   H1BCityAnalysis,
+  H1BStateAnalysis,
   H1BAttorneyAnalysis,
   H1BFilterOptions,
   H1BSearchSuggestion,
@@ -2090,6 +2091,365 @@ export class H1BBigQueryService {
       };
     } catch (error) {
       console.error('Error getting city analysis:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Get detailed analysis for a specific state
+   */
+  async getStateAnalysis(stateName: string): Promise<H1BStateAnalysis> {
+    try {
+      // Basic state statistics
+      const basicStatsQuery = `
+        SELECT 
+          COUNT(*) as totalApplications,
+          COUNTIF(UPPER(case_status) = 'CERTIFIED') as certifiedApplications,
+          COUNTIF(UPPER(case_status) = 'DENIED') as deniedApplications,
+          COUNTIF(UPPER(case_status) = 'WITHDRAWN') as withdrawnApplications,
+          ROUND(AVG(CASE 
+            WHEN prevailing_wage > 30000 AND prevailing_wage < 500000 
+            THEN prevailing_wage 
+            ELSE NULL 
+          END)) as avgSalary,
+          ROUND(APPROX_QUANTILES(CASE 
+            WHEN prevailing_wage > 30000 AND prevailing_wage < 500000 
+            THEN prevailing_wage 
+            ELSE NULL 
+          END, 2)[OFFSET(1)]) as medianSalary,
+          ROUND(MIN(CASE 
+            WHEN prevailing_wage > 30000 AND prevailing_wage < 500000 
+            THEN prevailing_wage 
+            ELSE NULL 
+          END)) as minSalary,
+          ROUND(MAX(CASE 
+            WHEN prevailing_wage > 30000 AND prevailing_wage < 500000 
+            THEN prevailing_wage 
+            ELSE NULL 
+          END)) as maxSalary,
+          COUNT(DISTINCT employer_name) as uniqueEmployers,
+          COUNT(DISTINCT worksite_city) as uniqueCities,
+          COUNT(DISTINCT job_title) as uniqueJobTitles
+        FROM ${this.projectId}.${this.datasetId}.${this.tableId}
+        WHERE UPPER(TRIM(worksite_state)) = UPPER(TRIM(@stateName))
+          AND worksite_state IS NOT NULL
+          AND received_date IS NOT NULL
+      `;
+
+      // Top employers in this state
+      const topEmployersQuery = `
+        WITH employer_stats AS (
+          SELECT 
+            TRIM(UPPER(employer_name)) as employer,
+            COUNT(*) as applications,
+            COUNTIF(UPPER(case_status) = 'CERTIFIED') as certified_apps,
+            ROUND(AVG(CASE 
+              WHEN prevailing_wage > 30000 AND prevailing_wage < 500000 
+              THEN prevailing_wage 
+              ELSE NULL 
+            END)) as avgSalary,
+            -- YoY Growth Calculation
+            COUNTIF(received_date >= DATE_SUB(CURRENT_DATE(), INTERVAL 365 DAY)) as current_year_apps,
+            COUNTIF(received_date >= DATE_SUB(CURRENT_DATE(), INTERVAL 730 DAY) 
+                   AND received_date < DATE_SUB(CURRENT_DATE(), INTERVAL 365 DAY)) as previous_year_apps
+          FROM ${this.projectId}.${this.datasetId}.${this.tableId}
+          WHERE UPPER(TRIM(worksite_state)) = UPPER(TRIM(@stateName))
+            AND employer_name IS NOT NULL
+            AND TRIM(employer_name) != ''
+          GROUP BY employer
+          HAVING COUNT(*) >= 5
+        ),
+        total_apps AS (
+          SELECT COUNT(*) as total
+          FROM ${this.projectId}.${this.datasetId}.${this.tableId}
+          WHERE UPPER(TRIM(worksite_state)) = UPPER(TRIM(@stateName))
+        )
+        SELECT 
+          e.employer,
+          e.applications,
+          ROUND((e.applications / t.total) * 100, 2) as percentage,
+          e.avgSalary,
+          ROUND((e.certified_apps / e.applications) * 100, 2) as certificationRate,
+          e.current_year_apps,
+          e.previous_year_apps
+        FROM employer_stats e, total_apps t
+        ORDER BY e.applications DESC
+        LIMIT 15
+      `;
+
+      // Top cities in this state
+      const topCitiesQuery = `
+        WITH city_stats AS (
+          SELECT 
+            TRIM(worksite_city) as city,
+            COUNT(*) as applications,
+            COUNTIF(UPPER(case_status) = 'CERTIFIED') as certified_apps,
+            ROUND(AVG(CASE 
+              WHEN prevailing_wage > 30000 AND prevailing_wage < 500000 
+              THEN prevailing_wage 
+              ELSE NULL 
+            END)) as avgSalary
+          FROM ${this.projectId}.${this.datasetId}.${this.tableId}
+          WHERE UPPER(TRIM(worksite_state)) = UPPER(TRIM(@stateName))
+            AND worksite_city IS NOT NULL
+            AND TRIM(worksite_city) != ''
+          GROUP BY city
+          HAVING COUNT(*) >= 10
+        ),
+        total_apps AS (
+          SELECT COUNT(*) as total
+          FROM ${this.projectId}.${this.datasetId}.${this.tableId}
+          WHERE UPPER(TRIM(worksite_state)) = UPPER(TRIM(@stateName))
+        )
+        SELECT 
+          c.city,
+          c.applications,
+          ROUND((c.applications / t.total) * 100, 2) as percentage,
+          c.avgSalary,
+          ROUND((c.certified_apps / c.applications) * 100, 2) as certificationRate
+        FROM city_stats c, total_apps t
+        ORDER BY c.applications DESC
+        LIMIT 15
+      `;
+
+      // Top job titles in this state
+      const topJobTitlesQuery = `
+        WITH job_stats AS (
+          SELECT 
+            TRIM(job_title) as jobTitle,
+            COUNT(*) as applications,
+            COUNTIF(UPPER(case_status) = 'CERTIFIED') as certified_apps,
+            ROUND(AVG(CASE 
+              WHEN prevailing_wage > 30000 AND prevailing_wage < 500000 
+              THEN prevailing_wage 
+              ELSE NULL 
+            END)) as avgSalary,
+            -- YoY Growth Calculation
+            COUNTIF(received_date >= DATE_SUB(CURRENT_DATE(), INTERVAL 365 DAY)) as current_year_apps,
+            COUNTIF(received_date >= DATE_SUB(CURRENT_DATE(), INTERVAL 730 DAY) 
+                   AND received_date < DATE_SUB(CURRENT_DATE(), INTERVAL 365 DAY)) as previous_year_apps
+          FROM ${this.projectId}.${this.datasetId}.${this.tableId}
+          WHERE UPPER(TRIM(worksite_state)) = UPPER(TRIM(@stateName))
+            AND job_title IS NOT NULL
+            AND TRIM(job_title) != ''
+          GROUP BY jobTitle
+          HAVING COUNT(*) >= 5
+        ),
+        total_apps AS (
+          SELECT COUNT(*) as total
+          FROM ${this.projectId}.${this.datasetId}.${this.tableId}
+          WHERE UPPER(TRIM(worksite_state)) = UPPER(TRIM(@stateName))
+        )
+        SELECT 
+          j.jobTitle,
+          j.applications,
+          ROUND((j.applications / t.total) * 100, 2) as percentage,
+          j.avgSalary,
+          ROUND((j.certified_apps / j.applications) * 100, 2) as certificationRate,
+          j.current_year_apps,
+          j.previous_year_apps
+        FROM job_stats j, total_apps t
+        ORDER BY j.applications DESC
+        LIMIT 15
+      `;
+
+      // Yearly trends for this state
+      const yearlyTrendsQuery = `
+        WITH yearly_data AS (
+          SELECT 
+            EXTRACT(YEAR FROM received_date) as fiscal_year,
+            COUNT(*) as applications,
+            COUNTIF(UPPER(case_status) = 'CERTIFIED') as certified_apps,
+            ROUND(AVG(CASE 
+              WHEN prevailing_wage > 30000 AND prevailing_wage < 500000 
+              THEN prevailing_wage 
+              ELSE NULL 
+            END)) as avgSalary
+          FROM ${this.projectId}.${this.datasetId}.${this.tableId}
+          WHERE UPPER(TRIM(worksite_state)) = UPPER(TRIM(@stateName))
+            AND received_date IS NOT NULL
+            AND EXTRACT(YEAR FROM received_date) >= 2019
+          GROUP BY fiscal_year
+        )
+        SELECT 
+          fiscal_year,
+          applications,
+          certified_apps,
+          ROUND((certified_apps / applications) * 100, 2) as certificationRate,
+          avgSalary,
+          LAG(applications) OVER (ORDER BY fiscal_year) as previous_year_apps
+        FROM yearly_data
+        ORDER BY fiscal_year DESC
+        LIMIT 7
+      `;
+
+      // Salary distribution for this state
+      const salaryDistributionQuery = `
+        WITH salary_ranges AS (
+          SELECT 
+            CASE 
+              WHEN prevailing_wage < 60000 THEN 'Under $60K'
+              WHEN prevailing_wage < 80000 THEN '$60K - $80K'
+              WHEN prevailing_wage < 100000 THEN '$80K - $100K'
+              WHEN prevailing_wage < 120000 THEN '$100K - $120K'
+              WHEN prevailing_wage < 150000 THEN '$120K - $150K'
+              WHEN prevailing_wage < 200000 THEN '$150K - $200K'
+              ELSE '$200K+'
+            END as salary_range,
+            COUNT(*) as count
+          FROM ${this.projectId}.${this.datasetId}.${this.tableId}
+          WHERE UPPER(TRIM(worksite_state)) = UPPER(TRIM(@stateName))
+            AND prevailing_wage > 30000 AND prevailing_wage < 500000
+          GROUP BY salary_range
+        ),
+        total_count AS (
+          SELECT COUNT(*) as total
+          FROM ${this.projectId}.${this.datasetId}.${this.tableId}
+          WHERE UPPER(TRIM(worksite_state)) = UPPER(TRIM(@stateName))
+            AND prevailing_wage > 30000 AND prevailing_wage < 500000
+        )
+        SELECT 
+          salary_range,
+          count,
+          ROUND((count / total) * 100, 2) as percentage
+        FROM salary_ranges, total_count
+        ORDER BY 
+          CASE salary_range
+            WHEN 'Under $60K' THEN 1
+            WHEN '$60K - $80K' THEN 2
+            WHEN '$80K - $100K' THEN 3
+            WHEN '$100K - $120K' THEN 4
+            WHEN '$120K - $150K' THEN 5
+            WHEN '$150K - $200K' THEN 6
+            WHEN '$200K+' THEN 7
+          END
+      `;
+
+      // Recent activity (last 12 months by month)
+      const recentActivityQuery = `
+        SELECT 
+          FORMAT_DATE('%Y-%m', received_date) as month,
+          COUNT(*) as applications,
+          COUNTIF(UPPER(case_status) = 'CERTIFIED') as certified_apps,
+          ROUND(AVG(CASE 
+            WHEN prevailing_wage > 30000 AND prevailing_wage < 500000 
+            THEN prevailing_wage 
+            ELSE NULL 
+          END)) as avgSalary
+        FROM ${this.projectId}.${this.datasetId}.${this.tableId}
+        WHERE UPPER(TRIM(worksite_state)) = UPPER(TRIM(@stateName))
+          AND received_date >= DATE_SUB(CURRENT_DATE(), INTERVAL 12 MONTH)
+          AND received_date IS NOT NULL
+        GROUP BY month
+        ORDER BY month DESC
+        LIMIT 12
+      `;
+
+      const [basicStats, topEmployers, topCities, topJobTitles, yearlyTrends, salaryDistribution, recentActivity] = await Promise.all([
+        this.bigquery.query({ query: basicStatsQuery, params: { stateName } }),
+        this.bigquery.query({ query: topEmployersQuery, params: { stateName } }),
+        this.bigquery.query({ query: topCitiesQuery, params: { stateName } }),
+        this.bigquery.query({ query: topJobTitlesQuery, params: { stateName } }),
+        this.bigquery.query({ query: yearlyTrendsQuery, params: { stateName } }),
+        this.bigquery.query({ query: salaryDistributionQuery, params: { stateName } }),
+        this.bigquery.query({ query: recentActivityQuery, params: { stateName } }),
+      ]);
+
+      const stats = basicStats[0][0];
+      if (!stats || Number(stats.totalApplications) === 0) {
+        throw new Error(`No H1B data found for state: ${stateName}`);
+      }
+
+      const totalApplications = Number(stats.totalApplications);
+      const certifiedApplications = Number(stats.certifiedApplications) || 0;
+      const certificationRate = totalApplications > 0 ? (certifiedApplications / totalApplications) * 100 : 0;
+
+      return {
+        state: stateName,
+        totalApplications,
+        certifiedApplications,
+        deniedApplications: Number(stats.deniedApplications) || 0,
+        withdrawnApplications: Number(stats.withdrawnApplications) || 0,
+        certificationRate: Math.round(certificationRate * 100) / 100,
+        avgSalary: Math.round(Number(stats.avgSalary) || 0),
+        medianSalary: Math.round(Number(stats.medianSalary) || 0),
+        minSalary: Math.round(Number(stats.minSalary) || 0),
+        maxSalary: Math.round(Number(stats.maxSalary) || 0),
+        uniqueEmployers: Number(stats.uniqueEmployers) || 0,
+        uniqueCities: Number(stats.uniqueCities) || 0,
+        uniqueJobTitles: Number(stats.uniqueJobTitles) || 0,
+        topEmployers: topEmployers[0].map((row: any) => {
+          const currentYear = Number(row.current_year_apps) || null;
+          const previousYear = Number(row.previous_year_apps) || null;
+          const yoyData = this.calculateYoYGrowth(currentYear, previousYear);
+          
+          return {
+            employer: row.employer,
+            applications: Number(row.applications),
+            percentage: Number(row.percentage),
+            avgSalary: Math.round(Number(row.avgSalary) || 0),
+            certificationRate: Number(row.certificationRate),
+            yoyGrowth: yoyData.yoyGrowth,
+            yoyGrowthPercentage: yoyData.yoyGrowthPercentage,
+          };
+        }),
+        topCities: topCities[0].map((row: any) => ({
+          city: row.city,
+          applications: Number(row.applications),
+          percentage: Number(row.percentage),
+          avgSalary: Math.round(Number(row.avgSalary) || 0),
+          certificationRate: Number(row.certificationRate),
+        })),
+        topJobTitles: topJobTitles[0].map((row: any) => {
+          const currentYear = Number(row.current_year_apps) || null;
+          const previousYear = Number(row.previous_year_apps) || null;
+          const yoyData = this.calculateYoYGrowth(currentYear, previousYear);
+          
+          return {
+            jobTitle: row.jobTitle,
+            applications: Number(row.applications),
+            percentage: Number(row.percentage),
+            avgSalary: Math.round(Number(row.avgSalary) || 0),
+            certificationRate: Number(row.certificationRate),
+            yoyGrowth: yoyData.yoyGrowth,
+            yoyGrowthPercentage: yoyData.yoyGrowthPercentage,
+          };
+        }),
+        yearlyTrends: yearlyTrends[0].map((row: any) => {
+          const currentYear = Number(row.applications) || null;
+          const previousYear = Number(row.previous_year_apps) || null;
+          const yoyData = this.calculateYoYGrowth(currentYear, previousYear);
+          
+          return {
+            fiscalYear: row.fiscal_year.toString(),
+            applications: Number(row.applications),
+            certifiedApplications: Number(row.certified_apps),
+            certificationRate: Number(row.certificationRate),
+            avgSalary: Math.round(Number(row.avgSalary) || 0),
+            yoyGrowth: yoyData.yoyGrowth,
+            yoyGrowthPercentage: yoyData.yoyGrowthPercentage,
+          };
+        }),
+        salaryDistribution: salaryDistribution[0].map((row: any) => ({
+          range: row.salary_range,
+          count: Number(row.count),
+          percentage: Number(row.percentage),
+        })),
+        recentActivity: recentActivity[0].map((row: any) => {
+          const totalApps = Number(row.applications);
+          const certifiedApps = Number(row.certified_apps) || 0;
+          const certRate = totalApps > 0 ? (certifiedApps / totalApps) * 100 : 0;
+          
+          return {
+            month: row.month,
+            applications: totalApps,
+            certificationRate: Math.round(certRate * 100) / 100,
+            avgSalary: Math.round(Number(row.avgSalary) || 0),
+          };
+        }),
+      };
+    } catch (error) {
+      console.error('Error getting state analysis:', error);
       throw error;
     }
   }

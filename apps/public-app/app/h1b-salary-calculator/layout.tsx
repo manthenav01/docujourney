@@ -2,7 +2,7 @@ import { Metadata } from 'next';
 
 export const metadata: Metadata = {
   title: 'H1B Salary Calculator 2025 | Free Prevailing Wage Calculator',
-  description: 'Calculate H1B salary ranges and prevailing wages based on 2.9M+ real applications. Get accurate salary estimates by job title, location, and experience level for H1B visa petitions.',
+  description: 'Calculate H1B salary ranges and prevailing wages based on millions of real applications. Get accurate salary estimates by job title, location, and experience level for H1B visa petitions.',
   keywords: [
     'H1B salary calculator',
     'H1B prevailing wage calculator',
@@ -19,7 +19,7 @@ export const metadata: Metadata = {
   ],
   openGraph: {
     title: 'H1B Salary Calculator 2025 | Free Prevailing Wage Calculator',
-    description: 'Calculate H1B salary ranges and prevailing wages based on 2.9M+ real applications. Get accurate salary estimates by job title, location, and experience level.',
+    description: 'Calculate H1B salary ranges and prevailing wages based on millions of real applications. Get accurate salary estimates by job title, location, and experience level.',
     url: 'https://usimmigrantcentral.com/h1b-salary-calculator',
     siteName: 'Immigrant Central',
     type: 'website',
@@ -27,7 +27,7 @@ export const metadata: Metadata = {
   twitter: {
     card: 'summary_large_image',
     title: 'H1B Salary Calculator 2025',
-    description: 'Calculate H1B salary ranges and prevailing wages based on 2.9M+ real applications.',
+    description: 'Calculate H1B salary ranges and prevailing wages based on millions of real applications.',
   },
   alternates: {
     canonical: 'https://usimmigrantcentral.com/h1b-salary-calculator',

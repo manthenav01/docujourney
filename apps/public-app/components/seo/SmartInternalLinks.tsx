@@ -248,7 +248,7 @@ export const SmartInternalLinks: React.FC<SmartInternalLinksProps> = ({
             </Link>
           </li>
           <li>
-            <Link href="/h1b-dashboard/cities" title="Browse H1B data by location">
+            <Link href="/h1b-dashboard/locations" title="Browse H1B data by location">
               H1B Jobs by City and State
             </Link>
           </li>

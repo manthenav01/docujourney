@@ -23,7 +23,7 @@ const DashboardHeaderContent: React.FC = () => {
     { id: 'home', label: 'Home', path: '/h1b-dashboard' },
     { id: 'sponsors', label: 'H1B Sponsors', path: '/h1b-sponsors' },
     { id: 'jobs', label: 'Jobs', path: '/h1b-dashboard/jobs' },
-    { id: 'locations', label: 'Locations', path: '/h1b-dashboard/cities' },
+    { id: 'locations', label: 'Locations', path: '/h1b-dashboard/locations' },
     { id: 'attorneys', label: 'Attorneys', path: '/h1b-dashboard/attorneys' },
     { id: 'about', label: 'About', path: '/about' },
   ];
@@ -64,7 +64,7 @@ const DashboardHeaderContent: React.FC = () => {
     if (pathname.includes('/jobs') || pathname.includes('/job/')) {
       return 'jobs';
     }
-    if (pathname.includes('/cities') || pathname.includes('/city/')) {
+    if (pathname.includes('/city/') || pathname.includes('/locations')) {
       return 'locations';
     }
     if (pathname.includes('/attorneys') || pathname.includes('/attorney/')) {
@@ -166,7 +166,7 @@ const DashboardHeaderFallback: React.FC = () => {
     { id: 'home', label: 'Home', path: '/h1b-dashboard' },
     { id: 'sponsors', label: 'H1B Sponsors', path: '/h1b-sponsors' },
     { id: 'jobs', label: 'Jobs', path: '/h1b-dashboard/jobs' },
-    { id: 'locations', label: 'Locations', path: '/h1b-dashboard/cities' },
+    { id: 'locations', label: 'Locations', path: '/h1b-dashboard/locations' },
     { id: 'attorneys', label: 'Attorneys', path: '/h1b-dashboard/attorneys' },
     { id: 'about', label: 'About', path: '/about' },
   ];
@@ -187,7 +187,7 @@ const DashboardHeaderFallback: React.FC = () => {
     if (pathname.includes('/jobs') || pathname.includes('/job/')) {
       return 'jobs';
     }
-    if (pathname.includes('/cities') || pathname.includes('/city/')) {
+    if (pathname.includes('/city/') || pathname.includes('/locations')) {
       return 'locations';
     }
     if (pathname.includes('/attorneys') || pathname.includes('/attorney/')) {

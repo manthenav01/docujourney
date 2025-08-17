@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Button, Card, CardContent, CardHeader, CardTitle, Input, Textarea, Label } from '@docujourney/ui';
+import { Button, Card, CardContent, CardHeader, CardTitle, Input, Textarea, Label, Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@docujourney/ui';
 import { Send, CheckCircle } from 'lucide-react';
 
 interface ContactFormData {
@@ -23,11 +23,18 @@ export function ContactForm() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({
       ...prev,
       [name]: value,
+    }));
+  };
+
+  const handleSelectChange = (value: string) => {
+    setFormData(prev => ({
+      ...prev,
+      inquiryType: value,
     }));
   };
 
@@ -136,22 +143,21 @@ export function ContactForm() {
 
           <div className="space-y-2">
             <Label htmlFor="inquiryType">Inquiry Type</Label>
-            <select
-              id="inquiryType"
-              name="inquiryType"
-              value={formData.inquiryType}
-              onChange={handleInputChange}
-              className="w-full px-3 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
-            >
-              <option value="general">General Inquiry</option>
-              <option value="h1b-data">H1B Data Questions</option>
-              <option value="company-info">Company Information</option>
-              <option value="salary-data">Salary Analytics</option>
-              <option value="api-access">API Access</option>
-              <option value="partnership">Partnership Opportunity</option>
-              <option value="media">Media & Press</option>
-              <option value="technical">Technical Support</option>
-            </select>
+            <Select value={formData.inquiryType} onValueChange={handleSelectChange}>
+              <SelectTrigger>
+                <SelectValue placeholder="Select inquiry type" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="general">General Inquiry</SelectItem>
+                <SelectItem value="h1b-data">H1B Data Questions</SelectItem>
+                <SelectItem value="company-info">Company Information</SelectItem>
+                <SelectItem value="salary-data">Salary Analytics</SelectItem>
+                <SelectItem value="api-access">API Access</SelectItem>
+                <SelectItem value="partnership">Partnership Opportunity</SelectItem>
+                <SelectItem value="media">Media & Press</SelectItem>
+                <SelectItem value="technical">Technical Support</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
 
           <div className="space-y-2">

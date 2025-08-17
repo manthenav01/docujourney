@@ -163,7 +163,7 @@ export const ContextualNavigation: React.FC<ContextualNavigationProps> = ({
       },
       {
         label: 'H1B Jobs by Location',
-        href: '/h1b-dashboard/cities',
+        href: '/h1b-dashboard/locations',
         description: 'Geographic distribution of H1B employment opportunities',
         category: 'analysis',
         relevance: 1.0,

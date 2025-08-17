@@ -117,7 +117,7 @@ export const DashboardFooter: React.FC = () => {
                 />
                 <StatCard 
                   label="Applications" 
-                  value="2.9M+" 
+                  value="2.9M" 
                   icon={<FileText className="w-4 h-4" />} 
                 />
                 <StatCard 
@@ -151,7 +151,7 @@ export const DashboardFooter: React.FC = () => {
                 icon={<TrendingUp className="w-4 h-4" />}
               >
                 <FooterLink href="/h1b-dashboard/employers">By Employer</FooterLink>
-                <FooterLink href="/h1b-dashboard/cities">By Location</FooterLink>
+                <FooterLink href="/h1b-dashboard/locations">By Location</FooterLink>
                 <FooterLink href="/h1b-dashboard/jobs">By Job Title</FooterLink>
                 <FooterLink href="/h1b-dashboard/attorneys">By Attorney</FooterLink>
                 <FooterLink href="/h1b-dashboard?category=industry">By Industry</FooterLink>

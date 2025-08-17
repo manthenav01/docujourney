@@ -10,8 +10,8 @@ import CookieConsent from '@/components/CookieConsent';
 
 export const metadata: Metadata = {
   ...generateMetadata({
-    title: 'H1B Data Analytics Platform | Immigrant Central - Visa Salary Database',
-    description: 'Comprehensive H1B visa analytics platform with 2.9M+ applications, salary data, sponsor companies, and real-time immigration insights. Find H1B sponsors, calculate salaries, and analyze approval rates.',
+    title: 'H1B Data Analytics Platform - Real-Time Visa Salaries, Sponsors & Approval Rates | Immigrant Central',
+    description: 'Comprehensive H1B visa analytics platform with real-time salary data, sponsor companies database, and immigration insights. Find H1B sponsors, calculate prevailing wages, and analyze approval rates across millions of applications.',
     keywords: [
       // Primary high-volume keywords
       'H1B data',

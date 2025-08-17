@@ -39,11 +39,11 @@ const HomePage = () => {
 
       {/* Hidden SEO content for search engines */}
       <div className="sr-only">
-        <h1>H1B Visa Data Analytics Platform - Real-Time Immigration Insights</h1>
+        <h1>H1B Data Analytics Platform - Real-Time Visa Salaries, Sponsors & Approval Rates</h1>
         <p>
-          Comprehensive H1B visa database with salary information, employer sponsorship data, 
-          approval rates, and immigration analytics. Search H1B sponsors, compare salaries by 
-          job title and location, analyze visa trends, and explore data from 2M+ applications.
+          Comprehensive H1B visa database with real-time salary information, employer sponsorship data, 
+          approval rates, and immigration analytics. Search H1B sponsors, calculate prevailing wages by 
+          job title and location, analyze visa trends, and explore millions of H1B applications.
         </p>
         <h2>H1B Salary Database</h2>
         <p>

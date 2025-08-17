@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { Suspense } from 'react';
 import { Metadata } from 'next';
 import { generateMetadata } from '@docujourney/utils';
 import { Card } from '@docujourney/ui';
@@ -16,6 +16,7 @@ import { DashboardHeader } from '../../components/h1b-dashboard/DashboardHeader'
 import { DashboardFooter } from '../../components/h1b-dashboard/DashboardFooter';
 import { ImmigrantCentralLogo } from '../../components/h1b-dashboard/ImmigrantCentralLogo';
 import { ContactForm } from '../../components/contact/ContactForm';
+import { SmartBreadcrumb } from '../../components/h1b-dashboard/SmartBreadcrumb';
 
 export const metadata: Metadata = generateMetadata({
   title: 'Contact Us - ImmigrantCentral H1B Support & Inquiries',
@@ -31,7 +32,12 @@ export default function ContactPage() {
     <div className="min-h-screen bg-background">
       <DashboardHeader />
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      {/* Breadcrumb Navigation */}
+      <Suspense fallback={<div className="h-12" />}>
+        <SmartBreadcrumb />
+      </Suspense>
+      
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Hero Section */}
         <section className="text-center mb-16">
           <div className="flex justify-center mb-6">

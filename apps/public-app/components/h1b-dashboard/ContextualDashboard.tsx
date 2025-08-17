@@ -156,8 +156,9 @@ const ContextualDashboardContent: React.FC<ContextualDashboardProps> = ({ viewTy
         
         if (cityName && stateName) {
           const citySlug = cityName.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+          const stateSlug = stateName.toLowerCase().replace(/[^a-z0-9]+/g, '-');
           // Always navigate to specific city page for individual city data
-          router.push(`/h1b-dashboard/city/${encodeURIComponent(citySlug)}?city=${encodeURIComponent(cityName)}&state=${encodeURIComponent(stateName)}`);
+          router.push(`/h1b-dashboard/locations/${encodeURIComponent(stateSlug)}/${encodeURIComponent(citySlug)}?city=${encodeURIComponent(cityName)}&state=${encodeURIComponent(stateName)}`);
         }
       }
     }

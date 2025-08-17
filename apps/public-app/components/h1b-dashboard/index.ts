@@ -19,6 +19,7 @@ export { SemanticSearch } from './SemanticSearch';
 export { CompanyDashboard } from './CompanyDashboard';
 export { JobDashboard } from './JobDashboard';
 export { CityDashboard } from './CityDashboard';
+export { StateDashboard } from './StateDashboard';
 export { AttorneyDashboard } from './AttorneyDashboard';
 export { ErrorBoundary, BigQueryErrorBoundary } from './ErrorBoundary';
 

@@ -70,6 +70,7 @@ export const JobDashboard: React.FC<JobDashboardProps> = ({
         }
         console.log('JobDashboard - API Response:', apiResponse.data);
         console.log('JobDashboard - Wage Level Data:', apiResponse.data.wageLevelAnalysis);
+        console.log('JobDashboard - Yearly Trends Data:', apiResponse.data.yearlyTrends);
         setJobInfo(apiResponse.data);
       } else {
         const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));

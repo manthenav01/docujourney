@@ -49,7 +49,7 @@ export default function H1BSalaryCalculatorPage() {
             H1B Salary Calculator 2025
           </h1>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-            Calculate accurate H1B salary expectations based on real-time data from 2.9M+ applications. 
+            Calculate accurate H1B salary expectations based on real-time data from millions of applications. 
             Get prevailing wage estimates, market percentiles, and salary ranges by job title and location.
           </p>
         </div>
@@ -180,7 +180,7 @@ export default function H1BSalaryCalculatorPage() {
             <div className="prose text-gray-600">
               <p>H1B salaries must meet prevailing wage requirements set by the Department of Labor. Our calculator uses:</p>
               <ul>
-                <li>Real-time data from 2.9M+ H1B applications</li>
+                <li>Real-time data from millions of H1B applications</li>
                 <li>DOL prevailing wage determinations</li>
                 <li>Geographic cost-of-living adjustments</li>
                 <li>Industry and experience level benchmarks</li>

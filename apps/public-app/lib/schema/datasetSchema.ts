@@ -195,7 +195,7 @@ function getCategorySpecificProperties(category: DatasetConfig['category'], conf
           '@type': 'ItemList',
           name: 'H1B Cities and States',
           description: 'Geographic breakdown of H1B applications',
-          url: `${baseUrl}/h1b-dashboard/cities`,
+          url: `${baseUrl}/h1b-dashboard/locations`,
         },
       };
       
