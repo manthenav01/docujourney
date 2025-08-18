@@ -31,6 +31,7 @@ import {
   FileText,
 } from 'lucide-react';
 import { METRIC_CONFIGS } from '../../lib/metricCardConfig';
+import { ApplicationsCard, SalaryCard, ApprovalRateCard, EmployersCard } from './StatsCard';
 
 // Use the standardized H1BJobAnalysis type
 type JobInfo = H1BJobAnalysis;
@@ -220,8 +221,8 @@ export const JobDashboard: React.FC<JobDashboardProps> = ({
   if (!jobInfo) {return null;}
 
   const certificationRate = jobInfo.totalApplications > 0 
-    ? ((jobInfo.certifiedApplications / jobInfo.totalApplications) * 100).toFixed(1)
-    : '0.0';
+    ? ((jobInfo.certifiedApplications / jobInfo.totalApplications) * 100)
+    : 0;
 
   const fullTimePercentage = jobInfo.totalApplications > 0
     ? ((jobInfo.fullTimePositions / jobInfo.totalApplications) * 100).toFixed(1)
@@ -261,60 +262,15 @@ export const JobDashboard: React.FC<JobDashboardProps> = ({
 
       {/* Key Metrics Cards */}
       <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
-        <Card className="hover:shadow-md transition-shadow duration-200">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between mb-4">
-              <div className={`p-2 ${METRIC_CONFIGS.totalApplications.bgClass} rounded-lg ${METRIC_CONFIGS.totalApplications.colorClass}`}>
-                <METRIC_CONFIGS.totalApplications.icon className="w-6 h-6" />
-              </div>
-            </div>
-            <h3 className="text-muted-foreground text-sm font-medium mb-1">Total Applications</h3>
-            <p className="text-3xl font-bold text-foreground">{formatNumber(jobInfo.totalApplications)}</p>
-          </CardContent>
-        </Card>
-
-        <Card className="hover:shadow-md transition-shadow duration-200">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between mb-4">
-              <div className={`p-2 ${METRIC_CONFIGS.certificationRate.bgClass} rounded-lg ${METRIC_CONFIGS.certificationRate.colorClass}`}>
-                <METRIC_CONFIGS.certificationRate.icon className="w-6 h-6" />
-              </div>
-            </div>
-            <h3 className="text-muted-foreground text-sm font-medium mb-1">Approval Rate</h3>
-            <p className="text-3xl font-bold text-foreground">{certificationRate}%</p>
-          </CardContent>
-        </Card>
-
-        <Card className="hover:shadow-md transition-shadow duration-200">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between mb-4">
-              <div className={`p-2 ${METRIC_CONFIGS.averageSalary.bgClass} rounded-lg ${METRIC_CONFIGS.averageSalary.colorClass}`}>
-                <METRIC_CONFIGS.averageSalary.icon className="w-6 h-6" />
-              </div>
-            </div>
-            <h3 className="text-muted-foreground text-sm font-medium mb-1">Average Salary</h3>
-            <p className="text-3xl font-bold text-foreground">
-              {hasFinancialData ? formatCurrency(jobInfo.avgSalary) : 'N/A'}
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card className="hover:shadow-md transition-shadow duration-200">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between mb-4">
-              <div className={`p-2 ${METRIC_CONFIGS.uniqueEmployers.bgClass} rounded-lg ${METRIC_CONFIGS.uniqueEmployers.colorClass}`}>
-                <METRIC_CONFIGS.uniqueEmployers.icon className="w-6 h-6" />
-              </div>
-            </div>
-            <h3 className="text-muted-foreground text-sm font-medium mb-1">Unique Employers</h3>
-            <p className="text-3xl font-bold text-foreground">{formatNumber(jobInfo.uniqueEmployers)}</p>
-          </CardContent>
-        </Card>
+        <ApplicationsCard value={jobInfo.totalApplications} />
+        <ApprovalRateCard value={certificationRate} />
+        <SalaryCard value={hasFinancialData ? jobInfo.avgSalary : 0} />
+        <EmployersCard value={jobInfo.uniqueEmployers} />
       </div>
 
-      {/* Charts Row 1 */}
+      {/* Row 1: Market Intelligence - Strategic Overview */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Market Trends */}
+        {/* Market Trends - LEFT (Temporal Analysis) */}
         <MarketTrendsCard
           data={jobInfo.yearlyTrends}
           title="Job Market Trends"
@@ -323,7 +279,7 @@ export const JobDashboard: React.FC<JobDashboardProps> = ({
           maxYears={5}
         />
 
-        {/* Top Employers */}
+        {/* Top Employers - RIGHT (Primary Context) */}
         <TopEmployersCard
           data={jobInfo.topEmployers.map(employer => ({
             employer: employer.employer,
@@ -337,9 +293,9 @@ export const JobDashboard: React.FC<JobDashboardProps> = ({
         />
       </div>
 
-      {/* Charts Row 2 */}
+      {/* Row 2: Deep Analysis - Detailed Insights */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Geographic Distribution */}
+        {/* Geographic Distribution - LEFT (Entity Distribution) */}
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center">
@@ -373,17 +329,16 @@ export const JobDashboard: React.FC<JobDashboardProps> = ({
           </CardContent>
         </Card>
 
-        {/* Salary Distribution */}
+        {/* Salary Distribution - RIGHT (Always Consistent Position) */}
         <ReusableSalaryDistribution
           data={jobInfo.salaryDistribution}
           loading={loading}
           title="Salary Distribution"
-          showChartToggle={true}
           height={400}
         />
       </div>
 
-      {/* Wage Level Analysis - Full Width */}
+      {/* Specialized Analysis - Full Width */}
       <WageLevelAnalysis
         data={jobInfo.wageLevelAnalysis}
         loading={loading}

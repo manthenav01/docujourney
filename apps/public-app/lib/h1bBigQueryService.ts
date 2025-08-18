@@ -380,7 +380,10 @@ export class H1BBigQueryService {
           WHEN annual_salary < 120000 THEN '$80K - $120K'
           WHEN annual_salary < 160000 THEN '$120K - $160K'
           WHEN annual_salary < 200000 THEN '$160K - $200K'
-          ELSE '$200K+'
+          WHEN annual_salary < 240000 THEN '$200K - $240K'
+          WHEN annual_salary < 280000 THEN '$240K - $280K'
+          WHEN annual_salary < 320000 THEN '$280K - $320K'
+          ELSE '$320K+'
         END as salary_range,
         COUNT(*) as count,
         MIN(annual_salary) as min_salary,
@@ -1296,7 +1299,10 @@ export class H1BBigQueryService {
             WHEN annual_wage < 120000 THEN '$80K - $120K'
             WHEN annual_wage < 160000 THEN '$120K - $160K'
             WHEN annual_wage < 200000 THEN '$160K - $200K'
-            ELSE '$200K+'
+            WHEN annual_wage < 240000 THEN '$200K - $240K'
+            WHEN annual_wage < 280000 THEN '$240K - $280K'
+            WHEN annual_wage < 320000 THEN '$280K - $320K'
+            ELSE '$320K+'
           END as salary_range,
           COUNT(*) as count
         FROM converted_wages
@@ -1306,7 +1312,10 @@ export class H1BBigQueryService {
             WHEN annual_wage < 120000 THEN '$80K - $120K'
             WHEN annual_wage < 160000 THEN '$120K - $160K'
             WHEN annual_wage < 200000 THEN '$160K - $200K'
-            ELSE '$200K+'
+            WHEN annual_wage < 240000 THEN '$200K - $240K'
+            WHEN annual_wage < 280000 THEN '$240K - $280K'
+            WHEN annual_wage < 320000 THEN '$280K - $320K'
+            ELSE '$320K+'
           END
         ORDER BY 
           CASE salary_range
@@ -1314,7 +1323,10 @@ export class H1BBigQueryService {
             WHEN '$80K - $120K' THEN 2
             WHEN '$120K - $160K' THEN 3
             WHEN '$160K - $200K' THEN 4
-            WHEN '$200K+' THEN 5
+            WHEN '$200K - $240K' THEN 5
+            WHEN '$240K - $280K' THEN 6
+            WHEN '$280K - $320K' THEN 7
+            WHEN '$320K+' THEN 8
           END
       `;
 
@@ -1588,7 +1600,10 @@ export class H1BBigQueryService {
             WHEN annual_wage < 120000 THEN '$80K - $120K'
             WHEN annual_wage < 160000 THEN '$120K - $160K'
             WHEN annual_wage < 200000 THEN '$160K - $200K'
-            ELSE '$200K+'
+            WHEN annual_wage < 240000 THEN '$200K - $240K'
+            WHEN annual_wage < 280000 THEN '$240K - $280K'
+            WHEN annual_wage < 320000 THEN '$280K - $320K'
+            ELSE '$320K+'
           END as salary_range,
           COUNT(*) as count
         FROM converted_wages
@@ -1598,7 +1613,10 @@ export class H1BBigQueryService {
             WHEN annual_wage < 120000 THEN '$80K - $120K'
             WHEN annual_wage < 160000 THEN '$120K - $160K'
             WHEN annual_wage < 200000 THEN '$160K - $200K'
-            ELSE '$200K+'
+            WHEN annual_wage < 240000 THEN '$200K - $240K'
+            WHEN annual_wage < 280000 THEN '$240K - $280K'
+            WHEN annual_wage < 320000 THEN '$280K - $320K'
+            ELSE '$320K+'
           END
         ORDER BY 
           CASE salary_range
@@ -1606,7 +1624,10 @@ export class H1BBigQueryService {
             WHEN '$80K - $120K' THEN 2
             WHEN '$120K - $160K' THEN 3
             WHEN '$160K - $200K' THEN 4
-            WHEN '$200K+' THEN 5
+            WHEN '$200K - $240K' THEN 5
+            WHEN '$240K - $280K' THEN 6
+            WHEN '$280K - $320K' THEN 7
+            WHEN '$320K+' THEN 8
           END
       `;
 
@@ -1768,6 +1789,7 @@ export class H1BBigQueryService {
         SELECT 
           COUNT(*) as totalApplications,
           SUM(CASE WHEN case_status = 'Certified' THEN 1 ELSE 0 END) as certifiedApplications,
+          COUNT(DISTINCT UPPER(TRIM(employer_name))) as uniqueEmployers,
           AVG(
             CASE WHEN wage_rate_of_pay_from > 0 AND wage_rate_of_pay_from < 1000000 THEN 
               CASE 
@@ -1815,6 +1837,8 @@ export class H1BBigQueryService {
         FROM \`${this.projectId}.${this.datasetId}.${this.tableId}\`
         WHERE UPPER(TRIM(worksite_city)) = UPPER(TRIM(@cityName))
         AND UPPER(TRIM(worksite_state)) = UPPER(TRIM(@stateName))
+        AND TRIM(employer_name) != ''
+        AND employer_name IS NOT NULL
       `;
 
       // Get top employers in this city
@@ -1983,7 +2007,10 @@ export class H1BBigQueryService {
             WHEN salary_range = '$80K - $120K' THEN 2
             WHEN salary_range = '$120K - $160K' THEN 3
             WHEN salary_range = '$160K - $200K' THEN 4
-            WHEN salary_range = '$200K+' THEN 5
+            WHEN salary_range = '$200K - $240K' THEN 5
+            WHEN salary_range = '$240K - $280K' THEN 6
+            WHEN salary_range = '$280K - $320K' THEN 7
+            WHEN salary_range = '$320K+' THEN 8
           END
       `;
 
@@ -2052,6 +2079,7 @@ export class H1BBigQueryService {
         state: stateName,
         totalApplications,
         certifiedApplications: Number(stats.certifiedApplications) || 0,
+        uniqueEmployers: Number(stats.uniqueEmployers) || 0,
         avgSalary: Math.round(Number(stats.avgSalary) || 0),
         medianSalary: Math.round(Number(stats.medianSalary) || 0),
         minSalary: Math.round(Number(stats.minSalary) || 0),
@@ -2294,7 +2322,10 @@ export class H1BBigQueryService {
               WHEN prevailing_wage < 120000 THEN '$100K - $120K'
               WHEN prevailing_wage < 150000 THEN '$120K - $150K'
               WHEN prevailing_wage < 200000 THEN '$150K - $200K'
-              ELSE '$200K+'
+              WHEN prevailing_wage < 240000 THEN '$200K - $240K'
+              WHEN prevailing_wage < 280000 THEN '$240K - $280K'
+              WHEN prevailing_wage < 320000 THEN '$280K - $320K'
+              ELSE '$320K+'
             END as salary_range,
             COUNT(*) as count
           FROM ${this.projectId}.${this.datasetId}.${this.tableId}
@@ -2321,7 +2352,10 @@ export class H1BBigQueryService {
             WHEN '$100K - $120K' THEN 4
             WHEN '$120K - $150K' THEN 5
             WHEN '$150K - $200K' THEN 6
-            WHEN '$200K+' THEN 7
+            WHEN '$200K - $240K' THEN 7
+            WHEN '$240K - $280K' THEN 8
+            WHEN '$280K - $320K' THEN 9
+            WHEN '$320K+' THEN 10
           END
       `;
 
@@ -2496,6 +2530,7 @@ export class H1BBigQueryService {
           SUM(CASE WHEN case_status = 'Denied' THEN 1 ELSE 0 END) as denied_applications,
           SUM(CASE WHEN case_status = 'Withdrawn' THEN 1 ELSE 0 END) as withdrawn_applications,
           ROUND(AVG(CASE WHEN case_status = 'Certified' THEN 1.0 ELSE 0.0 END) * 100, 2) as certification_rate,
+          COUNT(DISTINCT UPPER(TRIM(employer_name))) as unique_employers,
           AVG(
             CASE WHEN wage_rate_of_pay_from > 0 AND wage_rate_of_pay_from < 1000000 THEN 
               CASE 
@@ -2721,7 +2756,10 @@ export class H1BBigQueryService {
             WHEN salary < 120000 THEN '$80K - $120K'
             WHEN salary < 160000 THEN '$120K - $160K'
             WHEN salary < 200000 THEN '$160K - $200K'
-            ELSE '$200K+'
+            WHEN salary < 240000 THEN '$200K - $240K'
+            WHEN salary < 280000 THEN '$240K - $280K'
+            WHEN salary < 320000 THEN '$280K - $320K'
+            ELSE '$320K+'
           END as salary_range,
           COUNT(*) as count
         FROM attorney_base
@@ -2732,7 +2770,10 @@ export class H1BBigQueryService {
             WHEN salary_range = '$80K - $120K' THEN 2
             WHEN salary_range = '$120K - $160K' THEN 3
             WHEN salary_range = '$160K - $200K' THEN 4
-            WHEN salary_range = '$200K+' THEN 5
+            WHEN salary_range = '$200K - $240K' THEN 5
+            WHEN salary_range = '$240K - $280K' THEN 6
+            WHEN salary_range = '$280K - $320K' THEN 7
+            WHEN salary_range = '$320K+' THEN 8
           END
       `;
 
@@ -2754,7 +2795,7 @@ export class H1BBigQueryService {
         throw new ValidationError(`No H1B data found for attorney: ${validatedInput.attorneyName}`, 'ATTORNEY_NOT_FOUND');
       }
 
-      const attorneyData = mainStats[0][0] as BigQueryAttorneyRow;
+      const attorneyData = mainStats[0][0] as any;
 
       // Generate recent activity (mock data since we need more granular date info)
       const recentActivity = [
@@ -2776,6 +2817,7 @@ export class H1BBigQueryService {
         deniedApplications: Number(attorneyData.denied_applications),
         withdrawnApplications: Number(attorneyData.withdrawn_applications),
         certificationRate: Number(attorneyData.certification_rate),
+        uniqueEmployers: Number(attorneyData.unique_employers) || 0,
         avgSalary: Math.round(Number(attorneyData.avg_salary) || 0),
         medianSalary: Math.round(Number(attorneyData.median_salary) || 0),
         minSalary: Math.round(Number(attorneyData.min_salary) || 0),

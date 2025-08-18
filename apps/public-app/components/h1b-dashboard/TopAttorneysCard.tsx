@@ -107,58 +107,42 @@ const TopAttorneysCardComponent: React.FC<TopAttorneysCardProps> = ({
           Top H1B Attorneys
         </CardTitle>
       </CardHeader>
-      <CardContent className="space-y-3">
-        {processedData.topAttorneys.map((attorney, index) => {
-          const attorneySlug = createAttorneySlug(attorney.attorneyName);
-          return (
-            <Link
-              key={`${attorney.attorneyName}-${attorney.lawFirm}`}
-              href={`/h1b-dashboard/attorney/${attorneySlug}?name=${encodeURIComponent(attorney.attorneyName)}&firm=${encodeURIComponent(attorney.lawFirm)}`}
-              className="block group p-4 rounded-lg border border-border hover:border-primary/50 hover:bg-muted/50 transition-all duration-200 cursor-pointer"
-            >
-              {/* Content */}
-              <div className="flex items-center justify-between">
-                {/* Left side: Rank and attorney info */}
-                <div className="flex items-start space-x-3 flex-1 min-w-0">
-                  <div className="flex-shrink-0 w-6 h-6 bg-primary text-primary-foreground text-xs font-semibold rounded-full flex items-center justify-center">
+      <CardContent>
+        <div className="space-y-2">
+          {processedData.topAttorneys.map((attorney, index) => {
+            const attorneySlug = createAttorneySlug(attorney.attorneyName);
+            return (
+              <Link
+                key={`${attorney.attorneyName}-${attorney.lawFirm}`}
+                href={`/h1b-dashboard/attorney/${attorneySlug}?name=${encodeURIComponent(attorney.attorneyName)}&firm=${encodeURIComponent(attorney.lawFirm)}`}
+                className="flex items-center justify-between p-3 bg-muted/20 rounded-lg hover:bg-muted/30 transition-colors cursor-pointer"
+              >
+                <div className="flex items-center space-x-3">
+                  <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center text-primary font-semibold">
                     {index + 1}
                   </div>
-                  <div className="min-w-0 flex-1">
-                    <h3 className="text-sm font-medium text-foreground truncate group-hover:text-primary transition-colors">
-                      {attorney.attorneyName}
-                    </h3>
-                    <div className="flex items-center space-x-4 mt-1">
-                      <span className="text-xs text-muted-foreground">
+                  <div>
+                    <div className="font-medium text-foreground">{attorney.attorneyName}</div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm text-muted-foreground">
                         {attorney.lawFirm}
                       </span>
-                      <span className="text-xs text-muted-foreground/60">•</span>
-                      <span className="text-xs text-muted-foreground">
+                      <span className="text-sm text-muted-foreground/60">•</span>
+                      <span className="text-sm text-muted-foreground">
                         {formatNumber(attorney.totalApplications)} cases
                       </span>
                     </div>
                   </div>
                 </div>
-                
-                {/* Right side: Success rate */}
-                <div className="flex-shrink-0 text-right">
-                  <div className="text-sm font-semibold text-primary group-hover:text-primary/80 transition-colors">
+                <div className="text-right">
+                  <div className="font-semibold text-foreground">
                     {attorney.certificationRate.toFixed(1)}%
                   </div>
                   <div className="text-xs text-muted-foreground">success rate</div>
                 </div>
-              </div>
-            </Link>
-          );
-        })}
-        
-        {/* Summary footer */}
-        <div className="pt-2 border-t border-border">
-          <div className="flex justify-between items-center text-xs text-muted-foreground">
-            <span>Showing top 5 attorneys</span>
-            <span>
-              {processedData.totalCases.toLocaleString()} total cases
-            </span>
-          </div>
+              </Link>
+            );
+          })}
         </div>
       </CardContent>
     </Card>

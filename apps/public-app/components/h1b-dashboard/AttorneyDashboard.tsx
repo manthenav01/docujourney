@@ -30,6 +30,8 @@ import {
   FileText,
 } from 'lucide-react';
 import { METRIC_CONFIGS } from '../../lib/metricCardConfig';
+import { ApplicationsCard, SalaryCard, ApprovalRateCard, EmployersCard } from './StatsCard';
+import { getFullStateName } from '@/lib/utils/stateUtils';
 
 // Use the standardized H1BAttorneyAnalysis type
 type AttorneyInfo = H1BAttorneyAnalysis;
@@ -281,62 +283,15 @@ export const AttorneyDashboard: React.FC<AttorneyDashboardProps> = ({
 
       {/* Key Metrics Cards */}
       <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
-        <Card className="hover:shadow-md transition-shadow duration-200">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between mb-4">
-              <div className={`p-2 ${METRIC_CONFIGS.totalCases.bgClass} rounded-lg ${METRIC_CONFIGS.totalCases.colorClass}`}>
-                <METRIC_CONFIGS.totalCases.icon className="w-6 h-6" />
-              </div>
-            </div>
-            <h3 className="text-muted-foreground text-sm font-medium mb-1">Total Cases</h3>
-            <p className="text-3xl font-bold text-foreground">{formatNumber(attorneyInfo.totalApplications)}</p>
-          </CardContent>
-        </Card>
-
-        <Card className="hover:shadow-md transition-shadow duration-200">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between mb-4">
-              <div className={`p-2 ${METRIC_CONFIGS.successRate.bgClass} rounded-lg ${METRIC_CONFIGS.successRate.colorClass}`}>
-                <METRIC_CONFIGS.successRate.icon className="w-6 h-6" />
-              </div>
-            </div>
-            <h3 className="text-muted-foreground text-sm font-medium mb-1">Success Rate</h3>
-            <p className="text-3xl font-bold text-foreground">{certificationRate.toFixed(1)}%</p>
-          </CardContent>
-        </Card>
-
-        <Card className="hover:shadow-md transition-shadow duration-200">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between mb-4">
-              <div className={`p-2 ${METRIC_CONFIGS.averageSalary.bgClass} rounded-lg ${METRIC_CONFIGS.averageSalary.colorClass}`}>
-                <METRIC_CONFIGS.averageSalary.icon className="w-6 h-6" />
-              </div>
-            </div>
-            <h3 className="text-muted-foreground text-sm font-medium mb-1">Average Salary</h3>
-            <p className="text-3xl font-bold text-foreground">
-              {hasFinancialData ? formatCurrency(attorneyInfo.avgSalary) : 'N/A'}
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card className="hover:shadow-md transition-shadow duration-200">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between mb-4">
-              <div className={`p-2 ${METRIC_CONFIGS.uniqueEmployers.bgClass} rounded-lg ${METRIC_CONFIGS.uniqueEmployers.colorClass}`}>
-                <METRIC_CONFIGS.uniqueEmployers.icon className="w-6 h-6" />
-              </div>
-            </div>
-            <h3 className="text-muted-foreground text-sm font-medium mb-1">Unique Employers</h3>
-            <p className="text-3xl font-bold text-foreground">
-              {formatNumber(attorneyInfo.topEmployers.length)}
-            </p>
-          </CardContent>
-        </Card>
+        <ApplicationsCard value={attorneyInfo.totalApplications} />
+        <ApprovalRateCard value={certificationRate} />
+        <SalaryCard value={hasFinancialData ? attorneyInfo.avgSalary : 0} />
+        <EmployersCard value={attorneyInfo.uniqueEmployers} />
       </div>
 
-      {/* Top Employers and Top States */}
+      {/* Row 1: Market Intelligence - Strategic Overview */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Top Employers */}
+        {/* Top Employers - LEFT (Primary Context) */}
         <Card>
           <CardHeader>
             <CardTitle className="text-lg font-semibold flex items-center space-x-2">
@@ -373,7 +328,7 @@ export const AttorneyDashboard: React.FC<AttorneyDashboardProps> = ({
           </CardContent>
         </Card>
 
-        {/* Top States */}
+        {/* Top States - RIGHT (Geographic Context) */}
         <Card>
           <CardHeader>
             <CardTitle className="text-lg font-semibold flex items-center space-x-2">
@@ -390,7 +345,7 @@ export const AttorneyDashboard: React.FC<AttorneyDashboardProps> = ({
                       {index + 1}
                     </div>
                     <div className="min-w-0">
-                      <h4 className="font-medium text-foreground">{state.state}</h4>
+                      <h4 className="font-medium text-foreground">{getFullStateName(state.state)}</h4>
                       <p className="text-sm text-muted-foreground">
                         {state.applications} cases ({state.percentage.toFixed(1)}%)
                       </p>
@@ -409,7 +364,7 @@ export const AttorneyDashboard: React.FC<AttorneyDashboardProps> = ({
         </Card>
       </div>
 
-      {/* Top Job Categories */}
+      {/* Specialized Analysis - Full Width */}
       <TopJobCategoriesCard
         data={attorneyInfo.topJobCategories.map(category => ({
           jobCategory: category.jobCategory,
@@ -423,9 +378,9 @@ export const AttorneyDashboard: React.FC<AttorneyDashboardProps> = ({
         maxItems={6}
       />
 
-      {/* Market Trends and Salary Distribution */}
+      {/* Row 2: Deep Analysis - Detailed Insights */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Market Trends */}
+        {/* Market Trends - LEFT (Temporal Analysis) */}
         {hasTrendData && (
           <MarketTrendsCard
             data={attorneyInfo.yearlyTrends}
@@ -436,7 +391,7 @@ export const AttorneyDashboard: React.FC<AttorneyDashboardProps> = ({
           />
         )}
 
-        {/* Salary Distribution */}
+        {/* Salary Distribution - RIGHT (Always Consistent Position) */}
         {attorneyInfo.salaryDistribution && attorneyInfo.salaryDistribution.length > 0 && (
           <ReusableSalaryDistribution
             data={attorneyInfo.salaryDistribution}
@@ -444,7 +399,6 @@ export const AttorneyDashboard: React.FC<AttorneyDashboardProps> = ({
             title={`Salary Distribution`}
             showTitle={true}
             height={400}
-            showChartToggle={true}
           />
         )}
       </div>

@@ -68,11 +68,11 @@ export default function JobPageClient({ slug }: { slug: string }) {
     setIsLoaded(true);
 
     return () => {
-      // Cleanup scripts
+      // Cleanup scripts safely
       const scripts = document.querySelectorAll('script[type="application/ld+json"]');
       scripts.forEach(script => {
-        if (script.textContent?.includes(cleanJobTitle)) {
-          document.head.removeChild(script);
+        if (script.textContent?.includes(cleanJobTitle) && script.parentNode) {
+          script.parentNode.removeChild(script);
         }
       });
     };

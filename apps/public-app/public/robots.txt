@@ -26,5 +26,8 @@ Disallow: /api/internal/
 User-agent: Googlebot
 Crawl-delay: 0.5
 
-# Priority sitemap
+# Priority sitemaps
 Sitemap: https://usimmigrantcentral.com/sitemap.xml
+Sitemap: https://usimmigrantcentral.com/sitemap-index.xml
+Sitemap: https://usimmigrantcentral.com/sitemap-companies.xml
+Sitemap: https://usimmigrantcentral.com/sitemap-jobs.xml

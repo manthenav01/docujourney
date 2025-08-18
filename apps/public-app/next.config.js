@@ -5,6 +5,16 @@ const nextConfig = {
   // Enhanced performance and SEO configuration
   compress: true,
   poweredByHeader: false,
+  generateEtags: true,
+  
+  // Force static generation for better indexing
+  output: 'standalone',
+  
+  // Enable experimental features for better SEO
+  experimental: {
+    optimizeCss: true,
+    optimizeServerReact: true,
+  },
   
   // Image optimization for better Core Web Vitals
   images: {
@@ -34,17 +44,26 @@ const nextConfig = {
 
   headers: async () => {
     return [
+      // Static pages - crawl-friendly caching
+      {
+        source: '/h1b-dashboard/:path*',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'public, max-age=3600, s-maxage=7200, stale-while-revalidate=86400',
+          },
+          {
+            key: 'X-Robots-Tag',
+            value: 'index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1',
+          },
+        ],
+      },
       {
         source: '/(.*)',
         headers: [
           {
             key: 'Cross-Origin-Opener-Policy',
             value: 'same-origin-allow-popups',
-          },
-          // Enhanced caching for static assets
-          {
-            key: 'Cache-Control',
-            value: 'public, max-age=31536000, immutable',
           },
           // Security headers
           {

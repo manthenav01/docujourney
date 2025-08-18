@@ -42,7 +42,7 @@ export const SemanticSearch: React.FC<SemanticSearchProps> = ({
   placeholder = 'Search jobs, companies, or locations...',
   className = '',
   initialQuery = '',
-  showSemanticToggle = true,
+  showSemanticToggle = false,
 }) => {
   const [query, setQuery] = useState(initialQuery);
   const [suggestions, setSuggestions] = useState<SearchSuggestion[]>([]);
@@ -403,32 +403,6 @@ export const SemanticSearch: React.FC<SemanticSearchProps> = ({
         )}
       </div>
 
-      {/* Semantic Search Toggle */}
-      {showSemanticToggle && (
-        <div className="flex items-center justify-between mt-2">
-          <div className="flex items-center space-x-2">
-            <button
-              onClick={() => setSemanticEnabled(!semanticEnabled)}
-              className={`flex items-center space-x-2 px-3 py-1 rounded-lg text-sm font-medium transition-all ${
-                semanticEnabled 
-                  ? 'bg-blue-100 text-blue-700' 
-                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-              }`}
-            >
-              <Sparkles className="w-4 h-4" />
-              <span>Smart Search</span>
-            </button>
-            
-            {expandedTerms.length > 0 && (
-              <div className="flex items-center space-x-1 text-xs text-gray-500">
-                <span>+{expandedTerms.length} related terms</span>
-                <ChevronRight className="w-3 h-3" />
-              </div>
-            )}
-          </div>
-          
-        </div>
-      )}
 
       {/* Suggestions Dropdown */}
       {showSuggestions && (suggestions.length > 0 || isLoading || query.length >= 2) && (

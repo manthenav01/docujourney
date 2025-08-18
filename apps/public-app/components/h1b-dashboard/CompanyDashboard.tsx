@@ -317,9 +317,9 @@ export const CompanyDashboard: React.FC<CompanyDashboardProps> = ({
         </Card>
       </div>
 
-      {/* Charts Row 1 */}
+      {/* Row 1: Market Intelligence - Strategic Overview */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Market Trends */}
+        {/* Market Trends - LEFT (Temporal Analysis) */}
         <MarketTrendsCard
           data={companyInfo.yearlyTrends}
           title="Application Trends"
@@ -328,7 +328,7 @@ export const CompanyDashboard: React.FC<CompanyDashboardProps> = ({
           maxYears={5}
         />
 
-        {/* Top Job Titles */}
+        {/* Top Job Titles - RIGHT (Primary Context) */}
         <TopJobTitlesCard
           data={companyInfo.topJobTitles.map(job => ({
             jobTitle: job.jobTitle,
@@ -342,9 +342,9 @@ export const CompanyDashboard: React.FC<CompanyDashboardProps> = ({
         />
       </div>
 
-      {/* Charts Row 2 */}
+      {/* Row 2: Deep Analysis - Detailed Insights */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Geographic Distribution */}
+        {/* Geographic Distribution - LEFT (Entity Distribution) */}
         <ReusableProgressChart
           data={companyInfo.topStates.slice(0, 7).map((state, index) => ({
             label: state.state,
@@ -378,14 +378,13 @@ export const CompanyDashboard: React.FC<CompanyDashboardProps> = ({
           )}
         />
 
-        {/* Salary Distribution */}
+        {/* Salary Distribution - RIGHT (Always Consistent Position) */}
         <ReusableSalaryDistribution
           data={companyInfo.salaryDistribution}
           loading={false}
           title={`Salary Distribution`}
           showTitle={true}
           height={400}
-          showChartToggle={true}
         />
       </div>
     </div>

@@ -259,6 +259,7 @@ export interface H1BCityAnalysis {
   state: string;
   totalApplications: number;
   certifiedApplications: number;
+  uniqueEmployers: number;
   avgSalary: number;
   medianSalary: number;
   minSalary: number;
@@ -325,6 +326,7 @@ export interface H1BAttorneyAnalysis {
   deniedApplications: number;
   withdrawnApplications: number;
   certificationRate: number;
+  uniqueEmployers: number;
   avgSalary: number;
   medianSalary: number;
   minSalary: number;

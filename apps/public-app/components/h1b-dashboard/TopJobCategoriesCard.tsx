@@ -50,11 +50,11 @@ const TopJobCategoriesCardComponent: React.FC<TopJobCategoriesCardProps> = ({
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="space-y-2">
             {[...Array(maxItems)].map((_, index) => (
-              <div key={index} className="flex items-center justify-between p-4 border border-border rounded-lg animate-pulse">
+              <div key={index} className="flex items-center justify-between p-3 bg-muted/20 rounded-lg animate-pulse">
                 <div className="flex items-center space-x-3">
-                  <div className="w-8 h-8 bg-muted rounded-full"></div>
+                  <div className="w-10 h-10 bg-muted rounded-full"></div>
                   <div className="h-4 bg-muted rounded w-32"></div>
                 </div>
                 <div className="h-4 bg-muted rounded w-12"></div>
@@ -93,22 +93,22 @@ const TopJobCategoriesCardComponent: React.FC<TopJobCategoriesCardProps> = ({
         </CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="space-y-2">
           {processedData.topCategories.map((category, index) => (
-            <div key={category.jobCategory} className="flex items-center justify-between p-4 border border-border rounded-lg hover:bg-muted/20 transition-colors">
+            <div key={category.jobCategory} className="flex items-center justify-between p-3 bg-muted/20 rounded-lg hover:bg-muted/30 transition-colors">
               <div className="flex items-center space-x-3 min-w-0">
-                <div className="w-8 h-8 bg-chart-3 text-white text-xs font-semibold rounded-full flex items-center justify-center">
+                <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center text-primary font-semibold">
                   {index + 1}
                 </div>
                 <div className="min-w-0">
-                  <h4 className="font-medium text-foreground text-sm truncate">{category.jobCategory}</h4>
-                  <div className="flex items-center gap-2 mt-1">
-                    <p className="text-xs text-muted-foreground">
-                      {category.applications} cases • {category.certificationRate.toFixed(1)}% success
-                    </p>
+                  <div className="font-medium text-foreground">{category.jobCategory}</div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm text-muted-foreground">
+                      {category.applications.toLocaleString()} applications • {category.certificationRate.toFixed(1)}% success
+                    </span>
                     {showYoYGrowth && category.yoyGrowth !== null && category.yoyGrowth !== undefined && category.yoyGrowthPercentage !== null && category.yoyGrowthPercentage !== undefined && (
                       <>
-                        <span className="text-xs text-muted-foreground/60">•</span>
+                        <span className="text-sm text-muted-foreground/60">•</span>
                         <div className="flex items-center gap-1">
                           {category.yoyGrowth >= 0 ? (
                             <TrendingUp className="w-3 h-3 text-green-600" />
@@ -127,30 +127,14 @@ const TopJobCategoriesCardComponent: React.FC<TopJobCategoriesCardProps> = ({
                   </div>
                 </div>
               </div>
-              <div className="text-right flex-shrink-0">
-                <p className="text-xs font-medium text-foreground">
+              <div className="text-right">
+                <div className="font-semibold text-foreground">
                   {category.percentage.toFixed(1)}%
-                </p>
+                </div>
+                <div className="text-xs text-muted-foreground">of total</div>
               </div>
             </div>
           ))}
-        </div>
-        
-        {/* Summary footer */}
-        <div className="pt-4 border-t border-border mt-4">
-          <div className="flex justify-between items-center text-xs text-muted-foreground">
-            <span>Showing top {maxItems} job categories</span>
-            <span>
-              {processedData.totalApplications.toLocaleString()} total applications
-            </span>
-          </div>
-          {!showYoYGrowth && (
-            <div className="mt-2 p-2 bg-muted/10 rounded-lg border border-dashed border-muted">
-              <div className="text-xs text-muted-foreground text-center">
-                💡 YoY growth data requires historical job category analytics by year
-              </div>
-            </div>
-          )}
         </div>
       </CardContent>
     </Card>

@@ -23,6 +23,7 @@ import {
   FileText,
 } from 'lucide-react';
 import { METRIC_CONFIGS } from '../../lib/metricCardConfig';
+import { ApplicationsCard, SalaryCard, ApprovalRateCard, EmployersCard } from './StatsCard';
 
 // Use the standardized H1BCityAnalysis type
 type CityInfo = H1BCityAnalysis;
@@ -243,8 +244,8 @@ export const CityDashboard: React.FC<CityDashboardProps> = ({
   if (!cityInfo) {return null;}
 
   const certificationRate = cityInfo.totalApplications > 0 
-    ? ((cityInfo.certifiedApplications / cityInfo.totalApplications) * 100).toFixed(1)
-    : '0.0';
+    ? ((cityInfo.certifiedApplications / cityInfo.totalApplications) * 100)
+    : 0;
 
   const hasFinancialData = cityInfo.avgSalary > 0;
   const hasEmployerData = cityInfo.topEmployers.length > 0;
@@ -269,62 +270,15 @@ export const CityDashboard: React.FC<CityDashboardProps> = ({
 
       {/* Key Metrics Cards */}
       <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
-        <Card className="hover:shadow-md transition-shadow duration-200">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between mb-4">
-              <div className={`p-2 ${METRIC_CONFIGS.totalApplications.bgClass} rounded-lg ${METRIC_CONFIGS.totalApplications.colorClass}`}>
-                <METRIC_CONFIGS.totalApplications.icon className="w-6 h-6" />
-              </div>
-            </div>
-            <h3 className="text-muted-foreground text-sm font-medium mb-1">Total Applications</h3>
-            <p className="text-3xl font-bold text-foreground">{formatNumber(cityInfo.totalApplications)}</p>
-          </CardContent>
-        </Card>
-
-        <Card className="hover:shadow-md transition-shadow duration-200">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between mb-4">
-              <div className={`p-2 ${METRIC_CONFIGS.certificationRate.bgClass} rounded-lg ${METRIC_CONFIGS.certificationRate.colorClass}`}>
-                <METRIC_CONFIGS.certificationRate.icon className="w-6 h-6" />
-              </div>
-            </div>
-            <h3 className="text-muted-foreground text-sm font-medium mb-1">Approval Rate</h3>
-            <p className="text-3xl font-bold text-foreground">{certificationRate}%</p>
-          </CardContent>
-        </Card>
-
-        <Card className="hover:shadow-md transition-shadow duration-200">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between mb-4">
-              <div className={`p-2 ${METRIC_CONFIGS.averageSalary.bgClass} rounded-lg ${METRIC_CONFIGS.averageSalary.colorClass}`}>
-                <METRIC_CONFIGS.averageSalary.icon className="w-6 h-6" />
-              </div>
-            </div>
-            <h3 className="text-muted-foreground text-sm font-medium mb-1">Average Salary</h3>
-            <p className="text-3xl font-bold text-foreground">
-              {hasFinancialData ? formatCurrency(cityInfo.avgSalary) : 'N/A'}
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card className="hover:shadow-md transition-shadow duration-200">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between mb-4">
-              <div className={`p-2 ${METRIC_CONFIGS.uniqueEmployers.bgClass} rounded-lg ${METRIC_CONFIGS.uniqueEmployers.colorClass}`}>
-                <METRIC_CONFIGS.uniqueEmployers.icon className="w-6 h-6" />
-              </div>
-            </div>
-            <h3 className="text-muted-foreground text-sm font-medium mb-1">Unique Employers</h3>
-            <p className="text-3xl font-bold text-foreground">
-              {formatNumber(cityInfo.topEmployers.length)}
-            </p>
-          </CardContent>
-        </Card>
+        <ApplicationsCard value={cityInfo.totalApplications} />
+        <ApprovalRateCard value={certificationRate} />
+        <SalaryCard value={hasFinancialData ? cityInfo.avgSalary : 0} />
+        <EmployersCard value={cityInfo.uniqueEmployers} />
       </div>
 
-      {/* Charts Row 1 */}
+      {/* Row 1: Market Intelligence - Strategic Overview */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Market Trends */}
+        {/* Market Trends - LEFT (Temporal Analysis) */}
         <MarketTrendsCard
           data={cityInfo.yearlyTrends}
           title="Application Trends"
@@ -333,7 +287,7 @@ export const CityDashboard: React.FC<CityDashboardProps> = ({
           maxYears={5}
         />
 
-        {/* Top Job Titles */}
+        {/* Top Job Titles - RIGHT (Primary Context) */}
         <TopJobTitlesCard
           data={cityInfo.topJobTitles.map(job => ({
             jobTitle: job.jobTitle,
@@ -347,9 +301,9 @@ export const CityDashboard: React.FC<CityDashboardProps> = ({
         />
       </div>
 
-      {/* Charts Row 2 */}
+      {/* Row 2: Deep Analysis - Detailed Insights */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Top Employers */}
+        {/* Top Employers - LEFT (Entity Distribution) */}
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center">
@@ -385,14 +339,13 @@ export const CityDashboard: React.FC<CityDashboardProps> = ({
           </CardContent>
         </Card>
 
-        {/* Salary Distribution */}
+        {/* Salary Distribution - RIGHT (Always Consistent Position) */}
         <ReusableSalaryDistribution
           data={cityInfo.salaryDistribution}
           loading={false}
           title={`Salary Distribution`}
           showTitle={true}
           height={400}
-          showChartToggle={true}
         />
       </div>
     </div>

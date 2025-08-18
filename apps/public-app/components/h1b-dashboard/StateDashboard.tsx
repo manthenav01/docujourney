@@ -25,6 +25,7 @@ import {
   Map,
 } from 'lucide-react';
 import { METRIC_CONFIGS } from '../../lib/metricCardConfig';
+import { ApplicationsCard, SalaryCard, ApprovalRateCard, EmployersCard } from './StatsCard';
 
 // Use the standardized H1BStateAnalysis type
 type StateInfo = H1BStateAnalysis;
@@ -187,62 +188,15 @@ export const StateDashboard: React.FC<StateDashboardProps> = ({
 
       {/* Key Metrics Cards */}
       <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
-        <Card className="hover:shadow-md transition-shadow duration-200">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between mb-4">
-              <div className={`p-2 ${METRIC_CONFIGS.totalApplications.bgClass} rounded-lg ${METRIC_CONFIGS.totalApplications.colorClass}`}>
-                <METRIC_CONFIGS.totalApplications.icon className="w-6 h-6" />
-              </div>
-            </div>
-            <h3 className="text-muted-foreground text-sm font-medium mb-1">Total Applications</h3>
-            <p className="text-3xl font-bold text-foreground">{safeStateInfo.totalApplications.toLocaleString()}</p>
-          </CardContent>
-        </Card>
-
-        <Card className="hover:shadow-md transition-shadow duration-200">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between mb-4">
-              <div className={`p-2 ${METRIC_CONFIGS.certificationRate.bgClass} rounded-lg ${METRIC_CONFIGS.certificationRate.colorClass}`}>
-                <METRIC_CONFIGS.certificationRate.icon className="w-6 h-6" />
-              </div>
-            </div>
-            <h3 className="text-muted-foreground text-sm font-medium mb-1">Approval Rate</h3>
-            <p className="text-3xl font-bold text-foreground">{safeStateInfo.certificationRate.toFixed(1)}%</p>
-          </CardContent>
-        </Card>
-
-        <Card className="hover:shadow-md transition-shadow duration-200">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between mb-4">
-              <div className={`p-2 ${METRIC_CONFIGS.averageSalary.bgClass} rounded-lg ${METRIC_CONFIGS.averageSalary.colorClass}`}>
-                <METRIC_CONFIGS.averageSalary.icon className="w-6 h-6" />
-              </div>
-            </div>
-            <h3 className="text-muted-foreground text-sm font-medium mb-1">Average Salary</h3>
-            <p className="text-3xl font-bold text-foreground">
-              {safeStateInfo.avgSalary > 0 ? `$${safeStateInfo.avgSalary.toLocaleString()}` : 'N/A'}
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card className="hover:shadow-md transition-shadow duration-200">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between mb-4">
-              <div className={`p-2 ${METRIC_CONFIGS.uniqueEmployers.bgClass} rounded-lg ${METRIC_CONFIGS.uniqueEmployers.colorClass}`}>
-                <METRIC_CONFIGS.uniqueEmployers.icon className="w-6 h-6" />
-              </div>
-            </div>
-            <h3 className="text-muted-foreground text-sm font-medium mb-1">Unique Employers</h3>
-            <p className="text-3xl font-bold text-foreground">
-              {safeStateInfo.uniqueEmployers.toLocaleString()}
-            </p>
-          </CardContent>
-        </Card>
+        <ApplicationsCard value={safeStateInfo.totalApplications} />
+        <ApprovalRateCard value={safeStateInfo.certificationRate} />
+        <SalaryCard value={safeStateInfo.avgSalary > 0 ? safeStateInfo.avgSalary : 0} />
+        <EmployersCard value={safeStateInfo.uniqueEmployers} />
       </div>
 
-      {/* Charts Row 1 */}
+      {/* Row 1: Market Intelligence - Strategic Overview */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Market Trends */}
+        {/* Market Trends - LEFT (Temporal Analysis) */}
         {hasTrendData && (
           <MarketTrendsCard 
             data={safeStateInfo.yearlyTrends} 
@@ -253,7 +207,7 @@ export const StateDashboard: React.FC<StateDashboardProps> = ({
           />
         )}
 
-        {/* Top Cities */}
+        {/* Top Cities - RIGHT (Primary Context) */}
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center">
@@ -295,9 +249,9 @@ export const StateDashboard: React.FC<StateDashboardProps> = ({
         </Card>
       </div>
 
-      {/* Charts Row 2 */}
+      {/* Row 2: Deep Analysis - Detailed Insights */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Top Employers */}
+        {/* Top Employers - LEFT (Entity Distribution) */}
         <TopEmployersCard
           data={safeStateInfo.topEmployers.map(employer => ({
             employer: employer.employer,
@@ -310,7 +264,7 @@ export const StateDashboard: React.FC<StateDashboardProps> = ({
           showYoYGrowth={true}
         />
 
-        {/* Top Job Titles */}
+        {/* Top Job Titles - RIGHT (Secondary Analysis) */}
         <TopJobTitlesCard
           data={safeStateInfo.topJobTitles.map(job => ({
             jobTitle: job.jobTitle,
@@ -324,14 +278,13 @@ export const StateDashboard: React.FC<StateDashboardProps> = ({
         />
       </div>
 
-      {/* Salary Distribution - Full Width */}
+      {/* Specialized Analysis - Full Width */}
       <ReusableSalaryDistribution
         data={safeStateInfo.salaryDistribution}
         loading={false}
         title="Salary Distribution"
         showTitle={true}
         height={400}
-        showChartToggle={true}
       />
     </div>
   );

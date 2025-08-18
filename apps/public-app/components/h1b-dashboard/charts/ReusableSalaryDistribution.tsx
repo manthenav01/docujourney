@@ -1,10 +1,9 @@
 'use client';
 
-import React, { useMemo, useState, useCallback } from 'react';
-import { Card, CardContent, CardHeader, CardTitle, Button } from '@docujourney/ui';
-import { AreaChart, BarChart3, DollarSign } from 'lucide-react';
-import { ResponsiveContainer, AreaChart as RechartsAreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip } from 'recharts';
-import { getSalaryRangeColor, salaryDistributionColors } from '../../../lib/chartColors';
+import React, { useMemo } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@docujourney/ui';
+import { DollarSign } from 'lucide-react';
+import { getSalaryRangeColor } from '../../../lib/chartColors';
 
 /**
  * Standard salary distribution data interface
@@ -26,43 +25,9 @@ export interface ReusableSalaryDistributionProps {
   title?: string;
   showTitle?: boolean;
   height?: number;
-  defaultChartType?: 'area' | 'bar';
-  showChartToggle?: boolean;
   className?: string;
-  onChartTypeChange?: (chartType: 'area' | 'bar') => void;
 }
 
-/**
- * Chart type toggle button component
- */
-const ChartTypeToggle: React.FC<{
-  chartType: 'area' | 'bar';
-  onToggle: (type: 'area' | 'bar') => void;
-  disabled?: boolean;
-}> = ({ chartType, onToggle, disabled = false }) => (
-  <div className="flex items-center space-x-1 bg-muted/50 rounded-lg p-1">
-    <Button
-      variant={chartType === 'area' ? 'default' : 'ghost'}
-      size="sm"
-      onClick={() => onToggle('area')}
-      disabled={disabled}
-      className="h-8 px-3 text-xs"
-    >
-      <AreaChart className="w-3 h-3 mr-1" />
-      Area
-    </Button>
-    <Button
-      variant={chartType === 'bar' ? 'default' : 'ghost'}
-      size="sm"
-      onClick={() => onToggle('bar')}
-      disabled={disabled}
-      className="h-8 px-3 text-xs"
-    >
-      <BarChart3 className="w-3 h-3 mr-1" />
-      Bar
-    </Button>
-  </div>
-);
 
 /**
  * Format number with commas
@@ -80,7 +45,10 @@ const formatSalaryLabel = (range: string, isMobile: boolean = false): string => 
     '$80K - $120K': { mobile: '80-120K', desktop: '80-120K' },
     '$120K - $160K': { mobile: '120-160K', desktop: '120-160K' },
     '$160K - $200K': { mobile: '160-200K', desktop: '160-200K' },
-    '$200K+': { mobile: '200K+', desktop: '200K+' },
+    '$200K - $240K': { mobile: '200-240K', desktop: '200-240K' },
+    '$240K - $280K': { mobile: '240-280K', desktop: '240-280K' },
+    '$280K - $320K': { mobile: '280-320K', desktop: '280-320K' },
+    '$320K+': { mobile: '320K+', desktop: '320K+' },
   };
 
   const mapping = labelMappings[range];
@@ -93,80 +61,6 @@ const formatSalaryLabel = (range: string, isMobile: boolean = false): string => 
 };
 
 /**
- * Custom tooltip component for area chart
- */
-const CustomTooltip = ({ active, payload, label }: any) => {
-  if (!active || !payload || !payload.length) {
-    return null;
-  }
-
-  const data = payload[0].payload;
-  const value = payload[0].value;
-  // Use original name if available, otherwise fall back to label
-  const displayLabel = data.originalName || label;
-
-  return (
-    <div className="bg-card/95 backdrop-blur-sm border border-border rounded-lg shadow-lg p-3 min-w-[180px]">
-      <div className="space-y-2">
-        <div className="font-semibold text-foreground text-sm">
-          {displayLabel}
-        </div>
-        
-        <div className="flex items-center gap-2">
-          <div 
-            className="w-3 h-3 rounded-full"
-            style={{ backgroundColor: salaryDistributionColors.line }}
-          />
-          <span className="text-muted-foreground text-xs">Count:</span>
-          <span className="font-semibold text-foreground text-xs">
-            {formatNumber(value)}
-          </span>
-        </div>
-
-        {data.percentage && (
-          <div className="text-xs text-muted-foreground">
-            {data.percentage.toFixed(1)}% of total
-          </div>
-        )}
-      </div>
-    </div>
-  );
-};
-
-/**
- * Responsive container wrapper that adapts to screen size
- */
-const ResponsiveChartWrapper: React.FC<{
-  children: React.ReactNode;
-  height: number;
-}> = ({ children, height }) => {
-  // Calculate responsive dimensions with better space utilization
-  const responsiveHeight = useMemo(() => {
-    if (typeof window === 'undefined') {
-      return height;
-    }
-    
-    const width = window.innerWidth;
-    if (width < 375) {
-      return Math.max(height * 0.7, 240); // Slightly taller for very small screens
-    }
-    if (width < 640) {
-      return Math.max(height * 0.8, 260); // Better height for mobile
-    }
-    if (width < 1024) {
-      return Math.max(height * 0.9, 300); // Better height for tablets
-    }
-    return height;
-  }, [height]);
-
-  return (
-    <div className="w-full" style={{ height: responsiveHeight }}>
-      {children}
-    </div>
-  );
-};
-
-/**
  * Process raw salary data into standardized format
  */
 const processSalaryData = (data: SalaryDistributionData[]): SalaryDistributionData[] => {
@@ -174,13 +68,16 @@ const processSalaryData = (data: SalaryDistributionData[]): SalaryDistributionDa
     return [];
   }
 
-  // Standard salary ranges
+  // Standard salary ranges with granular high-end breakdown
   const standardRanges = [
     { range: 'Under $80K', keywords: ['under', 'below', '< ', '60', '70', '75'] },
     { range: '$80K - $120K', keywords: ['80', '90', '100', '110', '115'] },
     { range: '$120K - $160K', keywords: ['120', '130', '140', '150', '155'] },
     { range: '$160K - $200K', keywords: ['160', '170', '180', '190', '195'] },
-    { range: '$200K+', keywords: ['200', '210', '220', '230', '240', '250'] },
+    { range: '$200K - $240K', keywords: ['200', '210', '220', '230', '235'] },
+    { range: '$240K - $280K', keywords: ['240', '250', '260', '270', '275'] },
+    { range: '$280K - $320K', keywords: ['280', '290', '300', '310', '315'] },
+    { range: '$320K+', keywords: ['320', '330', '340', '350', '360', '370', '380', '390', '400', '500', '600'] },
   ];
 
   // Group data into standard ranges
@@ -276,144 +173,6 @@ const BarChartVisualization: React.FC<{
 };
 
 /**
- * Area chart visualization component
- */
-const AreaChartVisualization: React.FC<{
-  data: SalaryDistributionData[];
-  height: number;
-}> = ({ data, height }) => {
-  // Detect if mobile screen
-  const isMobile = useMemo(() => {
-    if (typeof window === 'undefined') {
-      return false;
-    }
-    return window.innerWidth < 640;
-  }, []);
-
-  const chartData = useMemo(() => 
-    data.map(item => ({
-      name: formatSalaryLabel(item.range, isMobile),
-      originalName: item.range, // Keep original for tooltip
-      value: item.count,
-      percentage: item.percentage || 0,
-    })), [data, isMobile],
-  );
-
-  const maxValue = useMemo(() => 
-    Math.max(...chartData.map(d => d.value)) * 1.1, [chartData],
-  );
-
-  // Responsive margins based on screen size and label rotation
-  const chartMargins = useMemo(() => {
-    if (isMobile) {
-      return {
-        top: 5,
-        right: 10,
-        left: 15,
-        bottom: 35, // Reduced for mobile
-      };
-    }
-    return {
-      top: 10,
-      right: 20,
-      left: 20,
-      bottom: 45, // Reduced from 60
-    };
-  }, [isMobile]);
-
-  return (
-    <ResponsiveChartWrapper height={height}>
-      <ResponsiveContainer width="100%" height="100%">
-        <RechartsAreaChart
-          data={chartData}
-          margin={chartMargins}
-        >
-          <defs>
-            <linearGradient id="salaryGradient" x1="0" y1="0" x2="0" y2="1">
-              <stop 
-                offset="0%" 
-                stopColor={salaryDistributionColors.gradient.startColor}
-                stopOpacity={0.8}
-              />
-              <stop 
-                offset="50%" 
-                stopColor={salaryDistributionColors.gradient.startColor}
-                stopOpacity={0.3}
-              />
-              <stop 
-                offset="100%" 
-                stopColor={salaryDistributionColors.gradient.endColor}
-                stopOpacity={0.1}
-              />
-            </linearGradient>
-          </defs>
-
-          <CartesianGrid 
-            strokeDasharray="3 3" 
-            stroke={salaryDistributionColors.grid}
-            strokeOpacity={0.3}
-          />
-
-          <XAxis
-            dataKey="name"
-            axisLine={false}
-            tickLine={false}
-            tick={{
-              fontSize: isMobile ? 10 : 11,
-              fill: salaryDistributionColors.text,
-              fontWeight: 500,
-            }}
-            angle={isMobile ? -15 : -20}
-            textAnchor="middle"
-            height={isMobile ? 35 : 45}
-            interval={0}
-          />
-
-          <YAxis
-            axisLine={false}
-            tickLine={false}
-            tick={{
-              fontSize: 10,
-              fill: salaryDistributionColors.text,
-              fontWeight: 400,
-            }}
-            tickFormatter={(value) => value >= 1000 ? `${(value / 1000).toFixed(0)}k` : value}
-            domain={[0, maxValue]}
-            width={35}
-          />
-
-          <Tooltip content={<CustomTooltip />} />
-
-          <Area
-            type="monotoneX"
-            dataKey="value"
-            stroke={salaryDistributionColors.line}
-            strokeWidth={2}
-            fill="url(#salaryGradient)"
-            fillOpacity={1}
-            dot={{
-              fill: salaryDistributionColors.line,
-              strokeWidth: 2,
-              stroke: '#fff',
-              r: 3,
-            }}
-            activeDot={{
-              r: 5,
-              fill: salaryDistributionColors.line,
-              stroke: '#fff',
-              strokeWidth: 2,
-              style: { 
-                filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.1))',
-              },
-            }}
-          />
-        </RechartsAreaChart>
-      </ResponsiveContainer>
-    </ResponsiveChartWrapper>
-  );
-};
-
-/**
  * Main reusable salary distribution component
  */
 const ReusableSalaryDistribution: React.FC<ReusableSalaryDistributionProps> = ({
@@ -422,39 +181,22 @@ const ReusableSalaryDistribution: React.FC<ReusableSalaryDistributionProps> = ({
   title = 'Salary Distribution',
   showTitle = true,
   height = 350,
-  defaultChartType = 'area',
-  showChartToggle = true,
   className = '',
-  onChartTypeChange,
 }) => {
-  const [chartType, setChartType] = useState<'area' | 'bar'>(defaultChartType);
 
   // Process and memoize the salary data
   const processedData = useMemo(() => processSalaryData(data), [data]);
-
-  // Handle chart type toggle
-  const handleChartTypeToggle = useCallback((newType: 'area' | 'bar') => {
-    setChartType(newType);
-    onChartTypeChange?.(newType);
-  }, [onChartTypeChange]);
 
   // Loading state
   if (loading) {
     return (
       <Card className={`w-full ${className}`}>
         {showTitle && (
-          <CardHeader className="flex flex-row items-center justify-between pb-4">
+          <CardHeader className="pb-4">
             <CardTitle className="text-base sm:text-lg font-semibold flex items-center">
               <DollarSign className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
               {title}
             </CardTitle>
-            {showChartToggle && (
-              <ChartTypeToggle
-                chartType={chartType}
-                onToggle={handleChartTypeToggle}
-                disabled={true}
-              />
-            )}
           </CardHeader>
         )}
         <CardContent className="p-4">
@@ -469,18 +211,11 @@ const ReusableSalaryDistribution: React.FC<ReusableSalaryDistributionProps> = ({
     return (
       <Card className={`w-full ${className}`}>
         {showTitle && (
-          <CardHeader className="flex flex-row items-center justify-between pb-4">
+          <CardHeader className="pb-4">
             <CardTitle className="text-base sm:text-lg font-semibold flex items-center">
               <DollarSign className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
               {title}
             </CardTitle>
-            {showChartToggle && (
-              <ChartTypeToggle
-                chartType={chartType}
-                onToggle={handleChartTypeToggle}
-                disabled={true}
-              />
-            )}
           </CardHeader>
         )}
         <CardContent className="p-4">
@@ -496,25 +231,15 @@ const ReusableSalaryDistribution: React.FC<ReusableSalaryDistributionProps> = ({
   return (
     <Card className={`w-full ${className}`}>
       {showTitle && (
-        <CardHeader className="flex flex-row items-center justify-between pb-3 px-4 pt-4">
+        <CardHeader className="pb-3 px-4 pt-4">
           <CardTitle className="text-base sm:text-lg font-semibold flex items-center">
             <DollarSign className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
             {title}
           </CardTitle>
-          {showChartToggle && (
-            <ChartTypeToggle
-              chartType={chartType}
-              onToggle={handleChartTypeToggle}
-            />
-          )}
         </CardHeader>
       )}
       <CardContent className="p-4 pt-2">
-        {chartType === 'area' ? (
-          <AreaChartVisualization data={processedData} height={height} />
-        ) : (
-          <BarChartVisualization data={processedData} />
-        )}
+        <BarChartVisualization data={processedData} />
       </CardContent>
     </Card>
   );

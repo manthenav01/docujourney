@@ -78,6 +78,29 @@ export async function generateMetadata({ params, searchParams }: PageProps): Pro
   };
 }
 
+// Generate static paths for top companies (helps with indexing)
+export async function generateStaticParams() {
+  try {
+    const response = await fetch(`${process.env.NEXT_PUBLIC_APP_URL || 'https://usimmigrantcentral.com'}/api/h1b-data?category=topEmployers&limit=100`);
+    if (!response.ok) {
+      return [];
+    }
+    
+    const data = await response.json();
+    const companies = data.data?.topEmployers || [];
+    
+    return companies
+      .filter((company: any) => company.employer_name && typeof company.employer_name === 'string')
+      .slice(0, 50) // Generate static pages for top 50 companies
+      .map((company: any) => ({
+        slug: company.employer_name.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
+      }));
+  } catch (error) {
+    console.error('Error generating static params for companies:', error);
+    return [];
+  }
+}
+
 export default async function CompanyPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
   

@@ -107,6 +107,7 @@ const VisualizationPanelComponent: React.FC<VisualizationPanelProps> = ({
 
   return (
     <div className="space-y-6">
+      {/* Row 1: Market Intelligence - Strategic Overview */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <SalaryDistributionChart 
           data={salaryDistributionData}
@@ -117,6 +118,8 @@ const VisualizationPanelComponent: React.FC<VisualizationPanelProps> = ({
           loading={chartsLoading}
         />
       </div>
+      
+      {/* Row 2: Deep Analysis - Detailed Insights */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <TopJobTitlesCard 
           data={jobTitleDistributionData}

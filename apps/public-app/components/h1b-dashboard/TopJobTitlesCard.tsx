@@ -93,84 +93,50 @@ const TopJobTitlesCardComponent: React.FC<TopJobTitlesCardProps> = ({ data, load
           Top Job Titles
         </CardTitle>
       </CardHeader>
-      <CardContent className="space-y-3">
-        {processedData.topJobTitles.map((item, index) => {
-          const progressWidth = (item.applications / processedData.maxApplications) * 100;
-          
-          return (
+      <CardContent>
+        <div className="space-y-4">
+          {processedData.topJobTitles.map((item, index) => (
             <div
               key={item.jobTitle}
-              className="group p-4 rounded-lg border border-border hover:border-primary/50 hover:bg-muted/50 transition-all duration-200 cursor-pointer"
+              className="flex items-center justify-between p-3 bg-muted/20 rounded-lg hover:bg-muted/30 transition-colors cursor-pointer"
               onClick={() => handleJobClick(item.jobTitle)}
             >
-              {/* Content */}
-              <div className="flex items-center justify-between">
-                {/* Left side: Rank and job title */}
-                <div className="flex items-start space-x-3 flex-1 min-w-0">
-                  <div className="flex-shrink-0 w-6 h-6 bg-primary text-primary-foreground text-xs font-semibold rounded-full flex items-center justify-center">
-                    {index + 1}
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <h3 className="text-sm font-medium text-foreground truncate group-hover:text-primary transition-colors">
-                      {item.jobTitle}
-                    </h3>
-                    <div className="flex items-center space-x-4 mt-1">
-                      <span className="text-xs text-muted-foreground">
-                        {item.applications.toLocaleString()} applications
-                      </span>
-                      <span className="text-xs text-muted-foreground/60">•</span>
-                      <span className="text-xs text-muted-foreground">
-                        {item.percentage.toFixed(1)}%
-                      </span>
-                      {showYoYGrowth && item.yoyGrowth !== null && item.yoyGrowth !== undefined && item.yoyGrowthPercentage !== null && item.yoyGrowthPercentage !== undefined && (
-                        <>
-                          <span className="text-xs text-muted-foreground/60">•</span>
-                          <div className="flex items-center gap-1">
-                            {item.yoyGrowth >= 0 ? (
-                              <TrendingUp className="w-3 h-3 text-green-600" />
-                            ) : (
-                              <TrendingDown className="w-3 h-3 text-red-600" />
-                            )}
-                            <span className={`text-xs font-medium ${
-                              item.yoyGrowth >= 0 ? 'text-green-600' : 'text-red-600'
-                            }`}>
-                              {item.yoyGrowth >= 0 ? '+' : ''}{item.yoyGrowth.toLocaleString()} 
-                              ({item.yoyGrowthPercentage >= 0 ? '+' : ''}{item.yoyGrowthPercentage.toFixed(1)}%)
-                            </span>
-                          </div>
-                        </>
-                      )}
-                    </div>
+              <div className="flex items-center space-x-3">
+                <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center text-primary font-semibold">
+                  {index + 1}
+                </div>
+                <div>
+                  <div className="font-medium text-foreground">{item.jobTitle}</div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm text-muted-foreground">
+                      {item.applications.toLocaleString()} applications ({item.percentage.toFixed(1)}%)
+                    </span>
+                    {showYoYGrowth && item.yoyGrowth !== null && item.yoyGrowth !== undefined && item.yoyGrowthPercentage !== null && item.yoyGrowthPercentage !== undefined && (
+                      <div className="flex items-center gap-1">
+                        {item.yoyGrowth >= 0 ? (
+                          <TrendingUp className="w-3 h-3 text-green-600" />
+                        ) : (
+                          <TrendingDown className="w-3 h-3 text-red-600" />
+                        )}
+                        <span className={`text-xs font-medium ${
+                          item.yoyGrowth >= 0 ? 'text-green-600' : 'text-red-600'
+                        }`}>
+                          {item.yoyGrowth >= 0 ? '+' : ''}{item.yoyGrowth.toLocaleString()} 
+                          ({item.yoyGrowthPercentage >= 0 ? '+' : ''}{item.yoyGrowthPercentage.toFixed(1)}%)
+                        </span>
+                      </div>
+                    )}
                   </div>
                 </div>
-                
-                {/* Right side: Salary */}
-                <div className="flex-shrink-0 text-right">
-                  <div className="text-sm font-semibold text-primary">
-                    ${(item.avgSalary / 1000).toFixed(0)}K
-                  </div>
-                  <div className="text-xs text-muted-foreground">avg salary</div>
+              </div>
+              <div className="text-right">
+                <div className="font-semibold text-foreground">
+                  ${(item.avgSalary / 1000).toFixed(0)}K
                 </div>
+                <div className="text-xs text-muted-foreground">avg salary</div>
               </div>
             </div>
-          );
-        })}
-        
-        {/* Summary footer */}
-        <div className="pt-2 border-t border-border">
-          <div className="flex justify-between items-center text-xs text-muted-foreground">
-            <span>Showing top 5 job titles</span>
-            <span>
-              {processedData.totalApplications.toLocaleString()} total applications
-            </span>
-          </div>
-          {!showYoYGrowth && (
-            <div className="mt-2 p-2 bg-muted/10 rounded-lg border border-dashed border-muted">
-              <div className="text-xs text-muted-foreground text-center">
-                💡 YoY growth data requires historical job title analytics by year
-              </div>
-            </div>
-          )}
+          ))}
         </div>
       </CardContent>
     </Card>

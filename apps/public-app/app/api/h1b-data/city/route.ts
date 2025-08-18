@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createH1BBigQueryService } from '@/lib/h1bBigQueryService';
 import { ValidationError, createServiceError } from '@/lib/validation';
 import { H1BApiResponse, H1BCityAnalysis } from '@/lib/types';
+import { getStateAbbreviation } from '@/lib/utils/stateUtils';
 
 // BigQuery service will be initialized lazily to avoid build-time errors
 
@@ -27,8 +28,11 @@ export async function GET(request: NextRequest): Promise<NextResponse<H1BApiResp
       return NextResponse.json(errorResponse, { status: 400 });
     }
     
-    console.log('Fetching city data for:', { cityName, stateName });
-    const cityData = await bigQueryService.getCityAnalysis(cityName, stateName);
+    // Convert full state name to abbreviation if needed (e.g., "Tennessee" -> "TN")
+    const stateAbbreviation = getStateAbbreviation(stateName);
+    
+    console.log('Fetching city data for:', { cityName, stateName, stateAbbreviation });
+    const cityData = await bigQueryService.getCityAnalysis(cityName, stateAbbreviation);
     
     const queryTime = Date.now() - startTime;
     console.log('City data fetched successfully:', {

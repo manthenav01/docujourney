@@ -52,7 +52,7 @@ const TopEmployersCardComponent: React.FC<TopEmployersCardProps> = ({
 
   if (loading) {
     return (
-      <Card className="w-full">
+      <Card>
         <CardHeader>
           <CardTitle className="flex items-center">
             <Building2 className="w-5 h-5 mr-2" />
@@ -62,9 +62,9 @@ const TopEmployersCardComponent: React.FC<TopEmployersCardProps> = ({
         <CardContent>
           <div className="space-y-4">
             {[...Array(5)].map((_, index) => (
-              <div key={index} className="flex items-center justify-between animate-pulse">
+              <div key={index} className="flex items-center justify-between p-3 bg-muted/20 rounded-lg animate-pulse">
                 <div className="flex items-center space-x-3">
-                  <div className="w-6 h-6 bg-muted rounded-full"></div>
+                  <div className="w-10 h-10 bg-muted rounded-full"></div>
                   <div className="h-4 bg-muted rounded w-48"></div>
                 </div>
                 <div className="h-4 bg-muted rounded w-16"></div>
@@ -78,7 +78,7 @@ const TopEmployersCardComponent: React.FC<TopEmployersCardProps> = ({
 
   if (!data || data.length === 0) {
     return (
-      <Card className="w-full">
+      <Card>
         <CardHeader>
           <CardTitle className="flex items-center">
             <Building2 className="w-5 h-5 mr-2" />
@@ -86,8 +86,8 @@ const TopEmployersCardComponent: React.FC<TopEmployersCardProps> = ({
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="flex items-center justify-center h-32">
-            <div className="text-muted-foreground">No employer data available</div>
+          <div className="text-center py-8 text-muted-foreground">
+            No employer data available
           </div>
         </CardContent>
       </Card>
@@ -95,47 +95,43 @@ const TopEmployersCardComponent: React.FC<TopEmployersCardProps> = ({
   }
 
   return (
-    <Card className="w-full">
+    <Card>
       <CardHeader>
-        <CardTitle className="text-lg font-semibold flex items-center">
+        <CardTitle className="flex items-center">
           <Building2 className="w-5 h-5 mr-2" />
           {title}
         </CardTitle>
       </CardHeader>
-      <CardContent className="space-y-3">
-        {processedData.topEmployers.map((item, index) => {
-          return (
-            <div
-              key={item.employer}
-              className="group p-4 rounded-lg border border-border hover:border-primary/50 hover:bg-muted/50 transition-all duration-200 cursor-pointer"
-              onClick={() => handleEmployerClick(item.employer)}
-            >
-              {/* Content */}
-              <div className="flex items-center justify-between">
-                {/* Left side: Rank and employer name */}
-                <div className="flex items-start space-x-3 flex-1 min-w-0">
-                  <div className="flex-shrink-0 w-6 h-6 bg-primary text-primary-foreground text-xs font-semibold rounded-full flex items-center justify-center">
+      <CardContent>
+        <div className="space-y-4">
+          {processedData.topEmployers.map((item, index) => {
+            return (
+              <div
+                key={item.employer}
+                className="flex items-center justify-between p-3 bg-muted/20 rounded-lg hover:bg-muted/30 transition-colors cursor-pointer"
+                onClick={() => handleEmployerClick(item.employer)}
+              >
+                <div className="flex items-center space-x-3">
+                  <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center text-primary font-semibold">
                     {index + 1}
                   </div>
-                  <div className="min-w-0 flex-1">
-                    <h3 className="text-sm font-medium text-foreground truncate group-hover:text-primary transition-colors">
-                      {item.employer}
-                    </h3>
-                    <div className="flex items-center space-x-4 mt-1">
-                      <span className="text-xs text-muted-foreground">
+                  <div>
+                    <div className="font-medium text-foreground">{item.employer}</div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm text-muted-foreground">
                         {item.applications.toLocaleString()} applications
                       </span>
                       {item.percentage && (
                         <>
-                          <span className="text-xs text-muted-foreground/60">•</span>
-                          <span className="text-xs text-muted-foreground">
+                          <span className="text-sm text-muted-foreground/60">•</span>
+                          <span className="text-sm text-muted-foreground">
                             {item.percentage.toFixed(1)}%
                           </span>
                         </>
                       )}
                       {showYoYGrowth && item.yoyGrowth !== null && item.yoyGrowth !== undefined && item.yoyGrowthPercentage !== null && item.yoyGrowthPercentage !== undefined && (
                         <>
-                          <span className="text-xs text-muted-foreground/60">•</span>
+                          <span className="text-sm text-muted-foreground/60">•</span>
                           <div className="flex items-center gap-1">
                             {item.yoyGrowth >= 0 ? (
                               <TrendingUp className="w-3 h-3 text-green-600" />
@@ -154,34 +150,15 @@ const TopEmployersCardComponent: React.FC<TopEmployersCardProps> = ({
                     </div>
                   </div>
                 </div>
-                
-                {/* Right side: Salary */}
-                <div className="flex-shrink-0 text-right">
-                  <div className="text-sm font-semibold text-primary">
+                <div className="text-right">
+                  <div className="font-semibold text-foreground">
                     ${(item.avgSalary / 1000).toFixed(0)}K
                   </div>
                   <div className="text-xs text-muted-foreground">avg salary</div>
                 </div>
               </div>
-            </div>
-          );
-        })}
-        
-        {/* Summary footer */}
-        <div className="pt-2 border-t border-border">
-          <div className="flex justify-between items-center text-xs text-muted-foreground">
-            <span>Showing top 5 employers</span>
-            <span>
-              {processedData.totalApplications.toLocaleString()} total applications
-            </span>
-          </div>
-          {!showYoYGrowth && (
-            <div className="mt-2 p-2 bg-muted/10 rounded-lg border border-dashed border-muted">
-              <div className="text-xs text-muted-foreground text-center">
-                💡 YoY growth data requires historical employer analytics by year
-              </div>
-            </div>
-          )}
+            );
+          })}
         </div>
       </CardContent>
     </Card>
