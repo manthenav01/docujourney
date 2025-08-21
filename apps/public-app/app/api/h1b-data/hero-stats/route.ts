@@ -97,19 +97,23 @@ export async function GET(request: NextRequest) {
 
       case 'jobs':
         try {
+          // Get popular jobs sorted by application count (not salary)
+          const popularJobs = await bigQueryService.getMostPopularJobs({
+            fiscalYears: ['2025'],
+          }, 5);
+
+          // Get general stats from aggregated data
           const aggregatedData = await bigQueryService.getH1BDashboardData({
             fiscalYears: ['2025'],
           });
 
-          // Get top job titles from job title distribution
-          const topJobs = (aggregatedData.jobTitleDistribution || [])
-            .slice(0, 5)
-            .map(job => ({
-              text: job.jobTitle || 'Unknown Job',
-              type: 'job_title',
-              count: job.applications || 0,
-              avgSalary: Math.round(job.avgSalary || 100000),
-            }));
+          // Transform popular jobs for UI
+          const topJobs = popularJobs.map(job => ({
+            text: job.jobTitle || 'Unknown Job',
+            type: 'job_title',
+            count: job.applications || 0,
+            avgSalary: Math.round(job.avgSalary || 100000),
+          }));
 
           stats = {
             topJobs,

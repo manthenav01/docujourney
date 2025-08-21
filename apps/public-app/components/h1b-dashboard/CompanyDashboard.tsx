@@ -328,7 +328,7 @@ export const CompanyDashboard: React.FC<CompanyDashboardProps> = ({
           maxYears={5}
         />
 
-        {/* Top Job Titles - RIGHT (Primary Context) */}
+        {/* Top Paying Job Titles - RIGHT (Primary Context) */}
         <TopJobTitlesCard
           data={companyInfo.topJobTitles.map(job => ({
             jobTitle: job.jobTitle,

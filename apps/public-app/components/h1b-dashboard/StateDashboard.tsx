@@ -264,7 +264,7 @@ export const StateDashboard: React.FC<StateDashboardProps> = ({
           showYoYGrowth={true}
         />
 
-        {/* Top Job Titles - RIGHT (Secondary Analysis) */}
+        {/* Top Paying Job Titles - RIGHT (Secondary Analysis) */}
         <TopJobTitlesCard
           data={safeStateInfo.topJobTitles.map(job => ({
             jobTitle: job.jobTitle,

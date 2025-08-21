@@ -11,6 +11,7 @@ import {
   H1BFilterOptions,
   H1BSearchSuggestion,
   H1BLawFirm,
+  H1BJobTitleDistribution,
   BigQueryAttorneyRow,
 } from './types';
 import { validateAttorneyInput, ValidationError } from './validation';
@@ -193,11 +194,12 @@ export class H1BBigQueryService {
           CASE 
             WHEN case_status = 'Certified' THEN 
               CASE 
-                WHEN wage_unit_of_pay = 'Hour' THEN wage_rate_of_pay_from * 2080
-                WHEN wage_unit_of_pay = 'Week' THEN wage_rate_of_pay_from * 52
-                WHEN wage_unit_of_pay = 'Month' THEN wage_rate_of_pay_from * 12
-                WHEN wage_unit_of_pay = 'Bi-Weekly' THEN wage_rate_of_pay_from * 26
-                ELSE wage_rate_of_pay_from
+                WHEN wage_unit_of_pay = 'Hour' AND wage_rate_of_pay_from * 2080 BETWEEN 30000 AND 900000 THEN wage_rate_of_pay_from * 2080
+                WHEN wage_unit_of_pay = 'Week' AND wage_rate_of_pay_from * 52 BETWEEN 30000 AND 900000 THEN wage_rate_of_pay_from * 52
+                WHEN wage_unit_of_pay = 'Month' AND wage_rate_of_pay_from * 12 BETWEEN 30000 AND 900000 THEN wage_rate_of_pay_from * 12
+                WHEN wage_unit_of_pay = 'Bi-Weekly' AND wage_rate_of_pay_from * 26 BETWEEN 30000 AND 900000 THEN wage_rate_of_pay_from * 26
+                WHEN wage_unit_of_pay = 'Year' AND wage_rate_of_pay_from BETWEEN 30000 AND 900000 THEN wage_rate_of_pay_from
+                ELSE NULL
               END
           END
         ) as avg_salary
@@ -248,11 +250,12 @@ export class H1BBigQueryService {
       SELECT 
         APPROX_QUANTILES(
           CASE 
-            WHEN wage_unit_of_pay = 'Hour' THEN wage_rate_of_pay_from * 2080
-            WHEN wage_unit_of_pay = 'Week' THEN wage_rate_of_pay_from * 52
-            WHEN wage_unit_of_pay = 'Month' THEN wage_rate_of_pay_from * 12
-            WHEN wage_unit_of_pay = 'Bi-Weekly' THEN wage_rate_of_pay_from * 26
-            ELSE wage_rate_of_pay_from
+            WHEN wage_unit_of_pay = 'Hour' AND wage_rate_of_pay_from * 2080 BETWEEN 30000 AND 900000 THEN wage_rate_of_pay_from * 2080
+            WHEN wage_unit_of_pay = 'Week' AND wage_rate_of_pay_from * 52 BETWEEN 30000 AND 900000 THEN wage_rate_of_pay_from * 52
+            WHEN wage_unit_of_pay = 'Month' AND wage_rate_of_pay_from * 12 BETWEEN 30000 AND 900000 THEN wage_rate_of_pay_from * 12
+            WHEN wage_unit_of_pay = 'Bi-Weekly' AND wage_rate_of_pay_from * 26 BETWEEN 30000 AND 900000 THEN wage_rate_of_pay_from * 26
+            WHEN wage_unit_of_pay = 'Year' AND wage_rate_of_pay_from BETWEEN 30000 AND 900000 THEN wage_rate_of_pay_from
+            ELSE NULL
           END, 100
         )[OFFSET(50)] as median_salary
       FROM \`${this.projectId}.${this.datasetId}.${this.tableId}\`
@@ -270,29 +273,32 @@ export class H1BBigQueryService {
           COUNT(*) as applications,
           AVG(
             CASE 
-              WHEN wage_unit_of_pay = 'Hour' THEN wage_rate_of_pay_from * 2080
-              WHEN wage_unit_of_pay = 'Week' THEN wage_rate_of_pay_from * 52
-              WHEN wage_unit_of_pay = 'Month' THEN wage_rate_of_pay_from * 12
-              WHEN wage_unit_of_pay = 'Bi-Weekly' THEN wage_rate_of_pay_from * 26
-              ELSE wage_rate_of_pay_from
+              WHEN wage_unit_of_pay = 'Hour' AND wage_rate_of_pay_from * 2080 BETWEEN 30000 AND 900000 THEN wage_rate_of_pay_from * 2080
+              WHEN wage_unit_of_pay = 'Week' AND wage_rate_of_pay_from * 52 BETWEEN 30000 AND 900000 THEN wage_rate_of_pay_from * 52
+              WHEN wage_unit_of_pay = 'Month' AND wage_rate_of_pay_from * 12 BETWEEN 30000 AND 900000 THEN wage_rate_of_pay_from * 12
+              WHEN wage_unit_of_pay = 'Bi-Weekly' AND wage_rate_of_pay_from * 26 BETWEEN 30000 AND 900000 THEN wage_rate_of_pay_from * 26
+              WHEN wage_unit_of_pay = 'Year' AND wage_rate_of_pay_from BETWEEN 30000 AND 900000 THEN wage_rate_of_pay_from
+              ELSE NULL
             END
           ) as avg_salary,
           MIN(
             CASE 
-              WHEN wage_unit_of_pay = 'Hour' THEN wage_rate_of_pay_from * 2080
-              WHEN wage_unit_of_pay = 'Week' THEN wage_rate_of_pay_from * 52
-              WHEN wage_unit_of_pay = 'Month' THEN wage_rate_of_pay_from * 12
-              WHEN wage_unit_of_pay = 'Bi-Weekly' THEN wage_rate_of_pay_from * 26
-              ELSE wage_rate_of_pay_from
+              WHEN wage_unit_of_pay = 'Hour' AND wage_rate_of_pay_from * 2080 BETWEEN 30000 AND 900000 THEN wage_rate_of_pay_from * 2080
+              WHEN wage_unit_of_pay = 'Week' AND wage_rate_of_pay_from * 52 BETWEEN 30000 AND 900000 THEN wage_rate_of_pay_from * 52
+              WHEN wage_unit_of_pay = 'Month' AND wage_rate_of_pay_from * 12 BETWEEN 30000 AND 900000 THEN wage_rate_of_pay_from * 12
+              WHEN wage_unit_of_pay = 'Bi-Weekly' AND wage_rate_of_pay_from * 26 BETWEEN 30000 AND 900000 THEN wage_rate_of_pay_from * 26
+              WHEN wage_unit_of_pay = 'Year' AND wage_rate_of_pay_from BETWEEN 30000 AND 900000 THEN wage_rate_of_pay_from
+              ELSE NULL
             END
           ) as min_salary,
           MAX(
             CASE 
-              WHEN wage_unit_of_pay = 'Hour' THEN wage_rate_of_pay_from * 2080
-              WHEN wage_unit_of_pay = 'Week' THEN wage_rate_of_pay_from * 52
-              WHEN wage_unit_of_pay = 'Month' THEN wage_rate_of_pay_from * 12
-              WHEN wage_unit_of_pay = 'Bi-Weekly' THEN wage_rate_of_pay_from * 26
-              ELSE wage_rate_of_pay_from
+              WHEN wage_unit_of_pay = 'Hour' AND wage_rate_of_pay_from * 2080 BETWEEN 30000 AND 900000 THEN wage_rate_of_pay_from * 2080
+              WHEN wage_unit_of_pay = 'Week' AND wage_rate_of_pay_from * 52 BETWEEN 30000 AND 900000 THEN wage_rate_of_pay_from * 52
+              WHEN wage_unit_of_pay = 'Month' AND wage_rate_of_pay_from * 12 BETWEEN 30000 AND 900000 THEN wage_rate_of_pay_from * 12
+              WHEN wage_unit_of_pay = 'Bi-Weekly' AND wage_rate_of_pay_from * 26 BETWEEN 30000 AND 900000 THEN wage_rate_of_pay_from * 26
+              WHEN wage_unit_of_pay = 'Year' AND wage_rate_of_pay_from BETWEEN 30000 AND 900000 THEN wage_rate_of_pay_from
+              ELSE NULL
             END
           ) as max_salary,
           ANY_VALUE(worksite_state) as top_state
@@ -401,8 +407,14 @@ export class H1BBigQueryService {
           ELSE EXTRACT(YEAR FROM received_date)
         END AS STRING) as fiscal_year,
         COUNT(*) as applications,
-        AVG(CASE WHEN case_status = 'Certified' THEN wage_rate_of_pay_from END) as avg_salary,
-        APPROX_QUANTILES(CASE WHEN case_status = 'Certified' THEN wage_rate_of_pay_from END, 100)[OFFSET(50)] as median_salary
+        AVG(CASE 
+          WHEN case_status = 'Certified' AND wage_rate_of_pay_from BETWEEN 30000 AND 900000 THEN wage_rate_of_pay_from 
+          ELSE NULL 
+        END) as avg_salary,
+        APPROX_QUANTILES(CASE 
+          WHEN case_status = 'Certified' AND wage_rate_of_pay_from BETWEEN 30000 AND 900000 THEN wage_rate_of_pay_from 
+          ELSE NULL 
+        END, 100)[OFFSET(50)] as median_salary
       FROM \`${this.projectId}.${this.datasetId}.${this.tableId}\`
       WHERE received_date IS NOT NULL
       AND wage_rate_of_pay_from IS NOT NULL
@@ -416,8 +428,14 @@ export class H1BBigQueryService {
       SELECT 
         worksite_state as state,
         COUNT(*) as applications,
-        AVG(CASE WHEN case_status = 'Certified' THEN wage_rate_of_pay_from END) as avg_salary,
-        MAX(CASE WHEN case_status = 'Certified' THEN wage_rate_of_pay_from END) as highest_salary
+        AVG(CASE 
+          WHEN case_status = 'Certified' AND wage_rate_of_pay_from BETWEEN 30000 AND 900000 THEN wage_rate_of_pay_from 
+          ELSE NULL 
+        END) as avg_salary,
+        MAX(CASE 
+          WHEN case_status = 'Certified' AND wage_rate_of_pay_from BETWEEN 30000 AND 900000 THEN wage_rate_of_pay_from 
+          ELSE NULL 
+        END) as highest_salary
       FROM \`${this.projectId}.${this.datasetId}.${this.tableId}\`
       ${whereClause}
       AND case_status = 'Certified'
@@ -444,14 +462,29 @@ export class H1BBigQueryService {
     const jobTitleDistQuery = `
       WITH job_title_yearly AS (
         SELECT 
-          job_title,
+          CASE 
+            WHEN REGEXP_CONTAINS(job_title, r' - [A-Z0-9]+-[0-9]+$') 
+            THEN TRIM(REGEXP_REPLACE(job_title, r' - [A-Z0-9]+-[0-9]+$', ''))
+            ELSE TRIM(job_title)
+          END as job_title,
           CAST(CASE 
             WHEN EXTRACT(MONTH FROM received_date) >= 10 
             THEN EXTRACT(YEAR FROM received_date) + 1
             ELSE EXTRACT(YEAR FROM received_date)
           END AS STRING) as fiscal_year,
           COUNT(*) as applications,
-          AVG(CASE WHEN case_status = 'Certified' THEN wage_rate_of_pay_from END) as avg_salary
+          AVG(CASE 
+            WHEN case_status = 'Certified' THEN
+              CASE 
+                WHEN wage_unit_of_pay = 'Hour' AND wage_rate_of_pay_from * 2080 BETWEEN 30000 AND 900000 THEN wage_rate_of_pay_from * 2080
+                WHEN wage_unit_of_pay = 'Week' AND wage_rate_of_pay_from * 52 BETWEEN 30000 AND 900000 THEN wage_rate_of_pay_from * 52
+                WHEN wage_unit_of_pay = 'Month' AND wage_rate_of_pay_from * 12 BETWEEN 30000 AND 900000 THEN wage_rate_of_pay_from * 12
+                WHEN wage_unit_of_pay = 'Bi-Weekly' AND wage_rate_of_pay_from * 26 BETWEEN 30000 AND 900000 THEN wage_rate_of_pay_from * 26
+                WHEN wage_unit_of_pay = 'Year' AND wage_rate_of_pay_from BETWEEN 30000 AND 900000 THEN wage_rate_of_pay_from
+                ELSE NULL
+              END
+            ELSE NULL 
+          END) as avg_salary
         FROM \`${this.projectId}.${this.datasetId}.${this.tableId}\`
         ${whereClause}
         AND job_title IS NOT NULL
@@ -476,7 +509,7 @@ export class H1BBigQueryService {
           current_year_apps,
           previous_year_apps
         FROM job_title_growth
-        ORDER BY total_applications DESC
+        ORDER BY avg_salary DESC
         LIMIT 15
       ),
       total_count AS (
@@ -494,7 +527,7 @@ export class H1BBigQueryService {
         previous_year_apps
       FROM job_stats
       CROSS JOIN total_count
-      ORDER BY applications DESC
+      ORDER BY avg_salary DESC
     `;
 
     const industryDistQuery = `
@@ -595,7 +628,10 @@ export class H1BBigQueryService {
         SELECT 
           industry,
           COUNT(*) as applications,
-          AVG(CASE WHEN case_status = 'Certified' THEN wage_rate_of_pay_from END) as avg_salary
+          AVG(CASE 
+            WHEN case_status = 'Certified' AND wage_rate_of_pay_from BETWEEN 30000 AND 900000 THEN wage_rate_of_pay_from 
+            ELSE NULL 
+          END) as avg_salary
         FROM industry_mapping
         GROUP BY industry
       ),
@@ -628,7 +664,10 @@ export class H1BBigQueryService {
           COUNT(*) as total_applications,
           COUNT(CASE WHEN case_status = 'Certified' THEN 1 END) as certified_applications,
           ROUND(COUNT(CASE WHEN case_status = 'Certified' THEN 1 END) * 100.0 / COUNT(*), 2) as certification_rate,
-          AVG(CASE WHEN case_status = 'Certified' THEN wage_rate_of_pay_from END) as avg_salary,
+          AVG(CASE 
+          WHEN case_status = 'Certified' AND wage_rate_of_pay_from BETWEEN 30000 AND 900000 THEN wage_rate_of_pay_from 
+          ELSE NULL 
+        END) as avg_salary,
           -- Fixed: Remove ORDER BY from STRING_AGG with DISTINCT to avoid conflict
           STRING_AGG(DISTINCT worksite_state, ', ' LIMIT 3) as top_states,
           STRING_AGG(DISTINCT SUBSTR(soc_title, 1, 30), ', ' LIMIT 3) as top_job_categories
@@ -807,7 +846,10 @@ export class H1BBigQueryService {
           COUNT(*) as total_applications,
           COUNT(CASE WHEN case_status = 'Certified' THEN 1 END) as certified_applications,
           ROUND(COUNT(CASE WHEN case_status = 'Certified' THEN 1 END) * 100.0 / COUNT(*), 2) as certification_rate,
-          AVG(CASE WHEN case_status = 'Certified' THEN wage_rate_of_pay_from END) as avg_salary,
+          AVG(CASE 
+          WHEN case_status = 'Certified' AND wage_rate_of_pay_from BETWEEN 30000 AND 900000 THEN wage_rate_of_pay_from 
+          ELSE NULL 
+        END) as avg_salary,
           APPROX_COUNT_DISTINCT(
             CONCAT(
               COALESCE(agent_attorney_first_name, ''), 
@@ -1189,11 +1231,15 @@ export class H1BBigQueryService {
         LIMIT 10
       `;
 
-      // Get top job titles with YOY growth data
+      // Get Top Paying Job Titles with YOY growth data
       const topJobTitlesQuery = `
         WITH job_title_yearly AS (
           SELECT 
-            TRIM(job_title) as jobTitle,
+            CASE 
+              WHEN REGEXP_CONTAINS(job_title, r' - [A-Z0-9]+-[0-9]+$') 
+              THEN TRIM(REGEXP_REPLACE(job_title, r' - [A-Z0-9]+-[0-9]+$', ''))
+              ELSE TRIM(job_title)
+            END as jobTitle,
             CAST(CASE 
               WHEN EXTRACT(MONTH FROM received_date) >= 10 
               THEN EXTRACT(YEAR FROM received_date) + 1
@@ -1201,14 +1247,16 @@ export class H1BBigQueryService {
             END AS STRING) as fiscal_year,
             COUNT(*) as applications,
             AVG(
-              CASE WHEN wage_rate_of_pay_from > 0 AND wage_rate_of_pay_from < 1000000 THEN 
+              CASE WHEN case_status = 'Certified' THEN
                 CASE 
-                  WHEN wage_unit_of_pay = 'Hour' THEN wage_rate_of_pay_from * 2080
-                  WHEN wage_unit_of_pay = 'Week' THEN wage_rate_of_pay_from * 52
-                  WHEN wage_unit_of_pay = 'Month' THEN wage_rate_of_pay_from * 12
-                  WHEN wage_unit_of_pay = 'Bi-Weekly' THEN wage_rate_of_pay_from * 26
-                  ELSE wage_rate_of_pay_from
+                  WHEN wage_unit_of_pay = 'Hour' AND wage_rate_of_pay_from * 2080 BETWEEN 30000 AND 900000 THEN wage_rate_of_pay_from * 2080
+                  WHEN wage_unit_of_pay = 'Week' AND wage_rate_of_pay_from * 52 BETWEEN 30000 AND 900000 THEN wage_rate_of_pay_from * 52
+                  WHEN wage_unit_of_pay = 'Month' AND wage_rate_of_pay_from * 12 BETWEEN 30000 AND 900000 THEN wage_rate_of_pay_from * 12
+                  WHEN wage_unit_of_pay = 'Bi-Weekly' AND wage_rate_of_pay_from * 26 BETWEEN 30000 AND 900000 THEN wage_rate_of_pay_from * 26
+                  WHEN wage_unit_of_pay = 'Year' AND wage_rate_of_pay_from BETWEEN 30000 AND 900000 THEN wage_rate_of_pay_from
+                  ELSE NULL
                 END
+              ELSE NULL
               END
             ) as avgSalary
           FROM \`${this.projectId}.${this.datasetId}.${this.tableId}\`
@@ -1237,7 +1285,7 @@ export class H1BBigQueryService {
           current_year_apps,
           previous_year_apps
         FROM job_title_growth
-        ORDER BY total_applications DESC
+        ORDER BY avgSalary DESC
         LIMIT 10
       `;
 
@@ -1879,11 +1927,15 @@ export class H1BBigQueryService {
         LIMIT 10
       `;
 
-      // Get top job titles in this city with YOY growth data
+      // Get Top Paying Job Titles in this city with YOY growth data
       const topJobTitlesQuery = `
         WITH job_title_yearly AS (
           SELECT 
-            UPPER(TRIM(job_title)) as jobTitle,
+            CASE 
+              WHEN REGEXP_CONTAINS(job_title, r' - [A-Z0-9]+-[0-9]+$') 
+              THEN TRIM(REGEXP_REPLACE(job_title, r' - [A-Z0-9]+-[0-9]+$', ''))
+              ELSE TRIM(job_title)
+            END as jobTitle,
             CAST(CASE 
               WHEN EXTRACT(MONTH FROM received_date) >= 10 
               THEN EXTRACT(YEAR FROM received_date) + 1
@@ -1891,14 +1943,16 @@ export class H1BBigQueryService {
             END AS STRING) as fiscal_year,
             COUNT(*) as applications,
             AVG(
-              CASE WHEN wage_rate_of_pay_from > 0 AND wage_rate_of_pay_from < 1000000 THEN 
+              CASE WHEN case_status = 'Certified' THEN
                 CASE 
-                  WHEN wage_unit_of_pay = 'Hour' THEN wage_rate_of_pay_from * 2080
-                  WHEN wage_unit_of_pay = 'Week' THEN wage_rate_of_pay_from * 52
-                  WHEN wage_unit_of_pay = 'Month' THEN wage_rate_of_pay_from * 12
-                  WHEN wage_unit_of_pay = 'Bi-Weekly' THEN wage_rate_of_pay_from * 26
-                  ELSE wage_rate_of_pay_from
+                  WHEN wage_unit_of_pay = 'Hour' AND wage_rate_of_pay_from * 2080 BETWEEN 30000 AND 900000 THEN wage_rate_of_pay_from * 2080
+                  WHEN wage_unit_of_pay = 'Week' AND wage_rate_of_pay_from * 52 BETWEEN 30000 AND 900000 THEN wage_rate_of_pay_from * 52
+                  WHEN wage_unit_of_pay = 'Month' AND wage_rate_of_pay_from * 12 BETWEEN 30000 AND 900000 THEN wage_rate_of_pay_from * 12
+                  WHEN wage_unit_of_pay = 'Bi-Weekly' AND wage_rate_of_pay_from * 26 BETWEEN 30000 AND 900000 THEN wage_rate_of_pay_from * 26
+                  WHEN wage_unit_of_pay = 'Year' AND wage_rate_of_pay_from BETWEEN 30000 AND 900000 THEN wage_rate_of_pay_from
+                  ELSE NULL
                 END
+              ELSE NULL
               END
             ) as avgSalary
           FROM \`${this.projectId}.${this.datasetId}.${this.tableId}\`
@@ -1928,7 +1982,7 @@ export class H1BBigQueryService {
           current_year_apps,
           previous_year_apps
         FROM job_title_growth
-        ORDER BY total_applications DESC
+        ORDER BY avgSalary DESC
         LIMIT 10
       `;
 
@@ -2240,11 +2294,15 @@ export class H1BBigQueryService {
         LIMIT 15
       `;
 
-      // Top job titles in this state
+      // Top Paying Job Titles in this state
       const topJobTitlesQuery = `
         WITH job_stats AS (
           SELECT 
-            TRIM(job_title) as jobTitle,
+            CASE 
+              WHEN REGEXP_CONTAINS(job_title, r' - [A-Z0-9]+-[0-9]+$') 
+              THEN TRIM(REGEXP_REPLACE(job_title, r' - [A-Z0-9]+-[0-9]+$', ''))
+              ELSE TRIM(job_title)
+            END as jobTitle,
             COUNT(*) as applications,
             COUNTIF(UPPER(case_status) = 'CERTIFIED') as certified_apps,
             ROUND(AVG(CASE 
@@ -2277,7 +2335,7 @@ export class H1BBigQueryService {
           j.current_year_apps,
           j.previous_year_apps
         FROM job_stats j, total_apps t
-        ORDER BY j.applications DESC
+        ORDER BY j.avgSalary DESC
         LIMIT 15
       `;
 
@@ -2877,6 +2935,115 @@ export class H1BBigQueryService {
       }
       
       throw new Error(`Failed to fetch attorney analysis: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }
+
+  /**
+   * Get most popular job titles sorted by application count (for hero sections)
+   */
+  async getMostPopularJobs(filters: H1BQueryFilters = {}, limit: number = 15): Promise<H1BJobTitleDistribution[]> {
+    try {
+      const startTime = Date.now();
+      const { whereClause, params } = this.buildWhereClause(filters);
+      
+      const popularJobsQuery = `
+        WITH job_title_yearly AS (
+          SELECT 
+            CASE 
+              WHEN REGEXP_CONTAINS(job_title, r' - [A-Z0-9]+-[0-9]+$') 
+              THEN TRIM(REGEXP_REPLACE(job_title, r' - [A-Z0-9]+-[0-9]+$', ''))
+              ELSE TRIM(job_title)
+            END as job_title,
+            CAST(CASE 
+              WHEN EXTRACT(MONTH FROM received_date) >= 10 
+              THEN EXTRACT(YEAR FROM received_date) + 1
+              ELSE EXTRACT(YEAR FROM received_date)
+            END AS STRING) as fiscal_year,
+            COUNT(*) as applications,
+            AVG(CASE 
+              WHEN case_status = 'Certified' THEN
+                CASE 
+                  WHEN wage_unit_of_pay = 'Hour' AND wage_rate_of_pay_from * 2080 BETWEEN 30000 AND 900000 THEN wage_rate_of_pay_from * 2080
+                  WHEN wage_unit_of_pay = 'Week' AND wage_rate_of_pay_from * 52 BETWEEN 30000 AND 900000 THEN wage_rate_of_pay_from * 52
+                  WHEN wage_unit_of_pay = 'Month' AND wage_rate_of_pay_from * 12 BETWEEN 30000 AND 900000 THEN wage_rate_of_pay_from * 12
+                  WHEN wage_unit_of_pay = 'Bi-Weekly' AND wage_rate_of_pay_from * 26 BETWEEN 30000 AND 900000 THEN wage_rate_of_pay_from * 26
+                  WHEN wage_unit_of_pay = 'Year' AND wage_rate_of_pay_from BETWEEN 30000 AND 900000 THEN wage_rate_of_pay_from
+                  ELSE NULL
+                END
+              ELSE NULL 
+            END) as avg_salary
+          FROM \`${this.projectId}.${this.datasetId}.${this.tableId}\`
+          ${whereClause}
+          AND job_title IS NOT NULL
+          AND received_date IS NOT NULL
+          GROUP BY job_title, fiscal_year
+        ),
+        job_title_growth AS (
+          SELECT 
+            job_title,
+            SUM(applications) as total_applications,
+            AVG(avg_salary) as avg_salary,
+            MAX(CASE WHEN fiscal_year = '2025' THEN applications END) as current_year_apps,
+            MAX(CASE WHEN fiscal_year = '2024' THEN applications END) as previous_year_apps
+          FROM job_title_yearly
+          GROUP BY job_title
+        ),
+        job_stats AS (
+          SELECT 
+            job_title,
+            total_applications as applications,
+            avg_salary,
+            current_year_apps,
+            previous_year_apps
+          FROM job_title_growth
+          ORDER BY total_applications DESC
+          LIMIT ${limit}
+        ),
+        total_count AS (
+          SELECT COUNT(*) as total_applications
+          FROM \`${this.projectId}.${this.datasetId}.${this.tableId}\`
+          ${whereClause}
+          AND job_title IS NOT NULL
+        )
+        SELECT 
+          job_title,
+          applications,
+          avg_salary,
+          ROUND(applications * 100.0 / total_count.total_applications, 2) as percentage,
+          current_year_apps,
+          previous_year_apps
+        FROM job_stats
+        CROSS JOIN total_count
+        ORDER BY applications DESC
+      `;
+
+      console.log(`[DEBUG] Executing popular jobs query with filters:`, filters);
+      
+      const [results] = await this.bigquery.query({
+        query: popularJobsQuery,
+        params,
+      });
+
+      const queryTime = Date.now() - startTime;
+      console.log(`[DEBUG] Popular jobs query completed in ${queryTime}ms, returned ${results.length} results`);
+
+      return results.map((row: any) => {
+        const currentYear = Number(row.current_year_apps) || null;
+        const previousYear = Number(row.previous_year_apps) || null;
+        const yoyData = this.calculateYoYGrowth(currentYear, previousYear);
+        
+        return {
+          jobTitle: row.job_title,
+          applications: row.applications || 0,
+          avgSalary: Math.round(row.avg_salary || 0),
+          percentage: row.percentage || 0,
+          yoyGrowth: yoyData.yoyGrowth,
+          yoyGrowthPercentage: yoyData.yoyGrowthPercentage,
+        };
+      });
+    } catch (error) {
+      console.error('Error fetching popular jobs:', error);
+      throw new Error(`Failed to fetch popular jobs: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
 }

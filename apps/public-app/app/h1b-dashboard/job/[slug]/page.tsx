@@ -76,7 +76,7 @@ export async function generateMetadata({ params, searchParams }: PageProps): Pro
   };
 }
 
-// Generate static paths for top job titles (helps with indexing)
+// Generate static paths for Top Paying Job Titles (helps with indexing)
 export async function generateStaticParams() {
   try {
     const response = await fetch(`${process.env.NEXT_PUBLIC_APP_URL || 'https://usimmigrantcentral.com'}/api/h1b-data?category=topJobTitles&limit=100`);

@@ -27,7 +27,7 @@ export function TopJobTitlesCard({ data, loading }: TopJobTitlesCardProps) {
     return (
       <Card className="w-full">
         <CardHeader>
-          <CardTitle>Top Job Titles</CardTitle>
+          <CardTitle>Top Paying Job Titles</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
@@ -50,7 +50,7 @@ export function TopJobTitlesCard({ data, loading }: TopJobTitlesCardProps) {
     return (
       <Card className="w-full">
         <CardHeader>
-          <CardTitle>Top Job Titles</CardTitle>
+          <CardTitle>Top Paying Job Titles</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="flex items-center justify-center h-32">
@@ -68,7 +68,7 @@ export function TopJobTitlesCard({ data, loading }: TopJobTitlesCardProps) {
   return (
     <Card className="w-full">
       <CardHeader className="pb-4">
-        <CardTitle className="text-lg font-semibold text-gray-900">Top Job Titles</CardTitle>
+        <CardTitle className="text-lg font-semibold text-gray-900">Top Paying Job Titles</CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
         {topJobTitles.map((item, index) => {

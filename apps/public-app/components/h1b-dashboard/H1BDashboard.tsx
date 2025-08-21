@@ -166,6 +166,8 @@ export const H1BDashboard: React.FC = () => {
       console.log('H1B data loaded:', {
         totalApplications: data.totalApplications,
         avgSalary: data.avgSalary,
+        avgSalaryFormatted: `$${((data.avgSalary || 0) / 1000).toFixed(0)}K`,
+        medianSalary: data.medianSalary,
         topEmployersCount: data.topEmployers?.length || 0,
         statesCount: data.stateDistribution?.length || 0,
       });

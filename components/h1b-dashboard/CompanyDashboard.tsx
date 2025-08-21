@@ -320,12 +320,12 @@ export const CompanyDashboard: React.FC<CompanyDashboardProps> = ({
           </CardContent>
         </Card>
 
-        {/* Top Job Titles */}
+        {/* Top Paying Job Titles */}
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center">
               <Briefcase className="w-5 h-5 mr-2" />
-              Top Job Titles
+              Top Paying Job Titles
             </CardTitle>
           </CardHeader>
           <CardContent>

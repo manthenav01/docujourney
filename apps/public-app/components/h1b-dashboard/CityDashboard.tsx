@@ -287,7 +287,7 @@ export const CityDashboard: React.FC<CityDashboardProps> = ({
           maxYears={5}
         />
 
-        {/* Top Job Titles - RIGHT (Primary Context) */}
+        {/* Top Paying Job Titles - RIGHT (Primary Context) */}
         <TopJobTitlesCard
           data={cityInfo.topJobTitles.map(job => ({
             jobTitle: job.jobTitle,

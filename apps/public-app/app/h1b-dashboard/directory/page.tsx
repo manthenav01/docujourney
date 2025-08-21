@@ -67,17 +67,17 @@ async function fetchTopCompanies(): Promise<Company[]> {
 
 async function fetchTopJobs(): Promise<Job[]> {
   try {
-    const response = await fetch(`${process.env.NEXT_PUBLIC_APP_URL || 'https://usimmigrantcentral.com'}/api/h1b-data?category=topJobTitles&limit=50`);
+    const response = await fetch(`${process.env.NEXT_PUBLIC_APP_URL || 'https://usimmigrantcentral.com'}/api/h1b-data`);
     if (!response.ok) {
       return [];
     }
     
     const data = await response.json();
-    return (data.data?.topJobTitles || [])
-      .filter((job: any) => job.job_title && typeof job.job_title === 'string')
+    return (data.data?.jobTitleDistribution || [])
+      .filter((job: any) => job.jobTitle && typeof job.jobTitle === 'string')
       .map((job: any) => ({
-        title: job.job_title,
-        slug: job.job_title.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
+        title: job.jobTitle,
+        slug: job.jobTitle.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
         applications: job.applications || 0,
       }));
   } catch (error) {
@@ -166,12 +166,12 @@ export default async function DirectoryPage() {
           </CardContent>
         </Card>
 
-        {/* Top Job Titles */}
+        {/* Top Paying Job Titles */}
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Briefcase className="w-5 h-5" />
-              Top H1B Job Titles
+              Top Paying H1B Jobs
             </CardTitle>
           </CardHeader>
           <CardContent>

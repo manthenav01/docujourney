@@ -47,7 +47,7 @@ const TopJobTitlesCardComponent: React.FC<TopJobTitlesCardProps> = ({ data, load
         <CardHeader>
           <CardTitle className="flex items-center">
           <Briefcase className="w-5 h-5 mr-2" />
-          Top Job Titles
+          Top Paying Jobs
         </CardTitle>
         </CardHeader>
         <CardContent>
@@ -73,7 +73,7 @@ const TopJobTitlesCardComponent: React.FC<TopJobTitlesCardProps> = ({ data, load
         <CardHeader>
           <CardTitle className="flex items-center">
           <Briefcase className="w-5 h-5 mr-2" />
-          Top Job Titles
+          Top Paying Jobs
         </CardTitle>
         </CardHeader>
         <CardContent>
@@ -90,7 +90,7 @@ const TopJobTitlesCardComponent: React.FC<TopJobTitlesCardProps> = ({ data, load
       <CardHeader>
         <CardTitle className="text-lg font-semibold flex items-center">
           <Briefcase className="w-5 h-5 mr-2" />
-          Top Job Titles
+          Top Paying Jobs
         </CardTitle>
       </CardHeader>
       <CardContent>
