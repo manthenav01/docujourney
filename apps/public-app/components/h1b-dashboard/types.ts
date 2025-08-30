@@ -2,7 +2,7 @@
 export interface FilterState {
   searchQuery: string;
   fiscalYear: string;
-  salaryRange: [number, number];
+  salaryRange?: [number, number];
   states: string[];
   cities: string[];
   jobCategories: string[];

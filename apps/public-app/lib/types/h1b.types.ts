@@ -78,6 +78,7 @@ export interface H1BJobTitleDistribution {
   percentage: number;
   yoyGrowth?: number | null;
   yoyGrowthPercentage?: number | null;
+  certificationRate?: number;
 }
 
 export interface H1BIndustryDistribution {
@@ -520,4 +521,53 @@ export interface BigQueryYearlyTrendRow {
 export interface BigQuerySalaryDistributionRow {
   salary_range: string;
   count: number;
+}
+
+// Wage Level Analysis Types - New H1B Rules Focus
+export interface H1BWageLevelData {
+  level: 'I' | 'II' | 'III' | 'IV' | 'Not Specified';
+  friendlyName: string;
+  description: string;
+  percentileRange: string;
+  totalApplications: number;
+  certifiedApplications: number;
+  certificationRate: number;
+  averageActualSalary: number;
+  averagePrevailingSalary: number;
+  salaryPremium: number;
+  salaryPremiumPercentage: number;
+  marketShare: number;
+  abovePrevailingCount: number;
+  abovePrevailingPercentage: number;
+  rank: number;
+}
+
+export interface H1BWageLevelAnalysis {
+  wageLevels: H1BWageLevelData[];
+  totalApplications: number;
+  overallCertificationRate: number;
+  averageSalaryPremium: number;
+  lastUpdated: string;
+}
+
+export interface H1BWageLevelGeographic {
+  state: string;
+  city?: string;
+  levelDistribution: {
+    level: string;
+    applications: number;
+    percentage: number;
+    avgSalary: number;
+  }[];
+}
+
+export interface H1BWageLevelIndustry {
+  industry: string;
+  levelDistribution: {
+    level: string;
+    applications: number;
+    percentage: number;
+    avgSalary: number;
+    certificationRate: number;
+  }[];
 }

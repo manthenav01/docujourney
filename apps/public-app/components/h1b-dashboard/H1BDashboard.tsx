@@ -28,6 +28,18 @@ import { Card, CardContent } from '@docujourney/ui';
 import { METRIC_CONFIGS } from '../../lib/metricCardConfig';
 import './dashboard.css';
 
+// Function to get the current fiscal year based on today's date
+const getCurrentFiscalYear = (): string => {
+  const now = new Date();
+  const currentYear = now.getFullYear();
+  const currentMonth = now.getMonth(); // 0-based (0 = January, 9 = October)
+  
+  // H1B fiscal year starts on October 1st
+  // If we're in October or later, we're in the next fiscal year
+  // If we're before October, we're still in the current fiscal year
+  return currentMonth >= 9 ? (currentYear + 1).toString() : currentYear.toString();
+};
+
 // Extend the H1BAggregatedData type to include cache information
 interface H1BDashboardData extends H1BAggregatedData {
   isFromCache?: boolean;
@@ -38,14 +50,14 @@ export const H1BDashboard: React.FC = () => {
   const [dashboardData, setDashboardData] = useState<H1BDashboardData | null>(null);
   const [filters, setFilters] = useState<FilterState>({
     searchQuery: '', // Keep this for search functionality
-    fiscalYear: '2025', // Default to current year
-    salaryRange: [0, 500000],
+    fiscalYear: getCurrentFiscalYear(),
     states: [],
     cities: [],
     jobCategories: [],
     skillLevels: [],
     companySizes: [],
     companyTypes: [],
+    salaryRange: [0, 1000000], // Add default salary range
   });
   const [activeNavItem, setActiveNavItem] = useState('overview');
   const [loading, setLoading] = useState(true);
@@ -57,7 +69,7 @@ export const H1BDashboard: React.FC = () => {
   const filterDependencies = useMemo(() => {
     return {
       fiscalYear: filters.fiscalYear,
-      salaryRange: `${filters.salaryRange[0]}-${filters.salaryRange[1]}`,
+      salaryRange: filters.salaryRange ? `${filters.salaryRange[0]}-${filters.salaryRange[1]}` : '0-1000000',
       states: JSON.stringify(filters.states.sort()),
       cities: JSON.stringify(filters.cities.sort()),
       jobCategories: JSON.stringify(filters.jobCategories.sort()),
@@ -132,11 +144,11 @@ export const H1BDashboard: React.FC = () => {
         params.append('states', filters.states.join(','));
       }
       
-      if (filters.salaryRange[0] > 0) {
+      if (filters.salaryRange && filters.salaryRange[0] > 0) {
         params.append('minSalary', filters.salaryRange[0].toString());
       }
       
-      if (filters.salaryRange[1] < 500000) {
+      if (filters.salaryRange && filters.salaryRange[1] < 1000000) {
         params.append('maxSalary', filters.salaryRange[1].toString());
       }
       
@@ -397,6 +409,7 @@ export const H1BDashboard: React.FC = () => {
           <VisualizationPanel
             dashboardData={memoizedDashboardData}
             chartsLoading={showInitialLoading || chartsLoading}
+            filters={filters}
           />
           
           {showInitialLoading ? (

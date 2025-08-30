@@ -5,19 +5,35 @@ import { SalaryDistributionChart } from './SalaryDistributionChart';
 import { HighestSalaryByStateChart } from './HighestSalaryByStateChart';
 import { TopJobTitlesCard } from './TopJobTitlesCard';
 import { TopAttorneysCard } from './TopAttorneysCard';
+import { TopWageLevelsCard } from './TopWageLevelsCard';
+import { TopCertifiedJobsCard } from './TopCertifiedJobsCard';
 import { Card, CardContent } from '@docujourney/ui';
 import { H1BAggregatedData } from '../../lib/types';
 
 interface VisualizationPanelProps {
   dashboardData: H1BAggregatedData;
   chartsLoading: boolean;
+  filters?: any; // Add filters prop for TopCertifiedJobsCard
 }
 
 const VisualizationPanelComponent: React.FC<VisualizationPanelProps> = ({
   dashboardData,
   chartsLoading,
+  filters,
 }) => {
   // Always call hooks at the top level
+  
+  // Transform filters to match component expectations
+  const transformedFilters = useMemo(() => {
+    if (!filters) return {};
+    
+    return {
+      fiscalYears: filters.fiscalYear ? [filters.fiscalYear] : [],
+      states: filters.states || [],
+      salaryRange: filters.salaryRange || [0, 1000000],
+      jobCategories: filters.jobCategories || [],
+    };
+  }, [filters]);
   const salaryDistributionData = useMemo(() => {
     if (!dashboardData.salaryDistribution || dashboardData.salaryDistribution.length === 0) {
       return [];
@@ -101,6 +117,30 @@ const VisualizationPanelComponent: React.FC<VisualizationPanelProps> = ({
           <TopJobTitlesCard data={[]} loading={true} />
           <TopAttorneysCard data={[]} loading={true} />
         </div>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <TopWageLevelsCard loading={true} />
+          <Card>
+            <CardContent className="p-6">
+              <div className="mb-4">
+                <div className="h-5 bg-muted rounded w-32 animate-pulse"></div>
+              </div>
+              <div className="space-y-3">
+                {[1,2,3,4].map(i => (
+                  <div key={i} className="flex items-center justify-between animate-pulse">
+                    <div className="flex items-center space-x-3">
+                      <div className="w-8 h-8 bg-muted rounded-lg"></div>
+                      <div className="space-y-1">
+                        <div className="h-4 bg-muted rounded w-32"></div>
+                        <div className="h-3 bg-muted rounded w-24"></div>
+                      </div>
+                    </div>
+                    <div className="h-4 bg-muted rounded w-12"></div>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
       </div>
     );
   }
@@ -128,6 +168,18 @@ const VisualizationPanelComponent: React.FC<VisualizationPanelProps> = ({
         />
         <TopAttorneysCard 
           data={dashboardData.topAttorneys || []}
+          loading={chartsLoading}
+        />
+      </div>
+      
+      {/* Row 3: Compliance Intelligence - Wage Level Analysis */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <TopWageLevelsCard 
+          filters={transformedFilters}
+          loading={chartsLoading}
+        />
+        <TopCertifiedJobsCard 
+          filters={transformedFilters}
           loading={chartsLoading}
         />
       </div>

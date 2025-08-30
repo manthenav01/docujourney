@@ -120,6 +120,81 @@ Frontend (Next.js) → API Routes → Firebase (Auth/Firestore/Storage)
 3. Update type definitions in `lib/types/`
 4. Use existing Firebase services in `lib/`
 
+### UX Design Consistency Guidelines
+**CRITICAL**: Always follow existing UX patterns when implementing new features.
+
+#### Card Component Standards
+- **Structure**: Always use `Card`, `CardHeader`, `CardTitle`, `CardContent` from `@docujourney/ui`
+- **Card Classes**: Apply `className="w-full"` to all Card components
+- **Title Format**: Use `className="text-lg font-semibold flex items-center"` for CardTitle
+- **Icons**: Include Lucide React icons with `className="w-5 h-5 mr-2"` (e.g., `Scale`, `CheckCircle`, `TrendingUp`)
+- **Memory Optimization**: Wrap components with `React.memo()` and set `displayName`
+- **Data Processing**: Use `useMemo()` for expensive calculations and data transformations
+
+#### List Item Pattern (REQUIRED)
+- **Container**: Use `space-y-2` for list spacing in CardContent
+- **Item Structure**: Each item must follow this pattern:
+  ```tsx
+  <Link
+    href="/path/to/detail"
+    className="flex items-center justify-between p-3 bg-muted/20 rounded-lg hover:bg-muted/30 transition-colors cursor-pointer"
+  >
+    <div className="flex items-center space-x-3">
+      <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center text-primary font-semibold">
+        {index + 1}
+      </div>
+      <div>
+        <div className="font-medium text-foreground">{primaryText}</div>
+        <div className="flex items-center gap-2">
+          <span className="text-sm text-muted-foreground">{metric1}</span>
+          <span className="text-sm text-muted-foreground/60">•</span>
+          <span className="text-sm text-muted-foreground">{metric2}</span>
+        </div>
+      </div>
+    </div>
+    <div className="text-right">
+      <div className="font-semibold text-foreground">{primaryMetric}</div>
+      <div className="text-xs text-muted-foreground">{metricLabel}</div>
+    </div>
+  </Link>
+  ```
+
+#### Loading States Pattern (REQUIRED)
+- **Structure**: Use exact same Card structure as main component
+- **Loading Items**: Create exactly 5 skeleton items using `[...Array(5)].map((_, index) => ...)`
+- **Skeleton Pattern**:
+  ```tsx
+  <div key={index} className="flex items-center justify-between animate-pulse">
+    <div className="flex items-center space-x-3">
+      <div className="w-6 h-6 bg-muted rounded-full"></div>
+      <div className="h-4 bg-muted rounded w-48"></div>
+    </div>
+    <div className="h-4 bg-muted rounded w-16"></div>
+  </div>
+  ```
+
+#### Empty States Pattern (REQUIRED)
+- **Container**: Use `flex items-center justify-center h-32`
+- **Message**: Simple text with `text-muted-foreground` class
+- **No Icons**: Don't include large placeholder icons in empty states
+
+#### Typography & Formatting
+- **Numbers**: Always use `formatNumber()` function with `toLocaleString()`
+- **Currency**: Use compact format (`$XXK`, `$X.XM`) via `formatSalary()` function  
+- **Percentages**: Display to 1 decimal place using `toFixed(1)` (e.g., `95.5%`)
+- **Primary Text**: Use `font-medium text-foreground` for main item names
+- **Secondary Text**: Use `text-sm text-muted-foreground` for metrics
+- **Text Truncation**: Limit primary text to ~35 characters with ellipsis
+
+#### Component Structure Requirements
+- **Exports**: Always export as `React.memo(ComponentFunction)`
+- **Display Name**: Set `ComponentFunction.displayName = 'ComponentName'`
+- **Props Interface**: Name as `ComponentNameProps`
+- **Data Processing**: Use `useMemo()` for data transformations
+- **Show Top 5**: Default to showing 5 items maximum in lists
+
+**Example Reference**: Use `TopAttorneysCard.tsx` as the definitive pattern for all ranking/list cards.
+
 ### Working with H1B Data
 1. Place raw Excel files in `scripts/data/2025-q2/`
 2. Run cleanup: `npm run cleanup:employer-data`

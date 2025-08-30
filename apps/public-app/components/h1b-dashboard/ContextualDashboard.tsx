@@ -32,6 +32,18 @@ interface ContextualDashboardProps {
   viewType: ViewType;
 }
 
+// Function to get the current fiscal year based on today's date
+const getCurrentFiscalYear = (): string => {
+  const now = new Date();
+  const currentYear = now.getFullYear();
+  const currentMonth = now.getMonth(); // 0-based (0 = January, 9 = October)
+  
+  // H1B fiscal year starts on October 1st
+  // If we're in October or later, we're in the next fiscal year
+  // If we're before October, we're still in the current fiscal year
+  return currentMonth >= 9 ? (currentYear + 1).toString() : currentYear.toString();
+};
+
 // MetricCard component (same as in H1BDashboard)
 const MetricCard = React.memo<{
   title: string;
@@ -75,8 +87,7 @@ const ContextualDashboardContent: React.FC<ContextualDashboardProps> = ({ viewTy
   const [dashboardData, setDashboardData] = React.useState<any>(null);
   const [localFilters, setLocalFilters] = React.useState<FilterState>({
     searchQuery: filters.searchQuery || '',
-    fiscalYear: filters.fiscalYear || '2025',
-    salaryRange: filters.salaryRange || [0, 500000],
+    fiscalYear: filters.fiscalYear || getCurrentFiscalYear(),
     states: filters.states || [],
     cities: filters.cities || [],
     jobCategories: filters.jobCategories || [],
@@ -86,6 +97,12 @@ const ContextualDashboardContent: React.FC<ContextualDashboardProps> = ({ viewTy
   });
   const [loading, setLoading] = React.useState(true);
   const [chartsLoading, setChartsLoading] = React.useState(false);
+
+  // Memoize filters to prevent unnecessary re-renders
+  const memoizedFilters = React.useMemo(() => ({
+    fiscalYears: [filters.fiscalYear || getCurrentFiscalYear()],
+    states: filters.states || [],
+  }), [filters.fiscalYear, filters.states]);
 
   // Sync URL filters with local filters
   React.useEffect(() => {
@@ -180,11 +197,11 @@ const ContextualDashboardContent: React.FC<ContextualDashboardProps> = ({ viewTy
         params.append('states', localFilters.states.join(','));
       }
       
-      if (localFilters.salaryRange[0] > 0) {
+      if (localFilters.salaryRange && localFilters.salaryRange[0] > 0) {
         params.append('minSalary', localFilters.salaryRange[0].toString());
       }
       
-      if (localFilters.salaryRange[1] < 500000) {
+      if (localFilters.salaryRange && localFilters.salaryRange[1] < 1000000) {
         params.append('maxSalary', localFilters.salaryRange[1].toString());
       }
       
@@ -402,6 +419,7 @@ const ContextualDashboardContent: React.FC<ContextualDashboardProps> = ({ viewTy
                 industryDistribution: [],
               }}
               chartsLoading={chartsLoading}
+              filters={memoizedFilters}
             />
             
             {/* Top Employers Table */}

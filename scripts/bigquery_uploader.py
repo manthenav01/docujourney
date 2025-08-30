@@ -1,12 +1,26 @@
 
 from google.cloud import bigquery
 from google.oauth2 import service_account
+from google.auth import default
 import pandas as pd
+import os
 
 def upload_dataframe_to_bigquery(df, project_id, dataset_id, table_id, key_file_path, schema=None, unique_id_columns=None, replace_table=False):
     """Uploads a pandas DataFrame to a BigQuery table, with deduplication based on unique_id_columns."""
-    credentials = service_account.Credentials.from_service_account_file(key_file_path)
-    client = bigquery.Client(project=project_id, credentials=credentials)
+    
+    # Try to use application default credentials if key_file_path points to them
+    if key_file_path and 'application_default_credentials.json' in key_file_path:
+        # Use application default credentials
+        credentials, _ = default()
+        client = bigquery.Client(project=project_id, credentials=credentials)
+    elif key_file_path and os.path.exists(key_file_path):
+        # Use service account file if it exists
+        credentials = service_account.Credentials.from_service_account_file(key_file_path)
+        client = bigquery.Client(project=project_id, credentials=credentials)
+    else:
+        # Fall back to application default credentials
+        credentials, _ = default()
+        client = bigquery.Client(project=project_id, credentials=credentials)
     table_ref = client.dataset(dataset_id).table(table_id)
 
     df_to_upload = df.copy() # Work on a copy to avoid modifying original DataFrame

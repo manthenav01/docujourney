@@ -13,6 +13,8 @@ import {
   H1BLawFirm,
   H1BJobTitleDistribution,
   BigQueryAttorneyRow,
+  H1BWageLevelAnalysis,
+  H1BWageLevelData,
 } from './types';
 import { validateAttorneyInput, ValidationError } from './validation';
 import { bigQueryConfig, environment } from './config';
@@ -112,7 +114,7 @@ export class H1BBigQueryService {
     const conditions: string[] = [];
     const params: any = {};
 
-    // Default to 2025 fiscal year if no years specified
+    // Default to current fiscal year if no years specified
     if (!filters.fiscalYears || filters.fiscalYears.length === 0) {
       conditions.push(`
         CASE 
@@ -121,7 +123,7 @@ export class H1BBigQueryService {
           ELSE EXTRACT(YEAR FROM received_date)
         END = @currentFiscalYear
       `);
-      params.currentFiscalYear = 2025;
+      params.currentFiscalYear = this.getCurrentFiscalYear();
     } else if (filters.fiscalYears.length > 0) {
       const yearPlaceholders = filters.fiscalYears.map((_, index) => `@fiscalYear${index}`);
       conditions.push(`
@@ -346,7 +348,7 @@ export class H1BBigQueryService {
           employer_name,
           yoy_growth_rate
         FROM employer_yoy_trends
-        WHERE fiscal_year = 2025  -- Current fiscal year
+        WHERE fiscal_year = ${this.getCurrentFiscalYear()}  -- Current fiscal year
         AND yoy_growth_rate IS NOT NULL
       )
       SELECT 
@@ -496,7 +498,7 @@ export class H1BBigQueryService {
           job_title,
           SUM(applications) as total_applications,
           AVG(avg_salary) as avg_salary,
-          MAX(CASE WHEN fiscal_year = '2025' THEN applications END) as current_year_apps,
+          MAX(CASE WHEN fiscal_year = '${this.getCurrentFiscalYear()}' THEN applications END) as current_year_apps,
           MAX(CASE WHEN fiscal_year = '2024' THEN applications END) as previous_year_apps
         FROM job_title_yearly
         GROUP BY job_title
@@ -980,7 +982,7 @@ export class H1BBigQueryService {
    */
   async getSearchSuggestions(query: string, limit: number = 10): Promise<any[]> {
     const lowerQuery = query.toLowerCase();
-    
+
     // Get job title suggestions
     const jobTitleQuery = `
       SELECT DISTINCT job_title as suggestion, 'job_title' as type, COUNT(*) as count
@@ -991,7 +993,7 @@ export class H1BBigQueryService {
       ORDER BY count DESC
       LIMIT @limit
     `;
-    
+
     // Get employer suggestions
     const employerQuery = `
       SELECT DISTINCT employer_name as suggestion, 'employer' as type, COUNT(*) as count
@@ -1025,7 +1027,7 @@ export class H1BBigQueryService {
       ORDER BY count DESC
       LIMIT @limit
     `;
-    
+
     try {
       const queries = [
         this.bigquery.query({
@@ -1053,9 +1055,9 @@ export class H1BBigQueryService {
       }
 
       const results = await Promise.all(queries);
-      
+
       const suggestions = [];
-      
+
       // Add job title suggestions
       suggestions.push(...results[0][0].map((row: any) => ({
         text: row.suggestion,
@@ -1063,7 +1065,7 @@ export class H1BBigQueryService {
         count: row.count,
         category: 'Job Titles',
       })));
-      
+
       // Add employer suggestions
       suggestions.push(...results[1][0].map((row: any) => ({
         text: row.suggestion,
@@ -1080,25 +1082,40 @@ export class H1BBigQueryService {
           count: row.count,
           category: 'States',
         })));
-        
-        if (results.length > 3) {
-          suggestions.push(...results[3][0].map((row: any) => ({
-            text: row.suggestion,
-            type: row.type,
-            count: row.count,
-            category: 'Cities',
-          })));
-        }
       }
-      
+
       return suggestions
         .sort((a, b) => b.count - a.count)
         .slice(0, limit);
-        
+
     } catch (error) {
       console.error('Error getting search suggestions:', error);
       return [];
     }
+  }
+
+  /**
+   * Get current fiscal year dynamically
+   */
+  private getCurrentFiscalYear(): number {
+    const now = new Date();
+    const currentMonth = now.getMonth() + 1; // getMonth() returns 0-11
+    const currentYear = now.getFullYear();
+
+    // Fiscal year starts in October (month 10)
+    return currentMonth >= 10 ? currentYear + 1 : currentYear;
+  }
+
+  /**
+   * Get salary range constants
+   */
+  private getSalaryConstants() {
+    return {
+      MIN_SALARY: 30000,
+      MAX_SALARY: 500000,
+      EXTENDED_MAX_SALARY: 900000,
+      ABSOLUTE_MAX_SALARY: 1000000,
+    };
   }
 
   /**
@@ -1113,17 +1130,17 @@ export class H1BBigQueryService {
       ORDER BY count DESC
       LIMIT 1
     `;
-    
+
     // Try exact match first
     const [exactResults] = await this.bigquery.query({
       query: searchQuery,
       params: { searchPattern: `%${searchName}%` },
     });
-    
+
     if (exactResults.length > 0) {
       return exactResults[0].employer_name;
     }
-    
+
     // If no exact match, try fuzzy matching
     const fuzzyQuery = `
       SELECT employer_name, COUNT(*) as count
@@ -1136,22 +1153,22 @@ export class H1BBigQueryService {
       ORDER BY count DESC
       LIMIT 1
     `;
-    
+
     // Create regex pattern to match company name with variations
     const regexPattern = `\\b${searchName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`;
-    
+
     const [fuzzyResults] = await this.bigquery.query({
       query: fuzzyQuery,
-      params: { 
+      params: {
         searchPattern: `%${searchName}%`,
         regexPattern,
       },
     });
-    
+
     if (fuzzyResults.length > 0) {
       return fuzzyResults[0].employer_name;
     }
-    
+
     // Return original name if no match found
     return searchName;
   }
@@ -1272,7 +1289,7 @@ export class H1BBigQueryService {
             SUM(applications) as total_applications,
             AVG(avgSalary) as avgSalary,
             AVG(avgSalary) as medianSalary,
-            MAX(CASE WHEN fiscal_year = '2025' THEN applications END) as current_year_apps,
+            MAX(CASE WHEN fiscal_year = '${this.getCurrentFiscalYear()}' THEN applications END) as current_year_apps,
             MAX(CASE WHEN fiscal_year = '2024' THEN applications END) as previous_year_apps
           FROM job_title_yearly
           GROUP BY jobTitle
@@ -1547,7 +1564,7 @@ export class H1BBigQueryService {
             SUM(applications) as total_applications,
             AVG(avgSalary) as avgSalary,
             AVG(avgSalary) as medianSalary,
-            MAX(CASE WHEN fiscal_year = '2025' THEN applications END) as current_year_apps,
+            MAX(CASE WHEN fiscal_year = '${this.getCurrentFiscalYear()}' THEN applications END) as current_year_apps,
             MAX(CASE WHEN fiscal_year = '2024' THEN applications END) as previous_year_apps
           FROM employer_yearly
           GROUP BY employer
@@ -1969,7 +1986,7 @@ export class H1BBigQueryService {
             SUM(applications) as total_applications,
             AVG(avgSalary) as avgSalary,
             AVG(avgSalary) as medianSalary,
-            MAX(CASE WHEN fiscal_year = '2025' THEN applications END) as current_year_apps,
+            MAX(CASE WHEN fiscal_year = '${this.getCurrentFiscalYear()}' THEN applications END) as current_year_apps,
             MAX(CASE WHEN fiscal_year = '2024' THEN applications END) as previous_year_apps
           FROM job_title_yearly
           GROUP BY jobTitle
@@ -2755,7 +2772,7 @@ export class H1BBigQueryService {
             SUM(applications) as total_applications,
             AVG(avg_salary) as avg_salary,
             AVG(certification_rate) as certification_rate,
-            MAX(CASE WHEN fiscal_year = '2025' THEN applications END) as current_year_apps,
+            MAX(CASE WHEN fiscal_year = '${this.getCurrentFiscalYear()}' THEN applications END) as current_year_apps,
             MAX(CASE WHEN fiscal_year = '2024' THEN applications END) as previous_year_apps
           FROM job_category_yearly
           GROUP BY job_category
@@ -2983,7 +3000,7 @@ export class H1BBigQueryService {
             job_title,
             SUM(applications) as total_applications,
             AVG(avg_salary) as avg_salary,
-            MAX(CASE WHEN fiscal_year = '2025' THEN applications END) as current_year_apps,
+            MAX(CASE WHEN fiscal_year = '${this.getCurrentFiscalYear()}' THEN applications END) as current_year_apps,
             MAX(CASE WHEN fiscal_year = '2024' THEN applications END) as previous_year_apps
           FROM job_title_yearly
           GROUP BY job_title
@@ -3044,6 +3061,279 @@ export class H1BBigQueryService {
     } catch (error) {
       console.error('Error fetching popular jobs:', error);
       throw new Error(`Failed to fetch popular jobs: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }
+
+  /**
+   * Get comprehensive wage level analysis for H1B applications
+   * Provides distribution, success rates, and salary insights for government wage levels (I-IV)
+   */
+  async getWageLevelAnalysis(filters: H1BQueryFilters = {}): Promise<H1BWageLevelAnalysis> {
+    try {
+      console.log('Fetching wage level analysis with filters:', filters);
+      
+      const { whereClause, params } = this.buildWhereClause(filters);
+      
+      // Main wage level analysis query
+      const wageLevelQuery = `
+        WITH wage_level_stats AS (
+          SELECT 
+            CASE 
+              WHEN pw_wage_level IS NULL OR TRIM(pw_wage_level) = '' THEN 'Not Specified'
+              WHEN UPPER(TRIM(pw_wage_level)) IN ('I', 'LEVEL I', '1') THEN 'I'
+              WHEN UPPER(TRIM(pw_wage_level)) IN ('II', 'LEVEL II', '2') THEN 'II'
+              WHEN UPPER(TRIM(pw_wage_level)) IN ('III', 'LEVEL III', '3') THEN 'III'
+              WHEN UPPER(TRIM(pw_wage_level)) IN ('IV', 'LEVEL IV', '4') THEN 'IV'
+              ELSE 'Not Specified'
+            END as wage_level,
+            COUNT(*) as total_applications,
+            COUNTIF(UPPER(case_status) = 'CERTIFIED') as certified_applications,
+            ROUND(COUNTIF(UPPER(case_status) = 'CERTIFIED') * 100.0 / COUNT(*), 2) as certification_rate,
+            ROUND(AVG(CASE 
+              WHEN prevailing_wage > 30000 AND prevailing_wage < 500000 
+              THEN prevailing_wage 
+              ELSE NULL 
+            END)) as avg_prevailing_wage,
+            ROUND(AVG(CASE 
+              WHEN wage_rate_of_pay_from > 30000 AND wage_rate_of_pay_from < 500000 
+              AND wage_unit_of_pay = 'Year'
+              THEN wage_rate_of_pay_from
+              WHEN wage_rate_of_pay_from > 15 AND wage_rate_of_pay_from < 250
+              AND wage_unit_of_pay = 'Hour'
+              THEN wage_rate_of_pay_from * 2080
+              ELSE NULL 
+            END)) as avg_actual_wage,
+            COUNTIF(
+              wage_rate_of_pay_from > prevailing_wage 
+              AND wage_rate_of_pay_from IS NOT NULL 
+              AND prevailing_wage IS NOT NULL
+            ) as above_prevailing_count
+          FROM \`${this.projectId}.${this.datasetId}.${this.tableId}\`
+          ${whereClause}
+          AND received_date >= '2024-10-01'  -- FY2025 focus
+          GROUP BY wage_level
+        ),
+        total_stats AS (
+          SELECT 
+            SUM(total_applications) as overall_total,
+            ROUND(AVG(certification_rate), 2) as overall_cert_rate,
+            ROUND(AVG(avg_actual_wage - avg_prevailing_wage), 0) as overall_premium
+          FROM wage_level_stats
+          WHERE wage_level != 'Not Specified'
+        )
+        SELECT 
+          wls.*,
+          ROUND((wls.total_applications * 100.0 / ts.overall_total), 2) as market_share,
+          ROUND((wls.avg_actual_wage - wls.avg_prevailing_wage), 0) as salary_premium,
+          ROUND(
+            CASE 
+              WHEN wls.avg_prevailing_wage > 0 
+              THEN ((wls.avg_actual_wage - wls.avg_prevailing_wage) * 100.0 / wls.avg_prevailing_wage)
+              ELSE 0 
+            END, 2
+          ) as salary_premium_percentage,
+          ROUND((wls.above_prevailing_count * 100.0 / wls.total_applications), 2) as above_prevailing_percentage,
+          ts.overall_total,
+          ts.overall_cert_rate,
+          ts.overall_premium
+        FROM wage_level_stats wls
+        CROSS JOIN total_stats ts
+        WHERE wls.wage_level != 'Not Specified'
+        ORDER BY 
+          CASE wls.wage_level
+            WHEN 'IV' THEN 1
+            WHEN 'III' THEN 2
+            WHEN 'II' THEN 3
+            WHEN 'I' THEN 4
+            ELSE 5
+          END
+      `;
+
+      const queryOptions = {
+        query: wageLevelQuery,
+        params: params,
+      };
+
+      const [results] = await this.bigquery.query(queryOptions);
+      
+      if (!results || results.length === 0) {
+        console.warn('No wage level data found');
+        return {
+          wageLevels: [],
+          totalApplications: 0,
+          overallCertificationRate: 0,
+          averageSalaryPremium: 0,
+          lastUpdated: new Date().toISOString(),
+        };
+      }
+
+      // Helper function to get wage level metadata
+      const getWageLevelInfo = (level: string) => {
+        switch (level) {
+          case 'I':
+            return {
+              friendlyName: 'Entry Level',
+              description: 'Basic skills required (10th percentile)',
+              percentileRange: '10th percentile',
+            };
+          case 'II':
+            return {
+              friendlyName: 'Qualified',
+              description: 'Standard professional level (25th percentile)',
+              percentileRange: '25th percentile',
+            };
+          case 'III':
+            return {
+              friendlyName: 'Experienced',
+              description: 'Specialized skills/experience (50th percentile)',
+              percentileRange: '50th percentile',
+            };
+          case 'IV':
+            return {
+              friendlyName: 'Senior Expert',
+              description: 'Advanced expertise (75th percentile)',
+              percentileRange: '75th percentile',
+            };
+          default:
+            return {
+              friendlyName: 'Not Specified',
+              description: 'Wage level not specified',
+              percentileRange: 'N/A',
+            };
+        }
+      };
+
+      // Process wage level data
+      const wageLevels: H1BWageLevelData[] = results.map((row: any, index: number) => {
+        const levelInfo = getWageLevelInfo(row.wage_level);
+        
+        return {
+          level: row.wage_level as 'I' | 'II' | 'III' | 'IV' | 'Not Specified',
+          friendlyName: levelInfo.friendlyName,
+          description: levelInfo.description,
+          percentileRange: levelInfo.percentileRange,
+          totalApplications: parseInt(row.total_applications) || 0,
+          certifiedApplications: parseInt(row.certified_applications) || 0,
+          certificationRate: parseFloat(row.certification_rate) || 0,
+          averageActualSalary: parseInt(row.avg_actual_wage) || 0,
+          averagePrevailingSalary: parseInt(row.avg_prevailing_wage) || 0,
+          salaryPremium: parseInt(row.salary_premium) || 0,
+          salaryPremiumPercentage: parseFloat(row.salary_premium_percentage) || 0,
+          marketShare: parseFloat(row.market_share) || 0,
+          abovePrevailingCount: parseInt(row.above_prevailing_count) || 0,
+          abovePrevailingPercentage: parseFloat(row.above_prevailing_percentage) || 0,
+          rank: index + 1,
+        };
+      });
+
+      const analysisResult: H1BWageLevelAnalysis = {
+        wageLevels,
+        totalApplications: parseInt(results[0]?.overall_total) || 0,
+        overallCertificationRate: parseFloat(results[0]?.overall_cert_rate) || 0,
+        averageSalaryPremium: parseInt(results[0]?.overall_premium) || 0,
+        lastUpdated: new Date().toISOString(),
+      };
+
+      console.log('Wage level analysis completed:', {
+        levelsFound: wageLevels.length,
+        totalApplications: analysisResult.totalApplications,
+        overallCertRate: analysisResult.overallCertificationRate,
+      });
+
+      return analysisResult;
+      
+    } catch (error) {
+      console.error('Error in getWageLevelAnalysis:', error);
+      throw new Error(`Failed to get wage level analysis: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }
+
+  /**
+   * Get job titles with highest certification rates
+   */
+  async getTopCertifiedJobTitles(filters: H1BQueryFilters = {}, limit: number = 10): Promise<H1BJobTitleDistribution[]> {
+    try {
+      const startTime = Date.now();
+      console.log(`[DEBUG] Starting getTopCertifiedJobTitles with limit: ${limit}`);
+
+      const { whereClause, params } = this.buildWhereClause(filters);
+
+      // Query for job titles with highest certification rates
+      const certifiedJobsQuery = `
+        WITH job_certification_stats AS (
+          SELECT 
+            REGEXP_REPLACE(job_title, r' - [A-Z0-9]+-[0-9]+', '') as job_title,
+            COUNT(*) as total_applications,
+            COUNT(CASE WHEN UPPER(case_status) = 'CERTIFIED' THEN 1 END) as certified_applications,
+            ROUND(COUNT(CASE WHEN UPPER(case_status) = 'CERTIFIED' THEN 1 END) * 100.0 / COUNT(*), 1) as certification_rate,
+            ROUND(AVG(CASE 
+              WHEN case_status = 'Certified' AND wage_rate_of_pay_from BETWEEN 30000 AND 900000 
+              THEN 
+                CASE wage_unit_of_pay
+                  WHEN 'Year' THEN wage_rate_of_pay_from
+                  WHEN 'Hour' THEN wage_rate_of_pay_from * 2080  -- 52 weeks * 40 hours
+                  WHEN 'Week' THEN wage_rate_of_pay_from * 52
+                  WHEN 'Month' THEN wage_rate_of_pay_from * 12
+                  WHEN 'Bi-Weekly' THEN wage_rate_of_pay_from * 26
+                  ELSE wage_rate_of_pay_from
+                END 
+              ELSE NULL 
+            END)) as avg_salary,
+            -- Year-over-year comparison for current vs previous fiscal year
+            COUNT(CASE WHEN received_date >= '2024-10-01' AND UPPER(case_status) = 'CERTIFIED' THEN 1 END) as current_year_certified,
+            COUNT(CASE WHEN received_date >= '2023-10-01' AND received_date < '2024-10-01' AND UPPER(case_status) = 'CERTIFIED' THEN 1 END) as previous_year_certified
+          FROM \`${this.projectId}.${this.datasetId}.${this.tableId}\`
+          ${whereClause}
+          AND job_title IS NOT NULL
+          GROUP BY job_title
+          HAVING total_applications >= 20  -- Filter out jobs with very few applications for statistical significance
+        ),
+        total_count AS (
+          SELECT SUM(total_applications) as total_applications
+          FROM job_certification_stats
+        )
+        SELECT 
+          job_certification_stats.job_title,
+          job_certification_stats.total_applications as applications,
+          job_certification_stats.avg_salary,
+          ROUND(job_certification_stats.total_applications * 100.0 / total_count.total_applications, 2) as percentage,
+          job_certification_stats.certification_rate,
+          job_certification_stats.current_year_certified,
+          job_certification_stats.previous_year_certified
+        FROM job_certification_stats
+        CROSS JOIN total_count
+        ORDER BY job_certification_stats.certification_rate DESC, job_certification_stats.total_applications DESC  -- Sort by certification rate first, then by volume
+        LIMIT ${limit}
+      `;
+
+      console.log(`[DEBUG] Executing certified jobs query with filters:`, filters);
+      
+      const [results] = await this.bigquery.query({
+        query: certifiedJobsQuery,
+        params,
+      });
+
+      const queryTime = Date.now() - startTime;
+      console.log(`[DEBUG] Certified jobs query completed in ${queryTime}ms, returned ${results.length} results`);
+
+      return results.map((row: any) => {
+        const currentYear = Number(row.current_year_certified) || null;
+        const previousYear = Number(row.previous_year_certified) || null;
+        const yoyData = this.calculateYoYGrowth(currentYear, previousYear);
+        
+        return {
+          jobTitle: row.job_title,
+          applications: row.applications || 0,
+          avgSalary: Math.round(row.avg_salary || 0),
+          percentage: row.percentage || 0,
+          certificationRate: row.certification_rate || 0,
+          yoyGrowth: yoyData.yoyGrowth,
+          yoyGrowthPercentage: yoyData.yoyGrowthPercentage,
+        };
+      });
+    } catch (error) {
+      console.error('Error fetching top certified job titles:', error);
+      throw new Error(`Failed to fetch top certified job titles: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
 }

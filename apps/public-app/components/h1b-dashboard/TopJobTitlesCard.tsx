@@ -4,6 +4,7 @@ import React, { useMemo, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle } from '@docujourney/ui';
 import { Briefcase, TrendingUp, TrendingDown } from 'lucide-react';
+import { formatJobTitle } from '../../lib/utils/stringUtils';
 
 interface JobTitleData {
   jobTitle: string
@@ -24,8 +25,8 @@ const TopJobTitlesCardComponent: React.FC<TopJobTitlesCardProps> = ({ data, load
   const router = useRouter();
 
   const handleJobClick = useCallback((jobTitle: string) => {
-    const jobSlug = jobTitle.toLowerCase().replace(/[^a-z0-9]+/g, '-');
-    router.push(`/h1b-dashboard/job/${encodeURIComponent(jobSlug)}?title=${encodeURIComponent(jobTitle)}`);
+    const jobSlug = formatJobTitle(jobTitle).toLowerCase().replace(/[^a-z0-9]+/g, '-');
+    router.push(`/h1b-dashboard/job/${encodeURIComponent(jobSlug)}?title=${encodeURIComponent(formatJobTitle(jobTitle))}`);
   }, [router]);
 
   // Memoize processed data to prevent recalculation on every render
@@ -106,7 +107,7 @@ const TopJobTitlesCardComponent: React.FC<TopJobTitlesCardProps> = ({ data, load
                   {index + 1}
                 </div>
                 <div>
-                  <div className="font-medium text-foreground">{item.jobTitle}</div>
+                  <div className="font-medium text-foreground">{formatJobTitle(item.jobTitle)}</div>
                   <div className="flex items-center gap-2">
                     <span className="text-sm text-muted-foreground">
                       {item.applications.toLocaleString()} applications ({item.percentage.toFixed(1)}%)

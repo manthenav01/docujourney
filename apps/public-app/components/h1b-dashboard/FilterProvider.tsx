@@ -32,7 +32,6 @@ const getCurrentFiscalYear = (): string => {
 const defaultFilters: FilterState = {
   searchQuery: '',
   fiscalYear: getCurrentFiscalYear(),
-  salaryRange: [0, 300000],
   states: [],
   cities: [],
   jobCategories: [],
@@ -104,8 +103,8 @@ export const FilterProvider: React.FC<FilterProviderProps> = ({
     const maxSalary = searchParams.get('max_salary');
     if (minSalary || maxSalary) {
       urlFilters.salaryRange = [
-        minSalary ? parseInt(minSalary) : defaultFilters.salaryRange[0],
-        maxSalary ? parseInt(maxSalary) : defaultFilters.salaryRange[1],
+        minSalary ? parseInt(minSalary) : 0,
+        maxSalary ? parseInt(maxSalary) : 1000000,
       ];
     }
 
@@ -173,13 +172,11 @@ export const FilterProvider: React.FC<FilterProviderProps> = ({
       params.set('year', newFilters.fiscalYear);
     }
 
-    if (newFilters.salaryRange && 
-        (newFilters.salaryRange[0] !== defaultFilters.salaryRange[0] || 
-         newFilters.salaryRange[1] !== defaultFilters.salaryRange[1])) {
-      if (newFilters.salaryRange[0] > defaultFilters.salaryRange[0]) {
+    if (newFilters.salaryRange) {
+      if (newFilters.salaryRange[0] > 0) {
         params.set('min_salary', newFilters.salaryRange[0].toString());
       }
-      if (newFilters.salaryRange[1] < defaultFilters.salaryRange[1]) {
+      if (newFilters.salaryRange[1] < 1000000) {
         params.set('max_salary', newFilters.salaryRange[1].toString());
       }
     }
@@ -236,8 +233,7 @@ export const useURLFilters = () => {
     return (
       filters.searchQuery !== defaultFilters.searchQuery ||
       filters.fiscalYear !== defaultFilters.fiscalYear ||
-      filters.salaryRange[0] !== defaultFilters.salaryRange[0] ||
-      filters.salaryRange[1] !== defaultFilters.salaryRange[1] ||
+      (filters.salaryRange && (filters.salaryRange[0] !== 0 || filters.salaryRange[1] !== 1000000)) ||
       filters.states.length > 0 ||
       filters.cities.length > 0 ||
       filters.jobCategories.length > 0 ||

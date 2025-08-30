@@ -25,6 +25,18 @@ import {
 } from 'lucide-react';
 import './dashboard.css';
 
+// Function to get the current fiscal year based on today's date
+const getCurrentFiscalYear = (): string => {
+  const now = new Date();
+  const currentYear = now.getFullYear();
+  const currentMonth = now.getMonth(); // 0-based (0 = January, 9 = October)
+  
+  // H1B fiscal year starts on October 1st
+  // If we're in October or later, we're in the next fiscal year
+  // If we're before October, we're still in the current fiscal year
+  return currentMonth >= 9 ? (currentYear + 1).toString() : currentYear.toString();
+};
+
 // BigQuery data structure
 interface H1BDashboardData {
   totalApplications: number;
@@ -83,8 +95,7 @@ export const H1BDashboard: React.FC = () => {
   const [dashboardData, setDashboardData] = useState<H1BDashboardData | null>(null);
   const [filters, setFilters] = useState<FilterState>({
     searchQuery: '', // Keep this for search functionality
-    fiscalYears: [],
-    salaryRange: [0, 500000],
+    fiscalYears: [getCurrentFiscalYear()],
     states: [],
     cities: [],
     jobCategories: [],
@@ -145,11 +156,11 @@ export const H1BDashboard: React.FC = () => {
         params.append('states', filters.states.join(','));
       }
       
-      if (filters.salaryRange[0] > 0) {
+      if (filters.salaryRange && filters.salaryRange[0] > 0) {
         params.append('minSalary', filters.salaryRange[0].toString());
       }
       
-      if (filters.salaryRange[1] < 500000) {
+      if (filters.salaryRange && filters.salaryRange[1] < 1000000) {
         params.append('maxSalary', filters.salaryRange[1].toString());
       }
       
