@@ -70,12 +70,12 @@ export const H1BDashboard: React.FC = () => {
     return {
       fiscalYear: filters.fiscalYear,
       salaryRange: filters.salaryRange ? `${filters.salaryRange[0]}-${filters.salaryRange[1]}` : '0-1000000',
-      states: JSON.stringify(filters.states.sort()),
-      cities: JSON.stringify(filters.cities.sort()),
-      jobCategories: JSON.stringify(filters.jobCategories.sort()),
-      skillLevels: JSON.stringify(filters.skillLevels.sort()),
-      companySizes: JSON.stringify(filters.companySizes.sort()),
-      companyTypes: JSON.stringify(filters.companyTypes.sort()),
+      states: JSON.stringify((filters.states || []).sort()),
+      cities: JSON.stringify((filters.cities || []).sort()),
+      jobCategories: JSON.stringify((filters.jobCategories || []).sort()),
+      skillLevels: JSON.stringify((filters.skillLevels || []).sort()),
+      companySizes: JSON.stringify((filters.companySizes || []).sort()),
+      companyTypes: JSON.stringify((filters.companyTypes || []).sort()),
     };
   }, [
     filters.fiscalYear,
@@ -140,7 +140,7 @@ export const H1BDashboard: React.FC = () => {
         params.append('fiscalYears', yearToUse);
       }
       
-      if (filters.states.length > 0) {
+      if (filters.states && filters.states.length > 0) {
         params.append('states', filters.states.join(','));
       }
       

@@ -25,7 +25,9 @@ const VisualizationPanelComponent: React.FC<VisualizationPanelProps> = ({
   
   // Transform filters to match component expectations
   const transformedFilters = useMemo(() => {
-    if (!filters) return {};
+    if (!filters) {
+      return {};
+    }
     
     return {
       fiscalYears: filters.fiscalYear ? [filters.fiscalYear] : [],

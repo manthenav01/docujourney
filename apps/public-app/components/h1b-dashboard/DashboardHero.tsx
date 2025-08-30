@@ -102,10 +102,10 @@ export const DashboardHero: React.FC<DashboardHeroProps> = ({
       
       // Fall back to auto-applying location filter for states only
       const state = suggestion.text.split(',')[1]?.trim() || suggestion.text.trim();
-      if (state && !filters.states.includes(state)) {
+      if (state && !filters.states?.includes(state)) {
         setFilters(prev => ({
           ...prev,
-          states: [...prev.states, state],
+          states: [...(prev.states || []), state],
         }));
       }
     }

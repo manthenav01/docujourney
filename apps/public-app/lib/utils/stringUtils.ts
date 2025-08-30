@@ -24,7 +24,7 @@ export function formatJobTitle(jobTitle: string): string {
     'AWS', 'GCP', 'AZURE', 'SQL', 'NOSQL', 'API', 'UI', 'UX', 'QA', 'QC',
     'HTML', 'CSS', 'JS', 'TS', 'C++', 'C#', 'F#', 'R', 'SAS', 'SPSS',
     'CEO', 'CTO', 'CFO', 'COO', 'VP', 'SVP', 'EVP', 'GM', 'PM', 'PO',
-    'USA', 'US', 'UK', 'EU', 'APAC', 'EMEA', 'NA', 'SA', 'LATAM'
+    'USA', 'US', 'UK', 'EU', 'APAC', 'EMEA', 'NA', 'SA', 'LATAM',
   ];
 
   // Split by common separators and process each part

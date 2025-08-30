@@ -193,7 +193,7 @@ const ContextualDashboardContent: React.FC<ContextualDashboardProps> = ({ viewTy
         params.append('fiscalYears', yearToUse);
       }
       
-      if (localFilters.states.length > 0) {
+      if (localFilters.states && localFilters.states.length > 0) {
         params.append('states', localFilters.states.join(','));
       }
       

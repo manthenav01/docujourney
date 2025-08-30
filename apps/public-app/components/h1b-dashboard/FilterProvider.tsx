@@ -234,12 +234,12 @@ export const useURLFilters = () => {
       filters.searchQuery !== defaultFilters.searchQuery ||
       filters.fiscalYear !== defaultFilters.fiscalYear ||
       (filters.salaryRange && (filters.salaryRange[0] !== 0 || filters.salaryRange[1] !== 1000000)) ||
-      filters.states.length > 0 ||
-      filters.cities.length > 0 ||
-      filters.jobCategories.length > 0 ||
-      filters.skillLevels.length > 0 ||
-      filters.companySizes.length > 0 ||
-      filters.companyTypes.length > 0
+      (filters.states?.length || 0) > 0 ||
+      (filters.cities?.length || 0) > 0 ||
+      (filters.jobCategories?.length || 0) > 0 ||
+      (filters.skillLevels?.length || 0) > 0 ||
+      (filters.companySizes?.length || 0) > 0 ||
+      (filters.companyTypes?.length || 0) > 0
     );
   }, [filters]);
 

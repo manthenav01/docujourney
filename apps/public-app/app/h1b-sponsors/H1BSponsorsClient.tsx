@@ -4,18 +4,7 @@ import { useState, useEffect, useCallback, useTransition } from 'react';
 import { EmployersHero } from '@/components/h1b-dashboard/EmployersHero';
 import { ClientErrorBoundary } from './ClientErrorBoundary';
 import { useRouter, useSearchParams, usePathname } from 'next/navigation';
-
-interface FilterState {
-  searchQuery: string;
-  fiscalYear: string;
-  salaryRange: [number, number];
-  states: string[];
-  cities: string[];
-  jobCategories: string[];
-  skillLevels: string[];
-  companySizes: string[];
-  companyTypes: string[];
-}
+import { FilterState } from '@/components/h1b-dashboard/types';
 
 interface H1BSponsorsClientProps {
   initialPage?: number;

@@ -3,12 +3,12 @@ export interface FilterState {
   searchQuery: string;
   fiscalYear: string;
   salaryRange?: [number, number];
-  states: string[];
-  cities: string[];
-  jobCategories: string[];
-  skillLevels: string[];
-  companySizes: string[];
-  companyTypes: string[];
+  states?: string[];
+  cities?: string[];
+  jobCategories?: string[];
+  skillLevels?: string[];
+  companySizes?: string[];
+  companyTypes?: string[];
 }
 
 export interface H1BData {
