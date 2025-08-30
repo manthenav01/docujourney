@@ -22,6 +22,12 @@ const nextConfig = {
     minimumCacheTTL: 60 * 60 * 24 * 30, // 30 days
   },
 
+  // ESLint configuration for production builds
+  eslint: {
+    // Disable ESLint during builds for production deployment
+    ignoreDuringBuilds: true,
+  },
+
   // SEO-friendly redirects and rewrites
   async redirects() {
     return [

@@ -12,6 +12,13 @@ Allow: /h1b-dashboard/jobs
 Allow: /h1b-dashboard/locations
 Allow: /h1b-dashboard/attorneys
 
+# Allow blog pages
+Allow: /blog
+Allow: /blog/*
+Allow: /blog/category/*
+Allow: /blog/feed.xml
+Allow: /blog/atom.xml
+
 # Allow content pages
 Allow: /about
 Allow: /contact

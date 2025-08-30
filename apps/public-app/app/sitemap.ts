@@ -1,5 +1,6 @@
 import { MetadataRoute } from 'next';
 import { getSEOSitemapEntries } from '@/lib/seoUrlGenerator';
+import { getAllPosts, getCategories } from '@/lib/blog/content';
 
 async function fetchTopCompanies(): Promise<Array<{ name: string; slug: string }>> {
   try {
@@ -89,10 +90,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://usimmigrantcentral.com';
   
   // Fetch data for dynamic pages
-  const [topCompanies, topJobs, topCities] = await Promise.all([
+  const [topCompanies, topJobs, topCities, blogPosts, blogCategories] = await Promise.all([
     fetchTopCompanies(),
     fetchTopJobs(),
     fetchTopCities(),
+    getAllPosts(),
+    getCategories(),
   ]);
   
   // Static pages
@@ -171,6 +174,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: 'daily',
       priority: 0.9,
     },
+    // Blog main page
+    {
+      url: `${baseUrl}/blog`,
+      lastModified: new Date(),
+      changeFrequency: 'daily',
+      priority: 0.9,
+    },
   ];
   
   // Dynamic company pages
@@ -210,6 +220,22 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     };
   });
   
+  // Blog post pages
+  const blogPostPages: MetadataRoute.Sitemap = blogPosts.map(post => ({
+    url: `${baseUrl}/blog/${post.slug}`,
+    lastModified: new Date(post.updated || post.date),
+    changeFrequency: 'monthly' as const,
+    priority: 0.7,
+  }));
+  
+  // Blog category pages
+  const blogCategoryPages: MetadataRoute.Sitemap = blogCategories.map(category => ({
+    url: `${baseUrl}/blog/category/${category.slug}`,
+    lastModified: new Date(),
+    changeFrequency: 'weekly' as const,
+    priority: 0.8,
+  }));
+  
   // High-value SEO URLs
   const seoPages = getSEOSitemapEntries();
   
@@ -217,6 +243,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   return [
     ...staticPages,
     ...seoPages, // High-priority SEO URLs
+    ...blogPostPages, // All blog posts
+    ...blogCategoryPages, // All blog categories
     ...companyPages.slice(0, 1000), // Limit to top 1000 companies
     ...jobPages.slice(0, 500), // Limit to top 500 jobs
     ...statePages, // All state pages

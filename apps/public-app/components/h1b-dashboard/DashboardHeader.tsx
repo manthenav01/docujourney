@@ -25,6 +25,7 @@ const DashboardHeaderContent: React.FC = () => {
     { id: 'jobs', label: 'Jobs', path: '/h1b-dashboard/jobs' },
     { id: 'locations', label: 'Locations', path: '/h1b-dashboard/locations' },
     { id: 'attorneys', label: 'Attorneys', path: '/h1b-dashboard/attorneys' },
+    { id: 'blog', label: 'Blog', path: '/blog' },
     { id: 'about', label: 'About', path: '/about' },
   ];
 
@@ -69,6 +70,9 @@ const DashboardHeaderContent: React.FC = () => {
     }
     if (pathname.includes('/attorneys') || pathname.includes('/attorney/')) {
       return 'attorneys';
+    }
+    if (pathname === '/blog' || pathname.includes('/blog/')) {
+      return 'blog';
     }
     if (pathname === '/about') {
       return 'about';
@@ -168,6 +172,7 @@ const DashboardHeaderFallback: React.FC = () => {
     { id: 'jobs', label: 'Jobs', path: '/h1b-dashboard/jobs' },
     { id: 'locations', label: 'Locations', path: '/h1b-dashboard/locations' },
     { id: 'attorneys', label: 'Attorneys', path: '/h1b-dashboard/attorneys' },
+    { id: 'blog', label: 'Blog', path: '/blog' },
     { id: 'about', label: 'About', path: '/about' },
   ];
 
@@ -192,6 +197,9 @@ const DashboardHeaderFallback: React.FC = () => {
     }
     if (pathname.includes('/attorneys') || pathname.includes('/attorney/')) {
       return 'attorneys';
+    }
+    if (pathname === '/blog' || pathname.includes('/blog/')) {
+      return 'blog';
     }
     if (pathname === '/about') {
       return 'about';

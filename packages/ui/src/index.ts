@@ -1,4 +1,5 @@
 // Export all UI components
+export * from './components/avatar';
 export * from './components/badge';
 export * from './components/Button';
 export * from './components/calendar';

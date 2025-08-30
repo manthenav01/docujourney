@@ -94,7 +94,7 @@ export function generateMetadata({
       title: fullTitle,
       description,
       images: [fullImage],
-      creator: '@docujourney',
+      creator: '@immigracentral',
     },
     ...(noIndex ? {} : {
       alternates: {
