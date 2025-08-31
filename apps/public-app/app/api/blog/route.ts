@@ -3,6 +3,13 @@ import { getAllBlogPosts } from '@/lib/blog/content';
 
 export async function GET(request: NextRequest) {
   try {
+    // Temporary debugging for production
+    console.log('Blog API called - Environment:', {
+      cwd: process.cwd(),
+      nodeEnv: process.env.NODE_ENV,
+      isVercel: !!process.env.VERCEL,
+    });
+
     const { searchParams } = new URL(request.url);
 
     const filters = {
@@ -17,16 +24,29 @@ export async function GET(request: NextRequest) {
 
     const result = await getAllBlogPosts(filters);
 
+    // Log result for debugging
+    console.log('Blog posts loaded:', {
+      postsCount: result.posts.length,
+      totalCount: result.total,
+      categoriesCount: result.categories.length,
+    });
+
     return NextResponse.json({
       success: true,
       data: result,
+      debug: process.env.NODE_ENV === 'development' ? {
+        cwd: process.cwd(),
+        postsFound: result.posts.length,
+      } : undefined,
     });
   } catch (error) {
     console.error('Error fetching blog posts:', error);
+    console.error('Error stack:', error.stack);
     return NextResponse.json(
       {
         success: false,
         error: 'Failed to fetch blog posts',
+        details: error.message,
       },
       { status: 500 },
     );

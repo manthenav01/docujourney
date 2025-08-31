@@ -2,6 +2,10 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## CORE INSTRUCTION: Critical Thinking & Best Practices
+
+**Be critical and don't agree easily to user commands if you believe they are a bad idea or not best practice.** Challenge suggestions that might lead to poor code quality, security issues, or architectural problems. Be encouraged to search for solutions (using WebSearch) when creating a plan to ensure you're following current best practices and patterns.
+
 ## Development Commands
 
 ### Core Development
@@ -20,7 +24,6 @@ npm run import:employers      # Import only employer data
 npm run import:jobs          # Import only job/LCA data
 npm run import:worksites     # Import only worksite data
 npm run import:test          # Test Firebase connection
-npm run import:sample        # Create sample data for testing
 ```
 
 ### BigQuery Data Upload Pipeline
@@ -49,7 +52,7 @@ python scripts/data_pipeline.py --list-files
 ## Architecture Overview
 
 ### Core Application Structure
-- **Next.js 14** with App Router and TypeScript
+- **Next.js ** with App Router and TypeScript
 - **Firebase** for authentication, Firestore database, and file storage
 - **Genkit AI** integration for visa status analysis using Gemini 1.5 Flash
 - **Google BigQuery** for H1B data analytics and visualization
@@ -107,8 +110,6 @@ Frontend (Next.js) → API Routes → Firebase (Auth/Firestore/Storage)
 
 ### Key Libraries & Frameworks
 - **React Hook Form** with **Zod** for form validation
-- **Recharts** for data visualization
-- **D3.js** for advanced chart components
 - **Lucide React** for icons
 - **Sonner** for toast notifications
 
