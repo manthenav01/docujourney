@@ -286,7 +286,10 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json(stats, {
       headers: {
-        'Cache-Control': 'public, s-maxage=3600, stale-while-revalidate=86400',
+        // Dynamic cache based on environment
+        'Cache-Control': process.env.NODE_ENV === 'production' 
+          ? 'public, s-maxage=300, stale-while-revalidate=600' // 5 min cache in prod
+          : 'no-store, no-cache, must-revalidate', // No cache in dev
       },
     });
   } catch (error) {

@@ -76,28 +76,9 @@ export async function generateMetadata({ params, searchParams }: PageProps): Pro
   };
 }
 
-// Generate static paths for Top Paying Job Titles (helps with indexing)
-export async function generateStaticParams() {
-  try {
-    const response = await fetch(`${process.env.NEXT_PUBLIC_APP_URL || 'https://usimmigrantcentral.com'}/api/h1b-data?category=topJobTitles&limit=100`);
-    if (!response.ok) {
-      return [];
-    }
-    
-    const data = await response.json();
-    const jobs = data.data?.topJobTitles || [];
-    
-    return jobs
-      .filter((job: any) => job.job_title && typeof job.job_title === 'string')
-      .slice(0, 50) // Generate static pages for top 50 job titles
-      .map((job: any) => ({
-        slug: job.job_title.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
-      }));
-  } catch (error) {
-    console.error('Error generating static params for jobs:', error);
-    return [];
-  }
-}
+// Force dynamic rendering to support all job titles
+export const dynamic = 'force-dynamic';
+export const dynamicParams = true;
 
 export default async function JobPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;

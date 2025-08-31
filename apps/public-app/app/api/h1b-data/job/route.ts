@@ -44,7 +44,16 @@ export async function GET(request: NextRequest): Promise<NextResponse<H1BApiResp
       },
     };
     
-    return NextResponse.json(response);
+    // Dynamic cache based on environment
+    const cacheControl = process.env.NODE_ENV === 'production' 
+      ? 'public, s-maxage=300, stale-while-revalidate=600' // 5 min cache in prod
+      : 'no-store, no-cache, must-revalidate'; // No cache in dev
+    
+    return NextResponse.json(response, {
+      headers: {
+        'Cache-Control': cacheControl,
+      },
+    });
   } catch (error) {
     const queryTime = Date.now() - startTime;
     console.error('Job API error:', {

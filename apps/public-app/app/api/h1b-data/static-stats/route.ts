@@ -222,8 +222,8 @@ export async function GET(): Promise<NextResponse<StaticStatsResponse | { error:
                           (!process.env.VERCEL_ENV && process.env.NODE_ENV !== 'production');
     
     const cacheControl = isDevelopment
-      ? 'no-store, no-cache, must-revalidate'
-      : 'public, s-maxage=86400, max-age=3600, stale-while-revalidate=3600';
+      ? 'no-store, no-cache, must-revalidate' // No cache in dev
+      : 'public, s-maxage=300, stale-while-revalidate=600'; // 5 min cache in prod
     
     if (isDevelopment) {
       console.log('🔧 Development mode: Cache disabled for static-stats');

@@ -40,9 +40,11 @@ export async function GET(request: NextRequest) {
     // Add cache control headers for production
     const nextResponse = NextResponse.json(response);
     
-    // Cache for 24 hours in production, 5 minutes in development
-    const cacheTime = process.env.NODE_ENV === 'production' ? 86400 : 300;
-    nextResponse.headers.set('Cache-Control', `public, s-maxage=${cacheTime}, stale-while-revalidate=${cacheTime * 2}`);
+    // Dynamic cache based on environment
+    const cacheControl = process.env.NODE_ENV === 'production' 
+      ? 'public, s-maxage=300, stale-while-revalidate=600' // 5 min cache in prod
+      : 'no-store, no-cache, must-revalidate'; // No cache in dev
+    nextResponse.headers.set('Cache-Control', cacheControl);
     
     return nextResponse;
   } catch (error) {
