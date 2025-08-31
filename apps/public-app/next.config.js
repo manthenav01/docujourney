@@ -10,15 +10,6 @@ const nextConfig = {
       ignored: /node_modules/,
     };
     
-    // Copy content directory to build output for Vercel
-    config.module.rules.push({
-      test: /\.md$/,
-      type: 'asset/resource',
-      generator: {
-        filename: 'static/content/[name][ext]',
-      },
-    });
-    
     return config;
   },
   
