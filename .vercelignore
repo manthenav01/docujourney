@@ -23,9 +23,16 @@ firebase-admin-prod.json
 .vercel-env-test
 .vercel-credentials-test
 
-# Ignore documentation and setup files
-*.md
+# Ignore documentation and setup files - but keep blog content
+README.md
+CLAUDE.md
+LICENSE.md
+CHANGELOG.md
+CONTRIBUTING.md
 docs/
+
+# Keep blog content markdown files
+!apps/public-app/public/content/blog/**/*.md
 
 # Ignore test files
 *.test.ts

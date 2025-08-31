@@ -3,7 +3,7 @@ import * as path from 'path';
 import matter from 'gray-matter';
 import { marked } from 'marked';
 import { BlogPost, BlogFilters, BlogListResponse, BlogPostResponse, BlogCategory } from './types';
-import { calculateReadingTime, generateExcerpt, getBlogCategories, generateSlug } from './utils';
+import { calculateReadingTime, generateExcerpt, getBlogCategories } from './utils';
 
 // Configure marked options for better rendering
 marked.setOptions({
@@ -13,50 +13,28 @@ marked.setOptions({
 
 // Remove custom renderer - using built-in heading IDs
 
-// Use content directory within the app - handle both monorepo and standalone app contexts
+// Standard blog content directory location - always in public folder
 const getContentDir = () => {
   const cwd = process.cwd();
+  // Single standard location: public/content/blog
+  const contentPath = path.join(cwd, 'public', 'content', 'blog');
   
-  // Check public directory first (Vercel-friendly)
-  const publicPath = path.join(cwd, 'public', 'content', 'blog');
-  if (fs.existsSync(publicPath)) {
-    return publicPath;
+  // Verify the directory exists and has content
+  const postsDir = path.join(contentPath, 'posts');
+  if (!fs.existsSync(postsDir)) {
+    console.error(`Blog content directory not found at: ${postsDir}`);
+    console.error('Current working directory:', cwd);
+    console.error('Environment:', {
+      NODE_ENV: process.env.NODE_ENV,
+      VERCEL: process.env.VERCEL,
+    });
+  } else {
+    const files = fs.readdirSync(postsDir).filter(file => file.endsWith('.md'));
+    console.log(`Blog content directory found at: ${contentPath}`);
+    console.log(`Found ${files.length} markdown files:`, files);
   }
   
-  // Check if we're running from the app directory (local dev after move)
-  const directPath = path.join(cwd, 'content', 'blog');
-  if (fs.existsSync(directPath)) {
-    return directPath;
-  }
-  
-  // Check if we're running from the monorepo root (local development)
-  const appPath = path.join(cwd, 'apps', 'public-app', 'content', 'blog');
-  if (fs.existsSync(appPath)) {
-    return appPath;
-  }
-  
-  // Check monorepo public path
-  const monoPublicPath = path.join(cwd, 'apps', 'public-app', 'public', 'content', 'blog');
-  if (fs.existsSync(monoPublicPath)) {
-    return monoPublicPath;
-  }
-  
-  console.log('Content directory not found. Tried:', {
-    cwd,
-    publicPath,
-    directPath,
-    appPath,
-    monoPublicPath,
-    exists: {
-      publicPath: fs.existsSync(publicPath),
-      directPath: fs.existsSync(directPath),
-      appPath: fs.existsSync(appPath),
-      monoPublicPath: fs.existsSync(monoPublicPath),
-    }
-  });
-  
-  // Default to public path
-  return publicPath;
+  return contentPath;
 };
 
 const BLOG_CONTENT_DIR = getContentDir();
@@ -66,10 +44,18 @@ export async function getAllBlogPosts(filters: BlogFilters = {}): Promise<BlogLi
   try {
     // Ensure directory exists
     if (!fs.existsSync(POSTS_DIR)) {
-      fs.mkdirSync(POSTS_DIR, { recursive: true });
+      console.error(`Posts directory does not exist: ${POSTS_DIR}`);
+      return {
+        posts: [],
+        total: 0,
+        categories: getBlogCategories(),
+        featured: [],
+      };
     }
 
     const files = fs.readdirSync(POSTS_DIR).filter(file => file.endsWith('.md'));
+    
+    console.log(`Found ${files.length} markdown files in ${POSTS_DIR}:`, files);
 
     let posts: BlogPost[] = [];
 
