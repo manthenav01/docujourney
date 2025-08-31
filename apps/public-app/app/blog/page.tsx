@@ -1,4 +1,5 @@
 import { Metadata } from 'next';
+import { Suspense } from 'react';
 import { generateMetadata } from '@docujourney/utils';
 import { getAllBlogPosts, getBlogCategoriesWithCount } from '@/lib/blog/content';
 import { DashboardHeader } from '@/components/h1b-dashboard/DashboardHeader';
@@ -51,10 +52,14 @@ export default async function BlogPage() {
       )}
       <div className="min-h-screen bg-background">
       {/* Navigation Header */}
-      <DashboardHeader />
+      <Suspense fallback={<div className="h-16 bg-background" />}>
+        <DashboardHeader />
+      </Suspense>
 
       {/* Breadcrumb Navigation */}
-      <SmartBreadcrumb />
+      <Suspense fallback={<div className="h-8 bg-background" />}>
+        <SmartBreadcrumb />
+      </Suspense>
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Hero Section */}
