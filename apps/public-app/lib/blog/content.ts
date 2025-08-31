@@ -17,17 +17,43 @@ marked.setOptions({
 const getContentDir = () => {
   const cwd = process.cwd();
   
-  // Check if we're running from the app directory
+  // Check if we're running from the app directory (Vercel deployment)
   const directPath = path.join(cwd, 'content', 'blog');
   if (fs.existsSync(directPath)) {
     return directPath;
   }
   
-  // Check if we're running from the monorepo root
+  // Check if we're running from the monorepo root (local development)
   const appPath = path.join(cwd, 'apps', 'public-app', 'content', 'blog');
   if (fs.existsSync(appPath)) {
     return appPath;
   }
+  
+  // Check for standalone build structure
+  const standalonePath = path.join(cwd, 'apps', 'public-app', 'content', 'blog');
+  if (fs.existsSync(standalonePath)) {
+    return standalonePath;
+  }
+  
+  // Try relative to current file location (fallback for Vercel)
+  const relativePath = path.resolve(__dirname, '../../content/blog');
+  if (fs.existsSync(relativePath)) {
+    return relativePath;
+  }
+  
+  console.log('Available paths tried:', {
+    cwd,
+    directPath,
+    appPath,
+    standalonePath,
+    relativePath,
+    exists: {
+      directPath: fs.existsSync(directPath),
+      appPath: fs.existsSync(appPath),
+      standalonePath: fs.existsSync(standalonePath),
+      relativePath: fs.existsSync(relativePath),
+    }
+  });
   
   // Default to direct path
   return directPath;

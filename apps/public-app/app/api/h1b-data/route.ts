@@ -4,6 +4,7 @@ import { H1BQueryFilters, H1BApiResponse, H1BAggregatedData, H1BFilterOptions } 
 import { ValidationError, createServiceError } from '@/lib/validation';
 import { cacheService } from '@/lib/cacheService';
 import { environment } from '@/lib/config';
+import { logger } from '@/lib/logger';
 
 // BigQuery service will be initialized lazily to avoid build-time errors
 
@@ -11,10 +12,13 @@ export async function GET(
   request: NextRequest,
 ): Promise<NextResponse<H1BApiResponse<H1BAggregatedData | H1BFilterOptions>>> {
   const startTime = Date.now();
+  const requestContext = logger.logRequest(request, {
+    apiEndpoint: '/api/h1b-data',
+  });
   
   try {
     // Log environment info for debugging
-    console.log('H1B API Environment:', {
+    logger.debug('H1B API Environment check', requestContext, {
       NODE_ENV: process.env.NODE_ENV,
       VERCEL_ENV: process.env.VERCEL_ENV,
       PROJECT_ID: process.env.GOOGLE_CLOUD_PROJECT_ID || 'NOT_SET',
@@ -27,7 +31,7 @@ export async function GET(
     try {
       bigQueryService = createH1BBigQueryService();
     } catch (initError) {
-      console.error('Failed to initialize BigQuery service:', initError);
+      logger.error('Failed to initialize BigQuery service', initError as Error, requestContext);
       throw initError;
     }
     
@@ -35,7 +39,7 @@ export async function GET(
     
     // Check if this is a filter options request
     if (searchParams.get('type') === 'filterOptions') {
-      console.log('Fetching H1B filter options');
+      logger.info('Fetching H1B filter options', requestContext);
       const filterOptions = await bigQueryService.getFilterOptions();
       
       const queryTime = Date.now() - startTime;
@@ -50,6 +54,8 @@ export async function GET(
     const cacheControl = process.env.NODE_ENV === 'production' 
       ? 'public, s-maxage=300, stale-while-revalidate=600' // 5 min cache in prod
       : 'no-store, no-cache, must-revalidate'; // No cache in dev
+    
+    logger.logResponse(requestContext, 200, queryTime, { type: 'filterOptions' });
     
     return NextResponse.json(response, {
       headers: {
@@ -80,13 +86,17 @@ export async function GET(
       }
     }
 
-    console.log('Fetching H1B dashboard data with filters:', filters);
+    logger.info('Fetching H1B dashboard data with filters', requestContext, { filters });
     
     // Get real data from BigQuery
     const dashboardData = await bigQueryService.getH1BDashboardData(filters);
     
     const queryTime = Date.now() - startTime;
-    console.log('H1B dashboard data fetched successfully:', {
+    
+    // Log slow queries
+    logger.logSlowQuery('H1BDashboardData', queryTime, requestContext);
+    
+    logger.info('H1B dashboard data fetched successfully', requestContext, {
       totalApplications: dashboardData.totalApplications,
       certificationRate: dashboardData.certificationRate,
       queryTime,
@@ -105,6 +115,11 @@ export async function GET(
       ? 'public, s-maxage=300, stale-while-revalidate=600' // 5 min cache in prod
       : 'no-store, no-cache, must-revalidate'; // No cache in dev
     
+    logger.logResponse(requestContext, 200, queryTime, { 
+      type: 'dashboard', 
+      totalApplications: dashboardData.totalApplications 
+    });
+    
     return NextResponse.json(response, {
       headers: {
         'Cache-Control': cacheControl,
@@ -113,18 +128,23 @@ export async function GET(
     
   } catch (error) {
     const queryTime = Date.now() - startTime;
-    console.error('H1B data API error:', {
-      error: error instanceof Error ? error.message : error,
-      stack: error instanceof Error ? error.stack : undefined,
-      requestType: new URL(request.url).searchParams.get('type') || 'dashboard',
-      queryTime,
-      environment: {
-        NODE_ENV: process.env.NODE_ENV,
-        VERCEL_ENV: process.env.VERCEL_ENV,
-        PROJECT_ID: process.env.GOOGLE_CLOUD_PROJECT_ID || 'NOT_SET',
-        HAS_CREDENTIALS: !!process.env.GOOGLE_CLOUD_PRIVATE_KEY,
-      },
-    });
+    const requestType = new URL(request.url).searchParams.get('type') || 'dashboard';
+    
+    logger.logApiError(
+      `H1B data API error (${requestType})`,
+      error as Error,
+      requestContext,
+      {
+        requestType,
+        queryTime,
+        environment: {
+          NODE_ENV: process.env.NODE_ENV,
+          VERCEL_ENV: process.env.VERCEL_ENV,
+          PROJECT_ID: process.env.GOOGLE_CLOUD_PROJECT_ID || 'NOT_SET',
+          HAS_CREDENTIALS: !!process.env.GOOGLE_CLOUD_PRIVATE_KEY,
+        },
+      }
+    );
     
     // Handle validation errors with specific status codes
     if (error instanceof ValidationError) {
@@ -135,6 +155,7 @@ export async function GET(
           source: 'validation',
         },
       };
+      logger.logResponse(requestContext, 400, queryTime, { type: 'validation_error' });
       return NextResponse.json(errorResponse, { status: 400 });
     }
     
@@ -160,6 +181,7 @@ export async function GET(
       },
     };
     
+    logger.logResponse(requestContext, 500, queryTime, { type: 'internal_error' });
     return NextResponse.json(errorResponse, { status: 500 });
   }
 }

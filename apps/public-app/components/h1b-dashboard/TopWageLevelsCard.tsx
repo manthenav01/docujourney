@@ -236,19 +236,19 @@ export function TopWageLevelsCard({ filters, loading }: TopWageLevelsCardProps) 
           return (
             <div
               key={levelData.level}
-              className="group relative p-3 rounded-lg border border-gray-100 hover:border-blue-200 hover:bg-blue-50/30 transition-all duration-200 cursor-pointer"
+              className="group relative p-3 rounded-lg border border-gray-100 hover:border-blue-200 hover:bg-blue-50/30 transition-all duration-200 cursor-pointer overflow-hidden"
               onClick={() => handleWageLevelClick(levelData.level)}
             >
               {/* Progress bar background */}
               <div 
-                className="absolute inset-0 bg-gradient-to-r from-blue-50 to-transparent rounded-lg opacity-40"
+                className="pointer-events-none absolute left-0 top-0 bottom-0 bg-gradient-to-r from-blue-50 to-transparent rounded-lg opacity-40"
                 style={{ width: `${progressWidth}%` }}
               />
               
               {/* Content */}
-              <div className="relative flex items-center justify-between">
+              <div className="relative z-10 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                 {/* Left side: level badge and details */}
-                <div className="flex items-start space-x-3 flex-1 min-w-0">
+                <div className="flex items-start gap-3 flex-1 min-w-0">
                   {/* Level badge */}
                   <div className={`flex-shrink-0 px-2 py-1 rounded-md border ${styling.bg} ${styling.border} ${styling.text} font-medium text-sm flex items-center gap-1`}>
                     <LevelIcon className={`w-3 h-3 ${styling.iconColor}`} />
@@ -257,21 +257,17 @@ export function TopWageLevelsCard({ filters, loading }: TopWageLevelsCardProps) 
                   
                   {/* Level details */}
                   <div className="min-w-0 flex-1">
-                    <h3 className="text-sm font-medium text-gray-900 group-hover:text-blue-700 transition-colors">
+                    <h3 className="text-sm font-medium text-gray-900 group-hover:text-blue-700 transition-colors truncate">
                       {levelData.friendlyName}
                     </h3>
-                    <div className="flex items-center space-x-4 mt-1">
-                      <span className="text-xs text-gray-500">
+                    <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs">
+                      <span className="text-gray-600">
                         {levelData.totalApplications.toLocaleString()} applications
-                      </span>
-                      <span className="text-xs text-gray-400">•</span>
-                      <span className="text-xs text-gray-500">
-                        {levelData.marketShare.toFixed(1)}% market share
                       </span>
                       {levelData.salaryPremium > 0 && (
                         <>
-                          <span className="text-xs text-gray-400">•</span>
-                          <span className="text-xs text-emerald-600">
+                          <span className="text-gray-400">•</span>
+                          <span className="text-emerald-600">
                             +{formatSalary(levelData.salaryPremium)} premium
                           </span>
                         </>
@@ -281,7 +277,7 @@ export function TopWageLevelsCard({ filters, loading }: TopWageLevelsCardProps) 
                 </div>
                 
                 {/* Right side: Success rate */}
-                <div className="flex-shrink-0 text-right">
+                <div className="sm:flex-shrink-0 sm:text-right">
                   <div className={`text-lg font-bold ${getSuccessRateColor(levelData.certificationRate)}`}>
                     {levelData.certificationRate.toFixed(1)}%
                   </div>

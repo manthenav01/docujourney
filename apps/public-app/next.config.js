@@ -10,6 +10,15 @@ const nextConfig = {
       ignored: /node_modules/,
     };
     
+    // Copy content directory to build output for Vercel
+    config.module.rules.push({
+      test: /\.md$/,
+      type: 'asset/resource',
+      generator: {
+        filename: 'static/content/[name][ext]',
+      },
+    });
+    
     return config;
   },
   
@@ -19,7 +28,7 @@ const nextConfig = {
   generateEtags: true,
   
   // Force static generation for better indexing
-  output: 'standalone',
+  // output: 'standalone', // Commented out for Vercel deployment
   
   // Enable experimental features for better SEO
   experimental: {

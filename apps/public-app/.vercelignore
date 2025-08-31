@@ -1,0 +1,8 @@
+# Don't ignore content directory - we need it for blog posts
+# !content/
+
+# Standard ignores
+node_modules/
+.env.local
+.env*.local
+.next/
