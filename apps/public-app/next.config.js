@@ -2,6 +2,17 @@
 const nextConfig = {
   transpilePackages: ['@docujourney/ui', '@docujourney/utils'],
   
+  // Custom webpack config to include content directory
+  webpack: (config) => {
+    // Ensure content directory is included in the build
+    config.watchOptions = {
+      ...config.watchOptions,
+      ignored: /node_modules/,
+    };
+    
+    return config;
+  },
+  
   // Enhanced performance and SEO configuration
   compress: true,
   poweredByHeader: false,

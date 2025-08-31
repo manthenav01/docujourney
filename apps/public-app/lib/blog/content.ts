@@ -1,5 +1,5 @@
-import fs from 'fs';
-import path from 'path';
+import * as fs from 'fs';
+import * as path from 'path';
 import matter from 'gray-matter';
 import { marked } from 'marked';
 import { BlogPost, BlogFilters, BlogListResponse, BlogPostResponse, BlogCategory } from './types';
@@ -13,8 +13,27 @@ marked.setOptions({
 
 // Remove custom renderer - using built-in heading IDs
 
-// Use content directory within the app
-const BLOG_CONTENT_DIR = path.join(process.cwd(), 'content', 'blog');
+// Use content directory within the app - handle both monorepo and standalone app contexts
+const getContentDir = () => {
+  const cwd = process.cwd();
+  
+  // Check if we're running from the app directory
+  const directPath = path.join(cwd, 'content', 'blog');
+  if (fs.existsSync(directPath)) {
+    return directPath;
+  }
+  
+  // Check if we're running from the monorepo root
+  const appPath = path.join(cwd, 'apps', 'public-app', 'content', 'blog');
+  if (fs.existsSync(appPath)) {
+    return appPath;
+  }
+  
+  // Default to direct path
+  return directPath;
+};
+
+const BLOG_CONTENT_DIR = getContentDir();
 const POSTS_DIR = path.join(BLOG_CONTENT_DIR, 'posts');
 
 export async function getAllBlogPosts(filters: BlogFilters = {}): Promise<BlogListResponse> {
