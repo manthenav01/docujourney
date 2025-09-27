@@ -1,17 +1,20 @@
 'use client';
 
 import { Suspense } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { useParams, useSearchParams } from 'next/navigation';
 import { CompanyDashboard } from '@/components/h1b-dashboard';
 
 type CompanyPageClientProps = {
-  slug: string;
+  slug?: string;
   companyName?: string;
 };
 
 // Component that uses useSearchParams - must be wrapped in Suspense
-function CompanyContent({ slug, companyName: propCompanyName }: CompanyPageClientProps) {
+function CompanyContent({ slug: propSlug, companyName: propCompanyName }: CompanyPageClientProps) {
+  const params = useParams();
   const searchParams = useSearchParams();
+  
+  const slug = propSlug || (params.slug as string) || '';
   const companyName = propCompanyName || searchParams.get('name') || 'Unknown Company';
 
   return (
@@ -42,7 +45,7 @@ function CompanyLoading() {
   );
 }
 
-export default function CompanyPageClient({ slug, companyName }: CompanyPageClientProps) {
+export default function CompanyPageClient({ slug, companyName }: CompanyPageClientProps = {}) {
   return (
     <Suspense fallback={<CompanyLoading />}>
       <CompanyContent slug={slug} companyName={companyName} />
