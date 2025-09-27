@@ -101,8 +101,14 @@ export async function generateStaticParams() {
   }
 }
 
-export default async function CompanyPage({ params }: { params: Promise<{ slug: string }> }) {
+export default async function CompanyPage({ params, searchParams }: PageProps) {
   const { slug } = await params;
+  const resolvedSearchParams = await searchParams;
   
-  return <CompanyPageClient slug={slug} />;
+  // Extract company name from search params on the server side
+  const companyName = Array.isArray(resolvedSearchParams.name) 
+    ? resolvedSearchParams.name[0] 
+    : resolvedSearchParams.name || 'Unknown Company';
+  
+  return <CompanyPageClient slug={slug} companyName={companyName} />;
 }
