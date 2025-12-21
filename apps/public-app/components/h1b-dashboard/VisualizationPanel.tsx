@@ -30,7 +30,7 @@ const VisualizationPanelComponent: React.FC<VisualizationPanelProps> = ({
     }
     
     return {
-      fiscalYears: filters.fiscalYear ? [filters.fiscalYear] : [],
+      fiscalYears: filters.fiscalYears || [],
       states: filters.states || [],
       salaryRange: filters.salaryRange || [0, 1000000],
       jobCategories: filters.jobCategories || [],

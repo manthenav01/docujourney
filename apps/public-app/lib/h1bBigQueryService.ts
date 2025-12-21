@@ -1098,12 +1098,8 @@ export class H1BBigQueryService {
    * Get current fiscal year dynamically
    */
   private getCurrentFiscalYear(): number {
-    const now = new Date();
-    const currentMonth = now.getMonth() + 1; // getMonth() returns 0-11
-    const currentYear = now.getFullYear();
-
-    // Fiscal year starts in October (month 10)
-    return currentMonth >= 10 ? currentYear + 1 : currentYear;
+    // Return static 2025 as default fiscal year
+    return 2025;
   }
 
   /**

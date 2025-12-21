@@ -28,17 +28,6 @@ import { Card, CardContent } from '@docujourney/ui';
 import { METRIC_CONFIGS } from '../../lib/metricCardConfig';
 import './dashboard.css';
 
-// Function to get the current fiscal year based on today's date
-const getCurrentFiscalYear = (): string => {
-  const now = new Date();
-  const currentYear = now.getFullYear();
-  const currentMonth = now.getMonth(); // 0-based (0 = January, 9 = October)
-  
-  // H1B fiscal year starts on October 1st
-  // If we're in October or later, we're in the next fiscal year
-  // If we're before October, we're still in the current fiscal year
-  return currentMonth >= 9 ? (currentYear + 1).toString() : currentYear.toString();
-};
 
 // Extend the H1BAggregatedData type to include cache information
 interface H1BDashboardData extends H1BAggregatedData {
@@ -50,7 +39,7 @@ export const H1BDashboard: React.FC = () => {
   const [dashboardData, setDashboardData] = useState<H1BDashboardData | null>(null);
   const [filters, setFilters] = useState<FilterState>({
     searchQuery: '', // Keep this for search functionality
-    fiscalYear: getCurrentFiscalYear(),
+    fiscalYear: '2025',
     states: [],
     cities: [],
     jobCategories: [],
