@@ -158,7 +158,7 @@ export const SearchAndFilters: React.FC<SearchAndFiltersProps> = ({
                     Search for companies or job titles to view detailed H1B data analysis.
                   </p>
                   <div className="text-xs text-primary">
-                    <span className="font-medium">Try:</span> "Google", "Microsoft", "Senior Software Engineer", "Data Scientist"
+                    <span className="font-medium">Try:</span> &quot;Google&quot;, &quot;Microsoft&quot;, &quot;Senior Software Engineer&quot;, &quot;Data Scientist&quot;
                   </div>
                 </div>
               </div>

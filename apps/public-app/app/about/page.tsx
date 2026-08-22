@@ -73,11 +73,11 @@ export default function AboutPage() {
                 <h2 className="text-3xl font-bold text-foreground">Our Mission</h2>
               </div>
               <p className="text-lg text-muted-foreground mb-6 leading-relaxed">
-                Immigration is complex, but data shouldn't be. We believe every immigrant deserves access to 
+                Immigration is complex, but data shouldn&apos;t be. We believe every immigrant deserves access to 
                 transparent, accurate, and actionable information that can shape their career and life decisions.
               </p>
               <p className="text-lg text-muted-foreground leading-relaxed">
-                Starting with H1B visa data, we're building the most comprehensive immigration analytics platform 
+                Starting with H1B visa data, we&apos;re building the most comprehensive immigration analytics platform 
                 to help you understand market trends, salary benchmarks, approval rates, and opportunities across 
                 the United States.
               </p>
@@ -241,7 +241,7 @@ export default function AboutPage() {
               </div>
               <h3 className="text-xl font-semibold text-foreground mb-3">Privacy</h3>
               <p className="text-muted-foreground">
-                Your data and privacy are paramount. We don't track personal information and our analytics 
+                Your data and privacy are paramount. We don&apos;t track personal information and our analytics 
                 are built on publicly available immigration data.
               </p>
             </div>
@@ -281,7 +281,7 @@ export default function AboutPage() {
                 <h2 className="text-3xl font-bold text-foreground">Looking Forward</h2>
               </div>
               <p className="text-lg text-muted-foreground max-w-3xl mx-auto leading-relaxed">
-                While we currently focus on H1B data, our vision extends far beyond. We're building towards 
+                While we currently focus on H1B data, our vision extends far beyond. We&apos;re building towards 
                 a comprehensive immigration analytics ecosystem.
               </p>
             </div>
@@ -327,8 +327,8 @@ export default function AboutPage() {
               Join Our Community
             </h2>
             <p className="text-lg text-muted-foreground mb-8">
-              Whether you're planning your H1B application, researching employers, or analyzing market trends, 
-              we're here to support your immigration journey with data-driven insights.
+              Whether you&apos;re planning your H1B application, researching employers, or analyzing market trends, 
+              we&apos;re here to support your immigration journey with data-driven insights.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link href="/h1b-dashboard">
