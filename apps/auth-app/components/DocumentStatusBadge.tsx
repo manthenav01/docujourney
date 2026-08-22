@@ -1,6 +1,6 @@
 import React from 'react';
 import { Timestamp } from 'firebase/firestore';
-import { Badge } from './badge';
+import { Badge } from '@docujourney/ui';
 
 interface DocumentStatusBadgeProps {
   validTo?:  string | null;

@@ -5,7 +5,6 @@ export * from './components/Button';
 export * from './components/calendar';
 export * from './components/card';
 export * from './components/dialog';
-export * from './components/DocumentStatusBadge';
 export * from './components/form';
 export * from './components/input';
 export * from './components/label';

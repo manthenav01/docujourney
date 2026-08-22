@@ -4,7 +4,8 @@ import { FileIcon, FolderIcon } from 'lucide-react';
 import { DocumentTypeSchemaModel } from '@/lib/documentActions';
 import DocumentCardBody from './DocumentCardBody';
 import { DocumentMetaDataTransformedModel } from '@/lib/types/document.model';
-import { Button, Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle, DocumentStatusBadge, Separator } from '@docujourney/ui';
+import { Button, Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle, Separator } from '@docujourney/ui';
+import { DocumentStatusBadge } from './DocumentStatusBadge';
 
 
 interface DocumentsDisplayProps {

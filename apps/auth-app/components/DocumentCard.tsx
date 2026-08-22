@@ -4,7 +4,8 @@ import { TrashIcon, FileIcon } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import { getFileTypeIcon, getFileTypeColor } from '@/utils/fileTypeIcons';
-import { Button, Card, CardContent, CardFooter, CardHeader, CardTitle, DocumentStatusBadge, Separator } from '@docujourney/ui';
+import { Button, Card, CardContent, CardFooter, CardHeader, CardTitle, Separator } from '@docujourney/ui';
+import { DocumentStatusBadge } from './DocumentStatusBadge';
 
 interface DocumentCardProps {
     doc: any;
