@@ -9,7 +9,7 @@ import CookieConsent from '@/components/CookieConsent';
 export const metadata: Metadata = {
   ...generateMetadata({
     title: `H1B Salary Database & Sponsor Companies ${DATA_YEAR} | Immigrant Central`,
-    description: 'Search 2.9M+ H1B visa applications: salaries by company, job title, and city, sponsor company database, and approval rates. Free real-time analytics from official US Department of Labor data.',
+    description: 'Search 3.7M+ H1B visa applications: salaries by company, job title, and city, sponsor company database, and LCA certification rates. Free analytics from official US Department of Labor data.',
     keywords: [
       // Primary high-volume keywords
       'H1B data',

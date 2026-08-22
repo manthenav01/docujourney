@@ -231,7 +231,7 @@ export const CitiesHero: React.FC<CitiesHeroProps> = ({
                 <div className="text-2xl font-bold text-gray-900">
                   {heroData?.stats.totalStates}
                 </div>
-                <div className="text-sm text-gray-600">States</div>
+                <div className="text-sm text-gray-600">States & Territories</div>
               </div>
               <div className="text-center">
                 <div className="text-2xl font-bold text-gray-900">

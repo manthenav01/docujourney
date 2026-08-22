@@ -42,7 +42,10 @@ const TopEmployersCardComponent: React.FC<TopEmployersCardProps> = ({
     
     const topEmployers = data.slice(0, 5).map(employer => ({
       ...employer,
-      percentage: employer.percentage ?? ((employer.applications / data.reduce((sum, e) => sum + e.applications, 0)) * 100),
+      // Only show a percentage when the caller provides one computed against a
+      // real total — dividing by the sum of the displayed list produced numbers
+      // like "31.7%" for a company with 9% of actual filings.
+      percentage: employer.percentage,
     }));
     const maxApplications = Math.max(...topEmployers.map(item => item.applications));
     const totalApplications = topEmployers.reduce((sum, item) => sum + item.applications, 0);

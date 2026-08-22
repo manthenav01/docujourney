@@ -82,7 +82,7 @@ export const SalaryCard: React.FC<{ value: number; onClick?: () => void }> = ({ 
 export const ApprovalRateCard: React.FC<{ value: number; onClick?: () => void }> = ({ value, onClick }) => (
   <StatsCard
     metricType="approvalRate"
-    title="Approval Rate"
+    title="Certification Rate"
     value={`${(value || 0).toFixed(1)}%`}
     onClick={onClick}
   />

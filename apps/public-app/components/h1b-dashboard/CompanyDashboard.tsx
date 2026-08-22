@@ -283,7 +283,7 @@ export const CompanyDashboard: React.FC<CompanyDashboardProps> = ({
                 <METRIC_CONFIGS.certificationRate.icon className="w-6 h-6" />
               </div>
             </div>
-            <h3 className="text-muted-foreground text-sm font-medium mb-1">Approval Rate</h3>
+            <h3 className="text-muted-foreground text-sm font-medium mb-1">Certification Rate</h3>
             <p className="text-3xl font-bold text-foreground">{certificationRate}%</p>
           </CardContent>
         </Card>

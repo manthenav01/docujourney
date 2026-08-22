@@ -78,7 +78,7 @@ export const YearsFilter: React.FC<YearsFilterProps> = ({
               </div>
             </div>
             <span className="text-xs text-blue-600 bg-blue-100 px-2 py-1 rounded font-medium">
-              Live
+              Quarterly DOL Data
             </span>
           </div>
         </div>

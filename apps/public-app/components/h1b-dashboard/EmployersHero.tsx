@@ -222,7 +222,7 @@ export const EmployersHero: React.FC<EmployersHeroProps> = ({
                 <div className="text-2xl font-bold text-gray-900">
                   {heroData?.stats.approvalRate}%
                 </div>
-                <div className="text-sm text-gray-600">Approval Rate</div>
+                <div className="text-sm text-gray-600">Certification Rate</div>
               </div>
               <div className="text-center">
                 <div className="text-2xl font-bold text-gray-900">

@@ -1,3 +1,4 @@
+import { LATEST_DATA_FISCAL_YEAR, FISCAL_YEAR_START } from '@docujourney/utils';
 import { Card, CardContent, CardHeader, CardTitle } from '@docujourney/ui';
 import { TrendingUp, Building2, DollarSign, MapPin, Briefcase } from 'lucide-react';
 import Link from 'next/link';
@@ -144,11 +145,11 @@ export async function H1BSponsorsServer({
         {/* Page title and stats */}
         <div className="mb-8" id="sponsors-list">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            Top H1B Sponsor Companies FY 2025
+            Top H1B Sponsor Companies FY {LATEST_DATA_FISCAL_YEAR}
             {page > 1 && <span className="text-gray-500 ml-2">- Page {page}</span>}
           </h1>
           <p className="text-gray-600">
-            Comprehensive directory of companies that sponsor H1B visas, ranked by FY 2025 application volume
+            Comprehensive directory of companies that sponsor H1B visas, ranked by FY {LATEST_DATA_FISCAL_YEAR} application volume
           </p>
         </div>
 
@@ -219,7 +220,7 @@ export async function H1BSponsorsServer({
                         <div className="flex items-start space-x-2">
                           <TrendingUp className="w-4 h-4 text-green-500 mt-0.5" />
                           <div>
-                            <div className="text-sm text-gray-500">Approval Rate</div>
+                            <div className="text-sm text-gray-500">Certification Rate</div>
                             <div className="text-lg font-semibold text-green-600">
                               {sponsor.approval_rate}%
                             </div>
@@ -303,7 +304,7 @@ export async function H1BSponsorsServer({
         {/* Data metadata */}
         <div className="mt-8 text-center border-t border-gray-200 pt-6">
           <p className="text-sm text-gray-500">
-            FY 2025 H1B sponsor data (October 2024 - Present) | Source: U.S. Department of Labor LCA Database
+            FY {LATEST_DATA_FISCAL_YEAR} H1B sponsor data (since {FISCAL_YEAR_START}) | Source: U.S. Department of Labor LCA Database
           </p>
           <p className="text-xs text-gray-400 mt-1">
             Rankings based on total LCA applications filed. Data updated quarterly.

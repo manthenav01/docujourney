@@ -304,7 +304,7 @@ export class H1BBigQueryService {
               ELSE NULL
             END
           ) as max_salary,
-          ANY_VALUE(worksite_state) as top_state
+          APPROX_TOP_COUNT(worksite_state, 1)[OFFSET(0)].value as top_state
         FROM \`${this.projectId}.${this.datasetId}.${this.tableId}\`
         ${whereClause}
         AND case_status = 'Certified'
@@ -382,6 +382,7 @@ export class H1BBigQueryService {
         AND case_status = 'Certified'
         AND wage_rate_of_pay_from IS NOT NULL
         AND wage_rate_of_pay_from > 0
+        AND (CASE WHEN wage_unit_of_pay = 'Hour' THEN wage_rate_of_pay_from * 2080 WHEN wage_unit_of_pay = 'Week' THEN wage_rate_of_pay_from * 52 WHEN wage_unit_of_pay = 'Month' THEN wage_rate_of_pay_from * 12 WHEN wage_unit_of_pay = 'Bi-Weekly' THEN wage_rate_of_pay_from * 26 ELSE wage_rate_of_pay_from END) BETWEEN 30000 AND 900000
       )
       SELECT 
         CASE 
@@ -500,9 +501,11 @@ export class H1BBigQueryService {
           SUM(applications) as total_applications,
           AVG(avg_salary) as avg_salary,
           MAX(CASE WHEN fiscal_year = '${this.getCurrentFiscalYear()}' THEN applications END) as current_year_apps,
-          MAX(CASE WHEN fiscal_year = '2024' THEN applications END) as previous_year_apps
+          MAX(CASE WHEN fiscal_year = '${this.getCurrentFiscalYear() - 1}' THEN applications END) as previous_year_apps
         FROM job_title_yearly
         GROUP BY job_title
+        -- A salary ranking over n=1 filings is outlier noise, not signal
+        HAVING SUM(applications) >= 10
       ),
       job_stats AS (
         SELECT 
@@ -1211,7 +1214,7 @@ export class H1BBigQueryService {
           COUNT(*) as totalApplications,
           SUM(CASE WHEN case_status = 'Certified' THEN 1 ELSE 0 END) as certifiedApplications,
           AVG(
-            CASE WHEN wage_rate_of_pay_from > 0 AND wage_rate_of_pay_from < 1000000 THEN 
+            CASE WHEN wage_rate_of_pay_from > 0 AND (CASE WHEN wage_unit_of_pay = 'Hour' THEN wage_rate_of_pay_from * 2080 WHEN wage_unit_of_pay = 'Week' THEN wage_rate_of_pay_from * 52 WHEN wage_unit_of_pay = 'Month' THEN wage_rate_of_pay_from * 12 WHEN wage_unit_of_pay = 'Bi-Weekly' THEN wage_rate_of_pay_from * 26 ELSE wage_rate_of_pay_from END) BETWEEN 30000 AND 900000 THEN 
               CASE 
                 WHEN wage_unit_of_pay = 'Hour' THEN wage_rate_of_pay_from * 2080
                 WHEN wage_unit_of_pay = 'Week' THEN wage_rate_of_pay_from * 52
@@ -1222,7 +1225,7 @@ export class H1BBigQueryService {
             END
           ) as avgSalary,
           AVG(
-            CASE WHEN wage_rate_of_pay_from > 0 AND wage_rate_of_pay_from < 1000000 THEN 
+            CASE WHEN wage_rate_of_pay_from > 0 AND (CASE WHEN wage_unit_of_pay = 'Hour' THEN wage_rate_of_pay_from * 2080 WHEN wage_unit_of_pay = 'Week' THEN wage_rate_of_pay_from * 52 WHEN wage_unit_of_pay = 'Month' THEN wage_rate_of_pay_from * 12 WHEN wage_unit_of_pay = 'Bi-Weekly' THEN wage_rate_of_pay_from * 26 ELSE wage_rate_of_pay_from END) BETWEEN 30000 AND 900000 THEN 
               CASE 
                 WHEN wage_unit_of_pay = 'Hour' THEN wage_rate_of_pay_from * 2080
                 WHEN wage_unit_of_pay = 'Week' THEN wage_rate_of_pay_from * 52
@@ -1233,7 +1236,7 @@ export class H1BBigQueryService {
             END
           ) as medianSalary,
           MIN(
-            CASE WHEN wage_rate_of_pay_from > 0 AND wage_rate_of_pay_from < 1000000 THEN 
+            CASE WHEN wage_rate_of_pay_from > 0 AND (CASE WHEN wage_unit_of_pay = 'Hour' THEN wage_rate_of_pay_from * 2080 WHEN wage_unit_of_pay = 'Week' THEN wage_rate_of_pay_from * 52 WHEN wage_unit_of_pay = 'Month' THEN wage_rate_of_pay_from * 12 WHEN wage_unit_of_pay = 'Bi-Weekly' THEN wage_rate_of_pay_from * 26 ELSE wage_rate_of_pay_from END) BETWEEN 30000 AND 900000 THEN 
               CASE 
                 WHEN wage_unit_of_pay = 'Hour' THEN wage_rate_of_pay_from * 2080
                 WHEN wage_unit_of_pay = 'Week' THEN wage_rate_of_pay_from * 52
@@ -1244,7 +1247,7 @@ export class H1BBigQueryService {
             END
           ) as minSalary,
           MAX(
-            CASE WHEN wage_rate_of_pay_from > 0 AND wage_rate_of_pay_from < 1000000 THEN 
+            CASE WHEN wage_rate_of_pay_from > 0 AND (CASE WHEN wage_unit_of_pay = 'Hour' THEN wage_rate_of_pay_from * 2080 WHEN wage_unit_of_pay = 'Week' THEN wage_rate_of_pay_from * 52 WHEN wage_unit_of_pay = 'Month' THEN wage_rate_of_pay_from * 12 WHEN wage_unit_of_pay = 'Bi-Weekly' THEN wage_rate_of_pay_from * 26 ELSE wage_rate_of_pay_from END) BETWEEN 30000 AND 900000 THEN 
               CASE 
                 WHEN wage_unit_of_pay = 'Hour' THEN wage_rate_of_pay_from * 2080
                 WHEN wage_unit_of_pay = 'Week' THEN wage_rate_of_pay_from * 52
@@ -1315,9 +1318,11 @@ export class H1BBigQueryService {
             AVG(avgSalary) as avgSalary,
             AVG(avgSalary) as medianSalary,
             MAX(CASE WHEN fiscal_year = '${this.getCurrentFiscalYear()}' THEN applications END) as current_year_apps,
-            MAX(CASE WHEN fiscal_year = '2024' THEN applications END) as previous_year_apps
+            MAX(CASE WHEN fiscal_year = '${this.getCurrentFiscalYear() - 1}' THEN applications END) as previous_year_apps
           FROM job_title_yearly
           GROUP BY jobTitle
+          -- A salary ranking over n=1 filings is outlier noise, not signal
+          HAVING SUM(applications) >= 10
         )
         SELECT 
           jobTitle,
@@ -1337,7 +1342,7 @@ export class H1BBigQueryService {
           fiscal_year,
           COUNT(*) as applications,
           AVG(
-            CASE WHEN wage_rate_of_pay_from > 0 AND wage_rate_of_pay_from < 1000000 THEN 
+            CASE WHEN wage_rate_of_pay_from > 0 AND (CASE WHEN wage_unit_of_pay = 'Hour' THEN wage_rate_of_pay_from * 2080 WHEN wage_unit_of_pay = 'Week' THEN wage_rate_of_pay_from * 52 WHEN wage_unit_of_pay = 'Month' THEN wage_rate_of_pay_from * 12 WHEN wage_unit_of_pay = 'Bi-Weekly' THEN wage_rate_of_pay_from * 26 ELSE wage_rate_of_pay_from END) BETWEEN 30000 AND 900000 THEN 
               CASE 
                 WHEN wage_unit_of_pay = 'Hour' THEN wage_rate_of_pay_from * 2080
                 WHEN wage_unit_of_pay = 'Week' THEN wage_rate_of_pay_from * 52
@@ -1380,8 +1385,8 @@ export class H1BBigQueryService {
             END as annual_wage
           FROM \`${this.projectId}.${this.datasetId}.${this.tableId}\`
           WHERE UPPER(TRIM(employer_name)) = UPPER(TRIM(@companyName))
-          AND wage_rate_of_pay_from > 0 
-          AND wage_rate_of_pay_from < 1000000
+          AND wage_rate_of_pay_from > 0
+          AND (CASE WHEN wage_unit_of_pay = 'Hour' THEN wage_rate_of_pay_from * 2080 WHEN wage_unit_of_pay = 'Week' THEN wage_rate_of_pay_from * 52 WHEN wage_unit_of_pay = 'Month' THEN wage_rate_of_pay_from * 12 WHEN wage_unit_of_pay = 'Bi-Weekly' THEN wage_rate_of_pay_from * 26 ELSE wage_rate_of_pay_from END) BETWEEN 30000 AND 900000
         )
         SELECT 
           CASE 
@@ -1507,7 +1512,7 @@ export class H1BBigQueryService {
           COUNT(*) as totalApplications,
           SUM(CASE WHEN case_status = 'Certified' THEN 1 ELSE 0 END) as certifiedApplications,
           AVG(
-            CASE WHEN wage_rate_of_pay_from > 0 AND wage_rate_of_pay_from < 1000000 THEN 
+            CASE WHEN wage_rate_of_pay_from > 0 AND (CASE WHEN wage_unit_of_pay = 'Hour' THEN wage_rate_of_pay_from * 2080 WHEN wage_unit_of_pay = 'Week' THEN wage_rate_of_pay_from * 52 WHEN wage_unit_of_pay = 'Month' THEN wage_rate_of_pay_from * 12 WHEN wage_unit_of_pay = 'Bi-Weekly' THEN wage_rate_of_pay_from * 26 ELSE wage_rate_of_pay_from END) BETWEEN 30000 AND 900000 THEN 
               CASE 
                 WHEN wage_unit_of_pay = 'Hour' THEN wage_rate_of_pay_from * 2080
                 WHEN wage_unit_of_pay = 'Week' THEN wage_rate_of_pay_from * 52
@@ -1518,7 +1523,7 @@ export class H1BBigQueryService {
             END
           ) as avgSalary,
           AVG(
-            CASE WHEN wage_rate_of_pay_from > 0 AND wage_rate_of_pay_from < 1000000 THEN 
+            CASE WHEN wage_rate_of_pay_from > 0 AND (CASE WHEN wage_unit_of_pay = 'Hour' THEN wage_rate_of_pay_from * 2080 WHEN wage_unit_of_pay = 'Week' THEN wage_rate_of_pay_from * 52 WHEN wage_unit_of_pay = 'Month' THEN wage_rate_of_pay_from * 12 WHEN wage_unit_of_pay = 'Bi-Weekly' THEN wage_rate_of_pay_from * 26 ELSE wage_rate_of_pay_from END) BETWEEN 30000 AND 900000 THEN 
               CASE 
                 WHEN wage_unit_of_pay = 'Hour' THEN wage_rate_of_pay_from * 2080
                 WHEN wage_unit_of_pay = 'Week' THEN wage_rate_of_pay_from * 52
@@ -1529,7 +1534,7 @@ export class H1BBigQueryService {
             END
           ) as medianSalary,
           MIN(
-            CASE WHEN wage_rate_of_pay_from > 0 AND wage_rate_of_pay_from < 1000000 THEN 
+            CASE WHEN wage_rate_of_pay_from > 0 AND (CASE WHEN wage_unit_of_pay = 'Hour' THEN wage_rate_of_pay_from * 2080 WHEN wage_unit_of_pay = 'Week' THEN wage_rate_of_pay_from * 52 WHEN wage_unit_of_pay = 'Month' THEN wage_rate_of_pay_from * 12 WHEN wage_unit_of_pay = 'Bi-Weekly' THEN wage_rate_of_pay_from * 26 ELSE wage_rate_of_pay_from END) BETWEEN 30000 AND 900000 THEN 
               CASE 
                 WHEN wage_unit_of_pay = 'Hour' THEN wage_rate_of_pay_from * 2080
                 WHEN wage_unit_of_pay = 'Week' THEN wage_rate_of_pay_from * 52
@@ -1540,7 +1545,7 @@ export class H1BBigQueryService {
             END
           ) as minSalary,
           MAX(
-            CASE WHEN wage_rate_of_pay_from > 0 AND wage_rate_of_pay_from < 1000000 THEN 
+            CASE WHEN wage_rate_of_pay_from > 0 AND (CASE WHEN wage_unit_of_pay = 'Hour' THEN wage_rate_of_pay_from * 2080 WHEN wage_unit_of_pay = 'Week' THEN wage_rate_of_pay_from * 52 WHEN wage_unit_of_pay = 'Month' THEN wage_rate_of_pay_from * 12 WHEN wage_unit_of_pay = 'Bi-Weekly' THEN wage_rate_of_pay_from * 26 ELSE wage_rate_of_pay_from END) BETWEEN 30000 AND 900000 THEN 
               CASE 
                 WHEN wage_unit_of_pay = 'Hour' THEN wage_rate_of_pay_from * 2080
                 WHEN wage_unit_of_pay = 'Week' THEN wage_rate_of_pay_from * 52
@@ -1566,7 +1571,7 @@ export class H1BBigQueryService {
             END AS STRING) as fiscal_year,
             COUNT(*) as applications,
             AVG(
-              CASE WHEN wage_rate_of_pay_from > 0 AND wage_rate_of_pay_from < 1000000 THEN 
+              CASE WHEN wage_rate_of_pay_from > 0 AND (CASE WHEN wage_unit_of_pay = 'Hour' THEN wage_rate_of_pay_from * 2080 WHEN wage_unit_of_pay = 'Week' THEN wage_rate_of_pay_from * 52 WHEN wage_unit_of_pay = 'Month' THEN wage_rate_of_pay_from * 12 WHEN wage_unit_of_pay = 'Bi-Weekly' THEN wage_rate_of_pay_from * 26 ELSE wage_rate_of_pay_from END) BETWEEN 30000 AND 900000 THEN 
                 CASE 
                   WHEN wage_unit_of_pay = 'Hour' THEN wage_rate_of_pay_from * 2080
                   WHEN wage_unit_of_pay = 'Week' THEN wage_rate_of_pay_from * 52
@@ -1590,7 +1595,7 @@ export class H1BBigQueryService {
             AVG(avgSalary) as avgSalary,
             AVG(avgSalary) as medianSalary,
             MAX(CASE WHEN fiscal_year = '${this.getCurrentFiscalYear()}' THEN applications END) as current_year_apps,
-            MAX(CASE WHEN fiscal_year = '2024' THEN applications END) as previous_year_apps
+            MAX(CASE WHEN fiscal_year = '${this.getCurrentFiscalYear() - 1}' THEN applications END) as previous_year_apps
           FROM employer_yearly
           GROUP BY employer
         )
@@ -1613,7 +1618,7 @@ export class H1BBigQueryService {
           COUNT(*) as applications,
           ROUND(COUNT(*) * 100.0 / SUM(COUNT(*)) OVER(), 1) as percentage,
           AVG(
-            CASE WHEN wage_rate_of_pay_from > 0 AND wage_rate_of_pay_from < 1000000 THEN 
+            CASE WHEN wage_rate_of_pay_from > 0 AND (CASE WHEN wage_unit_of_pay = 'Hour' THEN wage_rate_of_pay_from * 2080 WHEN wage_unit_of_pay = 'Week' THEN wage_rate_of_pay_from * 52 WHEN wage_unit_of_pay = 'Month' THEN wage_rate_of_pay_from * 12 WHEN wage_unit_of_pay = 'Bi-Weekly' THEN wage_rate_of_pay_from * 26 ELSE wage_rate_of_pay_from END) BETWEEN 30000 AND 900000 THEN 
               CASE 
                 WHEN wage_unit_of_pay = 'Hour' THEN wage_rate_of_pay_from * 2080
                 WHEN wage_unit_of_pay = 'Week' THEN wage_rate_of_pay_from * 52
@@ -1638,7 +1643,7 @@ export class H1BBigQueryService {
           fiscal_year,
           COUNT(*) as applications,
           AVG(
-            CASE WHEN wage_rate_of_pay_from > 0 AND wage_rate_of_pay_from < 1000000 THEN 
+            CASE WHEN wage_rate_of_pay_from > 0 AND (CASE WHEN wage_unit_of_pay = 'Hour' THEN wage_rate_of_pay_from * 2080 WHEN wage_unit_of_pay = 'Week' THEN wage_rate_of_pay_from * 52 WHEN wage_unit_of_pay = 'Month' THEN wage_rate_of_pay_from * 12 WHEN wage_unit_of_pay = 'Bi-Weekly' THEN wage_rate_of_pay_from * 26 ELSE wage_rate_of_pay_from END) BETWEEN 30000 AND 900000 THEN 
               CASE 
                 WHEN wage_unit_of_pay = 'Hour' THEN wage_rate_of_pay_from * 2080
                 WHEN wage_unit_of_pay = 'Week' THEN wage_rate_of_pay_from * 52
@@ -1681,8 +1686,8 @@ export class H1BBigQueryService {
             END as annual_wage
           FROM \`${this.projectId}.${this.datasetId}.${this.tableId}\`
           WHERE UPPER(TRIM(job_title)) LIKE UPPER(TRIM(@jobTitle))
-          AND wage_rate_of_pay_from > 0 
-          AND wage_rate_of_pay_from < 1000000
+          AND wage_rate_of_pay_from > 0
+          AND (CASE WHEN wage_unit_of_pay = 'Hour' THEN wage_rate_of_pay_from * 2080 WHEN wage_unit_of_pay = 'Week' THEN wage_rate_of_pay_from * 52 WHEN wage_unit_of_pay = 'Month' THEN wage_rate_of_pay_from * 12 WHEN wage_unit_of_pay = 'Bi-Weekly' THEN wage_rate_of_pay_from * 26 ELSE wage_rate_of_pay_from END) BETWEEN 30000 AND 900000
         )
         SELECT 
           CASE 
@@ -1881,7 +1886,7 @@ export class H1BBigQueryService {
           SUM(CASE WHEN case_status = 'Certified' THEN 1 ELSE 0 END) as certifiedApplications,
           COUNT(DISTINCT UPPER(TRIM(employer_name))) as uniqueEmployers,
           AVG(
-            CASE WHEN wage_rate_of_pay_from > 0 AND wage_rate_of_pay_from < 1000000 THEN 
+            CASE WHEN wage_rate_of_pay_from > 0 AND (CASE WHEN wage_unit_of_pay = 'Hour' THEN wage_rate_of_pay_from * 2080 WHEN wage_unit_of_pay = 'Week' THEN wage_rate_of_pay_from * 52 WHEN wage_unit_of_pay = 'Month' THEN wage_rate_of_pay_from * 12 WHEN wage_unit_of_pay = 'Bi-Weekly' THEN wage_rate_of_pay_from * 26 ELSE wage_rate_of_pay_from END) BETWEEN 30000 AND 900000 THEN 
               CASE 
                 WHEN wage_unit_of_pay = 'Hour' THEN wage_rate_of_pay_from * 2080
                 WHEN wage_unit_of_pay = 'Week' THEN wage_rate_of_pay_from * 52
@@ -1892,7 +1897,7 @@ export class H1BBigQueryService {
             END
           ) as avgSalary,
           AVG(
-            CASE WHEN wage_rate_of_pay_from > 0 AND wage_rate_of_pay_from < 1000000 THEN 
+            CASE WHEN wage_rate_of_pay_from > 0 AND (CASE WHEN wage_unit_of_pay = 'Hour' THEN wage_rate_of_pay_from * 2080 WHEN wage_unit_of_pay = 'Week' THEN wage_rate_of_pay_from * 52 WHEN wage_unit_of_pay = 'Month' THEN wage_rate_of_pay_from * 12 WHEN wage_unit_of_pay = 'Bi-Weekly' THEN wage_rate_of_pay_from * 26 ELSE wage_rate_of_pay_from END) BETWEEN 30000 AND 900000 THEN 
               CASE 
                 WHEN wage_unit_of_pay = 'Hour' THEN wage_rate_of_pay_from * 2080
                 WHEN wage_unit_of_pay = 'Week' THEN wage_rate_of_pay_from * 52
@@ -1903,7 +1908,7 @@ export class H1BBigQueryService {
             END
           ) as medianSalary,
           MIN(
-            CASE WHEN wage_rate_of_pay_from > 0 AND wage_rate_of_pay_from < 1000000 THEN 
+            CASE WHEN wage_rate_of_pay_from > 0 AND (CASE WHEN wage_unit_of_pay = 'Hour' THEN wage_rate_of_pay_from * 2080 WHEN wage_unit_of_pay = 'Week' THEN wage_rate_of_pay_from * 52 WHEN wage_unit_of_pay = 'Month' THEN wage_rate_of_pay_from * 12 WHEN wage_unit_of_pay = 'Bi-Weekly' THEN wage_rate_of_pay_from * 26 ELSE wage_rate_of_pay_from END) BETWEEN 30000 AND 900000 THEN 
               CASE 
                 WHEN wage_unit_of_pay = 'Hour' THEN wage_rate_of_pay_from * 2080
                 WHEN wage_unit_of_pay = 'Week' THEN wage_rate_of_pay_from * 52
@@ -1914,7 +1919,7 @@ export class H1BBigQueryService {
             END
           ) as minSalary,
           MAX(
-            CASE WHEN wage_rate_of_pay_from > 0 AND wage_rate_of_pay_from < 1000000 THEN 
+            CASE WHEN wage_rate_of_pay_from > 0 AND (CASE WHEN wage_unit_of_pay = 'Hour' THEN wage_rate_of_pay_from * 2080 WHEN wage_unit_of_pay = 'Week' THEN wage_rate_of_pay_from * 52 WHEN wage_unit_of_pay = 'Month' THEN wage_rate_of_pay_from * 12 WHEN wage_unit_of_pay = 'Bi-Weekly' THEN wage_rate_of_pay_from * 26 ELSE wage_rate_of_pay_from END) BETWEEN 30000 AND 900000 THEN 
               CASE 
                 WHEN wage_unit_of_pay = 'Hour' THEN wage_rate_of_pay_from * 2080
                 WHEN wage_unit_of_pay = 'Week' THEN wage_rate_of_pay_from * 52
@@ -1938,7 +1943,7 @@ export class H1BBigQueryService {
           COUNT(*) as applications,
           ROUND(COUNT(*) * 100.0 / SUM(COUNT(*)) OVER(), 1) as percentage,
           AVG(
-            CASE WHEN wage_rate_of_pay_from > 0 AND wage_rate_of_pay_from < 1000000 THEN 
+            CASE WHEN wage_rate_of_pay_from > 0 AND (CASE WHEN wage_unit_of_pay = 'Hour' THEN wage_rate_of_pay_from * 2080 WHEN wage_unit_of_pay = 'Week' THEN wage_rate_of_pay_from * 52 WHEN wage_unit_of_pay = 'Month' THEN wage_rate_of_pay_from * 12 WHEN wage_unit_of_pay = 'Bi-Weekly' THEN wage_rate_of_pay_from * 26 ELSE wage_rate_of_pay_from END) BETWEEN 30000 AND 900000 THEN 
               CASE 
                 WHEN wage_unit_of_pay = 'Hour' THEN wage_rate_of_pay_from * 2080
                 WHEN wage_unit_of_pay = 'Week' THEN wage_rate_of_pay_from * 52
@@ -1949,7 +1954,7 @@ export class H1BBigQueryService {
             END
           ) as avgSalary,
           AVG(
-            CASE WHEN wage_rate_of_pay_from > 0 AND wage_rate_of_pay_from < 1000000 THEN 
+            CASE WHEN wage_rate_of_pay_from > 0 AND (CASE WHEN wage_unit_of_pay = 'Hour' THEN wage_rate_of_pay_from * 2080 WHEN wage_unit_of_pay = 'Week' THEN wage_rate_of_pay_from * 52 WHEN wage_unit_of_pay = 'Month' THEN wage_rate_of_pay_from * 12 WHEN wage_unit_of_pay = 'Bi-Weekly' THEN wage_rate_of_pay_from * 26 ELSE wage_rate_of_pay_from END) BETWEEN 30000 AND 900000 THEN 
               CASE 
                 WHEN wage_unit_of_pay = 'Hour' THEN wage_rate_of_pay_from * 2080
                 WHEN wage_unit_of_pay = 'Week' THEN wage_rate_of_pay_from * 52
@@ -2012,9 +2017,11 @@ export class H1BBigQueryService {
             AVG(avgSalary) as avgSalary,
             AVG(avgSalary) as medianSalary,
             MAX(CASE WHEN fiscal_year = '${this.getCurrentFiscalYear()}' THEN applications END) as current_year_apps,
-            MAX(CASE WHEN fiscal_year = '2024' THEN applications END) as previous_year_apps
+            MAX(CASE WHEN fiscal_year = '${this.getCurrentFiscalYear() - 1}' THEN applications END) as previous_year_apps
           FROM job_title_yearly
           GROUP BY jobTitle
+          -- A salary ranking over n=1 filings is outlier noise, not signal
+          HAVING SUM(applications) >= 10
         )
         SELECT 
           jobTitle,
@@ -2044,7 +2051,7 @@ export class H1BBigQueryService {
             END as fiscal_year,
             COUNT(*) as applications,
             AVG(
-              CASE WHEN wage_rate_of_pay_from > 0 AND wage_rate_of_pay_from < 1000000 THEN 
+              CASE WHEN wage_rate_of_pay_from > 0 AND (CASE WHEN wage_unit_of_pay = 'Hour' THEN wage_rate_of_pay_from * 2080 WHEN wage_unit_of_pay = 'Week' THEN wage_rate_of_pay_from * 52 WHEN wage_unit_of_pay = 'Month' THEN wage_rate_of_pay_from * 12 WHEN wage_unit_of_pay = 'Bi-Weekly' THEN wage_rate_of_pay_from * 26 ELSE wage_rate_of_pay_from END) BETWEEN 30000 AND 900000 THEN 
                 CASE 
                   WHEN wage_unit_of_pay = 'Hour' THEN wage_rate_of_pay_from * 2080
                   WHEN wage_unit_of_pay = 'Week' THEN wage_rate_of_pay_from * 52
@@ -2083,8 +2090,8 @@ export class H1BBigQueryService {
           WHERE UPPER(TRIM(worksite_city)) = UPPER(TRIM(@cityName))
           AND UPPER(TRIM(worksite_state)) = UPPER(TRIM(@stateName))
           AND case_status = 'Certified'
-          AND wage_rate_of_pay_from > 0 
-          AND wage_rate_of_pay_from < 1000000
+          AND wage_rate_of_pay_from > 0
+          AND (CASE WHEN wage_unit_of_pay = 'Hour' THEN wage_rate_of_pay_from * 2080 WHEN wage_unit_of_pay = 'Week' THEN wage_rate_of_pay_from * 52 WHEN wage_unit_of_pay = 'Month' THEN wage_rate_of_pay_from * 12 WHEN wage_unit_of_pay = 'Bi-Weekly' THEN wage_rate_of_pay_from * 26 ELSE wage_rate_of_pay_from END) BETWEEN 30000 AND 900000
         )
         SELECT
           CASE
@@ -2632,7 +2639,7 @@ export class H1BBigQueryService {
           ROUND(AVG(CASE WHEN case_status = 'Certified' THEN 1.0 ELSE 0.0 END) * 100, 2) as certification_rate,
           COUNT(DISTINCT UPPER(TRIM(employer_name))) as unique_employers,
           AVG(
-            CASE WHEN wage_rate_of_pay_from > 0 AND wage_rate_of_pay_from < 1000000 THEN 
+            CASE WHEN wage_rate_of_pay_from > 0 AND (CASE WHEN wage_unit_of_pay = 'Hour' THEN wage_rate_of_pay_from * 2080 WHEN wage_unit_of_pay = 'Week' THEN wage_rate_of_pay_from * 52 WHEN wage_unit_of_pay = 'Month' THEN wage_rate_of_pay_from * 12 WHEN wage_unit_of_pay = 'Bi-Weekly' THEN wage_rate_of_pay_from * 26 ELSE wage_rate_of_pay_from END) BETWEEN 30000 AND 900000 THEN 
               CASE 
                 WHEN wage_unit_of_pay = 'Hour' THEN wage_rate_of_pay_from * 2080
                 WHEN wage_unit_of_pay = 'Week' THEN wage_rate_of_pay_from * 52
@@ -2643,7 +2650,7 @@ export class H1BBigQueryService {
             END
           ) as avg_salary,
           APPROX_QUANTILES(
-            CASE WHEN wage_rate_of_pay_from > 0 AND wage_rate_of_pay_from < 1000000 THEN 
+            CASE WHEN wage_rate_of_pay_from > 0 AND (CASE WHEN wage_unit_of_pay = 'Hour' THEN wage_rate_of_pay_from * 2080 WHEN wage_unit_of_pay = 'Week' THEN wage_rate_of_pay_from * 52 WHEN wage_unit_of_pay = 'Month' THEN wage_rate_of_pay_from * 12 WHEN wage_unit_of_pay = 'Bi-Weekly' THEN wage_rate_of_pay_from * 26 ELSE wage_rate_of_pay_from END) BETWEEN 30000 AND 900000 THEN 
               CASE 
                 WHEN wage_unit_of_pay = 'Hour' THEN wage_rate_of_pay_from * 2080
                 WHEN wage_unit_of_pay = 'Week' THEN wage_rate_of_pay_from * 52
@@ -2654,7 +2661,7 @@ export class H1BBigQueryService {
             END, 2
           )[OFFSET(1)] as median_salary,
           MIN(
-            CASE WHEN wage_rate_of_pay_from > 0 AND wage_rate_of_pay_from < 1000000 THEN 
+            CASE WHEN wage_rate_of_pay_from > 0 AND (CASE WHEN wage_unit_of_pay = 'Hour' THEN wage_rate_of_pay_from * 2080 WHEN wage_unit_of_pay = 'Week' THEN wage_rate_of_pay_from * 52 WHEN wage_unit_of_pay = 'Month' THEN wage_rate_of_pay_from * 12 WHEN wage_unit_of_pay = 'Bi-Weekly' THEN wage_rate_of_pay_from * 26 ELSE wage_rate_of_pay_from END) BETWEEN 30000 AND 900000 THEN 
               CASE 
                 WHEN wage_unit_of_pay = 'Hour' THEN wage_rate_of_pay_from * 2080
                 WHEN wage_unit_of_pay = 'Week' THEN wage_rate_of_pay_from * 52
@@ -2665,7 +2672,7 @@ export class H1BBigQueryService {
             END
           ) as min_salary,
           MAX(
-            CASE WHEN wage_rate_of_pay_from > 0 AND wage_rate_of_pay_from < 1000000 THEN 
+            CASE WHEN wage_rate_of_pay_from > 0 AND (CASE WHEN wage_unit_of_pay = 'Hour' THEN wage_rate_of_pay_from * 2080 WHEN wage_unit_of_pay = 'Week' THEN wage_rate_of_pay_from * 52 WHEN wage_unit_of_pay = 'Month' THEN wage_rate_of_pay_from * 12 WHEN wage_unit_of_pay = 'Bi-Weekly' THEN wage_rate_of_pay_from * 26 ELSE wage_rate_of_pay_from END) BETWEEN 30000 AND 900000 THEN 
               CASE 
                 WHEN wage_unit_of_pay = 'Hour' THEN wage_rate_of_pay_from * 2080
                 WHEN wage_unit_of_pay = 'Week' THEN wage_rate_of_pay_from * 52
@@ -2692,7 +2699,7 @@ export class H1BBigQueryService {
             COUNT(*) as applications,
             ROUND(AVG(CASE WHEN case_status = 'Certified' THEN 1.0 ELSE 0.0 END) * 100, 2) as certification_rate,
             AVG(
-              CASE WHEN wage_rate_of_pay_from > 0 AND wage_rate_of_pay_from < 1000000 THEN 
+              CASE WHEN wage_rate_of_pay_from > 0 AND (CASE WHEN wage_unit_of_pay = 'Hour' THEN wage_rate_of_pay_from * 2080 WHEN wage_unit_of_pay = 'Week' THEN wage_rate_of_pay_from * 52 WHEN wage_unit_of_pay = 'Month' THEN wage_rate_of_pay_from * 12 WHEN wage_unit_of_pay = 'Bi-Weekly' THEN wage_rate_of_pay_from * 26 ELSE wage_rate_of_pay_from END) BETWEEN 30000 AND 900000 THEN 
                 CASE 
                   WHEN wage_unit_of_pay = 'Hour' THEN wage_rate_of_pay_from * 2080
                   WHEN wage_unit_of_pay = 'Week' THEN wage_rate_of_pay_from * 52
@@ -2731,7 +2738,7 @@ export class H1BBigQueryService {
             worksite_state,
             COUNT(*) as applications,
             AVG(
-              CASE WHEN wage_rate_of_pay_from > 0 AND wage_rate_of_pay_from < 1000000 THEN 
+              CASE WHEN wage_rate_of_pay_from > 0 AND (CASE WHEN wage_unit_of_pay = 'Hour' THEN wage_rate_of_pay_from * 2080 WHEN wage_unit_of_pay = 'Week' THEN wage_rate_of_pay_from * 52 WHEN wage_unit_of_pay = 'Month' THEN wage_rate_of_pay_from * 12 WHEN wage_unit_of_pay = 'Bi-Weekly' THEN wage_rate_of_pay_from * 26 ELSE wage_rate_of_pay_from END) BETWEEN 30000 AND 900000 THEN 
                 CASE 
                   WHEN wage_unit_of_pay = 'Hour' THEN wage_rate_of_pay_from * 2080
                   WHEN wage_unit_of_pay = 'Week' THEN wage_rate_of_pay_from * 52
@@ -2777,7 +2784,7 @@ export class H1BBigQueryService {
             COUNT(*) as applications,
             ROUND(AVG(CASE WHEN case_status = 'Certified' THEN 1.0 ELSE 0.0 END) * 100, 2) as certification_rate,
             AVG(
-              CASE WHEN wage_rate_of_pay_from > 0 AND wage_rate_of_pay_from < 1000000 THEN 
+              CASE WHEN wage_rate_of_pay_from > 0 AND (CASE WHEN wage_unit_of_pay = 'Hour' THEN wage_rate_of_pay_from * 2080 WHEN wage_unit_of_pay = 'Week' THEN wage_rate_of_pay_from * 52 WHEN wage_unit_of_pay = 'Month' THEN wage_rate_of_pay_from * 12 WHEN wage_unit_of_pay = 'Bi-Weekly' THEN wage_rate_of_pay_from * 26 ELSE wage_rate_of_pay_from END) BETWEEN 30000 AND 900000 THEN 
                 CASE 
                   WHEN wage_unit_of_pay = 'Hour' THEN wage_rate_of_pay_from * 2080
                   WHEN wage_unit_of_pay = 'Week' THEN wage_rate_of_pay_from * 52
@@ -2798,7 +2805,7 @@ export class H1BBigQueryService {
             AVG(avg_salary) as avg_salary,
             AVG(certification_rate) as certification_rate,
             MAX(CASE WHEN fiscal_year = '${this.getCurrentFiscalYear()}' THEN applications END) as current_year_apps,
-            MAX(CASE WHEN fiscal_year = '2024' THEN applications END) as previous_year_apps
+            MAX(CASE WHEN fiscal_year = '${this.getCurrentFiscalYear() - 1}' THEN applications END) as previous_year_apps
           FROM job_category_yearly
           GROUP BY job_category
         ),
@@ -3026,7 +3033,7 @@ export class H1BBigQueryService {
             SUM(applications) as total_applications,
             AVG(avg_salary) as avg_salary,
             MAX(CASE WHEN fiscal_year = '${this.getCurrentFiscalYear()}' THEN applications END) as current_year_apps,
-            MAX(CASE WHEN fiscal_year = '2024' THEN applications END) as previous_year_apps
+            MAX(CASE WHEN fiscal_year = '${this.getCurrentFiscalYear() - 1}' THEN applications END) as previous_year_apps
           FROM job_title_yearly
           GROUP BY job_title
         ),

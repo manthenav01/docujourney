@@ -387,7 +387,7 @@ const ContextualDashboardContent: React.FC<ContextualDashboardProps> = ({ viewTy
                   color="primary"
                 />
                 <MetricCard
-                  title="Approval Rate"
+                  title="Certification Rate"
                   value={`${(dashboardData?.certificationRate || 0).toFixed(1)}%`}
                   icon={<METRIC_CONFIGS.approvalRate.icon className="w-6 h-6" />}
                   color="primary"

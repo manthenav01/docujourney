@@ -223,7 +223,7 @@ export function generateH1BMetadata({
   if (companyName) {
     title = `${companyName} H1B Visa Sponsorship ${DATA_YEAR}: Salaries, Approval Rate & LCA Data`;
     description = apps && avg
-      ? `${companyName} filed ${apps.toLocaleString('en-US')} H1B LCA applications${rate ? ` with a ${rate} approval rate` : ''}. Average salary ${avg}${range ? ` (range ${range})` : ''}. Explore job titles, worksite locations, and hiring trends.`
+      ? `${companyName} filed ${apps.toLocaleString('en-US')} H1B LCA applications${rate ? ` with a ${rate} LCA certification rate` : ''}. Average salary ${avg}${range ? ` (range ${range})` : ''}. Explore job titles, worksite locations, and hiring trends.`
       : `Does ${companyName} sponsor H1B visas? View ${companyName} H1B salaries, approval rates, LCA filings, job titles, and worksite locations. Official US Department of Labor data.`;
     canonicalPath = path || `/h1b-dashboard/company/${slugify(companyName)}`;
   } else if (jobTitle) {

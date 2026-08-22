@@ -145,7 +145,7 @@ export default async function CompanyPage({ params }: PageProps) {
               </div>
               <div>
                 <div className="font-semibold text-foreground">{rate.toFixed(1)}%</div>
-                <div className="text-xs text-muted-foreground">Approval Rate</div>
+                <div className="text-xs text-muted-foreground">Certification Rate</div>
               </div>
               <div>
                 <div className="font-semibold text-foreground">{avgSalary ? formatSalary(avgSalary) : 'N/A'}</div>

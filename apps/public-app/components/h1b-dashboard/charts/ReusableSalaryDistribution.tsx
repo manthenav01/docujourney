@@ -68,44 +68,36 @@ const processSalaryData = (data: SalaryDistributionData[]): SalaryDistributionDa
     return [];
   }
 
-  // Standard salary ranges with granular high-end breakdown
+  // Canonical bucket order — the API already emits exactly these labels.
+  // (The previous keyword-substring matching double-counted buckets:
+  // "Under $80K" contains "80" so it also landed in "$80K - $120K", which is
+  // how bucket percentages once summed to 245%.)
   const standardRanges = [
-    { range: 'Under $80K', keywords: ['under', 'below', '< ', '60', '70', '75'] },
-    { range: '$80K - $120K', keywords: ['80', '90', '100', '110', '115'] },
-    { range: '$120K - $160K', keywords: ['120', '130', '140', '150', '155'] },
-    { range: '$160K - $200K', keywords: ['160', '170', '180', '190', '195'] },
-    { range: '$200K - $240K', keywords: ['200', '210', '220', '230', '235'] },
-    { range: '$240K - $280K', keywords: ['240', '250', '260', '270', '275'] },
-    { range: '$280K - $320K', keywords: ['280', '290', '300', '310', '315'] },
-    { range: '$320K+', keywords: ['320', '330', '340', '350', '360', '370', '380', '390', '400', '500', '600'] },
+    'Under $80K',
+    '$80K - $120K',
+    '$120K - $160K',
+    '$160K - $200K',
+    '$200K - $240K',
+    '$240K - $280K',
+    '$280K - $320K',
+    '$320K+',
   ];
 
-  // Group data into standard ranges
-  const groupedData = standardRanges.map(standardRange => {
-    const matchingItems = data.filter(item => {
-      const rangeText = item.range.toLowerCase();
-      return standardRange.keywords.some(keyword => rangeText.includes(keyword));
-    });
-
-    const totalCount = matchingItems.reduce((sum, item) => sum + item.count, 0);
-    const totalPercentage = matchingItems.reduce((sum, item) => sum + (item.percentage || 0), 0);
-
-    return {
-      range: standardRange.range,
-      count: totalCount,
-      percentage: totalPercentage || (totalCount > 0 ? 0 : 0),
-    };
+  const byRange = new Map<string, number>();
+  data.forEach(item => {
+    const key = item.range.trim();
+    byRange.set(key, (byRange.get(key) || 0) + item.count);
   });
 
-  // Filter out ranges with no data and recalculate percentages
-  const filteredData = groupedData.filter(item => item.count > 0);
+  const filteredData = standardRanges
+    .filter(range => (byRange.get(range) || 0) > 0)
+    .map(range => ({ range, count: byRange.get(range) as number, percentage: 0 }));
+
+  // Percentages are always recomputed from the bucket counts so they sum to 100
   const totalCount = filteredData.reduce((sum, item) => sum + item.count, 0);
-  
   if (totalCount > 0) {
     filteredData.forEach(item => {
-      if (!item.percentage || item.percentage === 0) {
-        item.percentage = (item.count / totalCount) * 100;
-      }
+      item.percentage = (item.count / totalCount) * 100;
     });
   }
 

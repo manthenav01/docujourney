@@ -2,8 +2,8 @@ import { Metadata } from 'next';
 import { DATA_YEAR } from '@docujourney/utils';
 
 export const metadata: Metadata = {
-  title: `H1B Sponsor Companies Directory ${DATA_YEAR} | 170,000+ H1B Employers Database`,
-  description: 'Complete directory of H1B sponsor companies with approval rates, salary data, and hiring trends. Search 170,000+ employers sponsoring H1B visas including Amazon, Google, Microsoft.',
+  title: `H1B Sponsor Companies Directory ${DATA_YEAR} | Salaries & Certification Rates`,
+  description: 'Directory of companies sponsoring H1B visas, ranked by filings with LCA certification rates, salary data, and hiring trends — including Amazon, Google, and Microsoft.',
   keywords: [
     'H1B sponsor companies',
     'H1B employers database',
@@ -21,7 +21,7 @@ export const metadata: Metadata = {
     'immigration sponsor companies',
   ],
   openGraph: {
-    title: `H1B Sponsor Companies Directory ${DATA_YEAR} | 170,000+ Employers`,
+    title: `H1B Sponsor Companies Directory ${DATA_YEAR} | H1B Employers Database`,
     description: 'Complete directory of H1B sponsor companies with approval rates, salary data, and hiring trends. Find employers actively hiring international talent.',
     url: 'https://www.usimmigrantcentral.com/h1b-sponsors',
     siteName: 'Immigrant Central',

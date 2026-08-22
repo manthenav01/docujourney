@@ -112,17 +112,17 @@ export const DashboardFooter: React.FC = () => {
               <div className="grid grid-cols-3 gap-4">
                 <StatCard 
                   label="Companies" 
-                  value="170K+" 
+                  value="180K+" 
                   icon={<Building className="w-4 h-4" />} 
                 />
                 <StatCard 
                   label="Applications" 
-                  value="2.9M" 
+                  value="3.7M+" 
                   icon={<FileText className="w-4 h-4" />} 
                 />
                 <StatCard 
                   label="Job Titles" 
-                  value="400K+" 
+                  value="425K+" 
                   icon={<Users className="w-4 h-4" />} 
                 />
               </div>

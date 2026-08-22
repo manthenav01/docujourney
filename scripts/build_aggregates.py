@@ -171,10 +171,15 @@ def build_queries(project_id: str):
       FROM `{project_id}.{DATASET}.agg_job_summary`
       WHERE total_applications >= 3
       UNION ALL
-      SELECT CONCAT(INITCAP(TRIM(worksite_city)), ', ', UPPER(TRIM(worksite_state))) AS text,
+      -- City names carry stray punctuation in the raw data ("Austin," vs
+      -- "Austin"), which produced duplicate suggestions like "Austin,, TX".
+      -- Keep only letters/spaces/hyphens before composing the display string.
+      SELECT CONCAT(
+               INITCAP(TRIM(REGEXP_REPLACE(worksite_city, r"[^A-Za-z\\-' ]", ''))),
+               ', ', UPPER(TRIM(worksite_state))) AS text,
              'location' AS type, COUNT(*) AS score
       FROM {src}
-      WHERE worksite_city IS NOT NULL AND TRIM(worksite_city) != ''
+      WHERE worksite_city IS NOT NULL AND TRIM(REGEXP_REPLACE(worksite_city, r"[^A-Za-z\\-' ]", '')) != ''
         AND worksite_state IS NOT NULL AND TRIM(worksite_state) != ''
       GROUP BY text
       HAVING COUNT(*) >= 25
