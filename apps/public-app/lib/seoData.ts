@@ -56,7 +56,7 @@ export const getCompanySEOData = cache(
           WHERE slug = @slug LIMIT 1`,
         params: { slug },
       });
-      if (!rows.length || !rows[0].total_applications) return null;
+      if (!rows.length || !rows[0].total_applications) {return null;}
       const r = rows[0];
       return {
         name: r.employer_name,
@@ -88,7 +88,7 @@ export const getJobSEOData = cache(
           WHERE slug = @slug LIMIT 1`,
         params: { slug },
       });
-      if (!rows.length || !rows[0].total_applications) return null;
+      if (!rows.length || !rows[0].total_applications) {return null;}
       const r = rows[0];
       return {
         title: r.job_title,
@@ -131,7 +131,7 @@ export async function getTopSlugs(
 }
 
 export function approvalRate(total: number, certified: number): number {
-  if (!total) return 0;
+  if (!total) {return 0;}
   return (certified / total) * 100;
 }
 
