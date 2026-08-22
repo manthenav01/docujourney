@@ -12,12 +12,14 @@ __pycache__/
 .venv/
 *.egg-info/
 
-# Ignore service account keys
-serviceAccountKey.json
-serviceAccountKey-test.json
-serviceAccountKey-prod.json
+# Ignore service account keys and env files (glob covers any casing variants)
+serviceAccountKey*.json
+serviceAccountkey*.json
+serviceaccountkey*.json
 firebase-admin-test.json
 firebase-admin-prod.json
+.env
+.env.*
 
 # Ignore deployment preparation files
 .vercel-env-test
