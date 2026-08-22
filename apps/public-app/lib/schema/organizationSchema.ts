@@ -29,7 +29,7 @@ export interface OrganizationSchemaConfig {
  * Generates comprehensive Organization schema for H1B employers
  */
 export const generateOrganizationSchema = (config: OrganizationSchemaConfig) => {
-  const baseUrl = 'https://usimmigrantcentral.com';
+  const baseUrl = 'https://www.usimmigrantcentral.com';
   const companySlug = config.name.toLowerCase().replace(/[^a-z0-9]+/g, '-');
   
   return {

@@ -1,7 +1,7 @@
 import React, { Suspense } from 'react';
 import '@docujourney/ui/styles/globals.css';
 import { Toaster } from '@docujourney/ui';
-import { BASE_METADATA, generateMetadata } from '@docujourney/utils';
+import { BASE_METADATA, generateMetadata, DATA_YEAR } from '@docujourney/utils';
 import { Metadata } from 'next';
 import { SpeedInsights } from '@vercel/speed-insights/next';
 import { Analytics } from '@vercel/analytics/react';
@@ -10,8 +10,8 @@ import CookieConsent from '@/components/CookieConsent';
 
 export const metadata: Metadata = {
   ...generateMetadata({
-    title: 'H1B Data Analytics Platform - Real-Time Visa Salaries, Sponsors & Approval Rates | Immigrant Central',
-    description: 'Comprehensive H1B visa analytics platform with real-time salary data, sponsor companies database, and immigration insights. Find H1B sponsors, calculate prevailing wages, and analyze approval rates across millions of applications.',
+    title: `H1B Salary Database & Sponsor Companies ${DATA_YEAR} | Immigrant Central`,
+    description: 'Search 2.9M+ H1B visa applications: salaries by company, job title, and city, sponsor company database, and approval rates. Free real-time analytics from official US Department of Labor data.',
     keywords: [
       // Primary high-volume keywords
       'H1B data',
@@ -40,7 +40,7 @@ export const metadata: Metadata = {
     type: 'website',
     path: '',
   }),
-  metadataBase: new URL('https://usimmigrantcentral.com'),
+  metadataBase: new URL(BASE_METADATA.url),
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
@@ -78,13 +78,27 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               '@context': 'https://schema.org',
               '@type': 'WebSite',
               name: 'Immigrant Central',
-              url: 'https://usimmigrantcentral.com',
+              url: BASE_METADATA.url,
               description: 'Comprehensive H1B visa analytics platform with real-time immigration data insights',
               potentialAction: {
                 '@type': 'SearchAction',
-                target: 'https://usimmigrantcentral.com/h1b-dashboard?q={search_term_string}',
+                target: `${BASE_METADATA.url}/h1b-dashboard?q={search_term_string}`,
                 'query-input': 'required name=search_term_string',
               },
+            }),
+          }}
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              '@context': 'https://schema.org',
+              '@type': 'Organization',
+              name: 'Immigrant Central',
+              url: BASE_METADATA.url,
+              logo: `${BASE_METADATA.url}/favicon.svg`,
+              description: 'Free H1B visa analytics platform built on official US Department of Labor LCA disclosure data.',
+              sameAs: ['https://twitter.com/immigracentral'],
             }),
           }}
         />

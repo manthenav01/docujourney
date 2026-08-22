@@ -38,12 +38,12 @@ export default function ContactLayout({
     '@type': 'ContactPage',
     name: 'Contact Immigrant Central',
     description: 'Contact page for H1B immigration data support, visa analytics help, and expert immigration guidance.',
-    url: 'https://usimmigrantcentral.com/contact',
+    url: 'https://www.usimmigrantcentral.com/contact',
     mainEntity: {
       '@type': 'Organization',
       name: 'Immigrant Central',
-      url: 'https://usimmigrantcentral.com',
-      logo: 'https://usimmigrantcentral.com/favicon.svg',
+      url: 'https://www.usimmigrantcentral.com',
+      logo: 'https://www.usimmigrantcentral.com/favicon.svg',
       description: 'Leading H1B visa analytics platform providing comprehensive immigration data insights',
       contactPoint: [
         {
@@ -74,7 +74,7 @@ export default function ContactLayout({
       '@type': 'CommunicateAction',
       target: {
         '@type': 'EntryPoint',
-        urlTemplate: 'https://usimmigrantcentral.com/contact',
+        urlTemplate: 'https://www.usimmigrantcentral.com/contact',
         inLanguage: 'en',
         actionPlatform: [
           'https://schema.org/DesktopWebPlatform',

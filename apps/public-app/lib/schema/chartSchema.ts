@@ -18,7 +18,7 @@ export interface ChartSchemaConfig {
  * Generates VisualArtwork schema for chart components
  */
 export const generateChartSchema = (config: ChartSchemaConfig) => {
-  const baseUrl = 'https://usimmigrantcentral.com';
+  const baseUrl = 'https://www.usimmigrantcentral.com';
   
   return {
     '@context': 'https://schema.org',

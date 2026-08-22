@@ -42,7 +42,7 @@ export interface PlaceSchemaConfig {
  * Generates comprehensive Place schema for H1B geographic data
  */
 export const generatePlaceSchema = (config: PlaceSchemaConfig) => {
-  const baseUrl = 'https://usimmigrantcentral.com';
+  const baseUrl = 'https://www.usimmigrantcentral.com';
   const placeSlug = config.name.toLowerCase().replace(/[^a-z0-9]+/g, '-');
   
   return {

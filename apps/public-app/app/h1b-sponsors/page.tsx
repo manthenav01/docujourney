@@ -5,8 +5,8 @@ import { H1BSponsorsClient } from './H1BSponsorsClient';
 import { SponsorsListSkeleton } from '@/components/h1b-dashboard/SponsorsListSkeleton';
 
 // ISR: revalidate every hour
+// (force-dynamic was overriding this and disabling caching entirely)
 export const revalidate = 3600;
-export const dynamic = 'force-dynamic';
 
 interface IndustryData {
   industry: string;
@@ -135,8 +135,13 @@ function StaticContent({ staticStats }: { staticStats: StaticStatsData }) {
         <div>
           <h3 className="text-xl font-bold text-gray-900 mb-3">H1B Sponsor Insights</h3>
           <div className="space-y-3">
-            {staticStats.insights.map((insight, index) => {
-              const bgColor = insight.color === 'blue' ? 'bg-blue-50' : 
+            {staticStats.insights.filter(insight => {
+              // Skip insights whose backing number is zero — rendering
+              // "0 new companies sponsored H1B visas" reads as a data error
+              const numeric = parseFloat(String(insight.value).replace(/[^0-9.-]/g, ''));
+              return !Number.isFinite(numeric) || numeric > 0;
+            }).map((insight, index) => {
+              const bgColor = insight.color === 'blue' ? 'bg-blue-50' :
                             insight.color === 'green' ? 'bg-green-50' : 'bg-purple-50';
               const textColor = insight.color === 'blue' ? 'text-blue-900' : 
                               insight.color === 'green' ? 'text-green-900' : 'text-purple-900';
@@ -159,8 +164,10 @@ function StaticContent({ staticStats }: { staticStats: StaticStatsData }) {
       {/* Data freshness indicator */}
       <div className="mt-4 text-center" suppressHydrationWarning>
         <p className="text-xs text-gray-500">
-          Data updated: {new Date(staticStats.lastUpdated).toLocaleDateString()} | 
-          Based on {staticStats.totalApplications.toLocaleString('en-US')} H1B applications
+          Data updated: {new Date(staticStats.lastUpdated).toLocaleDateString()}
+          {staticStats.totalApplications > 0 && (
+            <> | Based on {staticStats.totalApplications.toLocaleString('en-US')} H1B applications</>
+          )}
         </p>
       </div>
     </div>

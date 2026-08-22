@@ -1,12 +1,13 @@
 import { Metadata } from 'next';
+import { DATA_YEAR } from '@docujourney/utils';
 
 export const metadata: Metadata = {
-  title: 'H1B Salary Calculator 2025 | Free Prevailing Wage Calculator',
+  title: `H1B Salary Calculator ${DATA_YEAR} | Free Prevailing Wage Calculator`,
   description: 'Calculate H1B salary ranges and prevailing wages based on millions of real applications. Get accurate salary estimates by job title, location, and experience level for H1B visa petitions.',
   keywords: [
     'H1B salary calculator',
     'H1B prevailing wage calculator',
-    'H1B minimum salary 2025',
+    `H1B minimum salary ${DATA_YEAR}`,
     'H1B wage calculator',
     'prevailing wage determination',
     'H1B salary requirements',
@@ -18,19 +19,19 @@ export const metadata: Metadata = {
     'H1B compensation calculator',
   ],
   openGraph: {
-    title: 'H1B Salary Calculator 2025 | Free Prevailing Wage Calculator',
+    title: `H1B Salary Calculator ${DATA_YEAR} | Free Prevailing Wage Calculator`,
     description: 'Calculate H1B salary ranges and prevailing wages based on millions of real applications. Get accurate salary estimates by job title, location, and experience level.',
-    url: 'https://usimmigrantcentral.com/h1b-salary-calculator',
+    url: 'https://www.usimmigrantcentral.com/h1b-salary-calculator',
     siteName: 'Immigrant Central',
     type: 'website',
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'H1B Salary Calculator 2025',
+    title: `H1B Salary Calculator ${DATA_YEAR}`,
     description: 'Calculate H1B salary ranges and prevailing wages based on millions of real applications.',
   },
   alternates: {
-    canonical: 'https://usimmigrantcentral.com/h1b-salary-calculator',
+    canonical: 'https://www.usimmigrantcentral.com/h1b-salary-calculator',
   },
   robots: {
     index: true,

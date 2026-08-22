@@ -31,7 +31,7 @@ export interface OccupationSchemaConfig {
  * Generates comprehensive Occupation schema for H1B job titles
  */
 export const generateOccupationSchema = (config: OccupationSchemaConfig) => {
-  const baseUrl = 'https://usimmigrantcentral.com';
+  const baseUrl = 'https://www.usimmigrantcentral.com';
   const jobSlug = config.name.toLowerCase().replace(/[^a-z0-9]+/g, '-');
   
   return {

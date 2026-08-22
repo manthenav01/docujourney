@@ -117,7 +117,7 @@ export async function GET(
     
     logger.logResponse(requestContext, 200, queryTime, { 
       type: 'dashboard', 
-      totalApplications: dashboardData.totalApplications 
+      totalApplications: dashboardData.totalApplications, 
     });
     
     return NextResponse.json(response, {
@@ -143,7 +143,7 @@ export async function GET(
           PROJECT_ID: process.env.GOOGLE_CLOUD_PROJECT_ID || 'NOT_SET',
           HAS_CREDENTIALS: !!process.env.GOOGLE_CLOUD_PRIVATE_KEY,
         },
-      }
+      },
     );
     
     // Handle validation errors with specific status codes

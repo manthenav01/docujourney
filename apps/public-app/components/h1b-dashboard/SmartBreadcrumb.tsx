@@ -164,7 +164,7 @@ export const SmartBreadcrumb: React.FC = () => {
               '@type': 'ListItem',
               position: index + 1,
               name: item.label,
-              item: item.href !== '#' ? `https://usimmigrantcentral.com${item.href}` : undefined,
+              item: item.href !== '#' ? `https://www.usimmigrantcentral.com${item.href}` : undefined,
             })),
           }),
         }}

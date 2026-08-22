@@ -20,7 +20,7 @@ const defaultOptions: RequestLoggingOptions = {
 
 export function withLogging<T>(
   handler: (req: NextRequest) => Promise<NextResponse<T>>,
-  options: RequestLoggingOptions = {}
+  options: RequestLoggingOptions = {},
 ) {
   return async (req: NextRequest): Promise<NextResponse<T>> => {
     const startTime = Date.now();
@@ -128,7 +128,7 @@ export function withLogging<T>(
         duration,
         {
           responseSize: response.headers.get('content-length') || undefined,
-        }
+        },
       );
 
       return response;
@@ -157,7 +157,7 @@ function generateRequestId(): string {
 // Higher-order function for easy API route wrapping
 export function createApiHandler<T>(
   handler: (req: NextRequest) => Promise<NextResponse<T>>,
-  options?: RequestLoggingOptions
+  options?: RequestLoggingOptions,
 ) {
   return withLogging(handler, options);
 }

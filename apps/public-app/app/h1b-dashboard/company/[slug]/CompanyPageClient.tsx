@@ -15,7 +15,10 @@ function CompanyContent({ slug: propSlug, companyName: propCompanyName }: Compan
   const searchParams = useSearchParams();
   
   const slug = propSlug || (params.slug as string) || '';
-  const companyName = propCompanyName || searchParams.get('name') || 'Unknown Company';
+  // Prefer the exact employer name from search navigation (?name=...) since it
+  // matches the database verbatim; fall back to the server-derived name so
+  // direct/organic landings on the bare slug URL still resolve.
+  const companyName = searchParams.get('name') || propCompanyName || 'Unknown Company';
 
   return (
     <CompanyDashboard 

@@ -46,7 +46,7 @@ export const metadata: Metadata = {
 
 async function fetchTopCompanies(): Promise<Company[]> {
   try {
-    const response = await fetch(`${process.env.NEXT_PUBLIC_APP_URL || 'https://usimmigrantcentral.com'}/api/h1b-data?category=topEmployers&limit=50`);
+    const response = await fetch(`${process.env.NEXT_PUBLIC_APP_URL || 'https://www.usimmigrantcentral.com'}/api/h1b-data?category=topEmployers&limit=50`);
     if (!response.ok) {
       return [];
     }
@@ -67,7 +67,7 @@ async function fetchTopCompanies(): Promise<Company[]> {
 
 async function fetchTopJobs(): Promise<Job[]> {
   try {
-    const response = await fetch(`${process.env.NEXT_PUBLIC_APP_URL || 'https://usimmigrantcentral.com'}/api/h1b-data`);
+    const response = await fetch(`${process.env.NEXT_PUBLIC_APP_URL || 'https://www.usimmigrantcentral.com'}/api/h1b-data`);
     if (!response.ok) {
       return [];
     }

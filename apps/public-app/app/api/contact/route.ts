@@ -173,7 +173,7 @@ function generateConfirmationEmail(name: string) {
     <p>Hi ${name},</p>
     <p>We've received your message and will get back to you within 24 hours.</p>
     <p>In the meantime, you can explore our H1B data dashboard for the latest immigration insights:</p>
-    <p><a href="https://usimmigrantcentral.com/h1b-dashboard">Visit H1B Dashboard</a></p>
+    <p><a href="https://www.usimmigrantcentral.com/h1b-dashboard">Visit H1B Dashboard</a></p>
     <p>Best regards,<br>The Immigrant Central Team</p>
   `;
 }

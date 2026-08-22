@@ -1,114 +1,44 @@
 'use client';
 
+import { Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { useEffect, useState } from 'react';
 import { JobDashboard } from '@/components/h1b-dashboard';
-import { generateStructuredData } from '@docujourney/utils';
 
-export default function JobPageClient({ slug }: { slug: string }) {
+type JobPageClientProps = {
+  slug: string;
+  jobTitle?: string;
+};
+
+// Title, meta description, and structured data are all rendered server-side by
+// page.tsx — this component only wires up the interactive dashboard.
+function JobContent({ slug, jobTitle: propJobTitle }: JobPageClientProps) {
   const searchParams = useSearchParams();
-  const jobTitle = searchParams.get('title') || 'Unknown Job';
-  const [isLoaded, setIsLoaded] = useState(false);
-
-  useEffect(() => {
-    // Update document title and meta description dynamically
-    const cleanJobTitle = decodeURIComponent(jobTitle);
-    document.title = `${cleanJobTitle} H1B Data - Salary & Employment Analytics | DocuJourney`;
-    
-    // Update meta description
-    const metaDescription = document.querySelector('meta[name="description"]');
-    if (metaDescription) {
-      metaDescription.setAttribute('content', 
-        `Comprehensive H1B visa data for ${cleanJobTitle} positions. View salary ranges, top employers, geographic distribution, and job market trends. Latest H1B employment analytics.`,
-      );
-    }
-
-    // Add job-specific structured data
-    const structuredData = generateStructuredData('h1b-data', { 
-      title: cleanJobTitle,
-      slug: slug, 
-    });
-    
-    const script = document.createElement('script');
-    script.type = 'application/ld+json';
-    script.textContent = JSON.stringify(structuredData);
-    document.head.appendChild(script);
-
-    // Add breadcrumb structured data
-    const breadcrumbData = {
-      '@context': 'https://schema.org',
-      '@type': 'BreadcrumbList',
-      itemListElement: [
-        {
-          '@type': 'ListItem',
-          position: 1,
-          name: 'Home',
-          item: 'https://usimmigrantcentral.com',
-        },
-        {
-          '@type': 'ListItem',
-          position: 2,
-          name: 'H1B Dashboard',
-          item: 'https://usimmigrantcentral.com/h1b-dashboard',
-        },
-        {
-          '@type': 'ListItem',
-          position: 3,
-          name: `${cleanJobTitle} H1B Data`,
-          item: `https://usimmigrantcentral.com/h1b-dashboard/job/${slug}`,
-        },
-      ],
-    };
-
-    const breadcrumbScript = document.createElement('script');
-    breadcrumbScript.type = 'application/ld+json';
-    breadcrumbScript.textContent = JSON.stringify(breadcrumbData);
-    document.head.appendChild(breadcrumbScript);
-
-    setIsLoaded(true);
-
-    return () => {
-      // Cleanup scripts safely
-      const scripts = document.querySelectorAll('script[type="application/ld+json"]');
-      scripts.forEach(script => {
-        if (script.textContent?.includes(cleanJobTitle) && script.parentNode) {
-          script.parentNode.removeChild(script);
-        }
-      });
-    };
-  }, [jobTitle, slug]);
-
-  if (!isLoaded) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading H1B data for {jobTitle}...</p>
-        </div>
-      </div>
-    );
-  }
+  // Prefer the exact title from search navigation (?title=...) since it matches
+  // the database verbatim; fall back to the server-derived title so direct and
+  // organic landings on the bare slug URL still resolve.
+  const jobTitle = searchParams.get('title') || propJobTitle || 'Unknown Job';
 
   return (
-    <>
-      {/* SEO-optimized content for job page */}
-      <div className="sr-only">
-        <h1>{jobTitle} H1B Visa Job Data and Market Analytics</h1>
-        <p>
-          Comprehensive H1B visa job market data for {jobTitle} positions including salary ranges, 
-          top employers, geographic distribution, employment trends, and career insights. 
-          Explore detailed job market analytics for informed career decisions.
-        </p>
-        <div>
-          <span>Keywords: {jobTitle} H1B, {jobTitle} visa jobs, {jobTitle} salary data, 
-          {jobTitle} employment, H1B {jobTitle}, visa jobs {jobTitle}, job market {jobTitle}</span>
+    <JobDashboard
+      jobSlug={slug}
+      jobTitle={jobTitle}
+    />
+  );
+}
+
+export default function JobPageClient({ slug, jobTitle }: JobPageClientProps) {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex items-center justify-center min-h-screen">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+            <p className="mt-4 text-gray-600">Loading H1B data...</p>
+          </div>
         </div>
-      </div>
-      
-      <JobDashboard 
-        jobSlug={slug}
-        jobTitle={jobTitle}
-      />
-    </>
+      }
+    >
+      <JobContent slug={slug} jobTitle={jobTitle} />
+    </Suspense>
   );
 }

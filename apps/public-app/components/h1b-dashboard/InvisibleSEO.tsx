@@ -28,13 +28,13 @@ export const InvisibleSEO: React.FC = () => {
       name: 'H1B Visa Application Database',
       description: 'Comprehensive database of H1B visa applications with salary, employer, and approval data',
       keywords: ['H1B visa', 'immigration data', 'salary data', 'visa sponsorship'],
-      url: 'https://usimmigrantcentral.com',
+      url: 'https://www.usimmigrantcentral.com',
       creator: {
         '@type': 'Organization',
         name: 'Immigrant Central',
       },
       isAccessibleForFree: true,
-      license: 'https://usimmigrantcentral.com/terms-of-service',
+      license: 'https://www.usimmigrantcentral.com/terms-of-service',
     };
 
     // Add specific schema based on what's being viewed
@@ -44,7 +44,7 @@ export const InvisibleSEO: React.FC = () => {
         '@type': 'Organization',
         name: employer,
         description: `H1B visa sponsorship data for ${employer} including salary ranges and approval statistics`,
-        url: `https://usimmigrantcentral.com/h1b-dashboard/company/${employer.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`,
+        url: `https://www.usimmigrantcentral.com/h1b-dashboard/company/${employer.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`,
         additionalType: 'H1BVisaSponsor',
         knowsAbout: [
           'H1B visa sponsorship',

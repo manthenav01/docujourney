@@ -296,7 +296,7 @@ export const SmartInternalLinks: React.FC<SmartInternalLinksProps> = ({
               item: {
                 '@type': 'WebPage',
                 name: link.linkText,
-                url: `https://usimmigrantcentral.com${link.url}`,
+                url: `https://www.usimmigrantcentral.com${link.url}`,
                 description: link.relationshipDescription,
                 about: {
                   '@type': link.type === 'employer' ? 'Organization' : 

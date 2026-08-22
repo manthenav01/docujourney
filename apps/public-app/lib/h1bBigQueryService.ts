@@ -1118,6 +1118,34 @@ export class H1BBigQueryService {
    * Find the actual company name in the database using fuzzy matching
    */
   private async findActualCompanyName(searchName: string): Promise<string> {
+    // Slug-normalized exact match first: URL slugs strip punctuation
+    // ("amazon-com-services-llc"), so compare both sides with the same
+    // normalization (non-alphanumeric runs -> single dash).
+    const normalizedSearch = searchName
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, '');
+
+    if (normalizedSearch) {
+      const normalizedQuery = `
+        SELECT employer_name, COUNT(*) as count
+        FROM \`${this.projectId}.${this.datasetId}.${this.tableId}\`
+        WHERE REGEXP_REPLACE(REGEXP_REPLACE(LOWER(employer_name), r'[^a-z0-9]+', '-'), r'^-+|-+$', '') = @normalizedSearch
+        GROUP BY employer_name
+        ORDER BY count DESC
+        LIMIT 1
+      `;
+
+      const [normalizedResults] = await this.bigquery.query({
+        query: normalizedQuery,
+        params: { normalizedSearch },
+      });
+
+      if (normalizedResults.length > 0) {
+        return normalizedResults[0].employer_name;
+      }
+    }
+
     const searchQuery = `
       SELECT employer_name, COUNT(*) as count
       FROM \`${this.projectId}.${this.datasetId}.${this.tableId}\`

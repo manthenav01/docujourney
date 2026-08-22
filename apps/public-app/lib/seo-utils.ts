@@ -249,7 +249,7 @@ export const generateContextualKeywords = (context: SEOContext): string[] => {
 /**
  * Creates canonical URL for the current context
  */
-export const generateCanonicalUrl = (context: SEOContext, baseUrl: string = 'https://usimmigrantcentral.com'): string => {
+export const generateCanonicalUrl = (context: SEOContext, baseUrl: string = 'https://www.usimmigrantcentral.com'): string => {
   switch (context.pageType) {
     case 'employer':
       return `${baseUrl}/h1b-dashboard/company/${createSlug(context.entityName || '')}`;

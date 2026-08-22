@@ -24,7 +24,7 @@ export interface VisualArtworkConfig {
  * Creates comprehensive VisualArtwork schema for data visualizations
  */
 export const generateVisualArtworkSchema = (config: VisualArtworkConfig) => {
-  const baseUrl = 'https://usimmigrantcentral.com';
+  const baseUrl = 'https://www.usimmigrantcentral.com';
   
   return {
     '@context': 'https://schema.org',

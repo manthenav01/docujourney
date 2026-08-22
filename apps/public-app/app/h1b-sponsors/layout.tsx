@@ -1,12 +1,13 @@
 import { Metadata } from 'next';
+import { DATA_YEAR } from '@docujourney/utils';
 
 export const metadata: Metadata = {
-  title: 'H1B Sponsor Companies Directory 2025 | 170,000+ H1B Employers Database',
+  title: `H1B Sponsor Companies Directory ${DATA_YEAR} | 170,000+ H1B Employers Database`,
   description: 'Complete directory of H1B sponsor companies with approval rates, salary data, and hiring trends. Search 170,000+ employers sponsoring H1B visas including Amazon, Google, Microsoft.',
   keywords: [
     'H1B sponsor companies',
     'H1B employers database',
-    'H1B sponsor list 2025',
+    `H1B sponsor list ${DATA_YEAR}`,
     'companies that sponsor H1B visa',
     'H1B sponsoring employers',
     'best H1B sponsor companies',
@@ -20,19 +21,19 @@ export const metadata: Metadata = {
     'immigration sponsor companies',
   ],
   openGraph: {
-    title: 'H1B Sponsor Companies Directory 2025 | 170,000+ Employers',
+    title: `H1B Sponsor Companies Directory ${DATA_YEAR} | 170,000+ Employers`,
     description: 'Complete directory of H1B sponsor companies with approval rates, salary data, and hiring trends. Find employers actively hiring international talent.',
-    url: 'https://usimmigrantcentral.com/h1b-sponsors',
+    url: 'https://www.usimmigrantcentral.com/h1b-sponsors',
     siteName: 'Immigrant Central',
     type: 'website',
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'H1B Sponsor Companies Directory 2025',
+    title: `H1B Sponsor Companies Directory ${DATA_YEAR}`,
     description: 'Complete directory of 170,000+ H1B sponsor companies with approval rates and salary data.',
   },
   alternates: {
-    canonical: 'https://usimmigrantcentral.com/h1b-sponsors',
+    canonical: 'https://www.usimmigrantcentral.com/h1b-sponsors',
   },
   robots: {
     index: true,
@@ -45,7 +46,7 @@ export const metadata: Metadata = {
       'max-snippet': -1,
     },
   },
-  metadataBase: new URL('https://usimmigrantcentral.com'),
+  metadataBase: new URL('https://www.usimmigrantcentral.com'),
 };
 
 export default function H1BSponsorsLayout({
@@ -62,9 +63,9 @@ export default function H1BSponsorsLayout({
           __html: JSON.stringify({
             '@context': 'https://schema.org',
             '@type': 'CollectionPage',
-            name: 'H1B Sponsor Companies Directory 2025',
+            name: `H1B Sponsor Companies Directory ${DATA_YEAR}`,
             description: 'Complete directory of H1B sponsor companies with approval rates, salary data, and hiring trends.',
-            url: 'https://usimmigrantcentral.com/h1b-sponsors',
+            url: 'https://www.usimmigrantcentral.com/h1b-sponsors',
             mainEntity: {
               '@type': 'ItemList',
               name: 'Top H1B Sponsor Companies',
@@ -78,13 +79,13 @@ export default function H1BSponsorsLayout({
                   '@type': 'ListItem',
                   position: 1,
                   name: 'Home',
-                  item: 'https://usimmigrantcentral.com',
+                  item: 'https://www.usimmigrantcentral.com',
                 },
                 {
                   '@type': 'ListItem',
                   position: 2,
                   name: 'H1B Sponsors',
-                  item: 'https://usimmigrantcentral.com/h1b-sponsors',
+                  item: 'https://www.usimmigrantcentral.com/h1b-sponsors',
                 },
               ],
             },

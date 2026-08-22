@@ -37,7 +37,7 @@ function generateRSSItem(post: any, baseUrl: string, category?: any): string {
 
 export async function GET() {
   try {
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://usimmigrantcentral.com';
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://www.usimmigrantcentral.com';
     const [posts, categories] = await Promise.all([
       getAllPosts(),
       getCategories(),

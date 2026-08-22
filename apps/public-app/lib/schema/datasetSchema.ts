@@ -22,7 +22,7 @@ export interface DatasetConfig {
  * Generates comprehensive Dataset schema for H1B data collections
  */
 export const generateDatasetSchema = (config: DatasetConfig) => {
-  const baseUrl = 'https://usimmigrantcentral.com';
+  const baseUrl = 'https://www.usimmigrantcentral.com';
   
   return {
     '@context': 'https://schema.org',
@@ -151,7 +151,7 @@ export const generateDatasetSchema = (config: DatasetConfig) => {
  * Adds category-specific schema properties
  */
 function getCategorySpecificProperties(category: DatasetConfig['category'], config: DatasetConfig) {
-  const baseUrl = 'https://usimmigrantcentral.com';
+  const baseUrl = 'https://www.usimmigrantcentral.com';
   
   switch (category) {
     case 'employer':

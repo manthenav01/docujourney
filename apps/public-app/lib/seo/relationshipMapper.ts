@@ -34,7 +34,7 @@ export interface RelationshipContext {
 export class H1BRelationshipMapper {
   private baseUrl: string;
   
-  constructor(baseUrl: string = 'https://usimmigrantcentral.com') {
+  constructor(baseUrl: string = 'https://www.usimmigrantcentral.com') {
     this.baseUrl = baseUrl;
   }
   

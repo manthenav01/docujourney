@@ -1,7 +1,8 @@
 import { NextResponse } from 'next/server';
+import { BASE_METADATA } from '@docujourney/utils';
 
 export async function GET() {
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://usimmigrantcentral.com';
+  const baseUrl = BASE_METADATA.url;
   const currentDate = new Date().toISOString();
   
   const sitemapIndex = `<?xml version="1.0" encoding="UTF-8"?>

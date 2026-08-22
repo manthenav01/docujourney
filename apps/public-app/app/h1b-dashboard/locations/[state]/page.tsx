@@ -1,5 +1,10 @@
 import { Metadata } from 'next';
 import StatePageClient from './StatePageClient';
+import { BASE_METADATA, DATA_YEAR } from '@docujourney/utils';
+
+// ISR: state aggregates change only when new quarterly DOL data lands.
+export const revalidate = 86400;
+export const dynamicParams = true;
 
 interface PageProps {
   params: Promise<{ state: string }>;
@@ -15,10 +20,10 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     word.charAt(0).toUpperCase() + word.slice(1).toLowerCase(),
   ).join(' ');
   
-  const title = `H1B Jobs in ${stateName} 2025 | Visa Sponsors & Salary Data by State`;
+  const title = `H1B Jobs in ${stateName} ${DATA_YEAR} | Visa Sponsors & Salary Data by State`;
   const description = `H1B visa jobs and sponsoring companies in ${stateName}. View salary ranges, top employers, approval rates, and visa sponsorship opportunities across all cities in ${stateName}. Comprehensive H1B data for ${stateName}.`;
   
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://usimmigrantcentral.com';
+  const baseUrl = BASE_METADATA.url;
   const canonicalUrl = `${baseUrl}/h1b-dashboard/locations/${state}`;
   
   return {

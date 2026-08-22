@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { BASE_METADATA } from '@docujourney/utils';
 
 const US_STATES = [
   { name: 'California', code: 'CA', slug: 'california' },
@@ -31,6 +32,27 @@ const US_STATES = [
   { name: 'Oklahoma', code: 'OK', slug: 'oklahoma' },
   { name: 'Connecticut', code: 'CT', slug: 'connecticut' },
   { name: 'Utah', code: 'UT', slug: 'utah' },
+  { name: 'Nevada', code: 'NV', slug: 'nevada' },
+  { name: 'Iowa', code: 'IA', slug: 'iowa' },
+  { name: 'Arkansas', code: 'AR', slug: 'arkansas' },
+  { name: 'Mississippi', code: 'MS', slug: 'mississippi' },
+  { name: 'Kansas', code: 'KS', slug: 'kansas' },
+  { name: 'New Mexico', code: 'NM', slug: 'new-mexico' },
+  { name: 'Nebraska', code: 'NE', slug: 'nebraska' },
+  { name: 'Idaho', code: 'ID', slug: 'idaho' },
+  { name: 'West Virginia', code: 'WV', slug: 'west-virginia' },
+  { name: 'Hawaii', code: 'HI', slug: 'hawaii' },
+  { name: 'New Hampshire', code: 'NH', slug: 'new-hampshire' },
+  { name: 'Maine', code: 'ME', slug: 'maine' },
+  { name: 'Montana', code: 'MT', slug: 'montana' },
+  { name: 'Rhode Island', code: 'RI', slug: 'rhode-island' },
+  { name: 'Delaware', code: 'DE', slug: 'delaware' },
+  { name: 'South Dakota', code: 'SD', slug: 'south-dakota' },
+  { name: 'North Dakota', code: 'ND', slug: 'north-dakota' },
+  { name: 'Alaska', code: 'AK', slug: 'alaska' },
+  { name: 'Vermont', code: 'VT', slug: 'vermont' },
+  { name: 'Wyoming', code: 'WY', slug: 'wyoming' },
+  { name: 'District of Columbia', code: 'DC', slug: 'district-of-columbia' },
 ];
 
 const MAJOR_CITIES = [
@@ -67,7 +89,7 @@ const MAJOR_CITIES = [
 ];
 
 export async function GET() {
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://usimmigrantcentral.com';
+  const baseUrl = BASE_METADATA.url;
   const currentDate = new Date().toISOString();
   
   const sitemap = `<?xml version="1.0" encoding="UTF-8"?>

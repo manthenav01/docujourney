@@ -52,7 +52,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
   const categories = await getCategories();
   const category = categories.find(c => c.slug === post?.category?.slug);
   
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://usimmigrantcentral.com';
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://www.usimmigrantcentral.com';
   
   // Default author if not specified
   const author = {

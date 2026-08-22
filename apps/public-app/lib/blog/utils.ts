@@ -36,7 +36,7 @@ export function generateSlug(title: string): string {
 }
 
 export function generateBlogPostMetadata(post: BlogPost): Metadata {
-  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://usimmigrantcentral.com';
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://www.usimmigrantcentral.com';
   const url = `${baseUrl}/blog/${post.slug}`;
 
   return {

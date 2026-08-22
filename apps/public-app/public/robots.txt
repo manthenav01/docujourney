@@ -1,40 +1,12 @@
 User-agent: *
 Allow: /
 
-# Allow all H1B dashboard pages
-Allow: /h1b-dashboard
-Allow: /h1b-dashboard/company/*
-Allow: /h1b-dashboard/job/*
-Allow: /h1b-dashboard/city/*
-Allow: /h1b-dashboard/attorney/*
-Allow: /h1b-dashboard/employers
-Allow: /h1b-dashboard/jobs
-Allow: /h1b-dashboard/locations
-Allow: /h1b-dashboard/attorneys
-
-# Allow blog pages
-Allow: /blog
-Allow: /blog/*
-Allow: /blog/category/*
-Allow: /blog/feed.xml
-Allow: /blog/atom.xml
-
-# Allow content pages
-Allow: /about
-Allow: /contact
-Allow: /privacy-policy
-Allow: /terms-of-service
-
-# Disallow admin/internal pages if any exist
+# NOTE: /api/ stays crawlable on purpose — Googlebot must be able to fetch the
+# dashboard's JSON endpoints when rendering client-side pages.
 Disallow: /admin/
-Disallow: /api/internal/
 
-# Crawl optimization for large sites
-User-agent: Googlebot
-Crawl-delay: 0.5
-
-# Priority sitemaps
-Sitemap: https://usimmigrantcentral.com/sitemap.xml
-Sitemap: https://usimmigrantcentral.com/sitemap-index.xml
-Sitemap: https://usimmigrantcentral.com/sitemap-companies.xml
-Sitemap: https://usimmigrantcentral.com/sitemap-jobs.xml
+# Sitemaps (canonical host: www)
+Sitemap: https://www.usimmigrantcentral.com/sitemap.xml
+Sitemap: https://www.usimmigrantcentral.com/sitemap-companies.xml
+Sitemap: https://www.usimmigrantcentral.com/sitemap-jobs.xml
+Sitemap: https://www.usimmigrantcentral.com/sitemap-locations.xml

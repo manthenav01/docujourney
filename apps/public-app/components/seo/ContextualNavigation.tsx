@@ -322,12 +322,12 @@ export const ContextualNavigation: React.FC<ContextualNavigationProps> = ({
             '@type': 'SiteNavigationElement',
             name: 'H1B Data Navigation',
             description: 'Contextual navigation for H1B visa data analysis',
-            url: `https://usimmigrantcentral.com${pathname}`,
+            url: `https://www.usimmigrantcentral.com${pathname}`,
             hasPart: sortedItems.slice(0, 15).map((item, index) => ({
               '@type': 'WebPage',
               name: item.label,
               description: item.description,
-              url: `https://usimmigrantcentral.com${item.href}`,
+              url: `https://www.usimmigrantcentral.com${item.href}`,
               about: {
                 '@type': item.category === 'employer' ? 'Organization' :
                         item.category === 'job' ? 'Occupation' :

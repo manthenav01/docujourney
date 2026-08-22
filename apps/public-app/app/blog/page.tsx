@@ -12,7 +12,7 @@ import { Search, TrendingUp } from 'lucide-react';
 import { generateBlogListingStructuredData } from '@/lib/blog/structured-data';
 import Script from 'next/script';
 
-const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://usimmigrantcentral.com';
+const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://www.usimmigrantcentral.com';
 
 export const metadata: Metadata = {
   ...generateMetadata({

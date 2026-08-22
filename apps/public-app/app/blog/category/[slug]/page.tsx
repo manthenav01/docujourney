@@ -30,7 +30,7 @@ export async function generateMetadata({ params }: CategoryPageProps): Promise<M
     };
   }
 
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://usimmigrantcentral.com';
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://www.usimmigrantcentral.com';
 
   return {
     title: `${category.name} Articles - US Immigrant Central Blog`,
@@ -99,7 +99,7 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
     currentPage * postsPerPage,
   );
 
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://usimmigrantcentral.com';
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://www.usimmigrantcentral.com';
   const structuredData = generateBlogListingStructuredData(baseUrl, category);
 
   return (

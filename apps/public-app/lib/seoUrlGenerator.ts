@@ -1,6 +1,6 @@
 // Generate SEO-friendly URLs for different scenarios
 export const generateSEOUrls = () => {
-  const baseUrl = 'https://usimmigrantcentral.com/h1b-dashboard';
+  const baseUrl = 'https://www.usimmigrantcentral.com/h1b-dashboard';
   
   // High-value search scenarios with clean URLs
   return {

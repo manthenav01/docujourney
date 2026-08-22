@@ -59,6 +59,9 @@ export async function generateMetadata({
       title,
       description,
     },
+    alternates: {
+      canonical: `/h1b-dashboard/attorney/${slug}`,
+    },
     robots: {
       index: true,
       follow: true,
