@@ -95,3 +95,6 @@ logs/**/*.log
 
 # Environment config files with credentials — never track
 config/environments/
+
+# Vercel project links
+.vercel/
