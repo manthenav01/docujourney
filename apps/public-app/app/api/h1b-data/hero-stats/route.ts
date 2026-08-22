@@ -1,3 +1,4 @@
+import { LATEST_DATA_FISCAL_YEAR } from '@docujourney/utils';
 import { NextRequest, NextResponse } from 'next/server';
 import { createH1BBigQueryService } from '@/lib/h1bBigQueryService';
 
@@ -42,7 +43,7 @@ export async function GET(request: NextRequest) {
           
           // Get aggregated data which includes top employers and stats
           const aggregatedData = await bigQueryService.getH1BDashboardData({
-            fiscalYears: ['2025'],
+            fiscalYears: [LATEST_DATA_FISCAL_YEAR],
           });
 
           console.log(`[DEBUG] Aggregated data received:`, {
@@ -99,12 +100,12 @@ export async function GET(request: NextRequest) {
         try {
           // Get popular jobs sorted by application count (not salary)
           const popularJobs = await bigQueryService.getMostPopularJobs({
-            fiscalYears: ['2025'],
+            fiscalYears: [LATEST_DATA_FISCAL_YEAR],
           }, 5);
 
           // Get general stats from aggregated data
           const aggregatedData = await bigQueryService.getH1BDashboardData({
-            fiscalYears: ['2025'],
+            fiscalYears: [LATEST_DATA_FISCAL_YEAR],
           });
 
           // Transform popular jobs for UI
@@ -136,7 +137,7 @@ export async function GET(request: NextRequest) {
       case 'cities':
         try {
           const aggregatedData = await bigQueryService.getH1BDashboardData({
-            fiscalYears: ['2025'],
+            fiscalYears: [LATEST_DATA_FISCAL_YEAR],
           });
 
           // Get top cities/states from state distribution
@@ -168,7 +169,7 @@ export async function GET(request: NextRequest) {
       case 'attorneys':
         try {
           const aggregatedData = await bigQueryService.getH1BDashboardData({
-            fiscalYears: ['2025'],
+            fiscalYears: [LATEST_DATA_FISCAL_YEAR],
           });
 
           // Get top attorneys from attorneys data
@@ -207,11 +208,11 @@ export async function GET(request: NextRequest) {
         try {
           // Get top law firms data using the new method
           const topLawFirmsData = await bigQueryService.getTopLawFirms({
-            fiscalYears: ['2025'],
+            fiscalYears: [LATEST_DATA_FISCAL_YEAR],
           }, 10);
 
           const aggregatedData = await bigQueryService.getH1BDashboardData({
-            fiscalYears: ['2025'],
+            fiscalYears: [LATEST_DATA_FISCAL_YEAR],
           });
 
           // Transform law firms data for the UI
@@ -269,7 +270,7 @@ export async function GET(request: NextRequest) {
         // General statistics for home page
         try {
           const aggregatedData = await bigQueryService.getH1BDashboardData({
-            fiscalYears: ['2025'],
+            fiscalYears: [LATEST_DATA_FISCAL_YEAR],
           });
 
           stats = {

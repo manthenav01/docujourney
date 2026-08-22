@@ -4,6 +4,7 @@ import React from 'react';
 import { Calendar, Info } from 'lucide-react';
 import { FilterState } from './types';
 import { CustomDropdown, type DropdownOption } from './CustomDropdown';
+import { availableFiscalYears, LATEST_DATA_FISCAL_YEAR } from '@docujourney/utils';
 
 interface YearsFilterProps {
   filters: FilterState;
@@ -16,9 +17,9 @@ export const YearsFilter: React.FC<YearsFilterProps> = ({
   setFilters,
   onFetchData,
 }) => {
-  // Generate available years from 2020 to 2025
-  const availableYears = ['2025', '2024', '2023', '2022', '2021', '2020'];
-  const defaultYear = '2025';
+  // Fiscal years from 2020 through the latest year with published DOL data
+  const availableYears = availableFiscalYears();
+  const defaultYear = LATEST_DATA_FISCAL_YEAR;
 
   // Create dropdown options
   const dropdownOptions: DropdownOption[] = availableYears.map(year => ({

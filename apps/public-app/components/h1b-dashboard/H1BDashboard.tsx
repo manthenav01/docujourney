@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useMemo, useCallback, Suspense } from 'react';
+import { LATEST_DATA_FISCAL_YEAR } from '@docujourney/utils';
 import { FilterState } from './types';
 import { DashboardHero } from './DashboardHero';
 import { YearsFilter } from './YearsFilter';
@@ -39,7 +40,7 @@ export const H1BDashboard: React.FC = () => {
   const [dashboardData, setDashboardData] = useState<H1BDashboardData | null>(null);
   const [filters, setFilters] = useState<FilterState>({
     searchQuery: '', // Keep this for search functionality
-    fiscalYear: '2025',
+    fiscalYear: LATEST_DATA_FISCAL_YEAR,
     states: [],
     cities: [],
     jobCategories: [],

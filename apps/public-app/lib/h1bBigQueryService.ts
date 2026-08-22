@@ -1,4 +1,5 @@
 // BigQuery service for H1B data
+import { FISCAL_YEAR_START, PREVIOUS_FISCAL_YEAR_START } from '@docujourney/utils';
 import { BigQuery } from '@google-cloud/bigquery';
 import {
   H1BQueryFilters,
@@ -3134,7 +3135,7 @@ export class H1BBigQueryService {
             ) as above_prevailing_count
           FROM \`${this.projectId}.${this.datasetId}.${this.tableId}\`
           ${whereClause}
-          AND received_date >= '2024-10-01'  -- FY2025 focus
+          AND received_date >= '${FISCAL_YEAR_START}'  -- current fiscal year focus
           GROUP BY wage_level
         ),
         total_stats AS (
@@ -3304,8 +3305,8 @@ export class H1BBigQueryService {
               ELSE NULL 
             END)) as avg_salary,
             -- Year-over-year comparison for current vs previous fiscal year
-            COUNT(CASE WHEN received_date >= '2024-10-01' AND UPPER(case_status) = 'CERTIFIED' THEN 1 END) as current_year_certified,
-            COUNT(CASE WHEN received_date >= '2023-10-01' AND received_date < '2024-10-01' AND UPPER(case_status) = 'CERTIFIED' THEN 1 END) as previous_year_certified
+            COUNT(CASE WHEN received_date >= '${FISCAL_YEAR_START}' AND UPPER(case_status) = 'CERTIFIED' THEN 1 END) as current_year_certified,
+            COUNT(CASE WHEN received_date >= '${PREVIOUS_FISCAL_YEAR_START}' AND received_date < '${FISCAL_YEAR_START}' AND UPPER(case_status) = 'CERTIFIED' THEN 1 END) as previous_year_certified
           FROM \`${this.projectId}.${this.datasetId}.${this.tableId}\`
           ${whereClause}
           AND job_title IS NOT NULL

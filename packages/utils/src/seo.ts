@@ -48,6 +48,31 @@ export const BASE_METADATA = {
 // Current calendar year, used to keep page titles fresh ("H1B Salary 2026 ...")
 export const DATA_YEAR = new Date().getFullYear();
 
+// Latest fiscal year with published DOL data. DOL releases disclosure files
+// quarterly with roughly a one-quarter lag, so "today" is shifted back four
+// months before mapping to a fiscal year — otherwise every Oct 1 the UI would
+// default to a fiscal year whose first data only arrives in January.
+export function latestDataFiscalYear(now: Date = new Date()): number {
+  const shifted = new Date(now);
+  shifted.setMonth(shifted.getMonth() - 4);
+  // Months are 0-indexed: October = 9. Oct-Dec belong to the next fiscal year.
+  return shifted.getMonth() >= 9 ? shifted.getFullYear() + 1 : shifted.getFullYear();
+}
+
+export const LATEST_DATA_FISCAL_YEAR = String(latestDataFiscalYear());
+// First day of that fiscal year / of the one before it, for received_date filters
+export const FISCAL_YEAR_START = `${latestDataFiscalYear() - 1}-10-01`;
+export const PREVIOUS_FISCAL_YEAR_START = `${latestDataFiscalYear() - 2}-10-01`;
+
+// Dropdown-ready list of fiscal years, newest first
+export function availableFiscalYears(from = 2020): string[] {
+  const years: string[] = [];
+  for (let y = latestDataFiscalYear(); y >= from; y--) {
+    years.push(String(y));
+  }
+  return years;
+}
+
 // Canonical slug scheme used across the whole app (nav, sitemaps, URL matching):
 // lowercase, non-alphanumeric runs collapsed to single dashes, no leading/trailing dash.
 export function slugify(value: string): string {

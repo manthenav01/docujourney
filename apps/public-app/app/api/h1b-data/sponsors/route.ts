@@ -1,3 +1,4 @@
+import { FISCAL_YEAR_START } from '@docujourney/utils';
 import { NextRequest, NextResponse } from 'next/server';
 import { BigQuery } from '@google-cloud/bigquery';
 import { bigQueryConfig } from '@/lib/config';
@@ -61,7 +62,7 @@ export async function GET(request: NextRequest): Promise<NextResponse<PaginatedR
       'employer_name IS NOT NULL',
       'employer_name != \'\'',
       'employer_name != \'N/A\'',
-      'received_date >= \'2024-10-01\'',
+      `received_date >= '${FISCAL_YEAR_START}'`,
     ];
     
     if (search) {
@@ -136,7 +137,7 @@ export async function GET(request: NextRequest): Promise<NextResponse<PaginatedR
             job_title,
             COUNT(*) as job_count
           FROM \`${bigQueryConfig.projectId}.${bigQueryConfig.datasetId}.${bigQueryConfig.tableId}\`
-          WHERE received_date >= '2024-10-01'
+          WHERE received_date >= '${FISCAL_YEAR_START}'
             AND job_title IS NOT NULL
             AND ${whereClause}
           GROUP BY employer_name, job_title
@@ -155,7 +156,7 @@ export async function GET(request: NextRequest): Promise<NextResponse<PaginatedR
             worksite_state,
             COUNT(*) as state_count
           FROM \`${bigQueryConfig.projectId}.${bigQueryConfig.datasetId}.${bigQueryConfig.tableId}\`
-          WHERE received_date >= '2024-10-01'
+          WHERE received_date >= '${FISCAL_YEAR_START}'
             AND worksite_state IS NOT NULL
             AND ${whereClause}
           GROUP BY employer_name, worksite_state
