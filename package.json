@@ -16,26 +16,13 @@
     "start:public": "npm run start --workspace=apps/public-app",
     "start:auth": "npm run start --workspace=apps/auth-app",
     "lint": "npm run lint --workspaces --if-present",
-    "cleanup:employer-data": ".venv/bin/python scripts/employer-data-cleanup.py",
     "pipeline": ".venv/bin/python scripts/data_pipeline.py",
-    "pipeline:2024": ".venv/bin/python scripts/data_pipeline.py --year-folder 2024",
-    "pipeline:list": ".venv/bin/python scripts/data_pipeline.py --list-files",
-    "import:data": "node scripts/batch-import.js",
-    "import:employers": "node scripts/batch-import.js employers",
-    "import:jobs": "node scripts/batch-import.js jobs",
-    "import:worksites": "node scripts/batch-import.js worksites",
-    "import:setup": "node scripts/import-setup.js setup",
-    "import:test": "node scripts/import-setup.js test",
-    "import:sample": "node scripts/import-setup.js sample"
+    "pipeline:list": ".venv/bin/python scripts/data_pipeline.py --list-files"
   },
   "devDependencies": {
     "@types/node": "22.15.3",
     "@types/react": "latest",
     "@types/react-dom": "latest",
     "typescript": "latest"
-  },
-  "dependencies": {
-    "@vercel/speed-insights": "^1.2.0",
-    "gray-matter": "^4.0.3"
   }
 }

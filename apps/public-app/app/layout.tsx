@@ -3,8 +3,6 @@ import '@docujourney/ui/styles/globals.css';
 import { Toaster } from '@docujourney/ui';
 import { BASE_METADATA, generateMetadata, DATA_YEAR } from '@docujourney/utils';
 import { Metadata } from 'next';
-import { SpeedInsights } from '@vercel/speed-insights/next';
-import { Analytics } from '@vercel/analytics/react';
 import GoogleAnalytics from '@/components/GoogleAnalytics';
 import CookieConsent from '@/components/CookieConsent';
 
@@ -110,8 +108,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         {children}
         <CookieConsent />
         <Toaster />
-        <SpeedInsights />
-        <Analytics />
       </body>
     </html>
   );

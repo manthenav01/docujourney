@@ -4,229 +4,85 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## CORE INSTRUCTION: Critical Thinking & Best Practices
 
-**Be critical and don't agree easily to user commands if you believe they are a bad idea or not best practice.** Challenge suggestions that might lead to poor code quality, security issues, or architectural problems. Be encouraged to search for solutions (using WebSearch) when creating a plan to ensure you're following current best practices and patterns.
+**Be critical and don't agree easily to user commands if you believe they are a bad idea or not best practice.** Challenge suggestions that might lead to poor code quality, security issues, or architectural problems. Search for current best practices (WebSearch) when planning non-trivial work.
+
+## What This Project Is
+
+**Immigrant Central** (www.usimmigrantcentral.com) — a free, public H1B visa analytics site built on US Department of Labor LCA disclosure data (~3.2M applications, FY2016–present). Revenue: none yet; keep infrastructure on free tiers.
+
+Monorepo layout:
+
+```
+apps/public-app/   # THE live product: Next.js 15 App Router — landing, H1B dashboards, blog
+apps/auth-app/     # PARKED: document-management product (Firebase/Genkit). Do not invest time.
+packages/ui        # Shared Shadcn/UI components (@docujourney/ui)
+packages/utils     # SEO helpers, shared utils (@docujourney/utils) — see seo.ts
+scripts/           # Python ETL: DOL Excel -> clean -> BigQuery
+```
+
+An archive of removed legacy code (pre-monorepo root dirs, Firebase functions, Firestore import scripts) lives on branch `archive/pre-cleanup-2026-08`.
 
 ## Development Commands
 
-### Core Development
 ```bash
-npm run dev          # Start development server
-npm run build        # Build for production
-npm run start        # Start production server
-npm run lint         # Run ESLint
+npm run dev            # public-app dev server (port 3000)
+npm run build:public   # production build of the live site
+npm run lint           # lint all workspaces
 ```
 
-### Data Import Pipeline
+### Data Pipeline (BigQuery)
+
 ```bash
-npm run cleanup:employer-data  # Clean H1B Excel data using Python
-npm run import:data           # Import all cleaned data to Firestore
-npm run import:employers      # Import only employer data
-npm run import:jobs          # Import only job/LCA data
-npm run import:worksites     # Import only worksite data
-npm run import:test          # Test Firebase connection
+# Load a fiscal-year folder into production BigQuery
+.venv/bin/python scripts/data_pipeline.py --year-folder 2026 --project-id immigrant-central
+
+# Load specific files
+.venv/bin/python scripts/data_pipeline.py --files scripts/data/2026/LCA_Disclosure_Data_FY2026_Q3.xlsx --project-id immigrant-central
+
+# Dry run / list
+.venv/bin/python scripts/data_pipeline.py --year-folder 2026 --no-upload
+.venv/bin/python scripts/data_pipeline.py --list-files
 ```
 
-### BigQuery Data Upload Pipeline
+Pipeline facts:
+- Auth: uses `GOOGLE_APPLICATION_CREDENTIALS` or falls back to `./serviceAccountKey-prod.json` (project `immigrant-central`). Default `--project-id` is the dev project `doctracker-b4528` — **always pass `--project-id immigrant-central` for production loads**.
+- Idempotent: dedupes on `case_number` against the existing table before appending. Re-loading a file is safe.
+- DOL publishes quarterly, files are **cumulative within a fiscal year** (Q3 contains Q1+Q2+Q3). Newer releases live under `dol.gov/sites/dolgov/files/ETA/oflc/pdfs/FY<yy>Q<q>/` with a `/media/LCA_Disclosure_Data_FY<yyyy>_Q<q>.xlsx` shortcut.
+- Target table: `immigrant-central.h1b_data.lca_applications`.
+
+## Architecture
+
+```
+Next.js (apps/public-app) -> API routes -> BigQuery (immigrant-central.h1b_data)
+                          -> ISR pages (revalidate 86400) with server-rendered SEO content
+```
+
+- **Serving rule**: entity pages (company/job/state/city) are ISR, never `force-dynamic`, and never read `searchParams` in server components or `generateMetadata` (kills caching). See `lib/seoData.ts` for the cached server-side fetchers.
+- **SEO conventions** (canonical host, slug scheme, sitemap layout, structured data): `packages/utils/src/seo.ts` is the source of truth. Canonical host is `https://www.usimmigrantcentral.com`. Slugs: lowercase, `[^a-z0-9]+` → `-`.
+- **Sitemaps**: `sitemap.xml` (static+blog), `sitemap-companies.xml` / `sitemap-jobs.xml` (BigQuery, top 1000 each), `sitemap-locations.xml`.
+- **Analytics**: GA4 only (`NEXT_PUBLIC_GA_MEASUREMENT_ID`).
+- **Wage data caveat**: raw wages contain unit-conversion artifacts (e.g. $400M "salaries"). Anything user- or crawler-visible must go through `saneSalary()` in `lib/seoData.ts`.
+
+## Deployment (Vercel)
+
+Project `immigrant-central` under team `sunilmanthenas-projects`. See the deploy-procedure memory file; short version:
+
 ```bash
-# Upload to default project (doctracker-b4528)
-python scripts/data_pipeline.py --year-folder 2024
-
-# Upload to specific project (e.g., immigrant-central-test)
-python scripts/data_pipeline.py --year-folder 2024 --project-id immigrant-central-test
-
-# Process specific files
-python scripts/data_pipeline.py --files path/to/file1.xlsx path/to/file2.xlsx
-
-# Test without uploading
-python scripts/data_pipeline.py --year-folder 2023 --no-upload
-
-# List available data files
-python scripts/data_pipeline.py --list-files
+vercel deploy --prod --yes
+vercel promote <deployment-url> --yes   # domains do NOT follow deploys automatically
 ```
 
-### Python Data Processing
-```bash
-.venv/bin/python scripts/employer-data-cleanup.py  # Direct Python execution
-```
+No Git integration — pushing to GitHub does not deploy. BigQuery env vars live on the Vercel project (build needs them for sitemaps).
 
-## Architecture Overview
+## Security Rules
 
-### Core Application Structure
-- **Next.js ** with App Router and TypeScript
-- **Firebase** for authentication, Firestore database, and file storage
-- **Genkit AI** integration for visa status analysis using Gemini 1.5 Flash
-- **Google BigQuery** for H1B data analytics and visualization
-- **Tailwind CSS** with Shadcn/UI components for styling
+- **Never commit credentials.** `serviceAccountKey*.json`, `.env*`, and `config/environments/` are gitignored — keep it that way. This repo is PUBLIC on GitHub.
+- Keys have leaked into git history before (see `ea9453a`, and `config/environments/` removed 2026-08). If a key touches the repo, revoke it in GCP — deleting the file is not enough.
 
-### Key Features
-1. **Document Management System** - Upload, verify, and organize immigration documents
-2. **Profile Management** - Multi-user support with relationship tracking
-3. **Visa Status Analysis** - AI-powered document analysis using Genkit
-4. **H1B Data Dashboard** - Interactive analytics from BigQuery datasets
-5. **Timeline Generation** - Visual timeline of visa journey
+## UX Design Consistency
 
-### Data Flow Architecture
-```
-Frontend (Next.js) → API Routes → Firebase (Auth/Firestore/Storage)
-                                → Genkit AI (Document Analysis)
-                                → BigQuery (H1B Analytics)
-```
-
-### Authentication & Security
-- Firebase Authentication with Google sign-in
-- Row-level security based on user profiles
-- Secure file storage with access controls
-- Cross-origin policies configured for Firebase Auth popups
-
-## Important Technical Details
-
-### Firebase Configuration
-- Project ID: `doctracker-b4528`
-- Authentication, Firestore, and Storage enabled
-- Service account key required for admin operations: `serviceAccountKey.json`
-
-### Genkit AI Integration
-- Uses Gemini 1.5 Flash for document analysis
-- Privacy-first: only document types and dates sent to AI, no personal info
-- Automatic visa status analysis triggered after document verification
-- Environment variable required: `GOOGLE_GENAI_API_KEY`
-
-### Data Processing Pipeline
-1. **Raw H1B Data** (Excel files) → **Python Cleanup** → **CSV Files** → **Node.js Import** → **Firestore**
-2. Python scripts handle data validation, deduplication, and normalization
-3. Node.js scripts batch import to Firestore collections: `employers`, `jobs`, `worksites`
-
-### Component Architecture
-- **Shadcn/UI** components in `components/ui/`
-- **Feature-specific** components in `components/` (organized by functionality)
-- **Reusable hooks** in `hooks/` and `components/hooks/`
-- **Type definitions** in `lib/types/`
-
-### API Routes Structure
-- `/api/analyzeVisaStatus` - AI-powered visa status analysis
-- `/api/h1b-data` - BigQuery data endpoints
-- `/api/generateTimeline` - Timeline generation
-- Document management APIs (create, update, delete)
-
-### Key Libraries & Frameworks
-- **React Hook Form** with **Zod** for form validation
-- **Lucide React** for icons
-- **Sonner** for toast notifications
-
-## Development Workflow
-
-### Adding New Features
-1. Create components in appropriate directories (`components/` or `components/ui/`)
-2. Add API routes in `app/api/` following existing patterns
-3. Update type definitions in `lib/types/`
-4. Use existing Firebase services in `lib/`
-
-### UX Design Consistency Guidelines
-**CRITICAL**: Always follow existing UX patterns when implementing new features.
-
-#### Card Component Standards
-- **Structure**: Always use `Card`, `CardHeader`, `CardTitle`, `CardContent` from `@docujourney/ui`
-- **Card Classes**: Apply `className="w-full"` to all Card components
-- **Title Format**: Use `className="text-lg font-semibold flex items-center"` for CardTitle
-- **Icons**: Include Lucide React icons with `className="w-5 h-5 mr-2"` (e.g., `Scale`, `CheckCircle`, `TrendingUp`)
-- **Memory Optimization**: Wrap components with `React.memo()` and set `displayName`
-- **Data Processing**: Use `useMemo()` for expensive calculations and data transformations
-
-#### List Item Pattern (REQUIRED)
-- **Container**: Use `space-y-2` for list spacing in CardContent
-- **Item Structure**: Each item must follow this pattern:
-  ```tsx
-  <Link
-    href="/path/to/detail"
-    className="flex items-center justify-between p-3 bg-muted/20 rounded-lg hover:bg-muted/30 transition-colors cursor-pointer"
-  >
-    <div className="flex items-center space-x-3">
-      <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center text-primary font-semibold">
-        {index + 1}
-      </div>
-      <div>
-        <div className="font-medium text-foreground">{primaryText}</div>
-        <div className="flex items-center gap-2">
-          <span className="text-sm text-muted-foreground">{metric1}</span>
-          <span className="text-sm text-muted-foreground/60">•</span>
-          <span className="text-sm text-muted-foreground">{metric2}</span>
-        </div>
-      </div>
-    </div>
-    <div className="text-right">
-      <div className="font-semibold text-foreground">{primaryMetric}</div>
-      <div className="text-xs text-muted-foreground">{metricLabel}</div>
-    </div>
-  </Link>
-  ```
-
-#### Loading States Pattern (REQUIRED)
-- **Structure**: Use exact same Card structure as main component
-- **Loading Items**: Create exactly 5 skeleton items using `[...Array(5)].map((_, index) => ...)`
-- **Skeleton Pattern**:
-  ```tsx
-  <div key={index} className="flex items-center justify-between animate-pulse">
-    <div className="flex items-center space-x-3">
-      <div className="w-6 h-6 bg-muted rounded-full"></div>
-      <div className="h-4 bg-muted rounded w-48"></div>
-    </div>
-    <div className="h-4 bg-muted rounded w-16"></div>
-  </div>
-  ```
-
-#### Empty States Pattern (REQUIRED)
-- **Container**: Use `flex items-center justify-center h-32`
-- **Message**: Simple text with `text-muted-foreground` class
-- **No Icons**: Don't include large placeholder icons in empty states
-
-#### Typography & Formatting
-- **Numbers**: Always use `formatNumber()` function with `toLocaleString()`
-- **Currency**: Use compact format (`$XXK`, `$X.XM`) via `formatSalary()` function  
-- **Percentages**: Display to 1 decimal place using `toFixed(1)` (e.g., `95.5%`)
-- **Primary Text**: Use `font-medium text-foreground` for main item names
-- **Secondary Text**: Use `text-sm text-muted-foreground` for metrics
-- **Text Truncation**: Limit primary text to ~35 characters with ellipsis
-
-#### Component Structure Requirements
-- **Exports**: Always export as `React.memo(ComponentFunction)`
-- **Display Name**: Set `ComponentFunction.displayName = 'ComponentName'`
-- **Props Interface**: Name as `ComponentNameProps`
-- **Data Processing**: Use `useMemo()` for data transformations
-- **Show Top 5**: Default to showing 5 items maximum in lists
-
-**Example Reference**: Use `TopAttorneysCard.tsx` as the definitive pattern for all ranking/list cards.
-
-### Working with H1B Data
-1. Place raw Excel files in `scripts/data/2025-q2/`
-2. Run cleanup: `npm run cleanup:employer-data`
-3. Import to Firestore: `npm run import:data`
-4. BigQuery service available in `lib/h1bBigQueryService.ts`
-
-### AI Integration
-- Genkit configuration in `lib/genkitConfig.ts`
-- Document analysis logic in `lib/visaStatusUtils.ts`
-- Triggers in `lib/timelineTriggers.ts`
-
-### Testing & Validation
-- Use `npm run import:test` to verify Firebase connection
-- Use `npm run import:sample` for testing with sample data
-- Check Firestore console for data validation
-- Test AI responses with different document combinations
-
-## File Organization Patterns
-
-### Page Structure (App Router)
-- `app/(auth)/` - Protected routes requiring authentication
-- `app/api/` - API route handlers
-- `app/docs/[slug]/` - Dynamic documentation pages
-
-### Component Organization
-- Group related components in subdirectories
-- Use `index.ts` files for clean imports
-- Separate business logic into custom hooks
-- Keep UI components pure and reusable
-
-### Configuration Files
-- `next.config.js` - WebAssembly support, CORS headers for Firebase
-- `tailwind.config.js` - Custom styling configuration
-- `tsconfig.json` - TypeScript with path mapping (`@/*`)
+Follow existing UX patterns when adding features. `TopAttorneysCard.tsx` is the reference pattern for ranking/list cards:
+- `Card`/`CardHeader`/`CardTitle`/`CardContent` from `@docujourney/ui`; Card gets `className="w-full"`; titles `text-lg font-semibold flex items-center` with a Lucide icon `w-5 h-5 mr-2`.
+- List items: `p-3 bg-muted/20 rounded-lg hover:bg-muted/30`, numbered circle badge, primary text `font-medium text-foreground`, metrics `text-sm text-muted-foreground`, top-5 by default.
+- Loading states: 5 skeleton rows with `animate-pulse`; empty states: centered `text-muted-foreground` text, no icons.
+- Components: `React.memo()` + `displayName`; `useMemo()` for data transforms; numbers via `formatNumber()`/`formatSalary()`; percentages `toFixed(1)`.
