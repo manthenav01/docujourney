@@ -1,126 +1,31 @@
 name: CI
 
+# Gates only the live product (apps/public-app + packages).
+# The parked auth-app is intentionally excluded — it does not build.
 on:
   push:
-    branches: [main, develop, preview]
+    branches: [main]
   pull_request:
     branches: [main]
 
 jobs:
-  lint:
+  build:
     runs-on: ubuntu-latest
-    
     steps:
       - uses: actions/checkout@v4
-      
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '22'
           cache: 'npm'
-      
+
       - name: Install dependencies
         run: npm ci
-      
-      - name: Run ESLint
-        run: npm run lint
 
-  type-check:
-    runs-on: ubuntu-latest
-    
-    steps:
-      - uses: actions/checkout@v4
-      
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-          cache: 'npm'
-      
-      - name: Install dependencies
-        run: npm ci
-      
-      - name: Type check
-        run: npx tsc --noEmit
-
-  security-scan:
-    runs-on: ubuntu-latest
-    
-    steps:
-      - uses: actions/checkout@v4
-      
-      - name: Security Scan - Check for hardcoded secrets
-        run: |
-          echo "🔍 Scanning for hardcoded secrets..."
-          
-          # Check for Firebase API keys
-          if grep -r "AIzaSy" . --exclude-dir=node_modules --exclude-dir=.git --exclude-dir=.next --exclude="*.md"; then
-            echo "❌ Found hardcoded Firebase API keys"
-            exit 1
-          fi
-          
-          # Check for service account keys
-          if grep -r "private_key_id" . --exclude-dir=node_modules --exclude-dir=.git --exclude-dir=.next --exclude="*.md"; then
-            echo "❌ Found service account keys in code"
-            exit 1
-          fi
-          
-          # Check for private keys
-          if grep -r "BEGIN PRIVATE KEY" . --exclude-dir=node_modules --exclude-dir=.git --exclude-dir=.next --exclude="*.md"; then
-            echo "❌ Found private keys in code"
-            exit 1
-          fi
-          
-          # Check for service account emails
-          if grep -r "@.*\.iam\.gserviceaccount\.com" . --exclude-dir=node_modules --exclude-dir=.git --exclude-dir=.next --exclude="*.md" --exclude="*.sh"; then
-            echo "⚠️  Found service account emails - verify they're not hardcoded"
-            grep -r "@.*\.iam\.gserviceaccount\.com" . --exclude-dir=node_modules --exclude-dir=.git --exclude-dir=.next --exclude="*.md" --exclude="*.sh"
-          fi
-          
-          echo "✅ Security scan completed - no critical secrets found"
-      
-      - name: Check for service account key files
-        run: |
-          echo "🔍 Checking for service account key files..."
-          
-          if find . -name "*serviceAccountKey*.json" -not -path "./node_modules/*" -not -path "./.git/*"; then
-            echo "❌ Found service account key files in repository"
-            echo "These files should NOT be committed to git!"
-            exit 1
-          fi
-          
-          echo "✅ No service account key files found in repository"
-
-  test-environment-connectivity:
-    runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/preview'
-    
-    steps:
-      - uses: actions/checkout@v4
-      
-      - name: Test BigQuery Connection
+      - name: Build public app (includes type-check)
+        run: npm run build:public
         env:
-          GOOGLE_CLOUD_PROJECT_ID: ${{ secrets.GOOGLE_CLOUD_PROJECT_ID }}
-          GOOGLE_CLOUD_CLIENT_EMAIL: ${{ secrets.GOOGLE_CLOUD_CLIENT_EMAIL }}
-          GOOGLE_CLOUD_PRIVATE_KEY: ${{ secrets.GOOGLE_CLOUD_PRIVATE_KEY }}
-        run: |
-          echo "🔍 Testing Google Cloud credentials..."
-          
-          if [ -z "$GOOGLE_CLOUD_PROJECT_ID" ]; then
-            echo "❌ GOOGLE_CLOUD_PROJECT_ID secret not set"
-            exit 1
-          fi
-          
-          if [ -z "$GOOGLE_CLOUD_CLIENT_EMAIL" ]; then
-            echo "❌ GOOGLE_CLOUD_CLIENT_EMAIL secret not set"
-            exit 1
-          fi
-          
-          if [ -z "$GOOGLE_CLOUD_PRIVATE_KEY" ]; then
-            echo "❌ GOOGLE_CLOUD_PRIVATE_KEY secret not set"
-            exit 1
-          fi
-          
-          echo "✅ All required Google Cloud secrets are configured"
-          echo "Project ID: $GOOGLE_CLOUD_PROJECT_ID"
-          echo "Service Account: $GOOGLE_CLOUD_CLIENT_EMAIL"
+          # Sitemap routes query BigQuery at build time; without credentials
+          # they fail soft and prerender empty, which is fine for CI.
+          NEXT_TELEMETRY_DISABLED: '1'

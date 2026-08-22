@@ -1,0 +1,82 @@
+name: Quarterly H1B Data Refresh
+
+# Loads the newest available DOL LCA disclosure file into production BigQuery.
+# - DOL publishes quarterly; files are cumulative within a fiscal year, so
+#   loading the newest quarter is sufficient.
+# - The pipeline dedupes on case_number, so reruns are idempotent and cheap.
+# - No deploy needed afterwards: pages use ISR (revalidate 86400) and pick up
+#   fresh aggregates within a day.
+on:
+  schedule:
+    # Monthly probe on the 5th — quarterly releases land on shifting dates,
+    # and a run that finds nothing new is nearly free.
+    - cron: '0 8 5 * *'
+  workflow_dispatch:
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install pipeline dependencies
+        run: pip install -r requirements.txt
+
+      - name: Download newest available DOL disclosure files
+        id: download
+        run: |
+          set -e
+          mkdir -p dol_downloads
+          month=$(date -u +%m)
+          year=$(date -u +%Y)
+          # US federal fiscal year: Oct-Dec belong to the next FY
+          if [ "$month" -ge 10 ]; then current_fy=$((year + 1)); else current_fy=$year; fi
+          prev_fy=$((current_fy - 1))
+
+          found=""
+          probe() {
+            local fy=$1 q=$2
+            local name="LCA_Disclosure_Data_FY${fy}_Q${q}.xlsx"
+            for url in \
+              "https://www.dol.gov/media/${name}" \
+              "https://www.dol.gov/sites/dolgov/files/ETA/oflc/pdfs/${name}"; do
+              if curl -sIf "$url" -o /dev/null; then
+                echo "Downloading ${name} from ${url}"
+                curl -sf "$url" -o "dol_downloads/${name}"
+                found="${found} dol_downloads/${name}"
+                return 0
+              fi
+            done
+            return 1
+          }
+
+          # Newest quarter of the current FY (cumulative -> one file is enough)
+          for q in 4 3 2 1; do probe "$current_fy" "$q" && break; done
+          # Previous FY's final file, in case it was released after our last run
+          probe "$prev_fy" 4 || true
+
+          if [ -z "$found" ]; then
+            echo "No disclosure files found for FY${current_fy} or FY${prev_fy} Q4."
+            echo "files=" >> "$GITHUB_OUTPUT"
+          else
+            echo "files=${found}" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Load into BigQuery
+        if: steps.download.outputs.files != ''
+        env:
+          GCP_SA_KEY: ${{ secrets.GCP_SA_KEY }}
+        run: |
+          set -e
+          echo "$GCP_SA_KEY" > /tmp/sa-key.json
+          export GOOGLE_APPLICATION_CREDENTIALS=/tmp/sa-key.json
+          for f in ${{ steps.download.outputs.files }}; do
+            echo "=== Loading $f ==="
+            python scripts/data_pipeline.py --files "$f" --project-id immigrant-central
+          done
