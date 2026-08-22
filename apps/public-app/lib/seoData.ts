@@ -45,7 +45,7 @@ function client(): BigQuery {
   });
 }
 
-const num = (v: unknown): number => (v == null ? 0 : Number(v));
+const num = (v: unknown): number => (v === null || v === undefined ? 0 : Number(v));
 
 export const getCompanySEOData = cache(
   async (slug: string): Promise<CompanySEOSummary | null> => {
