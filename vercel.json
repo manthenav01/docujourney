@@ -1,6 +1,0 @@
-{
-  "buildCommand": "cd apps/public-app && npm run build",
-  "outputDirectory": "apps/public-app/.next",
-  "installCommand": "npm install",
-  "framework": "nextjs"
-}

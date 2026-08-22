@@ -1,8 +1,55 @@
-# Don't ignore content directory - we need it for blog posts
-# !content/
+# Ignore data files
+scripts/data/
+*.xlsx
+*.csv
+*.zip
+*.tar.gz
 
-# Standard ignores
-node_modules/
-.env.local
-.env*.local
-.next/
+# Ignore Python files
+*.py
+*.pyc
+__pycache__/
+.venv/
+*.egg-info/
+
+# Ignore service account keys and env files (glob covers any casing variants)
+serviceAccountKey*.json
+serviceAccountkey*.json
+serviceaccountkey*.json
+firebase-admin-test.json
+firebase-admin-prod.json
+.env
+.env.*
+
+# Ignore deployment preparation files
+.vercel-env-test
+.vercel-credentials-test
+
+# Ignore documentation and setup files - but keep blog content
+README.md
+CLAUDE.md
+LICENSE.md
+CHANGELOG.md
+CONTRIBUTING.md
+docs/
+
+# Keep blog content markdown files
+!apps/public-app/public/content/blog/**/*.md
+
+# Ignore test files
+*.test.ts
+*.test.tsx
+*.spec.ts
+*.spec.tsx
+
+# Ignore git files
+.git
+.gitignore
+
+# Ignore IDE files
+.vscode/
+.idea/
+
+# Ignore OS files
+.DS_Store
+Thumbs.db
