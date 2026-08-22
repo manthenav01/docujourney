@@ -92,3 +92,6 @@ __pycache__/
 logs/*.log
 logs/**/*.log
 *.log
+
+# Environment config files with credentials — never track
+config/environments/
