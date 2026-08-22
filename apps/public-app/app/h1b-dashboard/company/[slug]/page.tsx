@@ -1,12 +1,20 @@
+import Link from 'next/link';
 import CompanyPageClient from './CompanyPageClient';
-import { generateH1BMetadata, generateStructuredData, slugToDisplayName, BASE_METADATA, DATA_YEAR } from '@docujourney/utils';
+import { generateH1BMetadata, generateStructuredData, slugToDisplayName, slugify, BASE_METADATA, DATA_YEAR, STATE_CODE_TO_NAME } from '@docujourney/utils';
 import { Metadata } from 'next';
-import { getCompanySEOData, approvalRate, saneSalary, cleanTopRoles } from '@/lib/seoData';
+import { getCompanySEOData, getTopSlugs, approvalRate, saneSalary, cleanTopRoles } from '@/lib/seoData';
 
 // ISR: company data changes at most quarterly (DOL disclosure files),
 // so a daily revalidation keeps pages fresh and BigQuery costs near zero.
 export const revalidate = 86400;
 export const dynamicParams = true;
+
+// Prebuild the highest-traffic company pages at deploy time; the long tail
+// stays ISR-on-demand. Fails soft to [] if BigQuery is unavailable at build.
+export async function generateStaticParams() {
+  const slugs = await getTopSlugs('agg_company_summary', 100);
+  return slugs.map(slug => ({ slug }));
+}
 
 interface PageProps {
   params: Promise<{ slug: string }>;
@@ -17,7 +25,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const { slug } = await params;
   // Display name comes from the slug (proper case); the raw DB name is all-caps.
   const companyName = slugToDisplayName(slug);
-  const data = await getCompanySEOData(companyName);
+  const data = await getCompanySEOData(slug);
 
   return generateH1BMetadata({
     companyName,
@@ -40,14 +48,14 @@ export default async function CompanyPage({ params }: PageProps) {
   // Proper-case name from the slug for all rendered copy (the raw DB name is
   // all-caps). The client dashboard resolves the exact DB name itself.
   const companyName = slugToDisplayName(slug);
-  const data = await getCompanySEOData(companyName);
+  const data = await getCompanySEOData(slug);
   const pageUrl = `${BASE_METADATA.url}/h1b-dashboard/company/${slug}`;
 
   const rate = data ? approvalRate(data.totalApplications, data.certifiedApplications) : 0;
   const avgSalary = saneSalary(data?.avgSalary);
   const minSalary = saneSalary(data?.minSalary);
   const maxSalary = saneSalary(data?.maxSalary);
-  const topRoles = cleanTopRoles(data?.topJobTitles as any, 5);
+  const topRoles = cleanTopRoles(data?.topJobTitles, 5);
 
   const structuredData: object[] = [
     generateStructuredData('company', { name: companyName }),
@@ -89,7 +97,7 @@ export default async function CompanyPage({ params }: PageProps) {
           name: `What jobs does ${companyName} sponsor for H1B?`,
           acceptedAnswer: {
             '@type': 'Answer',
-            text: `H1B-sponsored roles at ${companyName} include ${topRoles.join('; ')}.`,
+            text: `The most sponsored H1B roles at ${companyName} include ${topRoles.join('; ')}.`,
           },
         }] : []),
       ],
@@ -150,9 +158,32 @@ export default async function CompanyPage({ params }: PageProps) {
             </div>
             {topRoles.length > 0 && (
               <p className="text-sm text-muted-foreground">
-                Highest-paying sponsored roles: {topRoles.join('; ')}.
+                Most sponsored roles:{' '}
+                {topRoles.map((role, i) => (
+                  <span key={role}>
+                    {i > 0 && '; '}
+                    <Link href={`/h1b-dashboard/job/${slugify(role)}`} className="text-primary hover:underline">
+                      {role}
+                    </Link>
+                  </span>
+                ))}.
                 {data.topStates?.length > 0 && (
-                  <> Top worksite states: {data.topStates.slice(0, 3).map((s: any) => s.state).join(', ')}.</>
+                  <>
+                    {' '}Top worksite states:{' '}
+                    {data.topStates.slice(0, 3).map((st, i) => {
+                      const full = STATE_CODE_TO_NAME[st.state];
+                      return (
+                        <span key={st.state}>
+                          {i > 0 && ', '}
+                          {full ? (
+                            <Link href={`/h1b-dashboard/locations/${slugify(full)}`} className="text-primary hover:underline">
+                              {st.state}
+                            </Link>
+                          ) : st.state}
+                        </span>
+                      );
+                    })}.
+                  </>
                 )}
               </p>
             )}

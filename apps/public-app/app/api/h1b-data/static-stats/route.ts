@@ -223,7 +223,7 @@ export async function GET(): Promise<NextResponse<StaticStatsResponse | { error:
     
     const cacheControl = isDevelopment
       ? 'no-store, no-cache, must-revalidate' // No cache in dev
-      : 'public, s-maxage=300, stale-while-revalidate=600'; // 5 min cache in prod
+      : 'public, s-maxage=86400, stale-while-revalidate=604800'; // 5 min cache in prod
     
     if (isDevelopment) {
       console.log('🔧 Development mode: Cache disabled for static-stats');

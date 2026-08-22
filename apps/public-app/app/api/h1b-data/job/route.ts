@@ -46,7 +46,7 @@ export async function GET(request: NextRequest): Promise<NextResponse<H1BApiResp
     
     // Dynamic cache based on environment
     const cacheControl = process.env.NODE_ENV === 'production' 
-      ? 'public, s-maxage=300, stale-while-revalidate=600' // 5 min cache in prod
+      ? 'public, s-maxage=86400, stale-while-revalidate=604800' // 5 min cache in prod
       : 'no-store, no-cache, must-revalidate'; // No cache in dev
     
     return NextResponse.json(response, {

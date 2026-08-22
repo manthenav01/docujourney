@@ -1,12 +1,20 @@
 import { Metadata } from 'next';
+import Link from 'next/link';
 import JobPageClient from './JobPageClient';
-import { generateH1BMetadata, slugToDisplayName, BASE_METADATA, DATA_YEAR } from '@docujourney/utils';
-import { getJobSEOData, approvalRate, saneSalary } from '@/lib/seoData';
+import { generateH1BMetadata, slugToDisplayName, slugify, BASE_METADATA, DATA_YEAR, STATE_CODE_TO_NAME } from '@docujourney/utils';
+import { getJobSEOData, getTopSlugs, approvalRate, saneSalary } from '@/lib/seoData';
 
 // ISR: job aggregates change only when new quarterly DOL data lands.
 // (Was force-dynamic, which made every crawl a live render with no cache.)
 export const revalidate = 86400;
 export const dynamicParams = true;
+
+// Prebuild the highest-traffic job pages at deploy time; the long tail stays
+// ISR-on-demand. Fails soft to [] if BigQuery is unavailable at build.
+export async function generateStaticParams() {
+  const slugs = await getTopSlugs('agg_job_summary', 100);
+  return slugs.map(slug => ({ slug }));
+}
 
 interface PageProps {
   params: Promise<{ slug: string }>;
@@ -19,7 +27,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const { slug } = await params;
   // Display title comes from the slug (proper case); the raw DB title is all-caps.
   const jobTitle = slugToDisplayName(slug);
-  const data = await getJobSEOData(jobTitle);
+  const data = await getJobSEOData(slug);
 
   return generateH1BMetadata({
     jobTitle,
@@ -42,7 +50,7 @@ const formatSalary = (value: number) =>
 export default async function JobPage({ params }: PageProps) {
   const { slug } = await params;
   const jobTitle = slugToDisplayName(slug);
-  const data = await getJobSEOData(jobTitle);
+  const data = await getJobSEOData(slug);
   const pageUrl = `${BASE_METADATA.url}/h1b-dashboard/job/${slug}`;
 
   const avgSalary = saneSalary(data?.avgSalary);
@@ -156,9 +164,31 @@ export default async function JobPage({ params }: PageProps) {
             {data.topEmployers?.length > 0 && (
               <p className="text-sm text-muted-foreground">
                 Top H1B sponsors for {jobTitle}:{' '}
-                {data.topEmployers.slice(0, 5).map(e => e.employer).filter(Boolean).join('; ')}.
+                {data.topEmployers.slice(0, 5).filter(e => e.employer).map((e, i) => (
+                  <span key={e.employer}>
+                    {i > 0 && '; '}
+                    <Link href={`/h1b-dashboard/company/${slugify(e.employer)}`} className="text-primary hover:underline">
+                      {e.employer}
+                    </Link>
+                  </span>
+                ))}.
                 {data.topStates?.length > 0 && (
-                  <> Most filings in: {data.topStates.slice(0, 3).map(s => s.state).join(', ')}.</>
+                  <>
+                    {' '}Most filings in:{' '}
+                    {data.topStates.slice(0, 3).map((st, i) => {
+                      const full = STATE_CODE_TO_NAME[st.state];
+                      return (
+                        <span key={st.state}>
+                          {i > 0 && ', '}
+                          {full ? (
+                            <Link href={`/h1b-dashboard/locations/${slugify(full)}`} className="text-primary hover:underline">
+                              {st.state}
+                            </Link>
+                          ) : st.state}
+                        </span>
+                      );
+                    })}.
+                  </>
                 )}
               </p>
             )}

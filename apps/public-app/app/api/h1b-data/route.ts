@@ -52,7 +52,7 @@ export async function GET(
       };
       // Dynamic cache based on environment
     const cacheControl = process.env.NODE_ENV === 'production' 
-      ? 'public, s-maxage=300, stale-while-revalidate=600' // 5 min cache in prod
+      ? 'public, s-maxage=86400, stale-while-revalidate=604800' // 5 min cache in prod
       : 'no-store, no-cache, must-revalidate'; // No cache in dev
     
     logger.logResponse(requestContext, 200, queryTime, { type: 'filterOptions' });
@@ -112,7 +112,7 @@ export async function GET(
     
     // Dynamic cache based on environment
     const cacheControl = process.env.NODE_ENV === 'production' 
-      ? 'public, s-maxage=300, stale-while-revalidate=600' // 5 min cache in prod
+      ? 'public, s-maxage=86400, stale-while-revalidate=604800' // 5 min cache in prod
       : 'no-store, no-cache, must-revalidate'; // No cache in dev
     
     logger.logResponse(requestContext, 200, queryTime, { 

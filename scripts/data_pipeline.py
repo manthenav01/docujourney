@@ -279,6 +279,21 @@ def run_pipeline(year_folder=None, specific_files=None, upload_to_bigquery=True,
                 print("LCA upload failed")
                 return False
     
+    # Rebuild the serving aggregates so pages and autocomplete see fresh data
+    if upload_to_bigquery:
+        print("\n--- Rebuilding serving aggregates ---")
+        from build_aggregates import build_queries
+        from google.cloud import bigquery as bq_mod
+        from google.oauth2 import service_account as sa_mod
+        agg_creds_path = os.environ.get('GOOGLE_APPLICATION_CREDENTIALS') or os.path.join(os.path.dirname(__file__), '..', 'serviceAccountKey-prod.json')
+        if os.path.exists(agg_creds_path):
+            agg_client = bq_mod.Client(project=current_project_id, credentials=sa_mod.Credentials.from_service_account_file(agg_creds_path))
+        else:
+            agg_client = bq_mod.Client(project=current_project_id)
+        for agg_name, agg_sql in build_queries(current_project_id).items():
+            print(f"Rebuilding {agg_name}...")
+            agg_client.query(agg_sql).result()
+
     print("\n🎉 Data pipeline completed successfully!")
     return True
 

@@ -87,7 +87,7 @@ export async function GET(request: NextRequest): Promise<NextResponse<WageLevelA
     
     const cacheControl = isDevelopment
       ? 'no-store, no-cache, must-revalidate' // No cache in dev
-      : 'public, s-maxage=300, stale-while-revalidate=600'; // 5 min cache in prod
+      : 'public, s-maxage=86400, stale-while-revalidate=604800'; // 5 min cache in prod
     
     if (isDevelopment) {
       console.log('🔧 Development mode: Cache disabled for wage levels');

@@ -44,7 +44,13 @@ export async function GET(request: NextRequest): Promise<NextResponse<H1BApiResp
       },
     };
     
-    return NextResponse.json(response);
+    return NextResponse.json(response, {
+      headers: {
+        'Cache-Control': process.env.NODE_ENV === 'production'
+          ? 'public, s-maxage=86400, stale-while-revalidate=604800'
+          : 'no-store',
+      },
+    });
   } catch (error) {
     const queryTime = Date.now() - startTime;
     console.error('Company API error:', {
