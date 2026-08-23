@@ -41,7 +41,9 @@ export const BASE_METADATA = {
   description: 'Comprehensive H1B visa analytics, company data, and immigration insights. Access real-time H1B statistics, salary data, approval rates, and employer information.',
   siteName: 'Immigrant Central',
   url: 'https://www.usimmigrantcentral.com',
-  image: '/assets/og-image.png',
+  // Served by app/api/og/route.tsx (ImageResponse); the old static
+  // /assets/og-image.png never existed, so every social share had no card.
+  image: '/api/og',
   type: 'website',
 };
 

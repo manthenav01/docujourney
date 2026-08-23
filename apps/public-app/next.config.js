@@ -97,13 +97,20 @@ const nextConfig = {
           },
         ],
       },
-      // Specific caching for API routes
+      // Specific caching for API routes.
+      // X-Robots-Tag noindex keeps the JSON documents themselves out of the
+      // index while robots.txt still allows fetching them (Googlebot needs
+      // them to render the client-side dashboards).
       {
         source: '/api/(.*)',
         headers: [
           {
             key: 'Cache-Control',
             value: 'public, s-maxage=3600, stale-while-revalidate=86400',
+          },
+          {
+            key: 'X-Robots-Tag',
+            value: 'noindex',
           },
         ],
       },

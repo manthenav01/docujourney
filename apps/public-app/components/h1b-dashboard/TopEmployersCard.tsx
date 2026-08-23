@@ -4,6 +4,7 @@ import React, { useMemo, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle } from '@docujourney/ui';
 import { Building2, TrendingUp, TrendingDown } from 'lucide-react';
+import { slugify } from '@docujourney/utils';
 
 interface EmployerData {
   employer: string
@@ -30,7 +31,7 @@ const TopEmployersCardComponent: React.FC<TopEmployersCardProps> = ({
   const router = useRouter();
 
   const handleEmployerClick = useCallback((employerName: string) => {
-    const employerSlug = employerName.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+    const employerSlug = slugify(employerName);
     router.push(`/h1b-dashboard/company/${encodeURIComponent(employerSlug)}?name=${encodeURIComponent(employerName)}`);
   }, [router]);
 

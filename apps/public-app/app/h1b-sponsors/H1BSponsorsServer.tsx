@@ -1,4 +1,4 @@
-import { LATEST_DATA_FISCAL_YEAR, FISCAL_YEAR_START } from '@docujourney/utils';
+import { slugify, LATEST_DATA_FISCAL_YEAR, FISCAL_YEAR_START } from '@docujourney/utils';
 import { Card, CardContent, CardHeader, CardTitle } from '@docujourney/ui';
 import { TrendingUp, Building2, DollarSign, MapPin, Briefcase } from 'lucide-react';
 import Link from 'next/link';
@@ -103,7 +103,7 @@ async function fetchSponsors({
 }
 
 function getCompanySlug(companyName: string) {
-  return companyName.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+  return slugify(companyName);
 }
 
 interface H1BSponsorsServerProps {
@@ -276,7 +276,7 @@ export async function H1BSponsorsServer({
                               {sponsor.top_job_titles.slice(0, 3).map((title, idx) => (
                                 <Link
                                   key={idx}
-                                  href={`/h1b-dashboard/job/${title.toLowerCase().replace(/[^a-z0-9]+/g, '-')}?title=${encodeURIComponent(title)}`}
+                                  href={`/h1b-dashboard/job/${slugify(title)}?title=${encodeURIComponent(title)}`}
                                   className="px-2 py-1 bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs rounded transition-colors"
                                 >
                                   {title}

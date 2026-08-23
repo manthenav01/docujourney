@@ -1,5 +1,5 @@
 import { MetadataRoute } from 'next';
-import { getAllPosts, getCategories } from '@/lib/blog/content';
+import { getAllPosts, getBlogCategoriesWithCount } from '@/lib/blog/content';
 import { BASE_METADATA } from '@docujourney/utils';
 
 // Main sitemap: static pages + blog content only.
@@ -13,12 +13,15 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = BASE_METADATA.url;
 
   let blogPosts: Awaited<ReturnType<typeof getAllPosts>> = [];
-  let blogCategories: Awaited<ReturnType<typeof getCategories>> = [];
+  let blogCategories: Awaited<ReturnType<typeof getBlogCategoriesWithCount>> = [];
   try {
-    [blogPosts, blogCategories] = await Promise.all([getAllPosts(), getCategories()]);
+    [blogPosts, blogCategories] = await Promise.all([getAllPosts(), getBlogCategoriesWithCount()]);
   } catch (error) {
     console.error('Error loading blog content for sitemap:', error);
   }
+  // Empty category pages are thin/near-duplicate content — keep them out of
+  // the sitemap until they have at least one post.
+  blogCategories = blogCategories.filter(category => category.count > 0);
 
   const staticPages: MetadataRoute.Sitemap = [
     {
@@ -27,12 +30,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: 'daily',
       priority: 1,
     },
-    {
-      url: `${baseUrl}/h1b-dashboard`,
-      lastModified: new Date(),
-      changeFrequency: 'daily',
-      priority: 0.9,
-    },
+    // /h1b-dashboard is intentionally absent: it renders the same dashboard
+    // as the homepage and canonicalizes to `/`.
     {
       url: `${baseUrl}/h1b-salary-calculator`,
       lastModified: new Date(),

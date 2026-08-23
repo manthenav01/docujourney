@@ -1,6 +1,13 @@
 import { Metadata } from 'next';
+import { notFound } from 'next/navigation';
 import CityPageClient from './CityPageClient';
-import { generateH1BMetadata, slugToDisplayName, BASE_METADATA } from '@docujourney/utils';
+import { generateH1BMetadata, slugToDisplayName, BASE_METADATA, STATE_CODE_TO_NAME, slugify } from '@docujourney/utils';
+
+// A city page is only valid under a real state slug; unknown states must 404
+// rather than render an indexable page for any invented location pair.
+function isKnownState(stateSlug: string): boolean {
+  return Object.values(STATE_CODE_TO_NAME).some(name => slugify(name) === stateSlug);
+}
 
 // ISR: location aggregates change only when new quarterly DOL data lands.
 // Names derive from path params only — reading searchParams here would force
@@ -16,6 +23,9 @@ interface PageProps {
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { state, city } = await params;
+  if (!isKnownState(state)) {
+    return { robots: 'noindex, nofollow' };
+  }
   const locationString = `${slugToDisplayName(city)}, ${slugToDisplayName(state)}`;
 
   return generateH1BMetadata({
@@ -26,6 +36,9 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
 export default async function HierarchicalCityPage({ params }: PageProps) {
   const { state, city } = await params;
+  if (!isKnownState(state)) {
+    notFound();
+  }
   const cityName = slugToDisplayName(city);
   const stateName = slugToDisplayName(state);
   const locationString = `${cityName}, ${stateName}`;

@@ -26,6 +26,7 @@ import {
 } from 'lucide-react';
 import { METRIC_CONFIGS } from '../../lib/metricCardConfig';
 import { ApplicationsCard, SalaryCard, ApprovalRateCard, EmployersCard } from './StatsCard';
+import { slugify } from '@docujourney/utils';
 
 // Use the standardized H1BStateAnalysis type
 type StateInfo = H1BStateAnalysis;
@@ -79,13 +80,13 @@ export const StateDashboard: React.FC<StateDashboardProps> = ({
   };
 
   const handleCityClick = (cityName: string) => {
-    const citySlug = cityName.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
+    const citySlug = slugify(cityName);
     router.push(`/h1b-dashboard/locations/${encodeURIComponent(stateSlug)}/${encodeURIComponent(citySlug)}?city=${encodeURIComponent(cityName)}&state=${encodeURIComponent(stateName)}`);
   };
 
   const handleEmployerClick = (employerName: string) => {
-    const employerSlug = employerName.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
-    router.push(`/h1b-dashboard/company/${encodeURIComponent(employerSlug)}?employer=${encodeURIComponent(employerName)}`);
+    const employerSlug = slugify(employerName);
+    router.push(`/h1b-dashboard/company/${encodeURIComponent(employerSlug)}?name=${encodeURIComponent(employerName)}`);
   };
 
   if (loading) {
@@ -177,7 +178,9 @@ export const StateDashboard: React.FC<StateDashboardProps> = ({
               <Map className="w-6 h-6 sm:w-8 sm:h-8 text-primary" />
             </div>
             <div className="flex-1 min-w-0">
-              <h1 className="text-2xl sm:text-3xl font-bold text-foreground leading-tight break-words">{stateName}</h1>
+              {/* Styled as the visual header; the page's single H1 is server-rendered
+                  in the SEO overview section of locations/[state]/page.tsx. */}
+              <p className="text-2xl sm:text-3xl font-bold text-foreground leading-tight break-words">{stateName}</p>
               <p className="text-sm sm:text-base text-muted-foreground mt-1">
                 H1B Data Analysis & Insights
               </p>

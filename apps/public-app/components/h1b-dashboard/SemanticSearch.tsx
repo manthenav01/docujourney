@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { trackJobSearch } from '../../lib/analytics';
+import { slugify } from '@docujourney/utils';
 import { 
   Search, 
   Sparkles, 
@@ -259,10 +260,10 @@ export const SemanticSearch: React.FC<SemanticSearchProps> = ({
       }
       
       if (finalType === 'employer') {
-        const companySlug = suggestion.text.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+        const companySlug = slugify(suggestion.text);
         router.push(`/h1b-dashboard/company/${encodeURIComponent(companySlug)}?name=${encodeURIComponent(suggestion.text)}`);
       } else if (finalType === 'job_title') {
-        const jobSlug = suggestion.text.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+        const jobSlug = slugify(suggestion.text);
         router.push(`/h1b-dashboard/job/${encodeURIComponent(jobSlug)}?title=${encodeURIComponent(suggestion.text)}`);
       } else if (finalType === 'location') {
         // Navigate to city page if it's a city, state format
@@ -272,8 +273,8 @@ export const SemanticSearch: React.FC<SemanticSearchProps> = ({
           const stateName = statePart.trim();
           
           if (cityName && stateName) {
-            const citySlug = cityName.toLowerCase().replace(/[^a-z0-9]+/g, '-');
-            const stateSlug = stateName.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+            const citySlug = slugify(cityName);
+            const stateSlug = slugify(stateName);
             console.log('Navigating to city page:', `/h1b-dashboard/locations/${encodeURIComponent(stateSlug)}/${encodeURIComponent(citySlug)}?city=${encodeURIComponent(cityName)}&state=${encodeURIComponent(stateName)}`);
             router.push(`/h1b-dashboard/locations/${encodeURIComponent(stateSlug)}/${encodeURIComponent(citySlug)}?city=${encodeURIComponent(cityName)}&state=${encodeURIComponent(stateName)}`);
             return;

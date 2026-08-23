@@ -4,6 +4,7 @@ import React from 'react';
 import Link from 'next/link';
 import { useSearchParams, usePathname } from 'next/navigation';
 import { ChevronRight, Home } from 'lucide-react';
+import { slugify } from '@docujourney/utils';
 
 interface BreadcrumbItem {
   label: string;
@@ -46,7 +47,7 @@ export const SmartBreadcrumb: React.FC = () => {
       
       if (city && state) {
         // City page: Home → Locations → State → City
-        const stateSlug = state.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
+        const stateSlug = slugify(state);
         items.push({ 
           label: state, 
           href: `/h1b-dashboard/locations/${encodeURIComponent(stateSlug)}?state=${encodeURIComponent(state)}`,

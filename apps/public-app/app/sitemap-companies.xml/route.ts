@@ -7,11 +7,14 @@ import { BASE_METADATA } from '@docujourney/utils';
 // quarterly DOL disclosure data is loaded.
 export const revalidate = 86400;
 
-const COMPANY_LIMIT = 1000;
+// Every employer with a handful of filings, not just the top 1000: the site
+// advertises 50,000+ sponsors but only sitemap-listed pages get crawled
+// reliably. The threshold keeps one-off/noise employers out; 20k stays well
+// under the 50k-URL sitemap limit. Reads the pre-built aggregate table
+// (kilobytes) instead of scanning the 3GB raw table.
+const COMPANY_LIMIT = 20000;
+const MIN_APPLICATIONS = 3;
 
-// Queries BigQuery directly instead of self-fetching /api/h1b-data, which
-// ignored the category/limit params and returned employers under a different
-// field name — leaving this sitemap permanently empty.
 async function fetchTopCompanySlugs(): Promise<string[]> {
   try {
     const bigquery = new BigQuery({
@@ -20,16 +23,10 @@ async function fetchTopCompanySlugs(): Promise<string[]> {
     });
 
     const query = `
-      SELECT
-        REGEXP_REPLACE(REGEXP_REPLACE(LOWER(TRIM(employer_name)), r'[^a-z0-9]+', '-'), r'^-+|-+$', '') as slug,
-        COUNT(*) as applications
-      FROM \`${bigQueryConfig.projectId}.${bigQueryConfig.datasetId}.${bigQueryConfig.tableId}\`
-      WHERE employer_name IS NOT NULL
-        AND TRIM(employer_name) != ''
-        AND employer_name != 'N/A'
-      GROUP BY slug
-      HAVING slug != ''
-      ORDER BY applications DESC
+      SELECT slug
+      FROM \`${bigQueryConfig.projectId}.${bigQueryConfig.datasetId}.agg_company_summary\`
+      WHERE total_applications >= ${MIN_APPLICATIONS}
+      ORDER BY total_applications DESC
       LIMIT ${COMPANY_LIMIT}
     `;
 

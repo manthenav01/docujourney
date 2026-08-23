@@ -7,12 +7,13 @@ import { BASE_METADATA } from '@docujourney/utils';
 // quarterly DOL disclosure data is loaded.
 export const revalidate = 86400;
 
-const JOB_LIMIT = 1000;
+// Every job title with real volume, not just the top 1000 (see
+// sitemap-companies.xml). Reads the pre-built aggregate table, whose slugs
+// already have internal job codes stripped; the threshold keeps noisy
+// one-off titles out of the index.
+const JOB_LIMIT = 10000;
+const MIN_APPLICATIONS = 5;
 
-// Queries BigQuery directly instead of self-fetching /api/h1b-data with an
-// unsupported "category=topJobTitles" param, which left this sitemap
-// permanently empty. Job codes appended to titles (" - JC-123") are stripped
-// the same way the dashboard service does.
 async function fetchTopJobSlugs(): Promise<string[]> {
   try {
     const bigquery = new BigQuery({
@@ -21,15 +22,10 @@ async function fetchTopJobSlugs(): Promise<string[]> {
     });
 
     const query = `
-      SELECT
-        REGEXP_REPLACE(REGEXP_REPLACE(LOWER(TRIM(REGEXP_REPLACE(job_title, r' - [A-Z0-9]+-[0-9]+$', ''))), r'[^a-z0-9]+', '-'), r'^-+|-+$', '') as slug,
-        COUNT(*) as applications
-      FROM \`${bigQueryConfig.projectId}.${bigQueryConfig.datasetId}.${bigQueryConfig.tableId}\`
-      WHERE job_title IS NOT NULL
-        AND TRIM(job_title) != ''
-      GROUP BY slug
-      HAVING slug != ''
-      ORDER BY applications DESC
+      SELECT slug
+      FROM \`${bigQueryConfig.projectId}.${bigQueryConfig.datasetId}.agg_job_summary\`
+      WHERE total_applications >= ${MIN_APPLICATIONS}
+      ORDER BY total_applications DESC
       LIMIT ${JOB_LIMIT}
     `;
 

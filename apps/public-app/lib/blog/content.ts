@@ -137,9 +137,11 @@ export async function getBlogPostBySlug(slug: string): Promise<BlogPost | null> 
 
     const category = categories.find(cat => cat.slug === data.category) || categories[0];
 
-    // Convert Markdown to HTML
-    const htmlContent = await marked(content);
-    
+    // Convert Markdown to HTML. Authors often repeat the frontmatter title as
+    // a leading "# heading"; BlogPost already renders <h1>{title}</h1>, so a
+    // leading <h1> here would give the page two identical H1s — drop it.
+    const htmlContent = (await marked(content)).replace(/^\s*<h1[^>]*>[\s\S]*?<\/h1>\s*/, '');
+
     const post: BlogPost = {
       slug,
       title: data.title || '',

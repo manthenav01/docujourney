@@ -8,9 +8,14 @@ import { bigQueryConfig } from '@/lib/config';
 // costs effectively nothing against the BigQuery free tier.
 //
 // Shared between generateMetadata() and the page body via React cache() so
-// each request runs at most one lookup per entity. Every fetcher fails soft
-// (null) — pages must render without data, falling back to the client-side
-// dashboard fetch exactly as before.
+// each request runs at most one lookup per entity.
+//
+// Entity lookups distinguish two "no data" cases so pages can 404 correctly:
+//   { data: null, lookupFailed: false } — the query ran and the slug does not
+//     exist. The page must call notFound(): otherwise any invented slug
+//     renders an indexable page (soft-404, infinite URL space).
+//   { data: null, lookupFailed: true }  — BigQuery errored. Pages render the
+//     client-side dashboard fallback rather than 404ing real content.
 
 export interface CompanySEOSummary {
   name: string;
@@ -47,8 +52,13 @@ function client(): BigQuery {
 
 const num = (v: unknown): number => (v === null || v === undefined ? 0 : Number(v));
 
+export interface SEOLookup<T> {
+  data: T | null;
+  lookupFailed: boolean;
+}
+
 export const getCompanySEOData = cache(
-  async (slug: string): Promise<CompanySEOSummary | null> => {
+  async (slug: string): Promise<SEOLookup<CompanySEOSummary>> => {
     try {
       const [rows] = await client().query({
         query: `
@@ -56,9 +66,9 @@ export const getCompanySEOData = cache(
           WHERE slug = @slug LIMIT 1`,
         params: { slug },
       });
-      if (!rows.length || !rows[0].total_applications) {return null;}
+      if (!rows.length || !rows[0].total_applications) {return { data: null, lookupFailed: false };}
       const r = rows[0];
-      return {
+      const data: CompanySEOSummary = {
         name: r.employer_name,
         totalApplications: num(r.total_applications),
         certifiedApplications: num(r.certified_applications),
@@ -72,15 +82,16 @@ export const getCompanySEOData = cache(
           jobTitle: t.job_title, applications: num(t.applications), avgSalary: num(t.avg_salary),
         })),
       };
+      return { data, lookupFailed: false };
     } catch (error) {
       console.error('SEO data fetch failed for company slug:', slug, error);
-      return null;
+      return { data: null, lookupFailed: true };
     }
   },
 );
 
 export const getJobSEOData = cache(
-  async (slug: string): Promise<JobSEOSummary | null> => {
+  async (slug: string): Promise<SEOLookup<JobSEOSummary>> => {
     try {
       const [rows] = await client().query({
         query: `
@@ -88,9 +99,9 @@ export const getJobSEOData = cache(
           WHERE slug = @slug LIMIT 1`,
         params: { slug },
       });
-      if (!rows.length || !rows[0].total_applications) {return null;}
+      if (!rows.length || !rows[0].total_applications) {return { data: null, lookupFailed: false };}
       const r = rows[0];
-      return {
+      const data: JobSEOSummary = {
         title: r.job_title,
         totalApplications: num(r.total_applications),
         certifiedApplications: num(r.certified_applications),
@@ -104,9 +115,10 @@ export const getJobSEOData = cache(
           employer: e.employer, applications: num(e.applications), avgSalary: num(e.avg_salary),
         })),
       };
+      return { data, lookupFailed: false };
     } catch (error) {
       console.error('SEO data fetch failed for job slug:', slug, error);
-      return null;
+      return { data: null, lookupFailed: true };
     }
   },
 );

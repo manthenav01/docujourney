@@ -24,7 +24,6 @@ export { AttorneyDashboard } from './AttorneyDashboard';
 export { ErrorBoundary, BigQueryErrorBoundary } from './ErrorBoundary';
 
 // Professional SEO Components
-export { InvisibleSEO } from './InvisibleSEO';
 export { SmartBreadcrumb } from './SmartBreadcrumb';
 
 // Pagination Components  

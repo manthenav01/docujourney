@@ -5,6 +5,7 @@ import { Search, TrendingUp } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { FilterState } from './types';
 import { SemanticSearch } from './SemanticSearch';
+import { slugify } from '@docujourney/utils';
 
 interface SearchSuggestion {
   text: string;
@@ -77,11 +78,11 @@ export const DashboardHero: React.FC<DashboardHeroProps> = ({
     }
     
     if (finalType === 'employer') {
-      const companySlug = suggestion.text.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+      const companySlug = slugify(suggestion.text);
       console.log('Navigating to company page:', `/h1b-dashboard/company/${encodeURIComponent(companySlug)}?name=${encodeURIComponent(suggestion.text)}`);
       router.push(`/h1b-dashboard/company/${encodeURIComponent(companySlug)}?name=${encodeURIComponent(suggestion.text)}`);
     } else if (finalType === 'job_title') {
-      const jobSlug = suggestion.text.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+      const jobSlug = slugify(suggestion.text);
       console.log('Navigating to job page:', `/h1b-dashboard/job/${encodeURIComponent(jobSlug)}?title=${encodeURIComponent(suggestion.text)}`);
       router.push(`/h1b-dashboard/job/${encodeURIComponent(jobSlug)}?title=${encodeURIComponent(suggestion.text)}`);
     } else if (finalType === 'location') {
@@ -92,8 +93,8 @@ export const DashboardHero: React.FC<DashboardHeroProps> = ({
         const stateName = statePart.trim();
         
         if (cityName && stateName) {
-          const citySlug = cityName.toLowerCase().replace(/[^a-z0-9]+/g, '-');
-          const stateSlug = stateName.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+          const citySlug = slugify(cityName);
+          const stateSlug = slugify(stateName);
           console.log('Navigating to city page:', `/h1b-dashboard/locations/${encodeURIComponent(stateSlug)}/${encodeURIComponent(citySlug)}?city=${encodeURIComponent(cityName)}&state=${encodeURIComponent(stateName)}`);
           router.push(`/h1b-dashboard/locations/${encodeURIComponent(stateSlug)}/${encodeURIComponent(citySlug)}?city=${encodeURIComponent(cityName)}&state=${encodeURIComponent(stateName)}`);
           return;
@@ -166,12 +167,12 @@ export const DashboardHero: React.FC<DashboardHeroProps> = ({
           <h1 className="text-4xl sm:text-5xl lg:text-6xl font-normal text-gray-900 mb-6">
             Explore{' '}
             <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent font-medium">
-              H1B LCA trends
+              H1B salaries
             </span>
+            ,<br />
+            sponsor companies
             <br />
-            and employer data
-            <br />
-            across America
+            and LCA trends
           </h1>
         </div>
 

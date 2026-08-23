@@ -243,9 +243,11 @@ export const JobDashboard: React.FC<JobDashboardProps> = ({
               <Briefcase className="w-6 h-6 sm:w-8 sm:h-8 text-primary" />
             </div>
             <div className="flex-1 min-w-0">
-              <h1 className="text-2xl sm:text-3xl font-bold text-foreground leading-tight break-words hyphens-auto">
+              {/* Styled as the visual header; the page's single H1 is server-rendered
+                  in the SEO overview section of job/[slug]/page.tsx. */}
+              <p className="text-2xl sm:text-3xl font-bold text-foreground leading-tight break-words hyphens-auto">
                 {jobTitle}
-              </h1>
+              </p>
               <p className="text-sm sm:text-base text-muted-foreground mt-1">
                 H1B Job Market Analysis & Insights
               </p>

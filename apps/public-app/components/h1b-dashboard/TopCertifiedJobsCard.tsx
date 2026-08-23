@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@docujourney/ui';
 import { CheckCircle } from 'lucide-react';
 import { H1BJobTitleDistribution, H1BQueryFilters } from '../../lib/types';
 import { formatJobTitle } from '../../lib/utils/stringUtils';
+import { slugify } from '@docujourney/utils';
 
 interface TopCertifiedJobsCardProps {
   filters?: H1BQueryFilters;
@@ -216,7 +217,7 @@ const TopCertifiedJobsCardComponent: React.FC<TopCertifiedJobsCardProps> = ({
       <CardContent>
         <div className="space-y-2">
           {processedData.topCertifiedJobs.map((job, index) => {
-            const jobSlug = formatJobTitle(job.jobTitle).toLowerCase().replace(/[^a-z0-9]+/g, '-');
+            const jobSlug = slugify(formatJobTitle(job.jobTitle));
             const href = `/h1b-dashboard/job/${jobSlug}?title=${encodeURIComponent(formatJobTitle(job.jobTitle))}`;
             
             return (

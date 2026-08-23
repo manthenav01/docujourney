@@ -20,7 +20,7 @@ const DashboardHeaderContent: React.FC = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const navigationItems: NavigationItem[] = [
-    { id: 'home', label: 'Home', path: '/h1b-dashboard' },
+    { id: 'home', label: 'Home', path: '/' },
     { id: 'sponsors', label: 'H1B Sponsors', path: '/h1b-sponsors' },
     { id: 'jobs', label: 'Jobs', path: '/h1b-dashboard/jobs' },
     { id: 'locations', label: 'Locations', path: '/h1b-dashboard/locations' },
@@ -167,7 +167,7 @@ const DashboardHeaderFallback: React.FC = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const navigationItems: NavigationItem[] = [
-    { id: 'home', label: 'Home', path: '/h1b-dashboard' },
+    { id: 'home', label: 'Home', path: '/' },
     { id: 'sponsors', label: 'H1B Sponsors', path: '/h1b-sponsors' },
     { id: 'jobs', label: 'Jobs', path: '/h1b-dashboard/jobs' },
     { id: 'locations', label: 'Locations', path: '/h1b-dashboard/locations' },

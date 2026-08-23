@@ -1,4 +1,5 @@
 import { redirect } from 'next/navigation';
+import { slugify } from '@docujourney/utils';
 
 interface OldCityPageProps {
   params: Promise<{ slug: string }>;
@@ -21,7 +22,7 @@ export default async function OldCityPage({ params, searchParams }: OldCityPageP
   
   if (cityName && stateName) {
     // Create proper slugs
-    const stateSlug = stateName.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
+    const stateSlug = slugify(stateName);
     const citySlug = slug; // Use existing city slug
     
     // Redirect to new hierarchical structure with search params preserved

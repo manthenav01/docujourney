@@ -15,6 +15,7 @@ import { FilterState } from './types';
 import { useRouter } from 'next/navigation';
 import { Card, CardContent } from '@docujourney/ui';
 import { METRIC_CONFIGS } from '../../lib/metricCardConfig';
+import { slugify } from '@docujourney/utils';
 import {
   ArrowUp,
   ArrowDown,
@@ -147,7 +148,7 @@ const ContextualDashboardContent: React.FC<ContextualDashboardProps> = ({ viewTy
     }
     
     if (finalType === 'employer') {
-      const companySlug = suggestion.text.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+      const companySlug = slugify(suggestion.text);
       // If we're on employers page, navigate with employer parameter to maintain context
       if (currentView === 'employers') {
         router.push(`/h1b-dashboard/employers?employer=${encodeURIComponent(suggestion.text)}`);
@@ -156,7 +157,7 @@ const ContextualDashboardContent: React.FC<ContextualDashboardProps> = ({ viewTy
         router.push(`/h1b-dashboard/company/${encodeURIComponent(companySlug)}?name=${encodeURIComponent(suggestion.text)}`);
       }
     } else if (finalType === 'job_title') {
-      const jobSlug = suggestion.text.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+      const jobSlug = slugify(suggestion.text);
       // If we're on jobs page, navigate with job parameter to maintain context
       if (currentView === 'jobs') {
         router.push(`/h1b-dashboard/jobs?job=${encodeURIComponent(suggestion.text)}`);
@@ -172,8 +173,8 @@ const ContextualDashboardContent: React.FC<ContextualDashboardProps> = ({ viewTy
         const stateName = statePart.trim();
         
         if (cityName && stateName) {
-          const citySlug = cityName.toLowerCase().replace(/[^a-z0-9]+/g, '-');
-          const stateSlug = stateName.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+          const citySlug = slugify(cityName);
+          const stateSlug = slugify(stateName);
           // Always navigate to specific city page for individual city data
           router.push(`/h1b-dashboard/locations/${encodeURIComponent(stateSlug)}/${encodeURIComponent(citySlug)}?city=${encodeURIComponent(cityName)}&state=${encodeURIComponent(stateName)}`);
         }

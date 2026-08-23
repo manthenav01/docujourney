@@ -1,5 +1,6 @@
 import { Metadata } from 'next';
 import Link from 'next/link';
+import { notFound } from 'next/navigation';
 import JobPageClient from './JobPageClient';
 import { generateH1BMetadata, slugToDisplayName, slugify, BASE_METADATA, DATA_YEAR, STATE_CODE_TO_NAME } from '@docujourney/utils';
 import { getJobSEOData, getTopSlugs, approvalRate, saneSalary } from '@/lib/seoData';
@@ -27,7 +28,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const { slug } = await params;
   // Display title comes from the slug (proper case); the raw DB title is all-caps.
   const jobTitle = slugToDisplayName(slug);
-  const data = await getJobSEOData(slug);
+  const { data } = await getJobSEOData(slug);
 
   return generateH1BMetadata({
     jobTitle,
@@ -50,7 +51,11 @@ const formatSalary = (value: number) =>
 export default async function JobPage({ params }: PageProps) {
   const { slug } = await params;
   const jobTitle = slugToDisplayName(slug);
-  const data = await getJobSEOData(slug);
+  const { data, lookupFailed } = await getJobSEOData(slug);
+  // Unknown slug -> real 404 (see company/[slug]/page.tsx).
+  if (!data && !lookupFailed) {
+    notFound();
+  }
   const pageUrl = `${BASE_METADATA.url}/h1b-dashboard/job/${slug}`;
 
   const avgSalary = saneSalary(data?.avgSalary);
@@ -123,9 +128,11 @@ export default async function JobPage({ params }: PageProps) {
       {data && (
         <section className="container mx-auto px-4 py-8">
           <div className="bg-muted/20 rounded-xl p-6 border border-border/40">
-            <h2 className="text-xl font-semibold text-foreground mb-3">
+            {/* Page H1 lives here so it is present in the server HTML;
+                the client dashboard header above renders as a styled div. */}
+            <h1 className="text-xl font-semibold text-foreground mb-3">
               {jobTitle} H1B Salary & Sponsorship Overview ({DATA_YEAR})
-            </h2>
+            </h1>
             <p className="text-muted-foreground mb-4">
               Employers filed{' '}
               <strong className="text-foreground">{data.totalApplications.toLocaleString('en-US')}</strong>{' '}

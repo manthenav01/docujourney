@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { notFound } from 'next/navigation';
 import CompanyPageClient from './CompanyPageClient';
 import { generateH1BMetadata, generateStructuredData, slugToDisplayName, slugify, BASE_METADATA, DATA_YEAR, STATE_CODE_TO_NAME } from '@docujourney/utils';
 import { Metadata } from 'next';
@@ -25,7 +26,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const { slug } = await params;
   // Display name comes from the slug (proper case); the raw DB name is all-caps.
   const companyName = slugToDisplayName(slug);
-  const data = await getCompanySEOData(slug);
+  const { data } = await getCompanySEOData(slug);
 
   return generateH1BMetadata({
     companyName,
@@ -48,7 +49,12 @@ export default async function CompanyPage({ params }: PageProps) {
   // Proper-case name from the slug for all rendered copy (the raw DB name is
   // all-caps). The client dashboard resolves the exact DB name itself.
   const companyName = slugToDisplayName(slug);
-  const data = await getCompanySEOData(slug);
+  const { data, lookupFailed } = await getCompanySEOData(slug);
+  // Unknown slug -> real 404. Without this, every invented company URL
+  // returns an indexable 200 page (soft-404 / infinite URL space).
+  if (!data && !lookupFailed) {
+    notFound();
+  }
   const pageUrl = `${BASE_METADATA.url}/h1b-dashboard/company/${slug}`;
 
   const rate = data ? approvalRate(data.totalApplications, data.certifiedApplications) : 0;
@@ -121,9 +127,11 @@ export default async function CompanyPage({ params }: PageProps) {
       {data && (
         <section className="container mx-auto px-4 py-8">
           <div className="bg-muted/20 rounded-xl p-6 border border-border/40">
-            <h2 className="text-xl font-semibold text-foreground mb-3">
+            {/* Page H1 lives here so it is present in the server HTML;
+                the client dashboard header above renders as a styled div. */}
+            <h1 className="text-xl font-semibold text-foreground mb-3">
               {companyName} H1B Visa Sponsorship Overview ({DATA_YEAR})
-            </h2>
+            </h1>
             <p className="text-muted-foreground mb-4">
               {companyName} has filed{' '}
               <strong className="text-foreground">{data.totalApplications.toLocaleString('en-US')}</strong>{' '}

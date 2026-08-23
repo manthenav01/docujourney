@@ -3,6 +3,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { useSearchParams, usePathname } from 'next/navigation';
+import { slugify } from '@docujourney/utils';
 
 interface NavigationItem {
   label: string;
@@ -53,7 +54,7 @@ export const ContextualNavigation: React.FC<ContextualNavigationProps> = ({
       },
       {
         label: `${employer} Salary Data`,
-        href: `/h1b-dashboard/company/${employer.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`,
+        href: `/h1b-dashboard/company/${slugify(employer)}`,
         description: `Salary information for H1B positions at ${employer}`,
         category: 'employer',
         relevance: 0.9,
@@ -80,7 +81,7 @@ export const ContextualNavigation: React.FC<ContextualNavigationProps> = ({
     navigationItems.push(
       {
         label: `${job} Salary Analysis`,
-        href: `/h1b-dashboard/job/${job.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`,
+        href: `/h1b-dashboard/job/${slugify(job)}`,
         description: `Comprehensive salary data for ${job} positions`,
         category: 'job',
         relevance: 1.0,

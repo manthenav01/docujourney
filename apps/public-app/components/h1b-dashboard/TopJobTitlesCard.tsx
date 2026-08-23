@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle } from '@docujourney/ui';
 import { Briefcase, TrendingUp, TrendingDown } from 'lucide-react';
 import { formatJobTitle } from '../../lib/utils/stringUtils';
+import { slugify } from '@docujourney/utils';
 
 interface JobTitleData {
   jobTitle: string
@@ -25,7 +26,7 @@ const TopJobTitlesCardComponent: React.FC<TopJobTitlesCardProps> = ({ data, load
   const router = useRouter();
 
   const handleJobClick = useCallback((jobTitle: string) => {
-    const jobSlug = formatJobTitle(jobTitle).toLowerCase().replace(/[^a-z0-9]+/g, '-');
+    const jobSlug = slugify(formatJobTitle(jobTitle));
     router.push(`/h1b-dashboard/job/${encodeURIComponent(jobSlug)}?title=${encodeURIComponent(formatJobTitle(jobTitle))}`);
   }, [router]);
 

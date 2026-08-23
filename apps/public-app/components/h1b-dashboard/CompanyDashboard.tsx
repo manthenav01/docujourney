@@ -256,7 +256,9 @@ export const CompanyDashboard: React.FC<CompanyDashboardProps> = ({
             <Building className="w-8 h-8 text-primary" />
           </div>
           <div>
-            <h1 className="text-3xl font-bold text-foreground">{companyName}</h1>
+            {/* Styled as the visual header; the page's single H1 is server-rendered
+                in the SEO overview section of company/[slug]/page.tsx. */}
+            <p className="text-3xl font-bold text-foreground">{companyName}</p>
             <p className="text-muted-foreground">H1B Data Analysis & Insights</p>
           </div>
         </div>

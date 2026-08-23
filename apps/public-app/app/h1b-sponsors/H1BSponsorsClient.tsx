@@ -5,6 +5,7 @@ import { EmployersHero } from '@/components/h1b-dashboard/EmployersHero';
 import { ClientErrorBoundary } from './ClientErrorBoundary';
 import { useRouter, useSearchParams, usePathname } from 'next/navigation';
 import { FilterState } from '@/components/h1b-dashboard/types';
+import { slugify } from '@docujourney/utils';
 
 interface H1BSponsorsClientProps {
   initialPage?: number;
@@ -120,7 +121,7 @@ export function H1BSponsorsClient({
   // Handle suggestion select
   const handleSuggestionSelect = useCallback((suggestion: any) => {
     if (suggestion.type === 'employer') {
-      const companySlug = suggestion.text.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+      const companySlug = slugify(suggestion.text);
       router.push(`/h1b-dashboard/company/${companySlug}?name=${encodeURIComponent(suggestion.text)}`);
     }
   }, [router]);

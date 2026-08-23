@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, Button, Input, Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@docujourney/ui';
 import { Calculator, DollarSign, TrendingUp, MapPin, Building, BookOpen } from 'lucide-react';
 import { DashboardLayout } from '@/components/h1b-dashboard';
+import { DATA_YEAR } from '@docujourney/utils';
 
 interface SalaryEstimate {
   minSalary: number;
@@ -46,7 +47,7 @@ export default function H1BSalaryCalculatorPage() {
         {/* Hero Section */}
         <div className="text-center mb-8">
           <h1 className="text-4xl font-bold text-gray-900 mb-4">
-            H1B Salary Calculator 2025
+            H1B Salary Calculator {DATA_YEAR}
           </h1>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto">
             Calculate accurate H1B salary expectations based on real-time data from millions of applications. 
@@ -191,10 +192,10 @@ export default function H1BSalaryCalculatorPage() {
           <div>
             <h2 className="text-2xl font-bold text-gray-900 mb-4 flex items-center">
               <TrendingUp className="w-6 h-6 mr-2 text-green-600" />
-              2025 H1B Salary Trends
+              {DATA_YEAR} H1B Salary Trends
             </h2>
             <div className="prose text-gray-600">
-              <p>Key salary trends for H1B workers in 2025:</p>
+              <p>Key salary trends for H1B workers in {DATA_YEAR}:</p>
               <ul>
                 <li>Average H1B salary increased 8.2% year-over-year</li>
                 <li>Tech roles continue to command premium salaries</li>

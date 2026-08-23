@@ -17,7 +17,7 @@ export const metadata: Metadata = {
       'H1B sponsor companies',
       'H1B visa analytics', 
       'H1B approval rates',
-      'H1B minimum salary 2025',
+      `H1B minimum salary ${DATA_YEAR}`,
       'H1B prevailing wage',
       'H1B employer database',
       // Secondary keywords
@@ -31,7 +31,7 @@ export const metadata: Metadata = {
       // Long-tail keywords
       'companies that sponsor H1B visa',
       'H1B salary by company',
-      'H1B sponsor list 2025',
+      `H1B sponsor list ${DATA_YEAR}`,
       'H1B application statistics',
       'best H1B sponsor companies',
     ],

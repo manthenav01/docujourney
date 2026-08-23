@@ -24,6 +24,7 @@ import {
 } from 'lucide-react';
 import { METRIC_CONFIGS } from '../../lib/metricCardConfig';
 import { ApplicationsCard, SalaryCard, ApprovalRateCard, EmployersCard } from './StatsCard';
+import { slugify } from '@docujourney/utils';
 
 // Use the standardized H1BCityAnalysis type
 type CityInfo = H1BCityAnalysis;
@@ -79,7 +80,7 @@ export const CityDashboard: React.FC<CityDashboardProps> = ({
 
   const handleBackClick = () => {
     // Navigate back to the state page
-    const stateSlug = stateName.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
+    const stateSlug = slugify(stateName);
     router.push(`/h1b-dashboard/locations/${encodeURIComponent(stateSlug)}?state=${encodeURIComponent(stateName)}`);
   };
 
