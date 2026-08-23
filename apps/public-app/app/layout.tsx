@@ -46,7 +46,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en">
       <head>
         <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <meta name="theme-color" content="#2563eb" />
+        <meta name="theme-color" content="#1545a2" />
         
         {/* Favicon and app icons */}
         <link rel="icon" type="image/svg+xml" href="/favicon.svg" />

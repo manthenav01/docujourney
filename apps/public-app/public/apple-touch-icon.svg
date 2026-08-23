@@ -1,55 +1,17 @@
 <svg width="180" height="180" viewBox="0 0 180 180" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <!-- Background circle with rounded corners for iOS -->
-  <rect x="0" y="0" width="180" height="180" rx="40" ry="40" fill="url(#gradient)" />
-  
-  <!-- Globe/Earth representation -->
-  <circle cx="90" cy="90" r="50" fill="none" stroke="white" stroke-width="4" opacity="0.9" />
-  
-  <!-- Meridian lines -->
-  <path 
-    d="M90 40 C90 40, 115 60, 115 90 C115 120, 90 140, 90 140" 
-    fill="none" 
-    stroke="white" 
-    stroke-width="3" 
-    opacity="0.7"
-  />
-  <path 
-    d="M90 40 C90 40, 65 60, 65 90 C65 120, 90 140, 90 140" 
-    fill="none" 
-    stroke="white" 
-    stroke-width="3" 
-    opacity="0.7"
-  />
-  
-  <!-- Equator line -->
-  <path 
-    d="M40 90 Q90 80, 140 90" 
-    fill="none" 
-    stroke="white" 
-    stroke-width="3" 
-    opacity="0.7"
-  />
-  
-  <!-- Migration arrow - representing movement/journey -->
-  <path 
-    d="M60 70 L110 70 M100 60 L110 70 L100 80" 
-    stroke="white" 
-    stroke-width="6" 
-    stroke-linecap="round" 
+  <!-- Background with rounded corners for iOS -->
+  <rect x="0" y="0" width="180" height="180" rx="40" ry="40" fill="#1545a2" />
+
+  <!-- Gateway arch -->
+  <path
+    d="M61.9 122.3 L61.9 85.8 A28.1 28.1 0 0 1 118.1 85.8 L118.1 122.3"
+    stroke="white"
+    stroke-width="16.3"
+    stroke-linecap="round"
     stroke-linejoin="round"
     fill="none"
   />
-  
-  <!-- Data points - small dots representing analytics -->
-  <circle cx="75" cy="110" r="4" fill="white" opacity="0.8" />
-  <circle cx="105" cy="110" r="4" fill="white" opacity="0.8" />
-  <circle cx="90" cy="120" r="4" fill="white" opacity="0.8" />
-  
-  <!-- Gradient definition -->
-  <defs>
-    <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#2563eb" />
-      <stop offset="100%" stop-color="#1d4ed8" />
-    </linearGradient>
-  </defs>
+
+  <!-- Point of light arriving through the gate -->
+  <circle cx="90" cy="111.1" r="10.1" fill="white" />
 </svg>
