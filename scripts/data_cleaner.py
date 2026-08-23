@@ -47,6 +47,15 @@ def clean_data(df):
     text_cols = ['employer_name', 'employer_city', 'job_title', 'employerpetitionername', 'worksite_city', 'worksite_state']
     df = normalize_text_columns(df, text_cols)
 
+    # Normalize "doing business as" aliases: "X, LLC D/B/A Y" is the same legal
+    # entity as "X, LLC". Without this, a company that adds a D/B/A suffix to
+    # its filings splits into two employers with nonsense YoY trends.
+    if 'employer_name' in df.columns:
+        stripped = df['employer_name'].str.replace(
+            r'\s+D[./]?B[./]?A\.?\s+.+$', '', regex=True).str.strip()
+        # Keep the original if stripping would leave nothing meaningful
+        df['employer_name'] = stripped.where(stripped.str.len() >= 3, df['employer_name'])
+
     # Standardize data types for BigQuery compatibility
     if 'taxid' in df.columns:
         # Convert to string, strip all whitespace, and remove any trailing .0 if it's a number

@@ -92,10 +92,13 @@ export class H1BBigQueryService {
       return { yoyGrowth: null, yoyGrowthPercentage: null };
     }
 
-    if (previousYear === null || previousYear === undefined || previousYear === 0) {
+    // A percentage over a tiny base is noise, not growth: entity name changes
+    // (e.g. a company adding "D/B/A ..." to its filings) leave 1-2 stragglers
+    // under the old string and produced badges like "+87,850%".
+    if (previousYear === null || previousYear === undefined || previousYear < 25) {
       return { 
         yoyGrowth: currentYear, 
-        yoyGrowthPercentage: null, // Can't calculate percentage without previous year baseline
+        yoyGrowthPercentage: null, // No stable previous-year baseline
       };
     }
 
@@ -351,6 +354,9 @@ export class H1BBigQueryService {
         FROM employer_yoy_trends
         WHERE fiscal_year = ${this.getCurrentFiscalYear()}  -- Current fiscal year
         AND yoy_growth_rate IS NOT NULL
+        -- Require a stable base: tiny previous-year counts (entity renames,
+        -- new filing strings) produce absurd percentages
+        AND previous_year_apps >= 25
       )
       SELECT 
         es.employer_name as employer,
