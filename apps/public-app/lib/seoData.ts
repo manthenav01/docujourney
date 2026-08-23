@@ -130,6 +130,54 @@ export async function getTopSlugs(
   }
 }
 
+export interface StateSEOSummary {
+  state: string;            // two-letter code
+  applications: number;
+  certifiedApplications: number;
+  avgSalary: number;
+}
+
+// All states with filing counts, for the locations directory page.
+// One grouped scan over the raw table, cached by ISR (page revalidates daily).
+export const getStateSEOData = cache(
+  async (): Promise<StateSEOSummary[]> => {
+    try {
+      const [rows] = await client().query({
+        query: `
+          SELECT
+            UPPER(TRIM(worksite_state)) AS state,
+            COUNT(*) AS applications,
+            COUNTIF(case_status = 'Certified') AS certified,
+            AVG(CASE WHEN (CASE wage_unit_of_pay
+                  WHEN 'Hour' THEN wage_rate_of_pay_from * 2080
+                  WHEN 'Week' THEN wage_rate_of_pay_from * 52
+                  WHEN 'Month' THEN wage_rate_of_pay_from * 12
+                  WHEN 'Bi-Weekly' THEN wage_rate_of_pay_from * 26
+                  ELSE wage_rate_of_pay_from END) BETWEEN 30000 AND 900000
+                THEN (CASE wage_unit_of_pay
+                  WHEN 'Hour' THEN wage_rate_of_pay_from * 2080
+                  WHEN 'Week' THEN wage_rate_of_pay_from * 52
+                  WHEN 'Month' THEN wage_rate_of_pay_from * 12
+                  WHEN 'Bi-Weekly' THEN wage_rate_of_pay_from * 26
+                  ELSE wage_rate_of_pay_from END) END) AS avg_salary
+          FROM \`${bigQueryConfig.projectId}.h1b_data.lca_applications\`
+          WHERE worksite_state IS NOT NULL AND TRIM(worksite_state) != ''
+          GROUP BY state
+          ORDER BY applications DESC`,
+      });
+      return rows.map((r: any) => ({
+        state: r.state,
+        applications: num(r.applications),
+        certifiedApplications: num(r.certified),
+        avgSalary: num(r.avg_salary),
+      }));
+    } catch (error) {
+      console.error('SEO data fetch failed for states:', error);
+      return [];
+    }
+  },
+);
+
 export function approvalRate(total: number, certified: number): number {
   if (!total) {return 0;}
   return (certified / total) * 100;

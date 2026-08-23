@@ -209,8 +209,8 @@ export function generateH1BMetadata({
   path?: string;
   stats?: H1BEntityStats;
 } = {}): Metadata {
-  let title = `H1B Visa Data Dashboard ${DATA_YEAR} - Salaries, Sponsors & Approval Rates`;
-  let description = 'Explore detailed H1B visa statistics, salary data, approval rates, and company analytics. Real-time H1B dashboard with comprehensive immigration data insights.';
+  let title = `H1B Visa Data Dashboard ${DATA_YEAR} - Salaries, Sponsors & Certification Rates`;
+  let description = 'Explore detailed H1B visa statistics, salary data, certification rates, and company analytics. Real-time H1B dashboard with comprehensive immigration data insights.';
   let canonicalPath = path || '/h1b-dashboard';
 
   const apps = stats?.totalApplications;
@@ -221,10 +221,10 @@ export function generateH1BMetadata({
   const rate = stats?.approvalRate ? `${stats.approvalRate.toFixed(1)}%` : '';
 
   if (companyName) {
-    title = `${companyName} H1B Visa Sponsorship ${DATA_YEAR}: Salaries, Approval Rate & LCA Data`;
+    title = `${companyName} H1B Visa Sponsorship ${DATA_YEAR}: Salaries, Certification Rate & LCA Data`;
     description = apps && avg
       ? `${companyName} filed ${apps.toLocaleString('en-US')} H1B LCA applications${rate ? ` with a ${rate} LCA certification rate` : ''}. Average salary ${avg}${range ? ` (range ${range})` : ''}. Explore job titles, worksite locations, and hiring trends.`
-      : `Does ${companyName} sponsor H1B visas? View ${companyName} H1B salaries, approval rates, LCA filings, job titles, and worksite locations. Official US Department of Labor data.`;
+      : `Does ${companyName} sponsor H1B visas? View ${companyName} H1B salaries, certification rates, LCA filings, job titles, and worksite locations. Official US Department of Labor data.`;
     canonicalPath = path || `/h1b-dashboard/company/${slugify(companyName)}`;
   } else if (jobTitle) {
     title = `${jobTitle} H1B Salary ${DATA_YEAR}: Average Pay, Top Sponsors & Visa Data`;

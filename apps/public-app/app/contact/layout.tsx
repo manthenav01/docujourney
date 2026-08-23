@@ -102,7 +102,7 @@ export default function ContactLayout({
         name: 'What type of H1B data support do you provide?',
         acceptedAnswer: {
           '@type': 'Answer',
-          text: 'We provide comprehensive support for H1B salary analytics, company sponsorship data, approval rates, job market trends, and immigration statistics. Our experts can help with data interpretation and career guidance.',
+          text: 'We provide comprehensive support for H1B salary analytics, company sponsorship data, certification rates, job market trends, and immigration statistics. Our experts can help with data interpretation and career guidance.',
         },
       },
       {
@@ -118,7 +118,7 @@ export default function ContactLayout({
         name: 'Can you help with specific company H1B data?',
         acceptedAnswer: {
           '@type': 'Answer',
-          text: 'Absolutely! We can provide detailed H1B analytics for specific companies including historical sponsorship patterns, salary ranges, job titles, approval rates, and hiring trends.',
+          text: 'Absolutely! We can provide detailed H1B analytics for specific companies including historical sponsorship patterns, salary ranges, job titles, certification rates, and hiring trends.',
         },
       },
     ],

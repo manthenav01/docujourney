@@ -1556,7 +1556,7 @@ export class H1BBigQueryService {
             END
           ) as maxSalary
         FROM \`${this.projectId}.${this.datasetId}.${this.tableId}\`
-        WHERE UPPER(TRIM(job_title)) LIKE UPPER(TRIM(@jobTitle))
+        WHERE UPPER(CASE WHEN REGEXP_CONTAINS(job_title, r' - [A-Z0-9]+-[0-9]+$') THEN TRIM(REGEXP_REPLACE(job_title, r' - [A-Z0-9]+-[0-9]+$', '')) ELSE TRIM(job_title) END) = UPPER(TRIM(@jobTitle))
       `;
 
       // Get top employers for this job with YOY growth data
@@ -1582,7 +1582,7 @@ export class H1BBigQueryService {
               END
             ) as avgSalary
           FROM \`${this.projectId}.${this.datasetId}.${this.tableId}\`
-          WHERE UPPER(TRIM(job_title)) LIKE UPPER(TRIM(@jobTitle))
+          WHERE UPPER(CASE WHEN REGEXP_CONTAINS(job_title, r' - [A-Z0-9]+-[0-9]+$') THEN TRIM(REGEXP_REPLACE(job_title, r' - [A-Z0-9]+-[0-9]+$', '')) ELSE TRIM(job_title) END) = UPPER(TRIM(@jobTitle))
           AND employer_name IS NOT NULL
           AND TRIM(employer_name) != ''
           AND received_date IS NOT NULL
@@ -1629,7 +1629,7 @@ export class H1BBigQueryService {
             END
           ) as avgSalary
         FROM \`${this.projectId}.${this.datasetId}.${this.tableId}\`
-        WHERE UPPER(TRIM(job_title)) LIKE UPPER(TRIM(@jobTitle))
+        WHERE UPPER(CASE WHEN REGEXP_CONTAINS(job_title, r' - [A-Z0-9]+-[0-9]+$') THEN TRIM(REGEXP_REPLACE(job_title, r' - [A-Z0-9]+-[0-9]+$', '')) ELSE TRIM(job_title) END) = UPPER(TRIM(@jobTitle))
         AND worksite_state IS NOT NULL
         AND TRIM(worksite_state) != ''
         GROUP BY UPPER(TRIM(worksite_state))
@@ -1666,7 +1666,7 @@ export class H1BBigQueryService {
             case_status,
             job_title
           FROM \`${this.projectId}.${this.datasetId}.${this.tableId}\`
-          WHERE UPPER(TRIM(job_title)) LIKE UPPER(TRIM(@jobTitle))
+          WHERE UPPER(CASE WHEN REGEXP_CONTAINS(job_title, r' - [A-Z0-9]+-[0-9]+$') THEN TRIM(REGEXP_REPLACE(job_title, r' - [A-Z0-9]+-[0-9]+$', '')) ELSE TRIM(job_title) END) = UPPER(TRIM(@jobTitle))
           AND received_date IS NOT NULL
         )
         GROUP BY fiscal_year
@@ -1685,7 +1685,7 @@ export class H1BBigQueryService {
               ELSE wage_rate_of_pay_from
             END as annual_wage
           FROM \`${this.projectId}.${this.datasetId}.${this.tableId}\`
-          WHERE UPPER(TRIM(job_title)) LIKE UPPER(TRIM(@jobTitle))
+          WHERE UPPER(CASE WHEN REGEXP_CONTAINS(job_title, r' - [A-Z0-9]+-[0-9]+$') THEN TRIM(REGEXP_REPLACE(job_title, r' - [A-Z0-9]+-[0-9]+$', '')) ELSE TRIM(job_title) END) = UPPER(TRIM(@jobTitle))
           AND wage_rate_of_pay_from > 0
           AND (CASE WHEN wage_unit_of_pay = 'Hour' THEN wage_rate_of_pay_from * 2080 WHEN wage_unit_of_pay = 'Week' THEN wage_rate_of_pay_from * 52 WHEN wage_unit_of_pay = 'Month' THEN wage_rate_of_pay_from * 12 WHEN wage_unit_of_pay = 'Bi-Weekly' THEN wage_rate_of_pay_from * 26 ELSE wage_rate_of_pay_from END) BETWEEN 30000 AND 900000
         )
@@ -1746,7 +1746,7 @@ export class H1BBigQueryService {
               ELSE prevailing_wage
             END as annual_prevailing_wage
           FROM \`${this.projectId}.${this.datasetId}.${this.tableId}\`
-          WHERE UPPER(TRIM(job_title)) LIKE UPPER(TRIM(@jobTitle))
+          WHERE UPPER(CASE WHEN REGEXP_CONTAINS(job_title, r' - [A-Z0-9]+-[0-9]+$') THEN TRIM(REGEXP_REPLACE(job_title, r' - [A-Z0-9]+-[0-9]+$', '')) ELSE TRIM(job_title) END) = UPPER(TRIM(@jobTitle))
           AND case_status = 'Certified'
         )
         SELECT 
@@ -1778,27 +1778,27 @@ export class H1BBigQueryService {
           COUNT(CASE WHEN UPPER(case_status) = 'DENIED' THEN 1 END) as deniedCount,
           COUNT(CASE WHEN UPPER(case_status) = 'WITHDRAWN' THEN 1 END) as withdrawnCount
         FROM \`${this.projectId}.${this.datasetId}.${this.tableId}\`
-        WHERE UPPER(TRIM(job_title)) LIKE UPPER(TRIM(@jobTitle))
+        WHERE UPPER(CASE WHEN REGEXP_CONTAINS(job_title, r' - [A-Z0-9]+-[0-9]+$') THEN TRIM(REGEXP_REPLACE(job_title, r' - [A-Z0-9]+-[0-9]+$', '')) ELSE TRIM(job_title) END) = UPPER(TRIM(@jobTitle))
       `;
 
       // Get unique employers count for this job
       const uniqueEmployersQuery = `
         SELECT COUNT(DISTINCT TRIM(employer_name)) as uniqueEmployers
         FROM \`${this.projectId}.${this.datasetId}.${this.tableId}\`
-        WHERE UPPER(TRIM(job_title)) LIKE UPPER(TRIM(@jobTitle))
+        WHERE UPPER(CASE WHEN REGEXP_CONTAINS(job_title, r' - [A-Z0-9]+-[0-9]+$') THEN TRIM(REGEXP_REPLACE(job_title, r' - [A-Z0-9]+-[0-9]+$', '')) ELSE TRIM(job_title) END) = UPPER(TRIM(@jobTitle))
         AND employer_name IS NOT NULL
         AND TRIM(employer_name) != ''
       `;
 
       const [basicStats, topEmployers, topStates, yearlyTrends, salaryDistribution, wageLevelAnalysis, requirementsAnalysis, uniqueEmployersResult] = await Promise.all([
-        this.bigquery.query({ query: basicStatsQuery, params: { jobTitle: `%${jobTitle}%` } }),
-        this.bigquery.query({ query: topEmployersQuery, params: { jobTitle: `%${jobTitle}%` } }),
-        this.bigquery.query({ query: topStatesQuery, params: { jobTitle: `%${jobTitle}%` } }),
-        this.bigquery.query({ query: yearlyTrendsQuery, params: { jobTitle: `%${jobTitle}%` } }),
-        this.bigquery.query({ query: salaryDistributionQuery, params: { jobTitle: `%${jobTitle}%` } }),
-        this.bigquery.query({ query: wageLevelAnalysisQuery, params: { jobTitle: `%${jobTitle}%` } }),
-        this.bigquery.query({ query: requirementsAnalysisQuery, params: { jobTitle: `%${jobTitle}%` } }),
-        this.bigquery.query({ query: uniqueEmployersQuery, params: { jobTitle: `%${jobTitle}%` } }),
+        this.bigquery.query({ query: basicStatsQuery, params: { jobTitle } }),
+        this.bigquery.query({ query: topEmployersQuery, params: { jobTitle } }),
+        this.bigquery.query({ query: topStatesQuery, params: { jobTitle } }),
+        this.bigquery.query({ query: yearlyTrendsQuery, params: { jobTitle } }),
+        this.bigquery.query({ query: salaryDistributionQuery, params: { jobTitle } }),
+        this.bigquery.query({ query: wageLevelAnalysisQuery, params: { jobTitle } }),
+        this.bigquery.query({ query: requirementsAnalysisQuery, params: { jobTitle } }),
+        this.bigquery.query({ query: uniqueEmployersQuery, params: { jobTitle } }),
       ]);
 
       const stats = basicStats[0][0] || {};
@@ -3142,7 +3142,7 @@ export class H1BBigQueryService {
             ) as above_prevailing_count
           FROM \`${this.projectId}.${this.datasetId}.${this.tableId}\`
           ${whereClause}
-          AND received_date >= '${FISCAL_YEAR_START}'  -- current fiscal year focus
+          ${filters.fiscalYears?.length ? '' : `AND received_date >= '${FISCAL_YEAR_START}'`}
           GROUP BY wage_level
         ),
         total_stats AS (

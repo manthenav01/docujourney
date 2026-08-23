@@ -189,7 +189,7 @@ export default function ContactPage() {
               </div>
               <h3 className="text-lg font-semibold mb-3">H1B Data Questions</h3>
               <p className="text-sm text-muted-foreground">
-                Get answers about specific companies, salary ranges, approval rates, job trends, and historical H1B data patterns.
+                Get answers about specific companies, salary ranges, certification rates, job trends, and historical H1B data patterns.
               </p>
             </Card>
 

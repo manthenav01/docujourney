@@ -3,6 +3,7 @@ import { DashboardLayout } from '@/components/h1b-dashboard';
 import { H1BSponsorsServer } from './H1BSponsorsServer';
 import { H1BSponsorsClient } from './H1BSponsorsClient';
 import { SponsorsListSkeleton } from '@/components/h1b-dashboard/SponsorsListSkeleton';
+import { SponsorsControls } from './SponsorsControls';
 
 // ISR: revalidate every hour
 // (force-dynamic was overriding this and disabling caching entirely)
@@ -87,14 +88,14 @@ function StaticContent({ staticStats }: { staticStats: StaticStatsData }) {
           About Our H1B Sponsor Database
         </h2>
         <p className="text-gray-700 mb-3">
-          Track and analyze H1B sponsorship patterns across <span className="font-semibold text-blue-600">170,441+ companies</span> from 2016-2025
+          Track and analyze H1B sponsorship patterns across <span className="font-semibold text-blue-600">180,000+ companies</span> from 2016-2026
         </p>
         <div className="grid md:grid-cols-2 gap-4 text-sm">
           <div className="flex items-start">
             <svg className="w-5 h-5 text-green-500 mr-2 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
-            <span className="text-gray-600">Historical application volumes & approval rates</span>
+            <span className="text-gray-600">Historical application volumes & certification rates</span>
           </div>
           <div className="flex items-start">
             <svg className="w-5 h-5 text-green-500 mr-2 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -182,6 +183,7 @@ interface H1BSponsorsPageProps {
     state?: string;
     minSalary?: string;
     maxSalary?: string;
+    sort?: string;
   }>;
 }
 
@@ -197,6 +199,7 @@ export default async function H1BSponsorsPage({ searchParams }: H1BSponsorsPageP
   const state = params.state || '';
   const minSalary = params.minSalary ? parseInt(params.minSalary, 10) : undefined;
   const maxSalary = params.maxSalary ? parseInt(params.maxSalary, 10) : undefined;
+  const sort = params.sort || 'applications';
   
   let staticStats: StaticStatsData | null = null;
   let error: string | null = null;
@@ -221,8 +224,20 @@ export default async function H1BSponsorsPage({ searchParams }: H1BSponsorsPageP
         initialMaxSalary={maxSalary}
       />
       
-      {/* Server component for paginated sponsors - pass all params */}
-      <Suspense fallback={<SponsorsListSkeleton />}>
+      {/* Filter and sort controls (state lives in the URL) */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6">
+        <Suspense fallback={null}>
+          <SponsorsControls />
+        </Suspense>
+      </div>
+
+      {/* Server component for paginated sponsors. The key makes React remount
+          the Suspense boundary on every param change so the skeleton shows
+          during the fetch — without it the old list froze with no feedback. */}
+      <Suspense
+        key={`${page}|${search}|${industry}|${state}|${minSalary}|${maxSalary}|${sort}`}
+        fallback={<SponsorsListSkeleton />}
+      >
         <H1BSponsorsServer 
           page={page}
           search={search}
@@ -230,6 +245,7 @@ export default async function H1BSponsorsPage({ searchParams }: H1BSponsorsPageP
           state={state}
           minSalary={minSalary}
           maxSalary={maxSalary}
+          sort={sort}
         />
       </Suspense>
       

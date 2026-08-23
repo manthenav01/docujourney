@@ -78,7 +78,7 @@ export default function AboutPage() {
               </p>
               <p className="text-lg text-muted-foreground leading-relaxed">
                 Starting with H1B visa data, we're building the most comprehensive immigration analytics platform 
-                to help you understand market trends, salary benchmarks, approval rates, and opportunities across 
+                to help you understand market trends, salary benchmarks, certification rates, and opportunities across 
                 the United States.
               </p>
             </div>

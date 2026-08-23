@@ -35,6 +35,7 @@ interface PaginatedResponse {
 }
 
 interface FetchSponsorsParams {
+  sort?: string;
   page?: number;
   search?: string;
   industry?: string;
@@ -50,6 +51,7 @@ async function fetchSponsors({
   state = '',
   minSalary,
   maxSalary,
+  sort = 'applications',
 }: FetchSponsorsParams): Promise<PaginatedResponse | null> {
   try {
     const protocol = process.env.NODE_ENV === 'development' ? 'http' : 'https';
@@ -60,8 +62,11 @@ async function fetchSponsors({
     // Build query params
     const params = new URLSearchParams({
       page: page.toString(),
-      limit: '10',
+      limit: '25',
     });
+    if (sort && sort !== 'applications') {
+      params.append('sort', sort);
+    }
     
     if (search) {
       params.append('search', search);
@@ -108,6 +113,7 @@ interface H1BSponsorsServerProps {
   state?: string;
   minSalary?: number;
   maxSalary?: number;
+  sort?: string;
   showHero?: boolean;
 }
 
@@ -118,9 +124,10 @@ export async function H1BSponsorsServer({
   state = '',
   minSalary,
   maxSalary,
+  sort = 'applications',
   showHero = false,
 }: H1BSponsorsServerProps) {
-  const data = await fetchSponsors({ page, search, industry, state, minSalary, maxSalary });
+  const data = await fetchSponsors({ page, search, industry, state, minSalary, maxSalary, sort });
 
   if (!data) {
     return (
@@ -172,6 +179,7 @@ export async function H1BSponsorsServer({
             state,
             minSalary,
             maxSalary,
+            ...(sort !== 'applications' && { sort }),
           }}
         />
 
@@ -298,6 +306,7 @@ export async function H1BSponsorsServer({
             state,
             minSalary,
             maxSalary,
+            ...(sort !== 'applications' && { sort }),
           }}
         />
         

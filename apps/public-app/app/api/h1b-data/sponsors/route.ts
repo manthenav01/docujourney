@@ -47,6 +47,14 @@ export async function GET(request: NextRequest): Promise<NextResponse<PaginatedR
     const state = searchParams.get('state') || '';
     const minSalary = searchParams.get('minSalary') ? parseInt(searchParams.get('minSalary')!, 10) : undefined;
     const maxSalary = searchParams.get('maxSalary') ? parseInt(searchParams.get('maxSalary')!, 10) : undefined;
+    // Sort is whitelisted to fixed ORDER BY clauses — never interpolate user input
+    const sortParam = searchParams.get('sort') || 'applications';
+    const SORT_CLAUSES: Record<string, string> = {
+      applications: 'total_applications DESC, employer_name',
+      salary: 'avg_salary DESC NULLS LAST, total_applications DESC',
+      certification: 'approval_rate DESC, total_applications DESC',
+    };
+    const orderBy = SORT_CLAUSES[sortParam] || SORT_CLAUSES.applications;
     const offset = (page - 1) * limit;
     
     console.log(`📄 Fetching sponsors page ${page} with limit ${limit}, search: '${search}', industry: '${industry}', state: '${state}'`);
@@ -123,7 +131,7 @@ export async function GET(request: NextRequest): Promise<NextResponse<PaginatedR
       ranked_employers AS (
         SELECT 
           *,
-          ROW_NUMBER() OVER (ORDER BY total_applications DESC, employer_name) as rank
+          ROW_NUMBER() OVER (ORDER BY ${orderBy}) as rank
         FROM employer_stats
       ),
       top_job_titles AS (

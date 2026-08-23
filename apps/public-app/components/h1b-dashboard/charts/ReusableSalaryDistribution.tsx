@@ -93,6 +93,14 @@ const processSalaryData = (data: SalaryDistributionData[]): SalaryDistributionDa
     .filter(range => (byRange.get(range) || 0) > 0)
     .map(range => ({ range, count: byRange.get(range) as number, percentage: 0 }));
 
+  // Never silently drop a bucket the API sent that we don't recognize —
+  // append it after the canonical ranges instead.
+  byRange.forEach((count, range) => {
+    if (count > 0 && !standardRanges.includes(range)) {
+      filteredData.push({ range, count, percentage: 0 });
+    }
+  });
+
   // Percentages are always recomputed from the bucket counts so they sum to 100
   const totalCount = filteredData.reduce((sum, item) => sum + item.count, 0);
   if (totalCount > 0) {
@@ -232,6 +240,11 @@ const ReusableSalaryDistribution: React.FC<ReusableSalaryDistributionProps> = ({
       )}
       <CardContent className="p-4 pt-2">
         <BarChartVisualization data={processedData} />
+        {/* Label the base explicitly: buckets cover certified filings with
+            valid salary data, which is smaller than total applications */}
+        <p className="text-xs text-muted-foreground mt-3 text-center">
+          Based on {formatNumber(processedData.reduce((sum, d) => sum + d.count, 0))} certified filings with valid salary data
+        </p>
       </CardContent>
     </Card>
   );

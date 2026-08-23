@@ -22,7 +22,7 @@ export const metadata: Metadata = {
   ],
   openGraph: {
     title: `H1B Sponsor Companies Directory ${DATA_YEAR} | H1B Employers Database`,
-    description: 'Complete directory of H1B sponsor companies with approval rates, salary data, and hiring trends. Find employers actively hiring international talent.',
+    description: 'Complete directory of H1B sponsor companies with LCA certification rates, salary data, and hiring trends. Find employers actively hiring international talent.',
     url: 'https://www.usimmigrantcentral.com/h1b-sponsors',
     siteName: 'Immigrant Central',
     type: 'website',
@@ -30,7 +30,7 @@ export const metadata: Metadata = {
   twitter: {
     card: 'summary_large_image',
     title: `H1B Sponsor Companies Directory ${DATA_YEAR}`,
-    description: 'Complete directory of 170,000+ H1B sponsor companies with approval rates and salary data.',
+    description: 'Complete directory of H1B sponsor companies with certification rates and salary data.',
   },
   alternates: {
     canonical: 'https://www.usimmigrantcentral.com/h1b-sponsors',
@@ -64,7 +64,7 @@ export default function H1BSponsorsLayout({
             '@context': 'https://schema.org',
             '@type': 'CollectionPage',
             name: `H1B Sponsor Companies Directory ${DATA_YEAR}`,
-            description: 'Complete directory of H1B sponsor companies with approval rates, salary data, and hiring trends.',
+            description: 'Complete directory of H1B sponsor companies with certification rates, salary data, and hiring trends.',
             url: 'https://www.usimmigrantcentral.com/h1b-sponsors',
             mainEntity: {
               '@type': 'ItemList',
