@@ -5,9 +5,12 @@ import JobPageClient from './JobPageClient';
 import { generateH1BMetadata, slugToDisplayName, slugify, BASE_METADATA, DATA_YEAR, STATE_CODE_TO_NAME } from '@docujourney/utils';
 import { getJobSEOData, getTopSlugs, approvalRate, saneSalary } from '@/lib/seoData';
 
-// ISR: job aggregates change only when new quarterly DOL data lands.
+// ISR: job aggregates change only when new quarterly DOL data lands, so the
+// cache window matches the data rather than the clock. Daily revalidation cost
+// one ISR write per crawled page per day across a 10k-URL sitemap; the data
+// pipeline now calls /api/revalidate after each DOL load instead.
 // (Was force-dynamic, which made every crawl a live render with no cache.)
-export const revalidate = 86400;
+export const revalidate = 2592000; // 30 days
 export const dynamicParams = true;
 
 // Prebuild the highest-traffic job pages at deploy time; the long tail stays

@@ -85,8 +85,9 @@ async function fetchSponsors({
     }
     
     const response = await fetch(`${baseUrl}/api/h1b-data/sponsors?${params.toString()}`, {
-      // Disable cache in development, use ISR in production
-      next: { revalidate: process.env.NODE_ENV === 'development' ? 0 : 3600 },
+      // Disable cache in development, use ISR in production. Kept in step with
+      // the route's revalidate — see the note in app/h1b-sponsors/page.tsx.
+      next: { revalidate: process.env.NODE_ENV === 'development' ? 0 : 2592000 },
     });
 
     if (!response.ok) {

@@ -5,9 +5,13 @@ import { generateH1BMetadata, generateStructuredData, slugToDisplayName, slugify
 import { Metadata } from 'next';
 import { getCompanySEOData, getTopSlugs, approvalRate, saneSalary, cleanTopRoles } from '@/lib/seoData';
 
-// ISR: company data changes at most quarterly (DOL disclosure files),
-// so a daily revalidation keeps pages fresh and BigQuery costs near zero.
-export const revalidate = 86400;
+// ISR: company data changes at most quarterly (DOL disclosure files), so the
+// cache window matches the data, not the clock. Daily revalidation meant one
+// ISR write per crawled page per day — 30k sitemap URLs x every crawler pass,
+// which is what blew through Vercel's free ISR write allowance. The data
+// pipeline calls /api/revalidate after each DOL load, so pages refresh when
+// the numbers actually change rather than on a timer.
+export const revalidate = 2592000; // 30 days
 export const dynamicParams = true;
 
 // Prebuild the highest-traffic company pages at deploy time; the long tail

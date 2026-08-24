@@ -1,16 +1,32 @@
 name: Deploy Production
 
-# Deploys apps/public-app to Vercel production on every push to main.
+# Deploys apps/public-app to Vercel production.
+#
+# Deploys are batched deliberately: every production deploy invalidates the
+# whole ISR cache, so all ~30k entity pages become cold and the next crawl
+# rewrites them — one billed Vercel ISR write each. A day of push-per-commit
+# deploys therefore costs multiples of the free ISR write allowance on its own.
+#
 # NOTE: delete this workflow if the Vercel Git integration gets connected
 # in the dashboard — otherwise every push would deploy twice.
 on:
   push:
     branches: [main]
+    # Only changes that can alter the built site trigger a deploy. Python ETL
+    # under scripts/, docs, and CI config do not ship anything to Vercel.
+    paths:
+      - 'apps/public-app/**'
+      - 'packages/**'
+      - 'package.json'
+      - 'package-lock.json'
+      - '.github/workflows/deploy-production.yml'
   workflow_dispatch:
 
+# A burst of pushes should produce ONE deploy, not one per commit: supersede
+# any run that has not started deploying yet and ship the newest main instead.
 concurrency:
   group: deploy-production
-  cancel-in-progress: false
+  cancel-in-progress: true
 
 jobs:
   deploy:

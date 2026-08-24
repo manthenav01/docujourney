@@ -12,7 +12,7 @@ import { getStateSEOData } from '@/lib/seoData';
 // A real directory page: every state with filing counts and salary data,
 // linking to its state page. (This previously rendered the generic homepage
 // dashboard under a different hero.)
-export const revalidate = 86400;
+export const revalidate = 2592000; // 30 days; refreshed on demand after a DOL load
 
 export const metadata: Metadata = generateMetadataUtil({
   title: `H1B Visa Jobs by Location ${DATA_YEAR} - Salaries & Sponsors by State & City`,

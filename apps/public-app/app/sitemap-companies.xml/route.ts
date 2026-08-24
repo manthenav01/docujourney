@@ -5,7 +5,7 @@ import { BASE_METADATA } from '@docujourney/utils';
 
 // Regenerate at most once a day — employer rankings only move when new
 // quarterly DOL disclosure data is loaded.
-export const revalidate = 86400;
+export const revalidate = 2592000; // 30 days
 
 // Every employer with a handful of filings, not just the top 1000: the site
 // advertises 50,000+ sponsors but only sitemap-listed pages get crawled

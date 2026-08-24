@@ -294,8 +294,50 @@ def run_pipeline(year_folder=None, specific_files=None, upload_to_bigquery=True,
             print(f"Rebuilding {agg_name}...")
             agg_client.query(agg_sql).result()
 
+        # Fresh aggregates are useless until the site drops its cached pages.
+        # Entity pages sit on a 30-day ISR window (a shorter one meant a billed
+        # Vercel ISR write per crawled page per day across a 30k-URL sitemap),
+        # so this ping is what makes new data visible.
+        trigger_site_revalidation()
+
     print("\n🎉 Data pipeline completed successfully!")
     return True
+
+def trigger_site_revalidation():
+    """Drop the site's cached pages so they pick up the new aggregates.
+
+    No-ops when REVALIDATE_URL / REVALIDATE_SECRET are unset (local runs), and
+    never fails the pipeline: the data is already loaded at this point, and a
+    missed ping only means pages refresh on their own 30-day schedule instead.
+    """
+    url = os.environ.get('REVALIDATE_URL')
+    secret = os.environ.get('REVALIDATE_SECRET')
+    if not url or not secret:
+        print("Skipping site revalidation (REVALIDATE_URL/REVALIDATE_SECRET not set)")
+        return
+
+    import json as _json
+    import urllib.error
+    import urllib.request
+
+    request = urllib.request.Request(
+        url,
+        data=b'{}',
+        method='POST',
+        headers={
+            'Authorization': f'Bearer {secret}',
+            'Content-Type': 'application/json',
+        },
+    )
+    try:
+        with urllib.request.urlopen(request, timeout=30) as response:
+            body = _json.loads(response.read().decode('utf-8') or '{}')
+        print(f"Site revalidation triggered: {body.get('count', 0)} paths")
+    except urllib.error.HTTPError as exc:
+        print(f"⚠️  Site revalidation failed ({exc.code}); pages will refresh on their own schedule")
+    except Exception as exc:  # network error, timeout, bad JSON
+        print(f"⚠️  Site revalidation failed ({exc}); pages will refresh on their own schedule")
+
 
 def main():
     parser = argparse.ArgumentParser(description='LCA Data Pipeline - Process and upload H1B LCA application data')

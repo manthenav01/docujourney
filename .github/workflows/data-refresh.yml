@@ -4,8 +4,10 @@ name: Quarterly H1B Data Refresh
 # - DOL publishes quarterly; files are cumulative within a fiscal year, so
 #   loading the newest quarter is sufficient.
 # - The pipeline dedupes on case_number, so reruns are idempotent and cheap.
-# - No deploy needed afterwards: pages use ISR (revalidate 86400) and pick up
-#   fresh aggregates within a day.
+# - No deploy needed afterwards: the pipeline POSTs to /api/revalidate once the
+#   serving aggregates are rebuilt, which drops the cached pages. Pages sit on a
+#   30-day ISR window (see app/api/revalidate/route.ts) precisely so that
+#   freshness comes from this ping rather than from per-day cache churn.
 on:
   schedule:
     # Monthly probe on the 5th — quarterly releases land on shifting dates,
@@ -72,6 +74,10 @@ jobs:
         if: steps.download.outputs.files != ''
         env:
           GCP_SA_KEY: ${{ secrets.GCP_SA_KEY }}
+          # Unset -> the pipeline skips the ping and pages refresh on their own
+          # 30-day schedule; the load itself still succeeds.
+          REVALIDATE_URL: https://www.usimmigrantcentral.com/api/revalidate
+          REVALIDATE_SECRET: ${{ secrets.REVALIDATE_SECRET }}
         run: |
           set -e
           echo "$GCP_SA_KEY" > /tmp/sa-key.json

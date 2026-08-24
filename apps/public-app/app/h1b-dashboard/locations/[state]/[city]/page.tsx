@@ -13,7 +13,7 @@ function isKnownState(stateSlug: string): boolean {
 // Names derive from path params only — reading searchParams here would force
 // dynamic rendering and break caching for crawlers. The client component still
 // honors ?city=&state= overrides from in-app navigation.
-export const revalidate = 86400;
+export const revalidate = 2592000; // 30 days
 export const dynamicParams = true;
 
 interface PageProps {

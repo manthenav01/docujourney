@@ -6,8 +6,9 @@ import StatePageClient from './StatePageClient';
 import { BASE_METADATA, DATA_YEAR, STATE_CODE_TO_NAME, slugify } from '@docujourney/utils';
 import { getStateSEOData, approvalRate, saneSalary } from '@/lib/seoData';
 
-// ISR: state aggregates change only when new quarterly DOL data lands.
-export const revalidate = 86400;
+// ISR: state aggregates change only when new quarterly DOL data lands, so the
+// cache window matches the data. /api/revalidate refreshes these after a load.
+export const revalidate = 2592000; // 30 days
 export const dynamicParams = true;
 
 interface PageProps {

@@ -5,9 +5,10 @@ import { H1BSponsorsClient } from './H1BSponsorsClient';
 import { SponsorsListSkeleton } from '@/components/h1b-dashboard/SponsorsListSkeleton';
 import { SponsorsControls } from './SponsorsControls';
 
-// ISR: revalidate every hour
-// (force-dynamic was overriding this and disabling caching entirely)
-export const revalidate = 3600;
+// ISR: sponsor rankings are derived from quarterly DOL data, so hourly
+// revalidation was rewriting this page 24x a day for numbers that had not
+// moved. (force-dynamic previously overrode this and disabled caching.)
+export const revalidate = 2592000; // 30 days
 
 interface IndustryData {
   industry: string;
@@ -38,8 +39,11 @@ async function getStaticStats(): Promise<StaticStatsData> {
   const baseUrl = `${protocol}://${host}`;
 
   const response = await fetch(`${baseUrl}/api/h1b-data/static-stats`, {
-    // Disable cache in development, use ISR in production
-    next: { revalidate: process.env.NODE_ENV === 'development' ? 0 : 3600 },
+    // Disable cache in development, use ISR in production. Must match the
+    // segment's revalidate: Next caps a route at the SHORTEST revalidate among
+    // the segment and its fetches, so a 1h fetch here would regenerate the
+    // whole page hourly no matter what `export const revalidate` says.
+    next: { revalidate: process.env.NODE_ENV === 'development' ? 0 : 2592000 },
   });
 
   if (!response.ok) {

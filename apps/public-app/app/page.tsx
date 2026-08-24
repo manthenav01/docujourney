@@ -4,8 +4,8 @@ import { generateStructuredData, slugToDisplayName, slugify, STATE_CODE_TO_NAME 
 import { getTopSlugs } from '@/lib/seoData';
 
 // ISR: the browse links below come from the BigQuery aggregate tables and
-// change at most quarterly; daily revalidation matches the entity pages.
-export const revalidate = 86400;
+// change at most quarterly; the cache window matches the entity pages.
+export const revalidate = 2592000; // 30 days
 
 // Server-rendered browse section: gives crawlers real links from the homepage
 // into the programmatic company/job/state pages, which are otherwise only

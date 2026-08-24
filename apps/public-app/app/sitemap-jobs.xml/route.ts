@@ -5,7 +5,7 @@ import { BASE_METADATA } from '@docujourney/utils';
 
 // Regenerate at most once a day — job title rankings only move when new
 // quarterly DOL disclosure data is loaded.
-export const revalidate = 86400;
+export const revalidate = 2592000; // 30 days
 
 // Every job title with real volume, not just the top 1000 (see
 // sitemap-companies.xml). Reads the pre-built aggregate table, whose slugs

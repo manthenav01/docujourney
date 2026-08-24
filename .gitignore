@@ -98,3 +98,8 @@ config/environments/
 
 # Vercel project links
 .vercel/
+
+# Generated at build time by apps/public-app/scripts/build-slug-filter.mjs
+# (~500 KB of base64 that changes on every DOL load). data.placeholder.ts is
+# the tracked fallback the generator copies when BigQuery is unreachable.
+apps/public-app/lib/slug-filter/data.ts
