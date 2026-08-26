@@ -19,6 +19,7 @@ import {
 } from './types';
 import { validateAttorneyInput, ValidationError } from './validation';
 import { bigQueryConfig, environment } from './config';
+import { bqCached, MAX_BYTES_RAW } from './bqCache';
 
 interface BigQueryConfig {
   projectId: string;
@@ -112,6 +113,72 @@ export class H1BBigQueryService {
   }
 
   /**
+   * All BigQuery reads go through here so every job carries a hard byte cap:
+   * one runaway query can never bill more than MAX_BYTES_RAW.
+   */
+  private runQuery(options: any): Promise<any> {
+    const opts = typeof options === 'string' ? { query: options } : options;
+    return this.bigquery.query({ maximumBytesBilled: MAX_BYTES_RAW, ...opts });
+  }
+
+  /**
+   * Cache key for a filter combination, or null when the combination should
+   * not be cached. Bots and default page loads only ever produce the
+   * no-filter or single-fiscal-year shapes, so caching those removes nearly
+   * all request-path BigQuery traffic; rare human-picked combinations run
+   * live under the byte cap and the project-level daily quota.
+   */
+  private filterCacheKey(filters: H1BQueryFilters): string | null {
+    if (filters.searchQuery && filters.searchQuery.trim()) {
+      return null;
+    }
+    if (filters.salaryRange && (filters.salaryRange[0] > 0 || filters.salaryRange[1] < 500000)) {
+      return null; // an effective salary filter (buildWhereClause ignores the no-op range)
+    }
+    const states = (filters.states ?? []).filter(Boolean).slice().sort();
+    if (states.length > 2) {
+      return null;
+    }
+    const fiscalYears = (filters.fiscalYears ?? []).filter(Boolean).slice().sort();
+    if (fiscalYears.length > 3) {
+      return null;
+    }
+    return JSON.stringify({ fy: fiscalYears, st: states });
+  }
+
+  private cachedByFilters<T>(name: string, filters: H1BQueryFilters, extra: string, fn: () => Promise<T>): Promise<T> {
+    const key = this.filterCacheKey(filters);
+    if (key === null) {
+      return fn();
+    }
+    return bqCached([name, key, extra], fn);
+  }
+
+  async getH1BDashboardData(filters: H1BQueryFilters = {}): Promise<H1BAggregatedData> {
+    return this.cachedByFilters('dashboard', filters, '', () => this.computeH1BDashboardData(filters));
+  }
+
+  async getTopLawFirms(filters: H1BQueryFilters = {}, limit: number = 15): Promise<H1BLawFirm[]> {
+    return this.cachedByFilters('lawfirms', filters, String(limit), () => this.computeTopLawFirms(filters, limit));
+  }
+
+  async getFilterOptions(): Promise<H1BFilterOptions> {
+    return bqCached(['filter-options'], () => this.computeFilterOptions());
+  }
+
+  async getMostPopularJobs(filters: H1BQueryFilters = {}, limit: number = 15): Promise<H1BJobTitleDistribution[]> {
+    return this.cachedByFilters('popular-jobs', filters, String(limit), () => this.computeMostPopularJobs(filters, limit));
+  }
+
+  async getWageLevelAnalysis(filters: H1BQueryFilters = {}): Promise<H1BWageLevelAnalysis> {
+    return this.cachedByFilters('wage-levels', filters, '', () => this.computeWageLevelAnalysis(filters));
+  }
+
+  async getTopCertifiedJobTitles(filters: H1BQueryFilters = {}, limit: number = 10): Promise<H1BJobTitleDistribution[]> {
+    return this.cachedByFilters('certified-jobs', filters, String(limit), () => this.computeTopCertifiedJobTitles(filters, limit));
+  }
+
+  /**
    * Build WHERE clause for filters
    */
   private buildWhereClause(filters: H1BQueryFilters = {}): { whereClause: string; params: any } {
@@ -185,7 +252,7 @@ export class H1BBigQueryService {
   /**
    * Get aggregated H1B data for dashboard
    */
-  async getH1BDashboardData(filters: H1BQueryFilters = {}): Promise<H1BAggregatedData> {
+  private async computeH1BDashboardData(filters: H1BQueryFilters = {}): Promise<H1BAggregatedData> {
     const { whereClause, params } = this.buildWhereClause(filters);
 
     // Main aggregation query - split into separate queries to avoid DISTINCT+ORDER BY conflicts
@@ -725,17 +792,17 @@ export class H1BBigQueryService {
         [industryDistResults],
         [attorneyResults],
       ] = await Promise.all([
-        this.bigquery.query({ query: mainQuery, params }),
-        this.bigquery.query({ query: distinctCountsQuery, params }),
-        this.bigquery.query({ query: medianSalaryQuery, params }),
-        this.bigquery.query({ query: employersQuery, params }),
-        this.bigquery.query({ query: salaryDistQuery, params }),
-        this.bigquery.query({ query: yearlyTrendsQuery }),
-        this.bigquery.query({ query: stateDistQuery, params }),
-        this.bigquery.query({ query: mostAppliedJobQuery, params }),
-        this.bigquery.query({ query: jobTitleDistQuery, params }),
-        this.bigquery.query({ query: industryDistQuery, params }),
-        this.bigquery.query({ query: attorneysQuery, params }),
+        this.runQuery({ query: mainQuery, params }),
+        this.runQuery({ query: distinctCountsQuery, params }),
+        this.runQuery({ query: medianSalaryQuery, params }),
+        this.runQuery({ query: employersQuery, params }),
+        this.runQuery({ query: salaryDistQuery, params }),
+        this.runQuery({ query: yearlyTrendsQuery }),
+        this.runQuery({ query: stateDistQuery, params }),
+        this.runQuery({ query: mostAppliedJobQuery, params }),
+        this.runQuery({ query: jobTitleDistQuery, params }),
+        this.runQuery({ query: industryDistQuery, params }),
+        this.runQuery({ query: attorneysQuery, params }),
       ]);
 
       // Process results
@@ -848,7 +915,7 @@ export class H1BBigQueryService {
   /**
    * Get top law firms (grouped by firm instead of individual attorneys)
    */
-  async getTopLawFirms(filters: H1BQueryFilters = {}, limit: number = 15): Promise<H1BLawFirm[]> {
+  private async computeTopLawFirms(filters: H1BQueryFilters = {}, limit: number = 15): Promise<H1BLawFirm[]> {
     const { whereClause, params } = this.buildWhereClause(filters);
 
     const topLawFirmsQuery = `
@@ -900,7 +967,7 @@ export class H1BBigQueryService {
     `;
 
     try {
-      const [results] = await this.bigquery.query({ 
+      const [results] = await this.runQuery({ 
         query: topLawFirmsQuery, 
         params: { ...params, limit }, 
       });
@@ -927,7 +994,7 @@ export class H1BBigQueryService {
   /**
    * Get filter options for the dashboard
    */
-  async getFilterOptions(): Promise<H1BFilterOptions> {
+  private async computeFilterOptions(): Promise<H1BFilterOptions> {
     const fiscalYearsQuery = `
       SELECT DISTINCT
         CASE 
@@ -963,9 +1030,9 @@ export class H1BBigQueryService {
         [stateResults], 
         [jobCategoryResults],
       ] = await Promise.all([
-        this.bigquery.query(fiscalYearsQuery),
-        this.bigquery.query(statesQuery),
-        this.bigquery.query(jobCategoriesQuery),
+        this.runQuery(fiscalYearsQuery),
+        this.runQuery(statesQuery),
+        this.runQuery(jobCategoriesQuery),
       ]);
 
       return {
@@ -1040,11 +1107,11 @@ export class H1BBigQueryService {
 
     try {
       const queries = [
-        this.bigquery.query({
+        this.runQuery({
           query: jobTitleQuery,
           params: { query: `%${lowerQuery}%`, limit: Math.ceil(limit / 3) },
         }),
-        this.bigquery.query({
+        this.runQuery({
           query: employerQuery,
           params: { query: `%${lowerQuery}%`, limit: Math.ceil(limit / 3) },
         }),
@@ -1053,11 +1120,11 @@ export class H1BBigQueryService {
       // Add location queries only if query looks like a location
       if (lowerQuery.length >= 2) {
         queries.push(
-          this.bigquery.query({
+          this.runQuery({
             query: locationQuery,
             params: { query: `%${lowerQuery}%`, limit: Math.ceil(limit / 4) },
           }),
-          this.bigquery.query({
+          this.runQuery({
             query: cityQuery,
             params: { query: `%${lowerQuery}%`, limit: Math.ceil(limit / 4) },
           }),
@@ -1146,7 +1213,7 @@ export class H1BBigQueryService {
         LIMIT 1
       `;
 
-      const [normalizedResults] = await this.bigquery.query({
+      const [normalizedResults] = await this.runQuery({
         query: normalizedQuery,
         params: { normalizedSearch },
       });
@@ -1166,7 +1233,7 @@ export class H1BBigQueryService {
     `;
 
     // Try exact match first
-    const [exactResults] = await this.bigquery.query({
+    const [exactResults] = await this.runQuery({
       query: searchQuery,
       params: { searchPattern: `%${searchName}%` },
     });
@@ -1191,7 +1258,7 @@ export class H1BBigQueryService {
     // Create regex pattern to match company name with variations
     const regexPattern = `\\b${searchName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`;
 
-    const [fuzzyResults] = await this.bigquery.query({
+    const [fuzzyResults] = await this.runQuery({
       query: fuzzyQuery,
       params: {
         searchPattern: `%${searchName}%`,
@@ -1432,11 +1499,11 @@ export class H1BBigQueryService {
       `;
 
       const [basicStats, topStates, topJobTitles, yearlyTrends, salaryDistribution] = await Promise.all([
-        this.bigquery.query({ query: basicStatsQuery, params: { companyName: actualCompanyName } }),
-        this.bigquery.query({ query: topStatesQuery, params: { companyName: actualCompanyName } }),
-        this.bigquery.query({ query: topJobTitlesQuery, params: { companyName: actualCompanyName } }),
-        this.bigquery.query({ query: yearlyTrendsQuery, params: { companyName: actualCompanyName } }),
-        this.bigquery.query({ query: salaryDistributionQuery, params: { companyName: actualCompanyName } }),
+        this.runQuery({ query: basicStatsQuery, params: { companyName: actualCompanyName } }),
+        this.runQuery({ query: topStatesQuery, params: { companyName: actualCompanyName } }),
+        this.runQuery({ query: topJobTitlesQuery, params: { companyName: actualCompanyName } }),
+        this.runQuery({ query: yearlyTrendsQuery, params: { companyName: actualCompanyName } }),
+        this.runQuery({ query: salaryDistributionQuery, params: { companyName: actualCompanyName } }),
       ]);
 
       const stats = basicStats[0][0] || {};
@@ -1797,14 +1864,14 @@ export class H1BBigQueryService {
       `;
 
       const [basicStats, topEmployers, topStates, yearlyTrends, salaryDistribution, wageLevelAnalysis, requirementsAnalysis, uniqueEmployersResult] = await Promise.all([
-        this.bigquery.query({ query: basicStatsQuery, params: { jobTitle } }),
-        this.bigquery.query({ query: topEmployersQuery, params: { jobTitle } }),
-        this.bigquery.query({ query: topStatesQuery, params: { jobTitle } }),
-        this.bigquery.query({ query: yearlyTrendsQuery, params: { jobTitle } }),
-        this.bigquery.query({ query: salaryDistributionQuery, params: { jobTitle } }),
-        this.bigquery.query({ query: wageLevelAnalysisQuery, params: { jobTitle } }),
-        this.bigquery.query({ query: requirementsAnalysisQuery, params: { jobTitle } }),
-        this.bigquery.query({ query: uniqueEmployersQuery, params: { jobTitle } }),
+        this.runQuery({ query: basicStatsQuery, params: { jobTitle } }),
+        this.runQuery({ query: topEmployersQuery, params: { jobTitle } }),
+        this.runQuery({ query: topStatesQuery, params: { jobTitle } }),
+        this.runQuery({ query: yearlyTrendsQuery, params: { jobTitle } }),
+        this.runQuery({ query: salaryDistributionQuery, params: { jobTitle } }),
+        this.runQuery({ query: wageLevelAnalysisQuery, params: { jobTitle } }),
+        this.runQuery({ query: requirementsAnalysisQuery, params: { jobTitle } }),
+        this.runQuery({ query: uniqueEmployersQuery, params: { jobTitle } }),
       ]);
 
       const stats = basicStats[0][0] || {};
@@ -2125,23 +2192,23 @@ export class H1BBigQueryService {
 
       // Execute all queries concurrently
       const [basicStats, topEmployers, topJobTitles, yearlyTrends, salaryDistribution] = await Promise.all([
-        this.bigquery.query({
+        this.runQuery({
           query: basicStatsQuery,
           params: { cityName, stateName },
         }),
-        this.bigquery.query({
+        this.runQuery({
           query: topEmployersQuery,
           params: { cityName, stateName },
         }),
-        this.bigquery.query({
+        this.runQuery({
           query: topJobTitlesQuery,
           params: { cityName, stateName },
         }),
-        this.bigquery.query({
+        this.runQuery({
           query: yearlyTrendsQuery,
           params: { cityName, stateName },
         }),
-        this.bigquery.query({
+        this.runQuery({
           query: salaryDistributionQuery,
           params: { cityName, stateName },
         }),
@@ -2177,7 +2244,7 @@ export class H1BBigQueryService {
         params: { cityName, stateName },
       };
 
-      const [monthlyRows] = await this.bigquery.query(monthlyOptions);
+      const [monthlyRows] = await this.runQuery(monthlyOptions);
       const recentActivity = monthlyRows.map((row: any) => ({
         month: row.month,
         applications: parseInt(row.applications),
@@ -2493,13 +2560,13 @@ export class H1BBigQueryService {
       `;
 
       const [basicStats, topEmployers, topCities, topJobTitles, yearlyTrends, salaryDistribution, recentActivity] = await Promise.all([
-        this.bigquery.query({ query: basicStatsQuery, params: { stateName } }),
-        this.bigquery.query({ query: topEmployersQuery, params: { stateName } }),
-        this.bigquery.query({ query: topCitiesQuery, params: { stateName } }),
-        this.bigquery.query({ query: topJobTitlesQuery, params: { stateName } }),
-        this.bigquery.query({ query: yearlyTrendsQuery, params: { stateName } }),
-        this.bigquery.query({ query: salaryDistributionQuery, params: { stateName } }),
-        this.bigquery.query({ query: recentActivityQuery, params: { stateName } }),
+        this.runQuery({ query: basicStatsQuery, params: { stateName } }),
+        this.runQuery({ query: topEmployersQuery, params: { stateName } }),
+        this.runQuery({ query: topCitiesQuery, params: { stateName } }),
+        this.runQuery({ query: topJobTitlesQuery, params: { stateName } }),
+        this.runQuery({ query: yearlyTrendsQuery, params: { stateName } }),
+        this.runQuery({ query: salaryDistributionQuery, params: { stateName } }),
+        this.runQuery({ query: recentActivityQuery, params: { stateName } }),
       ]);
 
       const stats = basicStats[0][0];
@@ -2896,12 +2963,12 @@ export class H1BBigQueryService {
       }
 
       const [mainStats, topEmployers, topStates, topJobCategories, yearlyTrends, salaryDistribution] = await Promise.all([
-        this.bigquery.query({ query: mainQuery, params }),
-        this.bigquery.query({ query: topEmployersQuery, params }),
-        this.bigquery.query({ query: topStatesQuery, params }),
-        this.bigquery.query({ query: topJobCategoriesQuery, params }),
-        this.bigquery.query({ query: yearlyTrendsQuery, params }),
-        this.bigquery.query({ query: salaryDistributionQuery, params }),
+        this.runQuery({ query: mainQuery, params }),
+        this.runQuery({ query: topEmployersQuery, params }),
+        this.runQuery({ query: topStatesQuery, params }),
+        this.runQuery({ query: topJobCategoriesQuery, params }),
+        this.runQuery({ query: yearlyTrendsQuery, params }),
+        this.runQuery({ query: salaryDistributionQuery, params }),
       ]);
 
       if (!mainStats[0] || mainStats[0].length === 0) {
@@ -2996,7 +3063,7 @@ export class H1BBigQueryService {
   /**
    * Get most popular job titles sorted by application count (for hero sections)
    */
-  async getMostPopularJobs(filters: H1BQueryFilters = {}, limit: number = 15): Promise<H1BJobTitleDistribution[]> {
+  private async computeMostPopularJobs(filters: H1BQueryFilters = {}, limit: number = 15): Promise<H1BJobTitleDistribution[]> {
     try {
       const startTime = Date.now();
       const { whereClause, params } = this.buildWhereClause(filters);
@@ -3074,7 +3141,7 @@ export class H1BBigQueryService {
 
       console.log(`[DEBUG] Executing popular jobs query with filters:`, filters);
       
-      const [results] = await this.bigquery.query({
+      const [results] = await this.runQuery({
         query: popularJobsQuery,
         params,
       });
@@ -3106,7 +3173,7 @@ export class H1BBigQueryService {
    * Get comprehensive wage level analysis for H1B applications
    * Provides distribution, success rates, and salary insights for government wage levels (I-IV)
    */
-  async getWageLevelAnalysis(filters: H1BQueryFilters = {}): Promise<H1BWageLevelAnalysis> {
+  private async computeWageLevelAnalysis(filters: H1BQueryFilters = {}): Promise<H1BWageLevelAnalysis> {
     try {
       console.log('Fetching wage level analysis with filters:', filters);
       
@@ -3192,7 +3259,7 @@ export class H1BBigQueryService {
         params: params,
       };
 
-      const [results] = await this.bigquery.query(queryOptions);
+      const [results] = await this.runQuery(queryOptions);
       
       if (!results || results.length === 0) {
         console.warn('No wage level data found');
@@ -3289,7 +3356,7 @@ export class H1BBigQueryService {
   /**
    * Get job titles with highest certification rates
    */
-  async getTopCertifiedJobTitles(filters: H1BQueryFilters = {}, limit: number = 10): Promise<H1BJobTitleDistribution[]> {
+  private async computeTopCertifiedJobTitles(filters: H1BQueryFilters = {}, limit: number = 10): Promise<H1BJobTitleDistribution[]> {
     try {
       const startTime = Date.now();
       console.log(`[DEBUG] Starting getTopCertifiedJobTitles with limit: ${limit}`);
@@ -3346,7 +3413,7 @@ export class H1BBigQueryService {
 
       console.log(`[DEBUG] Executing certified jobs query with filters:`, filters);
       
-      const [results] = await this.bigquery.query({
+      const [results] = await this.runQuery({
         query: certifiedJobsQuery,
         params,
       });

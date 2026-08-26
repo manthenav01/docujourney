@@ -1,11 +1,13 @@
 import { cache } from 'react';
 import { BigQuery } from '@google-cloud/bigquery';
 import { bigQueryConfig } from '@/lib/config';
+import { getCompanyPayload, getJobPayload, getAllStatePayloads } from '@/lib/aggEntities';
+import { MAX_BYTES_AGG } from '@/lib/bqCache';
 
 // Server-side data for SEO pages, read from the pre-built aggregate tables
-// (scripts/build_aggregates.py) instead of scanning the 3GB raw table:
-// a slug lookup here touches kilobytes, so crawling every entity page daily
-// costs effectively nothing against the BigQuery free tier.
+// (scripts/build_aggregates.py) via the shard-batched data cache in
+// aggEntities — a slug lookup costs a data-cache read, and BigQuery is only
+// touched when a whole shard (~1000 entities) is cold.
 //
 // Shared between generateMetadata() and the page body via React cache() so
 // each request runs at most one lookup per entity.
@@ -60,25 +62,19 @@ export interface SEOLookup<T> {
 export const getCompanySEOData = cache(
   async (slug: string): Promise<SEOLookup<CompanySEOSummary>> => {
     try {
-      const [rows] = await client().query({
-        query: `
-          SELECT * FROM \`${bigQueryConfig.projectId}.h1b_data.agg_company_summary\`
-          WHERE slug = @slug LIMIT 1`,
-        params: { slug },
-      });
-      if (!rows.length || !rows[0].total_applications) {return { data: null, lookupFailed: false };}
-      const r = rows[0];
+      const p = await getCompanyPayload(slug);
+      if (!p || !num(p.totalApplications)) {return { data: null, lookupFailed: false };}
       const data: CompanySEOSummary = {
-        name: r.employer_name,
-        totalApplications: num(r.total_applications),
-        certifiedApplications: num(r.certified_applications),
-        avgSalary: num(r.avg_salary),
-        medianSalary: num(r.median_salary),
-        minSalary: num(r.min_salary),
-        maxSalary: num(r.max_salary),
-        uniqueJobTitles: num(r.unique_job_titles),
-        topStates: (r.top_states || []).map((s: any) => ({ state: s.state, applications: num(s.applications) })),
-        topJobTitles: (r.top_job_titles || []).map((t: any) => ({
+        name: p.name,
+        totalApplications: num(p.totalApplications),
+        certifiedApplications: num(p.certifiedApplications),
+        avgSalary: num(p.avgSalary),
+        medianSalary: num(p.medianSalary),
+        minSalary: num(p.minSalary),
+        maxSalary: num(p.maxSalary),
+        uniqueJobTitles: num(p.uniqueJobTitles),
+        topStates: (p.topStates || []).map((s: any) => ({ state: s.state, applications: num(s.applications) })),
+        topJobTitles: (p.topJobTitlesByVolume || []).map((t: any) => ({
           jobTitle: t.job_title, applications: num(t.applications), avgSalary: num(t.avg_salary),
         })),
       };
@@ -93,26 +89,20 @@ export const getCompanySEOData = cache(
 export const getJobSEOData = cache(
   async (slug: string): Promise<SEOLookup<JobSEOSummary>> => {
     try {
-      const [rows] = await client().query({
-        query: `
-          SELECT * FROM \`${bigQueryConfig.projectId}.h1b_data.agg_job_summary\`
-          WHERE slug = @slug LIMIT 1`,
-        params: { slug },
-      });
-      if (!rows.length || !rows[0].total_applications) {return { data: null, lookupFailed: false };}
-      const r = rows[0];
+      const p = await getJobPayload(slug);
+      if (!p || !num(p.totalApplications)) {return { data: null, lookupFailed: false };}
       const data: JobSEOSummary = {
-        title: r.job_title,
-        totalApplications: num(r.total_applications),
-        certifiedApplications: num(r.certified_applications),
-        avgSalary: num(r.avg_salary),
-        medianSalary: num(r.median_salary),
-        minSalary: num(r.min_salary),
-        maxSalary: num(r.max_salary),
-        uniqueEmployers: num(r.unique_employers),
-        topStates: (r.top_states || []).map((s: any) => ({ state: s.state, applications: num(s.applications) })),
-        topEmployers: (r.top_employers || []).map((e: any) => ({
-          employer: e.employer, applications: num(e.applications), avgSalary: num(e.avg_salary),
+        title: p.title,
+        totalApplications: num(p.totalApplications),
+        certifiedApplications: num(p.certifiedApplications),
+        avgSalary: num(p.avgSalary),
+        medianSalary: num(p.medianSalary),
+        minSalary: num(p.minSalary),
+        maxSalary: num(p.maxSalary),
+        uniqueEmployers: num(p.uniqueEmployers),
+        topStates: (p.topStates || []).map((s: any) => ({ state: s.state, applications: num(s.applications) })),
+        topEmployers: (p.topEmployers || []).map((e: any) => ({
+          employer: e.employer, applications: num(e.applications), avgSalary: num(e.avgSalary),
         })),
       };
       return { data, lookupFailed: false };
@@ -134,6 +124,7 @@ export async function getTopSlugs(
       query: `
         SELECT slug FROM \`${bigQueryConfig.projectId}.h1b_data.${table}\`
         ORDER BY total_applications DESC LIMIT ${Math.min(limit, 1000)}`,
+      maximumBytesBilled: MAX_BYTES_AGG,
     });
     return rows.map((r: any) => r.slug).filter(Boolean);
   } catch (error) {
@@ -150,39 +141,19 @@ export interface StateSEOSummary {
 }
 
 // All states with filing counts, for the locations directory page.
-// One grouped scan over the raw table, cached by ISR (page revalidates daily).
+// Served from agg_state_summary via the cached whole-table fetch.
 export const getStateSEOData = cache(
   async (): Promise<StateSEOSummary[]> => {
     try {
-      const [rows] = await client().query({
-        query: `
-          SELECT
-            UPPER(TRIM(worksite_state)) AS state,
-            COUNT(*) AS applications,
-            COUNTIF(case_status = 'Certified') AS certified,
-            AVG(CASE WHEN (CASE wage_unit_of_pay
-                  WHEN 'Hour' THEN wage_rate_of_pay_from * 2080
-                  WHEN 'Week' THEN wage_rate_of_pay_from * 52
-                  WHEN 'Month' THEN wage_rate_of_pay_from * 12
-                  WHEN 'Bi-Weekly' THEN wage_rate_of_pay_from * 26
-                  ELSE wage_rate_of_pay_from END) BETWEEN 30000 AND 900000
-                THEN (CASE wage_unit_of_pay
-                  WHEN 'Hour' THEN wage_rate_of_pay_from * 2080
-                  WHEN 'Week' THEN wage_rate_of_pay_from * 52
-                  WHEN 'Month' THEN wage_rate_of_pay_from * 12
-                  WHEN 'Bi-Weekly' THEN wage_rate_of_pay_from * 26
-                  ELSE wage_rate_of_pay_from END) END) AS avg_salary
-          FROM \`${bigQueryConfig.projectId}.h1b_data.lca_applications\`
-          WHERE worksite_state IS NOT NULL AND TRIM(worksite_state) != ''
-          GROUP BY state
-          ORDER BY applications DESC`,
-      });
-      return rows.map((r: any) => ({
-        state: r.state,
-        applications: num(r.applications),
-        certifiedApplications: num(r.certified),
-        avgSalary: num(r.avg_salary),
-      }));
+      const payloads = await getAllStatePayloads();
+      return payloads
+        .map((p: any) => ({
+          state: p.state,
+          applications: num(p.totalApplications),
+          certifiedApplications: num(p.certifiedApplications),
+          avgSalary: num(p.seoAvgSalary),
+        }))
+        .sort((a, b) => b.applications - a.applications);
     } catch (error) {
       console.error('SEO data fetch failed for states:', error);
       return [];

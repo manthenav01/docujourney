@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createH1BBigQueryService } from '@/lib/h1bBigQueryService';
+import { getAttorneyAnalysisFromAgg } from '@/lib/aggEntities';
 import { ValidationError, createServiceError } from '@/lib/validation';
 import { H1BApiResponse, H1BAttorneyAnalysis } from '@/lib/types';
 
@@ -14,7 +14,6 @@ export async function GET(request: NextRequest): Promise<NextResponse<H1BApiResp
   
   try {
     // Initialize BigQuery service at runtime
-    const bigQueryService = createH1BBigQueryService();
     
     if (!attorneyName) {
       const errorResponse: H1BApiResponse<H1BAttorneyAnalysis> = {
@@ -30,7 +29,7 @@ export async function GET(request: NextRequest): Promise<NextResponse<H1BApiResp
     console.log('Fetching attorney data for:', { attorneyName, lawFirm });
     
     // Fetch real data from BigQuery
-    const attorneyData = await bigQueryService.getAttorneyAnalysis(attorneyName, lawFirm || undefined);
+    const attorneyData = await getAttorneyAnalysisFromAgg(attorneyName, lawFirm || undefined);
     
     const queryTime = Date.now() - startTime;
     console.log('Attorney data fetched successfully:', {

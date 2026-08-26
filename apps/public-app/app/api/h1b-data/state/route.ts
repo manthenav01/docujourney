@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createH1BBigQueryService } from '@/lib/h1bBigQueryService';
+import { getStateAnalysisFromAgg } from '@/lib/aggEntities';
 import { H1BStateAnalysis, H1BApiResponse } from '@/lib/types';
 
 export async function GET(request: NextRequest) {
@@ -24,8 +24,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json(errorResponse, { status: 400 });
     }
 
-    const bigQueryService = createH1BBigQueryService();
-    const stateAnalysis: H1BStateAnalysis = await bigQueryService.getStateAnalysis(state);
+    const stateAnalysis: H1BStateAnalysis = await getStateAnalysisFromAgg(state);
 
     const queryTime = Date.now() - queryStartTime;
     

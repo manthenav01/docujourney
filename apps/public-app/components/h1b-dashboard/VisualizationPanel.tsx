@@ -30,7 +30,10 @@ const VisualizationPanelComponent: React.FC<VisualizationPanelProps> = ({
     }
     
     return {
-      fiscalYears: filters.fiscalYears || [],
+      // Dashboard FilterState carries a single fiscalYear string; contextual
+      // dashboards pass fiscalYears arrays. Accept both so the year chips
+      // actually reach the wage-level and certified-jobs cards.
+      fiscalYears: filters.fiscalYears || (filters.fiscalYear ? [filters.fiscalYear] : []),
       states: filters.states || [],
       salaryRange: filters.salaryRange || [0, 1000000],
       jobCategories: filters.jobCategories || [],

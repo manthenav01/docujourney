@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createH1BBigQueryService } from '@/lib/h1bBigQueryService';
+import { getCompanyAnalysisFromAgg } from '@/lib/aggEntities';
 import { ValidationError, createServiceError } from '@/lib/validation';
 import { H1BApiResponse, H1BCompanyAnalysis } from '@/lib/types';
 
@@ -9,8 +9,6 @@ export async function GET(request: NextRequest): Promise<NextResponse<H1BApiResp
   const startTime = Date.now();
   
   try {
-    // Initialize BigQuery service at runtime
-    const bigQueryService = createH1BBigQueryService();
     
     const { searchParams } = new URL(request.url);
     const companyName = searchParams.get('name');
@@ -27,7 +25,7 @@ export async function GET(request: NextRequest): Promise<NextResponse<H1BApiResp
     }
     
     console.log('Fetching company data for:', { companyName });
-    const companyData = await bigQueryService.getCompanyAnalysis(companyName);
+    const companyData = await getCompanyAnalysisFromAgg(companyName);
     
     const queryTime = Date.now() - startTime;
     console.log('Company data fetched successfully:', {

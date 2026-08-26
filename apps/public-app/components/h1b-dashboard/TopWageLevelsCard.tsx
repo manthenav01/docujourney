@@ -85,6 +85,11 @@ export function TopWageLevelsCard({ filters, loading }: TopWageLevelsCardProps) 
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    // Skeleton-phase renders pass loading={true} with no filters; fetching
+    // then would fire a second, differently-keyed request per page view.
+    if (loading) {
+      return;
+    }
     const fetchWageLevelData = async () => {
       try {
         setIsLoading(true);
@@ -134,7 +139,7 @@ export function TopWageLevelsCard({ filters, loading }: TopWageLevelsCardProps) 
     };
 
     fetchWageLevelData();
-  }, [filters]);
+  }, [filters, loading]);
 
   const handleWageLevelClick = (level: string) => {
     // Navigate to detailed wage level analysis page (future enhancement)

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { revalidatePath } from 'next/cache';
+import { revalidatePath, revalidateTag } from 'next/cache';
 import { timingSafeEqual } from 'node:crypto';
 
 // On-demand revalidation for the whole data surface.
@@ -62,6 +62,12 @@ export async function POST(req: NextRequest) {
     revalidatePath(path, type);
     revalidated.push(path);
   }
+
+  // Every BigQuery-backed data-cache entry (dashboard bundles, entity shard
+  // payloads, autocomplete) carries the 'bq' tag; new quarterly data must
+  // invalidate them or pages would serve month-old cached numbers.
+  revalidateTag('bq');
+  revalidated.push('tag:bq');
 
   return NextResponse.json({ revalidated, count: revalidated.length });
 }

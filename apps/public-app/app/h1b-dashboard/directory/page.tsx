@@ -2,6 +2,11 @@ import { Metadata } from 'next';
 import Link from 'next/link';
 import { Card, CardContent, CardHeader, CardTitle } from '@docujourney/ui';
 import { Building2, Briefcase, MapPin, Scale } from 'lucide-react';
+import { createH1BBigQueryService } from '@/lib/h1bBigQueryService';
+
+// Content only changes with quarterly DOL loads; freshness comes from
+// POST /api/revalidate after each load.
+export const revalidate = 2592000;
 
 interface Company {
   name: string;
@@ -44,53 +49,34 @@ export const metadata: Metadata = {
   },
 };
 
-async function fetchTopCompanies(): Promise<Company[]> {
+async function fetchDirectoryData(): Promise<{ topCompanies: Company[]; topJobs: Job[] }> {
   try {
-    const response = await fetch(`${process.env.NEXT_PUBLIC_APP_URL || 'https://www.usimmigrantcentral.com'}/api/h1b-data?category=topEmployers&limit=50`);
-    if (!response.ok) {
-      return [];
-    }
-    
-    const data = await response.json();
-    return (data.data?.topEmployers || [])
-      .filter((company: any) => company.employer_name && typeof company.employer_name === 'string')
-      .map((company: any) => ({
-        name: company.employer_name,
-        slug: company.employer_name.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
+    // One call against the cached dashboard bundle instead of two identical
+    // uncached self-fetches (which each ran the full 11-query aggregation).
+    const data = await createH1BBigQueryService().getH1BDashboardData({});
+    const topCompanies = (data.topEmployers || [])
+      .filter(company => company.employer && typeof company.employer === 'string')
+      .map(company => ({
+        name: company.employer,
+        slug: company.employer.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
         applications: company.applications || 0,
       }));
-  } catch (error) {
-    console.error('Error fetching companies:', error);
-    return [];
-  }
-}
-
-async function fetchTopJobs(): Promise<Job[]> {
-  try {
-    const response = await fetch(`${process.env.NEXT_PUBLIC_APP_URL || 'https://www.usimmigrantcentral.com'}/api/h1b-data`);
-    if (!response.ok) {
-      return [];
-    }
-    
-    const data = await response.json();
-    return (data.data?.jobTitleDistribution || [])
-      .filter((job: any) => job.jobTitle && typeof job.jobTitle === 'string')
-      .map((job: any) => ({
+    const topJobs = (data.jobTitleDistribution || [])
+      .filter(job => job.jobTitle && typeof job.jobTitle === 'string')
+      .map(job => ({
         title: job.jobTitle,
         slug: job.jobTitle.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
         applications: job.applications || 0,
       }));
+    return { topCompanies, topJobs };
   } catch (error) {
-    console.error('Error fetching jobs:', error);
-    return [];
+    console.error('Error fetching directory data:', error);
+    return { topCompanies: [], topJobs: [] };
   }
 }
 
 export default async function DirectoryPage() {
-  const [topCompanies, topJobs] = await Promise.all([
-    fetchTopCompanies(),
-    fetchTopJobs(),
-  ]);
+  const { topCompanies, topJobs } = await fetchDirectoryData();
 
   const majorStates = [
     { name: 'California', slug: 'california', code: 'CA' },

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { BigQuery } from '@google-cloud/bigquery';
 import { bigQueryConfig } from '@/lib/config';
+import { bqCached, MAX_BYTES_AGG } from '@/lib/bqCache';
 
 // Autocomplete backed by the pre-built agg_search_index table (~13MB) instead
 // of four LIKE scans over the 3GB raw table per keystroke. Responses are
@@ -41,28 +42,33 @@ async function handleAutocomplete(searchParams: URLSearchParams) {
   const q = partialQuery.toLowerCase().trim();
 
   try {
-    const bigquery = new BigQuery({
-      projectId: bigQueryConfig.projectId,
-      credentials: bigQueryConfig.credentials,
-    });
+    // Suggestions for one query string are identical for every visitor, and
+    // keystroke prefixes repeat massively across users — cache per string.
+    const suggestions = await bqCached(['ac', q.slice(0, 40), String(limit)], async () => {
+      const bigquery = new BigQuery({
+        projectId: bigQueryConfig.projectId,
+        credentials: bigQueryConfig.credentials,
+      });
 
-    // Prefix matches first (what autocomplete users expect), then substring
-    // matches, each ranked by application volume.
-    const [rows] = await bigquery.query({
-      query: `
-        SELECT text, type, score
-        FROM \`${bigQueryConfig.projectId}.h1b_data.agg_search_index\`
-        WHERE STARTS_WITH(text_lower, @q) OR CONTAINS_SUBSTR(text_lower, @q)
-        ORDER BY STARTS_WITH(text_lower, @q) DESC, score DESC
-        LIMIT @limit`,
-      params: { q, limit },
-    });
+      // Prefix matches first (what autocomplete users expect), then substring
+      // matches, each ranked by application volume.
+      const [rows] = await bigquery.query({
+        query: `
+          SELECT text, type, score
+          FROM \`${bigQueryConfig.projectId}.h1b_data.agg_search_index\`
+          WHERE STARTS_WITH(text_lower, @q) OR CONTAINS_SUBSTR(text_lower, @q)
+          ORDER BY STARTS_WITH(text_lower, @q) DESC, score DESC
+          LIMIT @limit`,
+        params: { q, limit },
+        maximumBytesBilled: MAX_BYTES_AGG,
+      });
 
-    const suggestions = rows.map((row: any) => ({
-      text: row.text,
-      type: row.type,
-      count: Number(row.score) || 0,
-    }));
+      return rows.map((row: any) => ({
+        text: row.text,
+        type: row.type,
+        count: Number(row.score) || 0,
+      }));
+    });
 
     return NextResponse.json(
       {

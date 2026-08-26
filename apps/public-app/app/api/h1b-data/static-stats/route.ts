@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { BigQuery } from '@google-cloud/bigquery';
 import { bigQueryConfig } from '@/lib/config';
+import { bqCached, MAX_BYTES_RAW } from '@/lib/bqCache';
 
 // Use static values for Next.js config
 export const revalidate = 86400; // 24 hours cache
@@ -26,8 +27,7 @@ interface StaticStatsResponse {
   totalApplications: number;
 }
 
-export async function GET(): Promise<NextResponse<StaticStatsResponse | { error: string }>> {
-  try {
+async function computeStaticStats(): Promise<StaticStatsResponse> {
     console.log('🔄 Fetching static stats for SSG...');
     console.log('🔍 Using BigQuery config:', {
       projectId: bigQueryConfig.projectId,
@@ -159,11 +159,11 @@ export async function GET(): Promise<NextResponse<StaticStatsResponse | { error:
     // Execute queries
     const [industryResults, totalResults, newSponsorsResults, highApprovalResults, salaryGrowthResults] = 
       await Promise.all([
-        bigquery.query(industryQuery),
-        bigquery.query(totalQuery),
-        bigquery.query(newSponsorsQuery),
-        bigquery.query(highApprovalQuery),
-        bigquery.query(salaryGrowthQuery),
+        bigquery.query({ query: industryQuery, maximumBytesBilled: MAX_BYTES_RAW }),
+        bigquery.query({ query: totalQuery, maximumBytesBilled: MAX_BYTES_RAW }),
+        bigquery.query({ query: newSponsorsQuery, maximumBytesBilled: MAX_BYTES_RAW }),
+        bigquery.query({ query: highApprovalQuery, maximumBytesBilled: MAX_BYTES_RAW }),
+        bigquery.query({ query: salaryGrowthQuery, maximumBytesBilled: MAX_BYTES_RAW }),
       ]);
 
     const totalApplications = totalResults[0][0]?.total_applications || 0;
@@ -216,6 +216,13 @@ export async function GET(): Promise<NextResponse<StaticStatsResponse | { error:
       insightsCount: insights.length,
     });
 
+    return response;
+}
+
+export async function GET(): Promise<NextResponse<StaticStatsResponse | { error: string }>> {
+  try {
+    const response = await bqCached(['static-stats'], computeStaticStats);
+
     // Check if we're in development mode
     const isDevelopment = process.env.NODE_ENV === 'development' || 
                           process.env.VERCEL_ENV === 'development' ||
@@ -224,10 +231,6 @@ export async function GET(): Promise<NextResponse<StaticStatsResponse | { error:
     const cacheControl = isDevelopment
       ? 'no-store, no-cache, must-revalidate' // No cache in dev
       : 'public, s-maxage=86400, stale-while-revalidate=604800'; // 5 min cache in prod
-    
-    if (isDevelopment) {
-      console.log('🔧 Development mode: Cache disabled for static-stats');
-    }
     
     return NextResponse.json(response, {
       headers: {

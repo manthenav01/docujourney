@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createH1BBigQueryService } from '@/lib/h1bBigQueryService';
+import { getCityAnalysisFromAgg } from '@/lib/aggEntities';
 import { ValidationError, createServiceError } from '@/lib/validation';
 import { H1BApiResponse, H1BCityAnalysis } from '@/lib/types';
 import { getStateAbbreviation } from '@/lib/utils/stateUtils';
@@ -11,7 +11,6 @@ export async function GET(request: NextRequest): Promise<NextResponse<H1BApiResp
   
   try {
     // Initialize BigQuery service at runtime
-    const bigQueryService = createH1BBigQueryService();
     
     const { searchParams } = new URL(request.url);
     const cityName = searchParams.get('city');
@@ -32,7 +31,7 @@ export async function GET(request: NextRequest): Promise<NextResponse<H1BApiResp
     const stateAbbreviation = getStateAbbreviation(stateName);
     
     console.log('Fetching city data for:', { cityName, stateName, stateAbbreviation });
-    const cityData = await bigQueryService.getCityAnalysis(cityName, stateAbbreviation);
+    const cityData = await getCityAnalysisFromAgg(cityName, stateAbbreviation);
     
     const queryTime = Date.now() - startTime;
     console.log('City data fetched successfully:', {

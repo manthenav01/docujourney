@@ -2,6 +2,7 @@ import { FISCAL_YEAR_START } from '@docujourney/utils';
 import { NextRequest, NextResponse } from 'next/server';
 import { BigQuery } from '@google-cloud/bigquery';
 import { bigQueryConfig } from '@/lib/config';
+import { bqCached, MAX_BYTES_RAW } from '@/lib/bqCache';
 
 // Use static values for Next.js config
 export const revalidate = 3600;
@@ -59,6 +60,12 @@ export async function GET(request: NextRequest): Promise<NextResponse<PaginatedR
     
     console.log(`📄 Fetching sponsors page ${page} with limit ${limit}, search: '${search}', industry: '${industry}', state: '${state}'`);
 
+    // The unfiltered directory pages are what crawlers walk; cache those.
+    // Human-picked search/filter combinations run live under the byte cap.
+    const cacheable = !search && !industry && !state
+      && minSalary === undefined && maxSalary === undefined && page <= 50;
+
+    const buildResponse = async (): Promise<PaginatedResponse> => {
     // Create BigQuery client
     const bigquery = new BigQuery({
       projectId: bigQueryConfig.projectId,
@@ -196,8 +203,8 @@ export async function GET(request: NextRequest): Promise<NextResponse<PaginatedR
 
     // Execute queries in parallel
     const [countResults, sponsorsResults] = await Promise.all([
-      bigquery.query(countQuery),
-      bigquery.query(sponsorsQuery),
+      bigquery.query({ query: countQuery, maximumBytesBilled: MAX_BYTES_RAW }),
+      bigquery.query({ query: sponsorsQuery, maximumBytesBilled: MAX_BYTES_RAW }),
     ]);
 
     const totalCount = countResults[0][0]?.total_count || 0;
@@ -218,7 +225,7 @@ export async function GET(request: NextRequest): Promise<NextResponse<PaginatedR
       rank: parseInt(row.rank),
     }));
 
-    const response: PaginatedResponse = {
+    return {
       sponsors,
       pagination: {
         page,
@@ -233,8 +240,13 @@ export async function GET(request: NextRequest): Promise<NextResponse<PaginatedR
         source: 'BigQuery',
       },
     };
+    };
 
-    console.log(`✅ Successfully fetched ${sponsors.length} sponsors for page ${page}`);
+    const response = cacheable
+      ? await bqCached(['sponsors', String(page), String(limit), sortParam], buildResponse)
+      : await buildResponse();
+
+    console.log(`✅ Successfully fetched ${response.sponsors.length} sponsors for page ${page}`);
 
     // Check if we're in development mode - Next.js sets this
     const isDevelopment = process.env.NODE_ENV === 'development' || 
